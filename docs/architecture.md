@@ -48,8 +48,13 @@ Sources/
 | `icons` | id, hash (unique), mime_type, content (BLOB), external_id (random, for the public URL) |
 | `entries_fts` | FTS5 virtual table over `title`, `content_text`; synced by triggers |
 
-Indexes target hot paths: entries by `(feed_id, status)` and `(user_id, status, published_at)`;
-feeds by `next_check_at`; tombstones by `(feed_id, hash)`; FTS5 handles search.
+Categories own their feeds: deleting a category cascades to its feeds, and deleting a feed
+cascades to its entries, enclosures and tombstones (upstream parity).
+
+Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, published_at)`,
+`(user_id, status, created_at)` (retention) and `(user_id, status, starred)`; feeds by
+`next_check_at` and `(user_id, category_id)`; enclosures by `entry_id`; tombstones by
+`(feed_id, hash)` and `deleted_at`; FTS5 handles search.
 
 ## Decisions and deviations from Miniflux
 
@@ -66,6 +71,20 @@ feeds by `next_check_at`; tombstones by `(feed_id, hash)`; FTS5 handles search.
 | Config names | `LISTEN_ADDR`, `BASE_URL`, `LOG_LEVEL`, … | same where meaningful; `DATABASE_URL` = SQLite file path | Familiar to Miniflux users |
 | Web UI and REST v1 | full UI + REST v1 | none in MVP; REST subset later on demand | Focus on the client APIs that matter |
 
+## Configuration
+
+Environment parsing follows Miniflux (`internal/config/parser.go`): keys and values are trimmed;
+empty values fall back to the defaults — except `LOG_LEVEL`/`LOG_FORMAT`, whose choices are
+validated before the fallback (an empty value is an error, like upstream); booleans accept
+`1/yes/true/on` and `0/no/false/off` (case-insensitive). Deliberate differences:
+
+- `DATABASE_URL` is required, must be a SQLite file path and must not carry a URL scheme
+  (upstream ships a default PostgreSQL DSN).
+- `RUN_MIGRATIONS` defaults to `true` (upstream: `false`).
+- `LISTEN_ADDR` accepts a single TCP `host:port`; the upstream comma-separated list (including
+  Unix socket paths) is rejected with a clear error.
+- `LOG_LEVEL`/`LOG_FORMAT` matching is case-insensitive.
+
 ## Storage and concurrency
 
 - Swift 6 strict concurrency throughout; `async/await` end to end.
@@ -75,6 +94,16 @@ feeds by `next_check_at`; tombstones by `(feed_id, hash)`; FTS5 handles search.
   connection checkout (`busy_timeout`, `synchronous=NORMAL`; `journal_mode=WAL` once per file)
   and exposes `Database.withConnection` plus raw SQL via SQLKit. There is no `DatabasePool`
   type in FluentKit — pool configuration lives in `FluentSQLiteConfiguration`.
+- `SQLiteStorage.prepare()` enables `journal_mode=WAL`, verifies that SQLite accepted it, and
+  runs before migrations.
+- Schema-lookup pragmas (`index_info`, `table_info`, …) resolve against the connection's cached
+  schema and do not refresh it: a pooled connection that loaded its schema before the migration
+  (for example, the one that ran `journal_mode=WAL`) keeps seeing the old schema. Run an
+  ordinary statement first (or use a fresh connection) when such a pragma must observe the
+  current schema.
+- The driver keeps one pooled connection per event loop: `withConnection` bodies must not open
+  a nested checkout (repositories take the checked-out connection) — a nested checkout waits
+  for the pool and fails on the connection-pool timeout.
 - A feed refresh batches all its writes in one transaction; readers use separate connections.
 - The scheduler is an actor; long jobs (retention, vacuum) run off the request path.
 - WAL allows concurrent readers with a single writer; `busy_timeout` absorbs short lock

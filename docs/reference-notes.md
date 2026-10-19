@@ -4,6 +4,21 @@ Verified against the reference implementation: Miniflux **v2.3.3**, commit `c4d5
 (the local clone used during planning). These notes are the condensed spec the stage plans rely
 on. When in doubt, re-check the cited files in the reference clone.
 
+## Configuration parsing
+
+Source: `internal/config/parser.go`, `internal/config/options.go`.
+
+- Keys and values are trimmed, empty list items are dropped (`parseLines`,
+  `parseStringListValue`).
+- Empty values fall back to the option default — except options with a validator: validators
+  run before the fallback, so an empty `LOG_LEVEL`/`LOG_FORMAT` is an error.
+- Booleans: case-insensitive `1/yes/true/on` (true) and `0/no/false/off` (false); anything else
+  is an error.
+- `LISTEN_ADDR`: comma-separated list, items trimmed and deduplicated; Unix socket paths are
+  valid entries; default `127.0.0.1:8080`.
+- `BASE_URL`: must parse as an absolute URL; a single trailing slash is trimmed
+  (`strings.TrimSuffix`).
+
 ## Scheduling and refresh
 
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).

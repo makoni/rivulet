@@ -32,8 +32,8 @@ Rules:
 
 Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 
-- `TestDatabase.swift` — temp-file SQLite database (temp dir per test run), migrations applied,
-  wiped on teardown.
+- `TestDatabase.swift` — temp-file SQLite database in a temp dir per test; the schema migration
+  is registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
@@ -61,6 +61,8 @@ Each ported case carries a comment pointing to the original Go test (`internal/r
 - `swift test --filter RivuletIntegrationTests` — integration only.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are tagged and skipped by default;
   run them explicitly with `RIVULET_HEAVY=1 swift test --filter HeavyTests` (XCTSkipUnless-based).
+- A few storage tests need at least two event loops (one pooled connection per loop); they
+  `XCTSkipUnless` on single-loop runners. CI runners always expose ≥2 event loops.
 
 CI runs on Linux: `ubuntu-latest` with the `swift:latest` container and a 15-minute job timeout.
 Keep the default suite well under that. Stage 7 adds a cheap CI slice (reduced hostile corpus +
