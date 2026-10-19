@@ -103,7 +103,7 @@ import Testing
         }
     }
 
-    @Test func listReturnsEveryUserOrderedByID() async throws {
+    @Test func listReturnsEveryUserOrderedByUsername() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let users = UserRepository(connection)
@@ -112,7 +112,7 @@ import Testing
                 _ = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
 
                 let all = try await users.list()
-                #expect(all.map(\.username) == ["carol", "alice", "bob"])
+                #expect(all.map(\.username) == ["alice", "bob", "carol"])
             }
         }
     }

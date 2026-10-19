@@ -20,7 +20,8 @@ import Testing
                 #expect(stored?.mimeType == "image/png")
                 #expect(stored?.content == content)
                 let externalID = try #require(stored?.externalID)
-                #expect(!externalID.isEmpty)
+                #expect(externalID.count == 40)
+                #expect(externalID.allSatisfy { $0.isHexDigit })
                 #expect(try await icons.fetch(externalID: externalID)?.id == id)
             }
         }

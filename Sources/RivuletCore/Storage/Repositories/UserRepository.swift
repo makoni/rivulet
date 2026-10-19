@@ -17,8 +17,8 @@ public struct UserRepository {
     /// Creates a user with the integration credentials unset, together with
     /// the default "All" category (upstream parity: `CreateUser` creates the
     /// user and the category in one transaction; here they are two statements
-    /// on the checked-out connection — the repositories never open nested
-    /// transactions).
+    /// because the storage wrapper does not offer a multi-statement
+    /// transaction yet, and a repository must not open a nested connection).
     public func create(username: String, passwordHash: String, isAdmin: Bool) async throws -> User {
         let now = Int(Date.now.timeIntervalSince1970)
         let user = User()
@@ -46,8 +46,9 @@ public struct UserRepository {
         try await User.query(on: database).filter(\User.$username == username.lowercased()).first()
     }
 
-    /// Returns every user, ordered by id.
+    /// Returns every user, ordered by username (upstream parity:
+    /// `ORDER BY username ASC`).
     public func list() async throws -> [User] {
-        try await User.query(on: database).sort(\User.$id).all()
+        try await User.query(on: database).sort(\User.$username).all()
     }
 }

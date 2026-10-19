@@ -28,7 +28,7 @@ public struct IconRepository {
         icon.hash = hash
         icon.mimeType = Self.normalizeMimeType(mimeType)
         icon.content = content
-        icon.externalID = UUID().uuidString.lowercased()
+        icon.externalID = Self.randomExternalID()
         icon.createdAt = Int(Date.now.timeIntervalSince1970)
         try await icon.create(on: database)
         return icon
@@ -47,6 +47,13 @@ public struct IconRepository {
     /// Returns the icon with `externalID` (the public feed-icon URL), or `nil`.
     public func fetch(externalID: String) async throws -> Icon? {
         try await Icon.query(on: database).filter(\Icon.$externalID == externalID).first()
+    }
+
+    /// A random external id: 20 random bytes as 40 lowercase hex characters,
+    /// the same shape as the reference's `crypto.GenerateRandomStringHex(20)`.
+    private static func randomExternalID() -> String {
+        let bytes = (0..<20).map { _ in UInt8.random(in: .min ... .max) }
+        return bytes.map { String(format: "%02x", $0) }.joined()
     }
 
     /// Normalizes a MIME type the way the reference does (upstream

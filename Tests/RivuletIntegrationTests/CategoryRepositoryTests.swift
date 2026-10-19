@@ -68,18 +68,17 @@ import Testing
                 _ = try await categories.create(userID: userID, title: "delta")
 
                 // The repository does not expose position updates (the later API stages
-                // do), so pin distinct positions the way FTSSyncTests pins state with raw
-                // SQL. alpha and charlie share position 1 to exercise the title tie-break.
+                // do), so pin positions the way FTSSyncTests pins state with raw SQL:
+                // delta at 0 makes the sorted order differ from insertion order, and
+                // alpha/charlie share position 1 to exercise the title tie-break.
                 guard let sql = connection as? any SQLDatabase else {
                     throw StorageError.notSQLDatabase
                 }
                 try await sql.raw("UPDATE categories SET position = 1 WHERE title = 'alpha'").run()
                 try await sql.raw("UPDATE categories SET position = 1 WHERE title = 'charlie'").run()
-                try await sql.raw("UPDATE categories SET position = 2 WHERE title = 'delta'").run()
 
-                // The user's default "All" category sits at position 0, ahead of "bravo".
                 let titles = try await categories.list(userID: userID).map(\.title)
-                #expect(titles == ["All", "bravo", "alpha", "charlie", "delta"])
+                #expect(titles == ["All", "bravo", "delta", "alpha", "charlie"])
             }
         }
     }
