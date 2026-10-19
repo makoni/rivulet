@@ -6,12 +6,22 @@ import FluentKit
 /// they own. `passwordHash` holds the bcrypt hash of the account password;
 /// the integration credential pairs (Google Reader, Fever) start unset and
 /// are assigned by the credential management commands.
+///
+/// `@unchecked Sendable` is safe: an instance is created, populated and used
+/// inside a single `SQLiteStorage.withConnection` checkout and is never
+/// shared between tasks (the FluentKit property wrappers it holds are
+/// `@unchecked Sendable` as well).
 public final class User: Model, @unchecked Sendable {
+    /// The `users` table; this FluentKit version has no schema-name default.
     public static let schema = "users"
 
+    /// Primary key, database-generated on create.
     @ID(custom: .id) public var id: Int?
 
-    /// Login name, unique across all users.
+    /// Login name, unique across all users, stored lowercase.
+    ///
+    /// Usernames are case-insensitive (upstream parity): the repository
+    /// lowercases on create and on lookups.
     @Field(key: "username") public var username: String
 
     /// Bcrypt hash of the account password.

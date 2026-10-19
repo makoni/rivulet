@@ -6,15 +6,22 @@ import FluentKit
 /// `hash` is the SHA-256 of the icon content; icons with the same hash are
 /// stored once and shared by every feed that uses them. `externalID` is a
 /// random, stable identifier for the public feed-icon URL.
+///
+/// `@unchecked Sendable` is safe: an instance is created, populated and used
+/// inside a single `SQLiteStorage.withConnection` checkout and is never
+/// shared between tasks (the FluentKit property wrappers it holds are
+/// `@unchecked Sendable` as well).
 public final class Icon: Model, @unchecked Sendable {
+    /// The `icons` table; this FluentKit version has no schema-name default.
     public static let schema = "icons"
 
+    /// Primary key, database-generated on create.
     @ID(custom: .id) public var id: Int?
 
     /// SHA-256 of the content, unique.
     @Field(key: "hash") public var hash: String
 
-    /// Content type of the icon.
+    /// Content type of the icon, normalized by ``IconRepository/insert(hash:mimeType:content:)``.
     @Field(key: "mime_type") public var mimeType: String
 
     /// Raw icon bytes.

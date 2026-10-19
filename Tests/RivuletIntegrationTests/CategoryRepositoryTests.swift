@@ -1,41 +1,29 @@
 import Fluent
 import FluentSQLiteDriver
+import SQLKit
 import Testing
 @testable import RivuletCore
 
 /// CRUD round-trip for ``CategoryRepository`` against a real SQLite file.
 @Suite struct CategoryRepositoryTests {
-    /// Creates a database with the schema migrated and runs `body` against it.
-    private func withMigratedStorage(
-        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
-    ) async throws {
-        let database = try await TestDatabase.make()
-        do {
-            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-            try await storage.prepare()
-            try await database.app.autoMigrate()
-            try await body(database, storage)
-        } catch {
-            await database.shutdown()
-            throw error
-        }
-        await database.shutdown()
-    }
-
     @Test func createStoresTheFieldsAndDefaultsPositionToZero() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let users = UserRepository(connection)
                 let categories = CategoryRepository(connection)
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
+                let userID = try #require(user.id)
 
-                let category = try await categories.create(userID: user.id!, title: "Tech")
+                let category = try await categories.create(userID: userID, title: "Tech")
+                let id = try #require(category.id)
 
-                #expect(category.id != nil)
-                #expect(category.userID == user.id!)
-                #expect(category.title == "Tech")
-                #expect(category.position == 0)
-                #expect(category.createdAt == category.updatedAt)
+                // Re-read through a fresh fetch: the assertions prove the stored row.
+                let stored = try await categories.fetch(id: id)
+                #expect(stored?.id == id)
+                #expect(stored?.userID == userID)
+                #expect(stored?.title == "Tech")
+                #expect(stored?.position == 0)
+                #expect(stored?.createdAt == stored?.updatedAt)
             }
         }
     }
@@ -47,18 +35,22 @@ import Testing
                 let categories = CategoryRepository(connection)
                 let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
                 let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
-                _ = try await categories.create(userID: alice.id!, title: "Tech")
+                let aliceID = try #require(alice.id)
+                let bobID = try #require(bob.id)
+                _ = try await categories.create(userID: aliceID, title: "Tech")
 
                 do {
-                    _ = try await categories.create(userID: alice.id!, title: "Tech")
+                    _ = try await categories.create(userID: aliceID, title: "Tech")
                     Issue.record("expected the duplicate (user, title) pair to be rejected")
                 } catch {
                     // UNIQUE(user_id, title) violation; driver error type is not promised.
                 }
+                // Each user owns the default "All" category plus "Tech".
+                #expect(try await categories.list(userID: aliceID).map(\.title) == ["All", "Tech"])
 
                 // The same title is legal for another user.
-                _ = try await categories.create(userID: bob.id!, title: "Tech")
-                #expect(try await categories.list(userID: bob.id!).count == 1)
+                _ = try await categories.create(userID: bobID, title: "Tech")
+                #expect(try await categories.list(userID: bobID).map(\.title) == ["All", "Tech"])
             }
         }
     }
@@ -69,12 +61,25 @@ import Testing
                 let users = UserRepository(connection)
                 let categories = CategoryRepository(connection)
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
-                _ = try await categories.create(userID: user.id!, title: "bravo")
-                _ = try await categories.create(userID: user.id!, title: "alpha")
-                _ = try await categories.create(userID: user.id!, title: "charlie")
+                let userID = try #require(user.id)
+                _ = try await categories.create(userID: userID, title: "bravo")
+                _ = try await categories.create(userID: userID, title: "alpha")
+                _ = try await categories.create(userID: userID, title: "charlie")
+                _ = try await categories.create(userID: userID, title: "delta")
 
-                let titles = try await categories.list(userID: user.id!).map(\.title)
-                #expect(titles == ["alpha", "bravo", "charlie"])
+                // The repository does not expose position updates (the later API stages
+                // do), so pin distinct positions the way FTSSyncTests pins state with raw
+                // SQL. alpha and charlie share position 1 to exercise the title tie-break.
+                guard let sql = connection as? any SQLDatabase else {
+                    throw StorageError.notSQLDatabase
+                }
+                try await sql.raw("UPDATE categories SET position = 1 WHERE title = 'alpha'").run()
+                try await sql.raw("UPDATE categories SET position = 1 WHERE title = 'charlie'").run()
+                try await sql.raw("UPDATE categories SET position = 2 WHERE title = 'delta'").run()
+
+                // The user's default "All" category sits at position 0, ahead of "bravo".
+                let titles = try await categories.list(userID: userID).map(\.title)
+                #expect(titles == ["All", "bravo", "alpha", "charlie", "delta"])
             }
         }
     }
@@ -86,17 +91,20 @@ import Testing
                 let categories = CategoryRepository(connection)
                 let feeds = FeedRepository(connection)
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
-                let category = try await categories.create(userID: user.id!, title: "Tech")
+                let userID = try #require(user.id)
+                let category = try await categories.create(userID: userID, title: "Tech")
+                let categoryID = try #require(category.id)
                 let feed = try await feeds.create(
-                    userID: user.id!,
-                    categoryID: category.id!,
+                    userID: userID,
+                    categoryID: categoryID,
                     url: "https://example.com/feed.xml"
                 )
+                let feedID = try #require(feed.id)
 
-                try await categories.delete(id: category.id!)
+                try await categories.delete(id: categoryID)
 
-                #expect(try await categories.fetch(id: category.id!) == nil)
-                #expect(try await feeds.fetch(id: feed.id!) == nil)
+                #expect(try await categories.fetch(id: categoryID) == nil)
+                #expect(try await feeds.fetch(id: feedID) == nil)
             }
         }
     }

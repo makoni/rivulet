@@ -6,33 +6,18 @@ import Testing
 
 /// CRUD round-trip and fetch-state bookkeeping for ``FeedRepository``.
 @Suite struct FeedRepositoryTests {
-    /// Creates a database with the schema migrated and runs `body` against it.
-    private func withMigratedStorage(
-        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
-    ) async throws {
-        let database = try await TestDatabase.make()
-        do {
-            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-            try await storage.prepare()
-            try await database.app.autoMigrate()
-            try await body(database, storage)
-        } catch {
-            await database.shutdown()
-            throw error
-        }
-        await database.shutdown()
-    }
-
     /// Creates a user with one category and one feed.
     private func seedFeed(_ connection: any Database) async throws -> (User, Category, Feed) {
         let users = UserRepository(connection)
         let categories = CategoryRepository(connection)
         let feeds = FeedRepository(connection)
         let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
-        let category = try await categories.create(userID: user.id!, title: "Tech")
+        let userID = try #require(user.id)
+        let category = try await categories.create(userID: userID, title: "Tech")
+        let categoryID = try #require(category.id)
         let feed = try await feeds.create(
-            userID: user.id!,
-            categoryID: category.id!,
+            userID: userID,
+            categoryID: categoryID,
             url: "https://example.com/feed.xml"
         )
         return (user, category, feed)
@@ -44,24 +29,27 @@ import Testing
                 let before = nowInSeconds()
                 let feed = try await seedFeed(connection).2
                 let after = nowInSeconds()
+                let id = try #require(feed.id)
 
-                #expect(feed.id != nil)
-                #expect(feed.url == "https://example.com/feed.xml")
-                #expect(feed.siteURL == "")
-                #expect(feed.title == "")
-                #expect(feed.feedDescription == "")
-                #expect(feed.iconID == nil)
-                #expect(feed.etag == "")
-                #expect(feed.lastModified == "")
-                #expect(feed.checkInterval == 60)
-                #expect(feed.parsingErrorCount == 0)
-                #expect(feed.parsingErrorMessage == "")
-                #expect(feed.userAgent == "")
-                #expect(feed.disabled == false)
-                #expect(feed.fetchedAt == nil)
-                #expect(feed.createdAt == feed.updatedAt)
-                #expect((feed.nextCheckAt ?? -1) >= before)
-                #expect((feed.nextCheckAt ?? -1) <= after)
+                // Re-read through a fresh fetch: the assertions prove the stored defaults.
+                let stored = try await FeedRepository(connection).fetch(id: id)
+                #expect(stored?.id == id)
+                #expect(stored?.url == "https://example.com/feed.xml")
+                #expect(stored?.siteURL == "")
+                #expect(stored?.title == "")
+                #expect(stored?.feedDescription == "")
+                #expect(stored?.iconID == nil)
+                #expect(stored?.etag == "")
+                #expect(stored?.lastModified == "")
+                #expect(stored?.checkInterval == 60)
+                #expect(stored?.parsingErrorCount == 0)
+                #expect(stored?.parsingErrorMessage == "")
+                #expect(stored?.userAgent == "")
+                #expect(stored?.disabled == false)
+                #expect(stored?.fetchedAt == nil)
+                #expect(stored?.createdAt == stored?.updatedAt)
+                #expect((stored?.nextCheckAt ?? -1) >= before)
+                #expect((stored?.nextCheckAt ?? -1) <= after)
             }
         }
     }
@@ -69,20 +57,28 @@ import Testing
     @Test func duplicateURLForTheSameUserIsRejected() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
-                let (user, category, _) = try await seedFeed(connection)
                 let feeds = FeedRepository(connection)
+                let (user, category, _) = try await seedFeed(connection)
+                let userID = try #require(user.id)
+                let categoryID = try #require(category.id)
 
                 do {
-                    _ = try await feeds.create(
-                        userID: user.id!,
-                        categoryID: category.id!,
-                        url: "https://example.com/feed.xml"
-                    )
+                    _ = try await feeds.create(userID: userID, categoryID: categoryID, url: "https://example.com/feed.xml")
                     Issue.record("expected the duplicate (user, url) pair to be rejected")
                 } catch {
                     // UNIQUE(user_id, url) violation; driver error type is not promised.
                 }
-                #expect(try await feeds.list(userID: user.id!).count == 1)
+                #expect(try await feeds.list(userID: userID).count == 1)
+
+                // The same URL is legal for another user.
+                let users = UserRepository(connection)
+                let categories = CategoryRepository(connection)
+                let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
+                let bobID = try #require(bob.id)
+                let bobCategory = try await categories.create(userID: bobID, title: "B")
+                let bobCategoryID = try #require(bobCategory.id)
+                _ = try await feeds.create(userID: bobID, categoryID: bobCategoryID, url: "https://example.com/feed.xml")
+                #expect(try await feeds.list(userID: bobID).count == 1)
             }
         }
     }
@@ -91,12 +87,14 @@ import Testing
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let feeds = FeedRepository(connection)
-                let feed = try await seedFeed(connection).2
+                let (user, _, feed) = try await seedFeed(connection)
+                let userID = try #require(user.id)
+                let feedID = try #require(feed.id)
 
-                #expect(try await feeds.fetch(id: feed.id!)?.url == "https://example.com/feed.xml")
-                #expect(try await feeds.fetch(userID: feed.userID, url: feed.url)?.id == feed.id)
+                #expect(try await feeds.fetch(id: feedID)?.url == "https://example.com/feed.xml")
+                #expect(try await feeds.fetch(userID: userID, url: feed.url)?.id == feedID)
                 #expect(try await feeds.fetch(id: 999) == nil)
-                #expect(try await feeds.fetch(userID: feed.userID, url: "https://unknown.example/x") == nil)
+                #expect(try await feeds.fetch(userID: userID, url: "https://unknown.example/x") == nil)
             }
         }
     }
@@ -109,20 +107,24 @@ import Testing
                 let feeds = FeedRepository(connection)
                 let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
                 let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
-                let aliceCategory = try await categories.create(userID: alice.id!, title: "A")
-                let bobCategory = try await categories.create(userID: bob.id!, title: "B")
+                let aliceID = try #require(alice.id)
+                let bobID = try #require(bob.id)
+                let aliceCategory = try await categories.create(userID: aliceID, title: "A")
+                let bobCategory = try await categories.create(userID: bobID, title: "B")
+                let aliceCategoryID = try #require(aliceCategory.id)
+                let bobCategoryID = try #require(bobCategory.id)
                 _ = try await feeds.create(
-                    userID: alice.id!,
-                    categoryID: aliceCategory.id!,
+                    userID: aliceID,
+                    categoryID: aliceCategoryID,
                     url: "https://alice.example/feed.xml"
                 )
                 _ = try await feeds.create(
-                    userID: bob.id!,
-                    categoryID: bobCategory.id!,
+                    userID: bobID,
+                    categoryID: bobCategoryID,
                     url: "https://bob.example/feed.xml"
                 )
 
-                let aliceFeeds = try await feeds.list(userID: alice.id!)
+                let aliceFeeds = try await feeds.list(userID: aliceID)
                 #expect(aliceFeeds.map(\.url) == ["https://alice.example/feed.xml"])
             }
         }
@@ -133,21 +135,25 @@ import Testing
             try await storage.withConnection { connection in
                 let feeds = FeedRepository(connection)
                 let feed = try await seedFeed(connection).2
-                _ = try await feeds.recordParsingError(feedID: feed.id!, message: "boom one")
-                _ = try await feeds.recordParsingError(feedID: feed.id!, message: "boom two")
+                let feedID = try #require(feed.id)
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one", nextCheckAt: nowInSeconds())
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two", nextCheckAt: nowInSeconds())
                 let nextCheckAt = nowInSeconds() + 600
+                let before = nowInSeconds()
                 _ = try await feeds.recordFetch(
-                    feedID: feed.id!,
+                    feedID: feedID,
                     etag: "etag-1",
                     lastModified: "Fri, 01 Jan 2026 00:00:00 GMT",
                     nextCheckAt: nextCheckAt
                 )
+                let after = nowInSeconds()
 
-                let refreshed = try await feeds.fetch(id: feed.id!)
+                let refreshed = try await feeds.fetch(id: feedID)
                 #expect(refreshed?.etag == "etag-1")
                 #expect(refreshed?.lastModified == "Fri, 01 Jan 2026 00:00:00 GMT")
                 #expect(refreshed?.nextCheckAt == nextCheckAt)
-                #expect(refreshed?.fetchedAt != nil)
+                #expect((refreshed?.fetchedAt ?? -1) >= before)
+                #expect((refreshed?.fetchedAt ?? -1) <= after)
                 #expect(refreshed?.parsingErrorCount == 0)
                 #expect(refreshed?.parsingErrorMessage == "")
             }
@@ -159,12 +165,19 @@ import Testing
             try await storage.withConnection { connection in
                 let feeds = FeedRepository(connection)
                 let feed = try await seedFeed(connection).2
-                _ = try await feeds.recordParsingError(feedID: feed.id!, message: "boom one")
-                _ = try await feeds.recordParsingError(feedID: feed.id!, message: "boom two")
+                let feedID = try #require(feed.id)
+                let before = nowInSeconds()
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one", nextCheckAt: before)
+                let secondCheck = nowInSeconds()
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two", nextCheckAt: secondCheck)
+                let after = nowInSeconds()
 
-                let refreshed = try await feeds.fetch(id: feed.id!)
+                let refreshed = try await feeds.fetch(id: feedID)
                 #expect(refreshed?.parsingErrorCount == 2)
                 #expect(refreshed?.parsingErrorMessage == "boom two")
+                #expect(refreshed?.nextCheckAt == secondCheck)
+                #expect((refreshed?.fetchedAt ?? -1) >= before)
+                #expect((refreshed?.fetchedAt ?? -1) <= after)
             }
         }
     }
@@ -187,7 +200,7 @@ import Testing
                 }
 
                 do {
-                    _ = try await feeds.recordParsingError(feedID: 999, message: "boom")
+                    _ = try await feeds.recordParsingError(feedID: 999, message: "boom", nextCheckAt: 1)
                     Issue.record("expected recordParsingError to fail for a missing feed")
                 } catch let error as StorageError {
                     #expect(error == .feedNotFound(id: 999))
@@ -201,10 +214,11 @@ import Testing
             try await storage.withConnection { connection in
                 let feeds = FeedRepository(connection)
                 let feed = try await seedFeed(connection).2
+                let feedID = try #require(feed.id)
 
-                try await feeds.delete(id: feed.id!)
+                try await feeds.delete(id: feedID)
 
-                #expect(try await feeds.fetch(id: feed.id!) == nil)
+                #expect(try await feeds.fetch(id: feedID) == nil)
             }
         }
     }

@@ -17,13 +17,16 @@ public struct IconRepository {
     /// Inserts the icon unless one with the same `hash` is already stored, in
     /// which case the existing icon is returned (icons are deduplicated by
     /// content hash, upstream parity).
+    ///
+    /// `mimeType` is normalized like the reference: lowercased, and coerced
+    /// to `image/x-icon` unless it names a known icon type.
     public func insert(hash: String, mimeType: String, content: Data) async throws -> Icon {
         if let existing = try await fetch(hash: hash) {
             return existing
         }
         let icon = Icon()
         icon.hash = hash
-        icon.mimeType = mimeType
+        icon.mimeType = Self.normalizeMimeType(mimeType)
         icon.content = content
         icon.externalID = UUID().uuidString.lowercased()
         icon.createdAt = Int(Date.now.timeIntervalSince1970)
@@ -44,5 +47,19 @@ public struct IconRepository {
     /// Returns the icon with `externalID` (the public feed-icon URL), or `nil`.
     public func fetch(externalID: String) async throws -> Icon? {
         try await Icon.query(on: database).filter(\Icon.$externalID == externalID).first()
+    }
+
+    /// Normalizes a MIME type the way the reference does (upstream
+    /// `normalizeMimeType`): lowercased, and coerced to `image/x-icon` unless
+    /// it is one of the known icon types.
+    private static func normalizeMimeType(_ mimeType: String) -> String {
+        let normalized = mimeType.lowercased()
+        switch normalized {
+        case "image/png", "image/jpeg", "image/jpg", "image/webp",
+             "image/svg+xml", "image/x-icon", "image/gif":
+            return normalized
+        default:
+            return "image/x-icon"
+        }
     }
 }

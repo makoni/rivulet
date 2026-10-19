@@ -4,10 +4,13 @@ import FluentKit
 
 /// Creates, lists and deletes feeds, and records their fetch state.
 ///
-/// `recordFetch` and `recordParsingError` mirror the reference refresh path:
-/// a successful fetch stores the conditional-GET headers and the next check
+/// `recordFetch` and `recordParsingError` mirror the reference refresh path,
+/// where the last check time and the next-check schedule are fixed before the
+/// fetch and persisted with its outcome: a successful fetch stores the
+/// conditional-GET headers and the next check time, stamps the last check
 /// time and resets the parsing failure state; a failure increments the
-/// failure counter and keeps the latest error message.
+/// failure counter, keeps the latest error message and persists the last
+/// check time and the rescheduled check.
 ///
 /// - See: ``SQLiteStorage/withConnection(_:)`` — the repository takes the
 ///   checked-out connection and lives inside that checkout.
@@ -93,17 +96,22 @@ public struct FeedRepository {
         try await feed.update(on: database)
     }
 
-    /// Records a failed refresh: increments the consecutive-failure counter
-    /// and keeps the latest error message.
+    /// Records a failed refresh (upstream `UpdateFeedError`): increments the
+    /// consecutive-failure counter, keeps the latest error message, and
+    /// persists the last check time and the rescheduled check computed by the
+    /// caller.
     ///
     /// - Throws: ``StorageError/feedNotFound(id:)`` if the feed does not exist.
-    public func recordParsingError(feedID: Int, message: String) async throws {
+    public func recordParsingError(feedID: Int, message: String, nextCheckAt: Int) async throws {
         guard let feed = try await fetch(id: feedID) else {
             throw StorageError.feedNotFound(id: feedID)
         }
+        let now = Int(Date.now.timeIntervalSince1970)
         feed.parsingErrorCount += 1
         feed.parsingErrorMessage = message
-        feed.updatedAt = Int(Date.now.timeIntervalSince1970)
+        feed.fetchedAt = now
+        feed.nextCheckAt = nextCheckAt
+        feed.updatedAt = now
         try await feed.update(on: database)
     }
 }

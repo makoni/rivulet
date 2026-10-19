@@ -5,10 +5,17 @@ import FluentKit
 /// A feed belongs to a user and a category and carries the fetch state the
 /// scheduler and the fetcher maintain: the conditional-GET headers (`etag`,
 /// `lastModified`), the next scheduled check, the parsing failure counter
-/// and the last successful fetch time. URLs are unique per user.
+/// and the last check time. URLs are unique per user.
+///
+/// `@unchecked Sendable` is safe: an instance is created, populated and used
+/// inside a single `SQLiteStorage.withConnection` checkout and is never
+/// shared between tasks (the FluentKit property wrappers it holds are
+/// `@unchecked Sendable` as well).
 public final class Feed: Model, @unchecked Sendable {
+    /// The `feeds` table; this FluentKit version has no schema-name default.
     public static let schema = "feeds"
 
+    /// Primary key, database-generated on create.
     @ID(custom: .id) public var id: Int?
 
     /// Owner of the feed.
@@ -56,7 +63,8 @@ public final class Feed: Model, @unchecked Sendable {
     /// Disabled feeds are skipped by the scheduler until re-enabled.
     @Field(key: "disabled") public var disabled: Bool
 
-    /// Unix seconds of the last successful fetch.
+    /// Unix seconds of the last check, successful or not; `nil` until the
+    /// first check (upstream: `checked_at`).
     @OptionalField(key: "fetched_at") public var fetchedAt: Int?
 
     /// Unix seconds; creation time.

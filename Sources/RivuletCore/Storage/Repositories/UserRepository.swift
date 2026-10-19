@@ -14,16 +14,22 @@ public struct UserRepository {
         self.database = database
     }
 
-    /// Creates a user with the integration credentials unset.
+    /// Creates a user with the integration credentials unset, together with
+    /// the default "All" category (upstream parity: `CreateUser` creates the
+    /// user and the category in one transaction; here they are two statements
+    /// on the checked-out connection — the repositories never open nested
+    /// transactions).
     public func create(username: String, passwordHash: String, isAdmin: Bool) async throws -> User {
         let now = Int(Date.now.timeIntervalSince1970)
         let user = User()
-        user.username = username
+        user.username = username.lowercased()
         user.passwordHash = passwordHash
         user.isAdmin = isAdmin
         user.createdAt = now
         user.updatedAt = now
         try await user.create(on: database)
+        let categories = CategoryRepository(database)
+        _ = try await categories.create(userID: try user.requireID(), title: "All")
         return user
     }
 
@@ -33,8 +39,11 @@ public struct UserRepository {
     }
 
     /// Returns the user with `username`, or `nil`.
+    ///
+    /// The lookup is case-insensitive (upstream parity): usernames are
+    /// stored lowercase.
     public func fetch(username: String) async throws -> User? {
-        try await User.query(on: database).filter(\User.$username == username).first()
+        try await User.query(on: database).filter(\User.$username == username.lowercased()).first()
     }
 
     /// Returns every user, ordered by id.

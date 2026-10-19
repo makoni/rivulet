@@ -50,7 +50,7 @@ Sources/
 | --- | --- |
 | `users` | id, username, password_hash (bcrypt), is_admin, google_reader_username, google_reader_password_hash, fever_username, fever_token, created_at |
 | `categories` | id, user_id, title, position |
-| `feeds` | id, user_id, category_id, url, site_url, title, description, icon_id, etag, last_modified, next_check_at, check_interval, parsing_error_count, parsing_error_message, user_agent, fetched_at, created_at, updated_at |
+| `feeds` | id, user_id, category_id, url, site_url, title, description, icon_id, etag, last_modified, next_check_at, check_interval, parsing_error_count, parsing_error_message, user_agent, disabled, fetched_at, created_at, updated_at |
 | `entries` | id, user_id, feed_id, hash, title, url, author, content (sanitized HTML), content_text (plain text), status (`unread` / `read`), starred, published_at, created_at, updated_at |
 | `entry_tombstones` | feed_id, hash, deleted_at — a tombstoned entry must never be re-inserted |
 | `enclosures` | id, entry_id, url, mime_type, size |

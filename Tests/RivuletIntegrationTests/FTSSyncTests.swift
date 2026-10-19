@@ -7,23 +7,6 @@ import Testing
 /// Exercises the FTS5 external-content triggers against real rows: search must follow
 /// inserts, updates and deletes (including cascades from feed deletion).
 @Suite struct FTSSyncTests {
-    /// Creates a database with the schema migrated and runs `body` with the storage.
-    private func withMigratedStorage(
-        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
-    ) async throws {
-        let database = try await TestDatabase.make()
-        do {
-            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-            try await storage.prepare()
-            try await database.app.autoMigrate()
-            try await body(database, storage)
-        } catch {
-            await database.shutdown()
-            throw error
-        }
-        await database.shutdown()
-    }
-
     @Test func ftsFollowsInsertsUpdatesAndDeletes() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in

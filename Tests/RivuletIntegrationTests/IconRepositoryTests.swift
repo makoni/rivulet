@@ -7,36 +7,36 @@ import Testing
 /// Round-trip for ``IconRepository``: dedup by hash plus the lookups the
 /// feed-icon route and the feed list will use.
 @Suite struct IconRepositoryTests {
-    /// Creates a database with the schema migrated and runs `body` against it.
-    private func withMigratedStorage(
-        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
-    ) async throws {
-        let database = try await TestDatabase.make()
-        do {
-            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-            try await storage.prepare()
-            try await database.app.autoMigrate()
-            try await body(database, storage)
-        } catch {
-            await database.shutdown()
-            throw error
-        }
-        await database.shutdown()
-    }
-
     @Test func insertStoresTheIconAndAssignsAnExternalID() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let icons = IconRepository(connection)
                 let content = Data([0x89, 0x50, 0x4E, 0x47])
                 let icon = try await icons.insert(hash: "hash-a", mimeType: "image/png", content: content)
+                let id = try #require(icon.id)
 
-                #expect(icon.id != nil)
-                #expect(icon.hash == "hash-a")
-                #expect(icon.mimeType == "image/png")
-                #expect(icon.content == content)
-                #expect(!icon.externalID.isEmpty)
-                #expect(try await icons.fetch(externalID: icon.externalID)?.id == icon.id)
+                let stored = try await icons.fetch(id: id)
+                #expect(stored?.hash == "hash-a")
+                #expect(stored?.mimeType == "image/png")
+                #expect(stored?.content == content)
+                let externalID = try #require(stored?.externalID)
+                #expect(!externalID.isEmpty)
+                #expect(try await icons.fetch(externalID: externalID)?.id == id)
+            }
+        }
+    }
+
+    @Test func mimeTypeIsNormalizedLikeTheReference() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let icons = IconRepository(connection)
+                _ = try await icons.insert(hash: "hash-a", mimeType: "IMAGE/PNG", content: Data([1]))
+                _ = try await icons.insert(hash: "hash-b", mimeType: "application/octet-stream", content: Data([2]))
+                _ = try await icons.insert(hash: "hash-c", mimeType: "image/GIF", content: Data([3]))
+
+                #expect(try await icons.fetch(hash: "hash-a")?.mimeType == "image/png")
+                #expect(try await icons.fetch(hash: "hash-b")?.mimeType == "image/x-icon")
+                #expect(try await icons.fetch(hash: "hash-c")?.mimeType == "image/gif")
             }
         }
     }
@@ -61,8 +61,9 @@ import Testing
             try await storage.withConnection { connection in
                 let icons = IconRepository(connection)
                 let icon = try await icons.insert(hash: "hash-a", mimeType: "image/png", content: Data([1]))
+                let id = try #require(icon.id)
 
-                #expect(try await icons.fetch(id: icon.id!)?.hash == "hash-a")
+                #expect(try await icons.fetch(id: id)?.hash == "hash-a")
                 #expect(try await icons.fetch(id: 999) == nil)
                 #expect(try await icons.fetch(hash: "hash-b") == nil)
                 #expect(try await icons.fetch(externalID: "nope") == nil)

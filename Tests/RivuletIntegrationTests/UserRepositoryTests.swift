@@ -1,3 +1,4 @@
+import Foundation
 import Fluent
 import FluentSQLiteDriver
 import Testing
@@ -5,38 +6,62 @@ import Testing
 
 /// CRUD round-trip for ``UserRepository`` against a real SQLite file.
 @Suite struct UserRepositoryTests {
-    /// Creates a database with the schema migrated and runs `body` against it.
-    private func withMigratedStorage(
-        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
-    ) async throws {
-        let database = try await TestDatabase.make()
-        do {
-            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-            try await storage.prepare()
-            try await database.app.autoMigrate()
-            try await body(database, storage)
-        } catch {
-            await database.shutdown()
-            throw error
-        }
-        await database.shutdown()
-    }
-
     @Test func createStoresTheAccountFieldsAndAssignsAnID() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let users = UserRepository(connection)
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: true)
+                let id = try #require(user.id)
 
-                #expect(user.id != nil)
-                #expect(user.username == "alice")
-                #expect(user.passwordHash == "hash")
-                #expect(user.isAdmin)
-                #expect(user.googleReaderUsername == nil)
-                #expect(user.googleReaderPasswordHash == nil)
-                #expect(user.feverUsername == nil)
-                #expect(user.feverToken == nil)
-                #expect(user.createdAt == user.updatedAt)
+                // Re-read through a fresh fetch: the assertions prove the stored row,
+                // not the in-memory object.
+                let stored = try await users.fetch(id: id)
+                #expect(stored?.id == id)
+                #expect(stored?.username == "alice")
+                #expect(stored?.passwordHash == "hash")
+                #expect(stored?.isAdmin == true)
+                #expect(stored?.googleReaderUsername == nil)
+                #expect(stored?.googleReaderPasswordHash == nil)
+                #expect(stored?.feverUsername == nil)
+                #expect(stored?.feverToken == nil)
+                #expect(stored?.createdAt == stored?.updatedAt)
+            }
+        }
+    }
+
+    @Test func createAlsoCreatesTheDefaultAllCategory() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let categories = CategoryRepository(connection)
+                let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
+                let id = try #require(user.id)
+
+                let titles = try await categories.list(userID: id).map(\.title)
+                #expect(titles == ["All"])
+            }
+        }
+    }
+
+    @Test func usernamesAreStoredLowercaseAndLookupsAreCaseInsensitive() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let user = try await users.create(username: "Alice", passwordHash: "hash", isAdmin: false)
+                let id = try #require(user.id)
+
+                #expect(try await users.fetch(id: id)?.username == "alice")
+                #expect(try await users.fetch(username: "ALICE")?.id == id)
+                #expect(try await users.fetch(username: "Alice")?.id == id)
+
+                do {
+                    _ = try await users.create(username: "ALICE", passwordHash: "b", isAdmin: false)
+                    Issue.record("expected the case-insensitive duplicate username to be rejected")
+                } catch {
+                    // UNIQUE(username) violation after normalization; the driver error
+                    // type is not promised.
+                }
+                #expect(try await users.list().count == 1)
             }
         }
     }
@@ -47,12 +72,14 @@ import Testing
                 let users = UserRepository(connection)
                 let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
                 let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
+                let aliceID = try #require(alice.id)
+                let bobID = try #require(bob.id)
 
-                let byID = try await users.fetch(id: bob.id!)
+                let byID = try await users.fetch(id: bobID)
                 #expect(byID?.username == "bob")
-                #expect(try await users.fetch(id: alice.id!)?.passwordHash == "a")
-                #expect(try await users.fetch(username: "alice")?.id == alice.id)
-                #expect(try await users.fetch(username: "bob")?.id == bob.id)
+                #expect(try await users.fetch(id: aliceID)?.passwordHash == "a")
+                #expect(try await users.fetch(username: "alice")?.id == aliceID)
+                #expect(try await users.fetch(username: "bob")?.id == bobID)
                 #expect(try await users.fetch(id: 999) == nil)
                 #expect(try await users.fetch(username: "carol") == nil)
             }

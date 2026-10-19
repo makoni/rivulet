@@ -4,9 +4,16 @@ import FluentKit
 ///
 /// Titles are unique per user; deleting a category cascades to its feeds.
 /// `position` orders the category in listings.
+///
+/// `@unchecked Sendable` is safe: an instance is created, populated and used
+/// inside a single `SQLiteStorage.withConnection` checkout and is never
+/// shared between tasks (the FluentKit property wrappers it holds are
+/// `@unchecked Sendable` as well).
 public final class Category: Model, @unchecked Sendable {
+    /// The `categories` table; this FluentKit version has no schema-name default.
     public static let schema = "categories"
 
+    /// Primary key, database-generated on create.
     @ID(custom: .id) public var id: Int?
 
     /// Owner of the category.
