@@ -59,5 +59,6 @@
 ## Exit criteria
 
 - [ ] Soak artifact: `Scripts/soak.sh` runs ≥ 2h with ≥ 20 local stub feeds; `status --json`
-      snapshots show `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached
-      to the stage status.
+      snapshots (stage 4 ships the minimal feed-state `status --json`; stage 6 extends it) show
+      `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached to the stage
+      status.

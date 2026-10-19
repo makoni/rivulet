@@ -1,6 +1,6 @@
 # Implementation plan
 
-Rivulet is built in ten stages. Every stage file has scope, a test plan (unit **and integration**)
+Rivulet is built in ten stages. Every stage file has scope, a test plan (unit and/or integration)
 and exit criteria; most include implementation notes. A stage is done only when its exit criteria
 and the global definition of done are met and CI is green.
 
@@ -56,7 +56,8 @@ work — stages 3 and 5 dominate). Stage 9 is opportunistic.
 - [ ] `swift test` is green locally and in CI.
 - [ ] Docs updated (`README.md`, stage status, `docs/` as needed); public APIs carry DocC comments.
 - [ ] Ported code/fixtures carry provenance comments and `NOTICE` stays accurate.
-- [ ] No new compiler warnings; no skipped or disabled tests.
+- [ ] No new compiler warnings; no skipped or disabled tests (except the documented heavy/on-demand
+  suites).
 
 ## Non-goals (MVP)
 
