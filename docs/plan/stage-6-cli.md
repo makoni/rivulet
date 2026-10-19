@@ -5,13 +5,22 @@
 
 ## Scope
 
-- [ ] Final command set: `serve`, `migrate`, `create-admin`, `add`, `remove`,
-      `list` (feeds/categories/users), `import`/`export` (OPML), `refresh` (all/one),
-      `status` (per-feed last fetch, errors, next check + totals), `api-key` (create/revoke),
-      `backup` (`VACUUM INTO`), `vacuum`, `version`.
-- [ ] Interactive prompts (e.g. admin password) with non-interactive flags for scripting.
-- [ ] Graceful shutdown (SIGINT/SIGTERM); structured logs; `/healthz`.
-- [ ] `status --json` for scripts and monitoring.
+- [ ] Finalize the remaining commands (stubs created in stage 0): `serve`, `migrate`,
+      `create-admin` (core lands in stage 5; this stage polishes prompts and flags), `add`,
+      `remove`, `list` (feeds/categories/users), `import`/`export` (OPML), `refresh` (all/one),
+      `status` (per-feed last fetch, errors, next check + totals; `--json`), `integration-credentials`
+      (polish), `backup` (`VACUUM INTO`), `vacuum`, `version`.
+- [ ] No `api-key` command: REST v1 and API keys are non-goals (stage 9 backlog if ever needed).
+- [ ] Graceful shutdown and structured logs; `/healthz`; signals handled by Vapor's built-in
+      serve command.
+- [ ] Startup checks: `PRAGMA quick_check` + free-space check (integrates with stage 1);
+      checkpoint on shutdown; `status --json` as a stable machine-readable contract for
+      monitoring and the stage-4 soak.
+
+## Implementation notes
+
+- In-process console tests use `TestConsole`; process-level behavior (signals, exit codes of the
+  real binary) is tested by spawning the built executable.
 
 ## Tests
 
@@ -19,10 +28,11 @@
 
 - Every command against a temp database through the in-process console: exit codes, error
   messages, observable effects.
-- `create-admin` → the resulting credentials authenticate over the API.
-- `serve` + `/healthz`; SIGTERM shuts down cleanly (no lost refresh batch).
+- `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
+- Process-level: spawn the built binary with `serve`; `/healthz` answers; SIGTERM shuts down
+  cleanly (no lost refresh batch).
 - `backup` produces an openable copy equal to the source; `vacuum` shrinks a bloated database
-  after retention.
+  after retention; `status --json` shape is stable.
 
 ## Exit criteria
 

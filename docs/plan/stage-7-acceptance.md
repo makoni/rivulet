@@ -8,23 +8,31 @@
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
       FeedFlow (iOS/Android), optionally Reeder Classic — setup instructions and a manual
       checklist (subscribe, add a feed from the client, sync read state, star, counts).
-- [ ] Parity harness (`Tools/parity/`): run real Miniflux in Docker and Rivulet against the same
-      local feed corpus; compare observable behavior (entries, counts, ids, endpoint payloads)
-      with a semantic diff; document tolerances and known deviations in `docs/parity.md`.
-- [ ] Robustness: malformed/hostile corpus (reuse stage 3 fixtures plus new cases); a 10k-entry
-      feed with time/memory budgets.
+- [ ] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): run real Miniflux in Docker
+      and Rivulet against the same local feed corpus; semantic diff of observable behavior
+      (entries, counts, ids, endpoint payloads); tolerances and known deviations documented in
+      `docs/parity.md`.
+- [ ] Replay of captured real-client request sequences (redacted) as contract tests where
+      possible.
+- [ ] Robustness: hostile/malformed corpus (reuse stage 3 plus new cases); 10k-entry feed with
+      documented time/memory budgets.
+- [ ] Cheap CI slice in the default job: reduced hostile corpus + reduced large-feed smoke.
 - [ ] Security pass: SSRF, size/time caps, auth behavior, sanitizer bypass review, dependency
       audit.
-- [ ] Performance notes: refresh of 100 feeds, query latency at 100k entries — numbers recorded
-      in docs.
+- [ ] Performance notes: refresh of 100 feeds, query latency at 100k entries — numbers recorded.
+
+## Implementation notes
+
+- The parity harness is on demand (not in the default CI job); it produces a markdown report that
+  is committed under `docs/`.
+- Anything the harness flags as a deviation is either fixed or consciously accepted with a note.
 
 ## Tests
 
 ### Integration
 
-- Parity harness (on demand; not in default CI): produces a markdown report with any behavioral
-  deltas.
-- Large-feed scenario with documented budgets, runnable locally.
+- Parity harness report with any behavioral deltas.
+- Large-feed scenario runnable locally and (reduced) in CI.
 - Client checklist executed manually and attached to the stage status.
 
 ## Exit criteria

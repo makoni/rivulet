@@ -5,16 +5,25 @@ This file is for AI agents (and humans) making changes to this repository.
 ## What this project is
 
 Rivulet is a lightweight self-hosted feed reader: a Swift port of
-[Miniflux](https://github.com/miniflux/v2), with SQLite storage, a CLI-first interface and no web UI.
-Miniflux v2.3.3 is the behavioral specification (see `docs/plan/README.md`).
+[Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3), with SQLite storage,
+a CLI-first interface and no web UI.
 
 ## Read before working
 
 1. `docs/plan/README.md` — stages, status, definition of done.
 2. The stage file for the current work (`docs/plan/stage-N-*.md`).
-3. `docs/architecture.md` and `docs/testing.md`.
+3. `docs/reference-notes.md` — verified Miniflux behavior (scheduling, auth, endpoints, retention).
+   Re-check the clone when in doubt.
+4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 0 — Foundation** (see the status table in the plan).
+Current focus: **Stage 0 — Foundation**. Keep this line and the plan's status table in sync.
+
+## Toolchain
+
+- Use the latest Swift release installed on the system (currently 6.4.1). Do not target old
+  toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
+- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container
+  (see `.github/workflows/ci.yml`).
 
 ## TDD is mandatory
 
@@ -29,6 +38,35 @@ We work test-first: **red → green → refactor**.
   genuinely wrong, fix the test in the same commit with a clear explanation.
 - New public APIs without tests are not accepted.
 
+## Documentation and DocC
+
+- Documentation and tutorials are a project deliverable, not an afterthought. We will collect them
+  with DocC and publish them later (planned: GitHub Pages, wired up in stage 8).
+- Every public API gets a DocC documentation comment.
+- DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for
+  the executable): articles for concepts, tutorials for key workflows (setup, feeds, clients,
+  deployment).
+- Write docs so they can be published as-is: no local-only references, no TODOs in prose.
+- Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs
+  disagree, fix both in the same commit.
+
+## Code quality
+
+- Architecture first: keep the module boundaries from `docs/architecture.md`, dependencies point
+  inward, no cycles.
+- Follow SOLID, YAGNI and KISS: the simplest thing that works; no speculative abstractions; keep
+  only the seams the plan requires.
+- File size: aim for 150–300 lines per production file, hard cap ~500 — split before you reach it.
+  One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures
+  go to resource files, not inline megablocks.
+- Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
+- Prefer the standard library and existing dependencies. `swift-collections`
+  (`Deque`, `OrderedDictionary`, …) and `swift-algorithms` are pre-approved when they make data
+  structures or algorithms clearer or more efficient — add them as direct dependencies when first
+  used (they are already in the dependency graph via Vapor). Any other new dependency needs
+  explicit approval — Linux-first, keep the surface small.
+- Measure before optimizing; batch SQLite writes; no accidental O(n²).
+
 ## Commands
 
 ```sh
@@ -42,10 +80,10 @@ swift run rivulet --help
 
 - Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
-- New dependencies require explicit approval — Linux-first, keep the surface small.
 - Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
   Ported tests keep a comment with the original test name.
-- SQLite: batch writes in one transaction per feed refresh; use WAL; never fsync per row.
+- SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
+  wrapper; never fsync per row.
 - No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals,
   not oversights.
 
@@ -53,14 +91,16 @@ swift run rivulet --help
 
 - Work on one stage at a time, starting from the lowest not-started stage.
 - A stage is complete when its exit criteria and the global definition of done are met.
-- Update the status table in `docs/plan/README.md` in the same commit that completes a stage.
+- Update the status table in `docs/plan/README.md` and the "Current focus" line above in the same
+  commit that completes a stage.
 
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant:
   `stage-2: support conditional GET with ETag`.
 - Behavior + its tests + doc updates land in the same commit.
-- Never commit generated artifacts (`.build/`, database files, secrets) — see `.gitignore`.
+- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) —
+  see `.gitignore`.
 
 ## Safety
 

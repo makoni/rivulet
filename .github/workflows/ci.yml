@@ -7,9 +7,10 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Test (Linux)
+    name: Build & Test (ubuntu-latest, latest Swift)
     runs-on: ubuntu-latest
-    container: swift:6.4.1-jammy
+    timeout-minutes: 15
+    container: swift:latest
     steps:
       - uses: actions/checkout@v4
 

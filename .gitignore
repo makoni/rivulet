@@ -2,6 +2,9 @@
 .build/
 .swiftpm/
 
+# DocC
+.docc-build/
+
 # Xcode
 xcuserdata/
 *.xcodeproj

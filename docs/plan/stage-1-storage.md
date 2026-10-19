@@ -1,29 +1,37 @@
 # Stage 1 — Storage layer
 
-**Goal:** the single source of truth for all data: models, repositories, search, retention.
+**Goal:** the single source of truth for all data: models, repositories, search, retention,
+tombstones.
 **Status:** not started. **Effort:** M. **Depends on:** Stage 0.
 
 ## Scope
 
-- [ ] Repository API over Fluent + SQLKit for every entity of the schema (users, categories,
-      feeds, entries, enclosures, icons).
-- [ ] Entry lifecycle: statuses `unread/read/removed`, `starred`, hash-based dedupe,
-      an upsert that preserves user state.
-- [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination,
-      unread counts per feed and category; search via FTS5 with `bm25()` ranking
+- [ ] Repository API over Fluent + SQLKit for every table (users, categories, feeds, entries,
+      tombstones, enclosures, icons).
+- [ ] Entry lifecycle: statuses `unread`/`read` and `starred`; SHA-256 hash identity with
+      per-format fallback rules (see `docs/reference-notes.md`); an upsert that preserves user
+      state; deletion is a real `DELETE` + tombstone.
+- [ ] Tombstones: inserted when cleanup deletes entries (skip empty hashes, `ON CONFLICT DO
+      NOTHING`); inserts/updates must refuse a tombstoned `(feed_id, hash)`.
+- [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
+      counts (derived the way clients derive them), search via FTS5 with `bm25()` ranking
       (plain-text extraction at write time).
-- [ ] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `error_count`,
-      `error_message`, `fetched_at`.
-- [ ] Retention and maintenance: per-feed/all cleanup policies, `vacuum` helper,
-      `VACUUM INTO` backup helper.
+- [ ] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
+      `parsing_error_message`, `fetched_at`.
+- [ ] Retention (port the reference defaults): daily cleanup — delete read entries older than
+      60 days and unread older than 180 days, batch 10000, skip starred; per-feed policies are a
+      possible extension, not MVP.
+- [ ] Storage wrapper: per-connection pragmas + single-writer discipline (see stage 0).
+- [ ] Maintenance: `VACUUM INTO` backup helper (needs ~2× free space — documented), `vacuum`,
+      `journal_size_limit`, checkpoint on shutdown, startup `PRAGMA quick_check`.
 - [ ] Seeding helper for benchmarks and tests (N feeds, 100k entries).
 
 ## Implementation notes
 
-- Reference shapes: `miniflux/internal/storage` (query semantics), but queries are rewritten for
-  SQLite; PG-specific constructs (arrays, upserts with `ANY`, partitioning) do not map 1:1.
+- Reference query semantics: `miniflux/internal/storage` — rewritten for SQLite; PG constructs
+  (arrays, `FOR UPDATE SKIP LOCKED`, `RETURNING` usage) do not map 1:1.
 - FTS5: external-content table over `entries(title, content_text)`; sync via triggers;
-  `content_text` is computed with SwiftSoup `.text()` at write time so the index holds plain text.
+  `content_text` computed with SwiftSoup `.text()` at write time.
 - Write path: all mutations of a batch run inside one transaction; readers use separate
   connections (WAL allows concurrent readers with a single writer).
 
@@ -36,13 +44,16 @@
 ### Integration
 
 - CRUD round-trip for every entity against a temp SQLite file.
-- FTS5: insert/update/delete sync via triggers; search finds expected entries; ranking is sane
-  (a relevant entry sorts above an irrelevant one).
-- Entry upsert: re-importing the same GUID creates no duplicate; status/starred survive updates.
-- Unread counts with mixed read/starred/removed states.
-- Concurrency: one writer + several readers in parallel under WAL; `busy_timeout` retries instead
-  of failing.
-- Retention boundary cases; `VACUUM INTO` backup produces an openable, equal database.
+- FTS5: trigger sync on insert/update/delete; search finds expected entries; ranking is sane.
+- Entry upsert: re-importing the same GUID creates no duplicate; status/starred survive updates;
+  a tombstoned entry is refused.
+- Unread counts with mixed read/starred states.
+- Concurrency: one writer + several readers in parallel under WAL; `busy_timeout` absorbs
+  contention instead of returning `SQLITE_BUSY` immediately (verifies the stage-0 wrapper).
+- Retention boundary cases with the default numbers; a tombstone is written for every deleted
+  entry; starred entries are kept.
+- Disk-full behavior: force `SQLITE_FULL` (small `max_page_count`) — clean error, database intact.
+- `VACUUM INTO` backup produces an openable, equal database; `vacuum` shrinks a bloated database.
 
 ## Exit criteria
 

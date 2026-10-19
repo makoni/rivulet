@@ -1,19 +1,21 @@
 # Implementation plan
 
-Rivulet is built in ten stages. Every stage has its own file with scope, implementation notes,
-a test plan (unit **and integration**) and exit criteria. A stage is done only when its exit
-criteria are met and CI is green.
+Rivulet is built in ten stages. Every stage file has scope, a test plan (unit **and integration**)
+and exit criteria; most include implementation notes. A stage is done only when its exit criteria
+and the global definition of done are met and CI is green.
 
 ## Reference implementation
 
 Miniflux **v2.3.3** (commit `c4d54f87`, <https://github.com/miniflux/v2>) is the behavioral
-specification for everything user-visible: parsing rules, sanitizer policy, scheduling and
-backoff behavior, API payload shapes. We re-implement in Swift; we do not transpile.
+specification for everything user-visible: parsing rules, sanitizer policy, scheduling, retention,
+API payload shapes. Verified specifics are condensed in [reference notes](../reference-notes.md);
+re-check the clone when in doubt. We re-implement in Swift; we do not transpile.
 Where storage diverges (SQLite instead of PostgreSQL), behavior must match at the API level,
 not at the SQL level.
 
-Earlier planning notes used milestones M0–M3; this plan refines them:
-M0 → stages 0–1, M1 → stages 2–4, M2 → stages 5–7, M3 → stage 9, plus stage 8 (packaging), which is new.
+Earlier planning notes used milestones M0–M3 as *planning phases*, not as the MVP boundary:
+M0 → stages 0–1, M1 → stages 2–4, M2 → stages 5–7, M3 → stage 9. Stage 8 (packaging) is new and
+is inside the MVP.
 
 ## Principles
 
@@ -33,14 +35,14 @@ M0 → stages 0–1, M1 → stages 2–4, M2 → stages 5–7, M3 → stage 9, p
 | 2 | [Feed fetching](stage-2-fetching.md) | not started | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | not started | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | not started | M |
-| 5 | [Client APIs & OPML](stage-5-apis.md) | not started | L |
+| 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |
 | 7 | [Acceptance & hardening](stage-7-acceptance.md) | not started | M |
-| 8 | [Packaging & deployment](stage-8-deployment.md) | not started | S |
+| 8 | [Packaging & deployment](stage-8-deployment.md) | not started | S–M |
 | 9 | [Post-MVP backlog](stage-9-stretch.md) | backlog | — |
 
-**MVP = stages 0–8** (roughly 6–9k lines of Swift; expect a few months of part-time work —
-stages 3 and 5 dominate). Stage 9 is opportunistic.
+**MVP = stages 0–8** (roughly 6–9k lines of Swift plus tests; expect a few months of part-time
+work — stages 3 and 5 dominate). Stage 9 is opportunistic.
 
 ## Working agreement
 
@@ -52,7 +54,8 @@ stages 3 and 5 dominate). Stage 9 is opportunistic.
 - [ ] New behavior is covered by tests written first (TDD).
 - [ ] Integration tests cover anything that crosses a module boundary (HTTP, SQLite, scheduler, API).
 - [ ] `swift test` is green locally and in CI.
-- [ ] Docs updated (`README.md`, stage status, `docs/` as needed).
+- [ ] Docs updated (`README.md`, stage status, `docs/` as needed); public APIs carry DocC comments.
+- [ ] Ported code/fixtures carry provenance comments and `NOTICE` stays accurate.
 - [ ] No new compiler warnings; no skipped or disabled tests.
 
 ## Non-goals (MVP)
@@ -60,15 +63,16 @@ stages 3 and 5 dominate). Stage 9 is opportunistic.
 - Web UI of any kind.
 - PostgreSQL, Redis, external cron, message queues.
 - Multi-user (single user; the schema leaves room for more).
-- Miniflux REST v1 parity (a subset may appear later on demand).
+- Miniflux REST v1 parity and API keys (a subset may appear later on demand).
 - Native apps of our own — we reuse the existing client ecosystem.
 
 ## Known risks
 
 | Risk | Where | Mitigation |
 | --- | --- | --- |
-| Feed parser fidelity: FeedKit may not cover every quirk Miniflux handles | Stage 3 | Spike first: run FeedKit against the ported Miniflux fixture corpus; wrap/patch/fall back to manual XML parsing per case |
+| Feed parser fidelity: FeedKit covers RSS 2.0/0.90-0.92, RDF, Atom 1.0, JSON Feed — but **not Atom 0.3**, and older formats are untested | Stage 3 | Spike matrix (Atom 0.3, RSS 0.91/0.92, JSON Feed 1.1) with wrap/patch/manual-fallback decisions; deviations recorded in `docs/parity.md` |
+| Per-connection pragmas (`busy_timeout`, `synchronous`) are not managed by sqlite-kit — only `foreign_keys` is | Stages 0–1 | Storage wrapper applies pragmas on every pooled connection checkout; WAL contention test |
 | FTS5 ranking differs from PostgreSQL `tsvector` | Stage 1 | Rank sanity tests, not exact-score tests; tune `bm25()` weights |
-| Client dialects of the Google Reader API vary | Stages 5, 7 | Contract tests per client; manual acceptance checklist in stage 7 |
-| Legacy charsets without iconv on Linux | Stage 3 | Verify Foundation encoding support on Linux; fall back to small mapping tables for common encodings |
+| Client dialects vary; upstream Fever has **no tests** — the code is the spec | Stages 5, 7 | Contract matrix derived from the reference handler (`docs/reference-notes.md`), golden tests, replay of captured client requests, manual checklist |
 | SQLite write contention under refresh load | Stages 1, 4 | WAL + `busy_timeout`; one write transaction per feed refresh; batch inserts |
+| Static Linux (musl) build of the full Vapor + SQLite stack unproven end-to-end | Stage 8 | Spike the static build early — the toolchain SDK is installed and a hello-world static build was verified during planning |

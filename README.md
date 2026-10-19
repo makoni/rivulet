@@ -1,6 +1,6 @@
 # Rivulet
 
-A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2).
+A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3).
 
 > **Status:** early development. The repository skeleton has just been laid down; nothing here is usable yet.
 
