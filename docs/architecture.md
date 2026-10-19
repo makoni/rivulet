@@ -73,9 +73,10 @@ Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, pub
 
 ## Configuration
 
-Environment parsing follows Miniflux (`internal/config/parser.go`): empty values mean "unset"
-and fall back to the defaults; booleans accept `1/yes/true/on` and `0/no/false/off`
-(case-insensitive). Deliberate differences:
+Environment parsing follows Miniflux (`internal/config/parser.go`): keys and values are trimmed;
+empty values fall back to the defaults — except `LOG_LEVEL`/`LOG_FORMAT`, whose choices are
+validated before the fallback (an empty value is an error, like upstream); booleans accept
+`1/yes/true/on` and `0/no/false/off` (case-insensitive). Deliberate differences:
 
 - `DATABASE_URL` is required, must be a SQLite file path and must not carry a URL scheme
   (upstream ships a default PostgreSQL DSN).

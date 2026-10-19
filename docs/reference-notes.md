@@ -8,10 +8,12 @@ on. When in doubt, re-check the cited files in the reference clone.
 
 Source: `internal/config/parser.go`, `internal/config/options.go`.
 
-- Empty values mean "unset": strings, lists and booleans fall back to their defaults
-  (`parseStringValue`, `parseStringListValue`, `parseBoolValue`).
+- Keys and values are trimmed, empty list items are dropped (`parseLines`,
+  `parseStringListValue`).
+- Empty values fall back to the option default — except options with a validator: validators
+  run before the fallback, so an empty `LOG_LEVEL`/`LOG_FORMAT` is an error.
 - Booleans: case-insensitive `1/yes/true/on` (true) and `0/no/false/off` (false); anything else
-  is an error. Values are not trimmed.
+  is an error.
 - `LISTEN_ADDR`: comma-separated list, items trimmed and deduplicated; Unix socket paths are
   valid entries; default `127.0.0.1:8080`.
 - `BASE_URL`: must parse as an absolute URL; a single trailing slash is trimmed

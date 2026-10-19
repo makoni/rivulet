@@ -12,9 +12,10 @@
 - [x] Config: environment-based loader with Miniflux-compatible names — `LISTEN_ADDR`
       (default `127.0.0.1:8080`), `BASE_URL`, `DATABASE_URL` (**required**, SQLite file path;
       clear error if missing), `LOG_LEVEL` (default `info`), `RUN_MIGRATIONS` (default `true`);
-      strict validation with clear error messages. Parsing follows upstream semantics: empty
-      value = "unset", booleans `1/yes/true/on` / `0/no/false/off`, `BASE_URL` trailing slash
-      trimmed; a single `LISTEN_ADDR` (lists rejected).
+      strict validation with clear error messages. Parsing follows upstream semantics: values
+      trimmed, empty values fall back to defaults (choice options validate first, so an empty
+      `LOG_LEVEL`/`LOG_FORMAT` is an error), booleans `1/yes/true/on` / `0/no/false/off`,
+      `BASE_URL` trailing slash trimmed; a single `LISTEN_ADDR` (lists rejected).
 - [ ] Logging: swift-log via Vapor; text (default) and JSON format options.
 - [x] Storage bootstrap: SQLite via Fluent through a thin **storage wrapper** that applies
       per-connection pragmas on every connection checkout (`foreign_keys=ON`, `busy_timeout=5000`,

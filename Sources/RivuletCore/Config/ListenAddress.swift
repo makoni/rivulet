@@ -29,9 +29,22 @@ public struct ListenAddress: Equatable, Sendable, CustomStringConvertible {
     /// Adapted from Miniflux `internal/config/parser.go` (`parseStringListValue`,
     /// Apache-2.0): one item; the comma-separated list form is rejected.
     static func parse(_ rawValue: String) throws -> ListenAddress {
-        let value = rawValue.trimmingCharacters(in: .whitespaces)
+        // Upstream reads a comma-separated list, trimming items and dropping empty ones;
+        // Rivulet serves exactly one TCP address and rejects real lists.
+        let items = rawValue
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
 
-        guard !value.contains(" "), !value.contains(",") else {
+        guard let value = items.first else {
+            throw ConfigError.invalidValue(
+                variable: "LISTEN_ADDR",
+                value: rawValue,
+                reason: "expected host:port"
+            )
+        }
+
+        guard items.count == 1, !value.contains(" ") else {
             throw ConfigError.invalidValue(
                 variable: "LISTEN_ADDR",
                 value: rawValue,

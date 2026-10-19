@@ -37,6 +37,16 @@ final class MigrationsTests: XCTestCase {
         XCTAssertEqual(triggers, ["entries_fts_ai", "entries_fts_ad", "entries_fts_au"])
     }
 
+    func testFTSUpdateTriggerIsScopedToIndexedColumns() async throws {
+        let sql = try sqlDatabase()
+        let row = try await sql.raw("SELECT sql FROM sqlite_master WHERE name = 'entries_fts_au'").first()
+        let ddl = try XCTUnwrap(row?.decode(column: "sql", as: String.self))
+        XCTAssertTrue(
+            ddl.contains("UPDATE OF title, content_text"),
+            "the FTS update trigger must stay scoped to the indexed columns: \(ddl)"
+        )
+    }
+
     func testSchemaContainsIndexes() async throws {
         let indexes = Set(try await schemaObjectNames(type: "index"))
         let expected: Set<String> = [

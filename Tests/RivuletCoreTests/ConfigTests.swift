@@ -33,8 +33,6 @@ final class ConfigTests: XCTestCase {
         let config = try Config.load(environment: environment([
             "LISTEN_ADDR": "",
             "BASE_URL": "",
-            "LOG_LEVEL": "",
-            "LOG_FORMAT": "",
             "RUN_MIGRATIONS": "",
         ]))
 
@@ -43,6 +41,22 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(config.logLevel, .info)
         XCTAssertEqual(config.logFormat, .text)
         XCTAssertTrue(config.runMigrations)
+    }
+
+    func testEmptyLogLevelAndFormatAreRejected() {
+        // Upstream runs the choices validator before the empty-value fallback.
+        for variable in ["LOG_LEVEL", "LOG_FORMAT"] {
+            for value in ["", "   "] {
+                XCTAssertThrowsError(
+                    try Config.load(environment: environment([variable: value])),
+                    "expected \(variable)=\(value.debugDescription) to be rejected"
+                ) { error in
+                    guard case .invalidValue(let name, _, _)? = error as? ConfigError, name == variable else {
+                        return XCTFail("unexpected error: \(error)")
+                    }
+                }
+            }
+        }
     }
 
     func testIgnoresUnrelatedEnvironmentVariables() throws {
@@ -113,8 +127,9 @@ final class ConfigTests: XCTestCase {
             (":9000", "0.0.0.0", 9000),
             ("[::1]:9000", "::1", 9000),
             ("localhost:1234", "localhost", 1234),
-            // Miniflux trims list items; we accept surrounding whitespace the same way.
+            // Miniflux trims list items and drops empty ones; we accept the same input.
             (" 127.0.0.1:8080 ", "127.0.0.1", 8080),
+            ("127.0.0.1:8080,", "127.0.0.1", 8080),
         ]
 
         for testCase in cases {
@@ -170,11 +185,12 @@ final class ConfigTests: XCTestCase {
     }
 
     func testBaseURLTrailingSlashIsTrimmed() throws {
-        // Miniflux strips a single trailing slash (strings.TrimSuffix).
+        // Miniflux trims the value and strips a single trailing slash (strings.TrimSuffix).
         let cases = [
             ("https://example.com/", "https://example.com"),
             ("https://example.com/app/", "https://example.com/app"),
             ("https://example.com/app//", "https://example.com/app/"),
+            (" https://example.com/ ", "https://example.com"),
         ]
 
         for (value, expected) in cases {
@@ -185,8 +201,8 @@ final class ConfigTests: XCTestCase {
 
     // MARK: - LOG_LEVEL / LOG_FORMAT / RUN_MIGRATIONS
 
-    func testLogLevelIsCaseInsensitive() throws {
-        let config = try Config.load(environment: environment(["LOG_LEVEL": "INFO"]))
+    func testLogLevelIsCaseInsensitiveAndTrimmed() throws {
+        let config = try Config.load(environment: environment(["LOG_LEVEL": " INFO "]))
         XCTAssertEqual(config.logLevel, .info)
     }
 
@@ -209,20 +225,20 @@ final class ConfigTests: XCTestCase {
 
     func testRunMigrationsBooleanVariants() throws {
         // Miniflux parseBoolValue: case-insensitive 1/yes/true/on and 0/no/false/off.
-        let truthy = ["1", "yes", "true", "on", "TRUE", "Yes", "ON"]
+        let truthy = ["1", "yes", "true", "on", "TRUE", "Yes", "ON", " yes "]
         for value in truthy {
             XCTAssertTrue(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
         }
 
-        let falsy = ["0", "no", "false", "off", "FALSE", "No", "OFF"]
+        let falsy = ["0", "no", "false", "off", "FALSE", "No", "OFF", " off "]
         for value in falsy {
             XCTAssertFalse(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
         }
     }
 
     func testInvalidRunMigrationsFails() {
-        // `t`/`f` are Go strconv values that Miniflux rejects; whitespace is not trimmed.
-        for value in ["t", "f", "maybe", "yes "] {
+        // `t`/`f` are Go strconv values that Miniflux rejects.
+        for value in ["t", "f", "maybe"] {
             XCTAssertThrowsError(
                 try Config.load(environment: environment(["RUN_MIGRATIONS": value])),
                 "expected RUN_MIGRATIONS=\(value) to be rejected"

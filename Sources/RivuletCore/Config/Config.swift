@@ -3,11 +3,12 @@ import Foundation
 /// Rivulet configuration loaded from environment variables.
 ///
 /// Variable names mirror Miniflux where a single value maps cleanly. Parsing follows the
-/// upstream semantics (`internal/config/parser.go`): empty values mean "unset" and fall
-/// back to the defaults; booleans accept `1/yes/true/on` and `0/no/false/off`
-/// (case-insensitive). The deliberate deviations are listed in `docs/architecture.md`
-/// (`DATABASE_URL` is required and points to a SQLite file, `RUN_MIGRATIONS` defaults to
-/// `true`, `LISTEN_ADDR` accepts a single TCP address).
+/// upstream semantics (`internal/config/parser.go`): keys and values are trimmed; empty
+/// values fall back to the defaults — except `LOG_LEVEL`/`LOG_FORMAT`, whose choices are
+/// validated first (an empty value is an error, like upstream); booleans accept
+/// `1/yes/true/on` and `0/no/false/off` (case-insensitive). The deliberate deviations are
+/// listed in `docs/architecture.md` (`DATABASE_URL` is required and points to a SQLite
+/// file, `RUN_MIGRATIONS` defaults to `true`, `LISTEN_ADDR` accepts a single TCP address).
 public struct Config: Sendable, Equatable {
     /// Log verbosity. Matches the Miniflux choices.
     public enum LogLevel: String, Sendable, CaseIterable {
@@ -116,38 +117,44 @@ public struct Config: Sendable, Equatable {
     /// `BASE_URL`; http(s) only, a single trailing slash is trimmed like upstream.
     private static func parseBaseURL(_ rawValue: String?) throws -> URL {
         let fallback = URL(string: "http://localhost")!
-        guard let rawValue, !rawValue.isEmpty else {
+        let value = (rawValue ?? "").trimmingCharacters(in: .whitespaces)
+        // Upstream has no validator here, so an empty value falls back to the default.
+        guard !value.isEmpty else {
             return fallback
         }
 
         guard
-            let url = URL(string: rawValue),
+            let url = URL(string: value),
             let scheme = url.scheme?.lowercased(),
             scheme == "http" || scheme == "https",
             url.host != nil
         else {
             throw ConfigError.invalidValue(
                 variable: "BASE_URL",
-                value: rawValue,
+                value: value,
                 reason: "expected an absolute http(s) URL"
             )
         }
 
-        let trimmed = rawValue.hasSuffix("/") ? String(rawValue.dropLast()) : rawValue
+        let trimmed = value.hasSuffix("/") ? String(value.dropLast()) : value
         return URL(string: trimmed) ?? url
     }
 
-    /// Parses a case-insensitive choice value; empty means "unset".
+    /// Parses a case-insensitive choice value.
+    ///
+    /// Upstream runs the choices validator before the empty-value fallback, so an empty
+    /// value is an error for these options (unlike string/boolean options).
     private static func parseEnum<Value: RawRepresentable & CaseIterable>(
         _ type: Value.Type,
         variable: String,
         value: String?,
         fallback: Value
     ) throws -> Value where Value.RawValue == String {
-        guard let value, !value.isEmpty else {
+        guard let value else {
             return fallback
         }
-        guard let parsed = Value(rawValue: value.lowercased()) else {
+        let normalized = value.trimmingCharacters(in: .whitespaces).lowercased()
+        guard let parsed = Value(rawValue: normalized) else {
             let allowed = Value.allCases.map(\.rawValue).joined(separator: ", ")
             throw ConfigError.invalidValue(
                 variable: variable,
@@ -161,16 +168,17 @@ public struct Config: Sendable, Equatable {
     /// Parses booleans the way Miniflux does.
     ///
     /// Ported from Miniflux `internal/config/parser.go` (`parseBoolValue`, Apache-2.0);
-    /// adapted for Swift. Empty values fall back to the default.
+    /// adapted for Swift. Values are trimmed; empty values fall back to the default.
     private static func parseBoolean(
         variable: String,
         value: String?,
         fallback: Bool
     ) throws -> Bool {
-        guard let value, !value.isEmpty else {
+        let normalized = (value ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+        guard !normalized.isEmpty else {
             return fallback
         }
-        switch value.lowercased() {
+        switch normalized {
         case "1", "yes", "true", "on":
             return true
         case "0", "no", "false", "off":
@@ -178,7 +186,7 @@ public struct Config: Sendable, Equatable {
         default:
             throw ConfigError.invalidValue(
                 variable: variable,
-                value: value,
+                value: value ?? "",
                 reason: "expected a boolean (1/0, true/false, yes/no, on/off)"
             )
         }

@@ -22,12 +22,16 @@ final class PragmasTests: XCTestCase {
     }
 
     func testPrepareEnablesWALThatPersistsOnTheFile() async throws {
-        // `setUp` prepared WAL through one pooled connection; a connection on another
-        // event loop (a different pool) must observe the same persisted mode.
+        // WAL is a property of the database file: prepare through one pool, then read the
+        // mode from a connection belonging to a different pool (event loop).
         let loops = Self.eventLoops(of: database.app)
-        let readStorage = loops.count > 1 ? try makeStorage(on: loops[1]) : storage!
+        try XCTSkipUnless(loops.count > 1, "the persistence check needs at least two event loops")
 
-        try await readStorage.withConnection { connection in
+        let writer = try makeStorage(on: loops[0])
+        try await writer.prepare()
+
+        let reader = try makeStorage(on: loops[1])
+        try await reader.withConnection { connection in
             let sql = try Self.sqlDatabase(from: connection)
             let row = try await sql.raw("PRAGMA journal_mode").first()
             let mode = try row?.decode(column: "journal_mode", as: String.self)
@@ -46,7 +50,7 @@ final class PragmasTests: XCTestCase {
         // connection with the pragmas applied (a single shared connection would hide a
         // wrapper that applies them only once).
         let loops = Self.eventLoops(of: database.app)
-        XCTAssertGreaterThanOrEqual(loops.count, 2, "the check needs at least two event loops")
+        try XCTSkipUnless(loops.count > 1, "the check needs at least two event loops")
 
         for loop in loops {
             let loopStorage = try makeStorage(on: loop)
