@@ -9,15 +9,18 @@
 - [x] SwiftPM package (Swift 6, Vapor 4, Fluent + SQLite); targets `RivuletCore`, `rivulet`; tests.
 - [x] Apache-2.0 LICENSE + NOTICE; CI building and testing on `ubuntu-latest` with the
       `swift:latest` container.
-- [ ] Config: environment-based loader with Miniflux-compatible names — `LISTEN_ADDR`
+- [x] Config: environment-based loader with Miniflux-compatible names — `LISTEN_ADDR`
       (default `127.0.0.1:8080`), `BASE_URL`, `DATABASE_URL` (**required**, SQLite file path;
       clear error if missing), `LOG_LEVEL` (default `info`), `RUN_MIGRATIONS` (default `true`);
-      strict validation with clear error messages.
+      strict validation with clear error messages. Parsing follows upstream semantics: empty
+      value = "unset", booleans `1/yes/true/on` / `0/no/false/off`, `BASE_URL` trailing slash
+      trimmed; a single `LISTEN_ADDR` (lists rejected).
 - [ ] Logging: swift-log via Vapor; text (default) and JSON format options.
-- [ ] Storage bootstrap: SQLite via Fluent through a thin **storage wrapper** that applies
+- [x] Storage bootstrap: SQLite via Fluent through a thin **storage wrapper** that applies
       per-connection pragmas on every connection checkout (`foreign_keys=ON`, `busy_timeout=5000`,
-      `synchronous=NORMAL`) and sets `journal_mode=WAL` once per file; Fluent migration runner.
-- [ ] Schema v1: `users`, `categories`, `feeds`, `entries`, `entry_tombstones`, `enclosures`,
+      `synchronous=NORMAL`) and sets `journal_mode=WAL` once per file (`prepare()` verifies that
+      SQLite accepted it); Fluent migration runner.
+- [x] Schema v1: `users`, `categories`, `feeds`, `entries`, `entry_tombstones`, `enclosures`,
       `icons`, `entries_fts` + sync triggers and indexes (see `docs/architecture.md`).
 - [ ] CLI skeleton with stubs for the full final command set: `serve`, `migrate`, `create-admin`,
       `add`, `remove`, `list`, `import`, `export`, `refresh`, `status`, `integration-credentials`,
@@ -25,8 +28,8 @@
       from our config) — do not register a custom command with the same name.
 - [ ] Minimal HTTP server with `GET /healthz`.
 - [ ] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
-      (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `StubFeedServer`,
-      `TestConsole`).
+      (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`;
+      `StubFeedServer` arrives with stage 2, when it is first needed).
 
 ## Implementation notes
 
@@ -40,6 +43,9 @@
   to `false`). The config test covers the error path.
 - `app.db` stays private to the storage layer: repositories are the only accessors, so the pragma
   wrapper cannot be bypassed by other modules.
+- The driver keeps one pooled connection per event loop, so `SQLiteStorage.withConnection` bodies
+  must not open a nested checkout (repositories take the checked-out connection); a nested
+  checkout fails fast on the connection-pool timeout. `prepare()` runs before migrations.
 
 ## Tests
 

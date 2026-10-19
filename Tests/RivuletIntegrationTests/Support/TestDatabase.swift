@@ -8,7 +8,9 @@ import Vapor
 /// A file-backed SQLite database in a fresh temporary directory, plus the Vapor
 /// application wired to it.
 ///
-/// Used by integration tests; the directory is removed in ``shutdown()``.
+/// Used by integration tests; the schema migration is registered but **not** applied —
+/// tests call `autoMigrate()` when they need the schema. The directory is removed in
+/// ``shutdown()``.
 final class TestDatabase {
     let directory: URL
     let path: String
@@ -21,8 +23,11 @@ final class TestDatabase {
     }
 
     /// Creates the temp directory and configures an application with the SQLite file
-    /// and the Rivulet schema migrations.
-    static func make() async throws -> TestDatabase {
+    /// and the Rivulet schema migration.
+    ///
+    /// - Parameter poolTimeoutMilliseconds: overrides the driver's connection-pool timeout
+    ///   (10 seconds by default); used by tests that pin the storage contract without waiting.
+    static func make(poolTimeoutMilliseconds: Int? = nil) async throws -> TestDatabase {
         bootstrapLoggingOnce()
 
         let directory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -32,7 +37,17 @@ final class TestDatabase {
         let path = directory.appendingPathComponent("rivulet.db").path
 
         let app = try await Application.make(.testing)
-        app.databases.use(.sqlite(.file(path)), as: .sqlite)
+        if let poolTimeoutMilliseconds {
+            app.databases.use(
+                .sqlite(
+                    .file(path),
+                    connectionPoolTimeout: .milliseconds(Int64(poolTimeoutMilliseconds))
+                ),
+                as: .sqlite
+            )
+        } else {
+            app.databases.use(.sqlite(.file(path)), as: .sqlite)
+        }
         app.migrations.add(SchemaV1())
 
         return TestDatabase(directory: directory, path: path, app: app)

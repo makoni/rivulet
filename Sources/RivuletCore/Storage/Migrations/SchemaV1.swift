@@ -1,20 +1,25 @@
+// Ported from Miniflux internal/database/migrations.go (Apache-2.0); adapted for Swift/SQLite.
 import FluentKit
 
 /// Initial Rivulet schema: tables, indexes, the FTS5 index over entries and its
 /// synchronization triggers.
 ///
-/// Statement shapes follow `docs/architecture.md`; entry statuses are `unread` and
-/// `read` only, timestamps are Unix seconds, entry identity is `(feed_id, hash)`.
-/// sqlite-nio prepares one statement per call, so each DDL statement runs separately.
+/// Shapes follow `docs/architecture.md` and the reference (`internal/database/migrations.go`):
+/// entry statuses are `unread`/`read` only, timestamps are Unix seconds, entry identity is
+/// `(feed_id, hash)`, feeds cascade from their category. sqlite-nio prepares one statement
+/// per call, so each DDL statement runs separately.
 public struct SchemaV1: AsyncMigration {
+    /// Creates the migration.
     public init() {}
 
+    /// Creates the tables, indexes, FTS5 table and its triggers.
     public func prepare(on database: any Database) async throws {
         for statement in Self.statements {
             try await RawSQL.run(statement, on: database)
         }
     }
 
+    /// Drops everything created by ``prepare(on:)``.
     public func revert(on database: any Database) async throws {
         for statement in Self.revertStatements {
             try await RawSQL.run(statement, on: database)
@@ -63,7 +68,7 @@ public struct SchemaV1: AsyncMigration {
         CREATE TABLE feeds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-            category_id INTEGER REFERENCES categories (id) ON DELETE SET NULL,
+            category_id INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
             url TEXT NOT NULL,
             site_url TEXT NOT NULL DEFAULT '',
             title TEXT NOT NULL DEFAULT '',
@@ -94,9 +99,9 @@ public struct SchemaV1: AsyncMigration {
             author TEXT NOT NULL DEFAULT '',
             content TEXT NOT NULL DEFAULT '',
             content_text TEXT NOT NULL DEFAULT '',
-            status TEXT NOT NULL DEFAULT 'unread',
+            status TEXT NOT NULL DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
             starred INTEGER NOT NULL DEFAULT 0,
-            published_at INTEGER,
+            published_at INTEGER NOT NULL,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
             UNIQUE (feed_id, hash)
@@ -105,7 +110,7 @@ public struct SchemaV1: AsyncMigration {
         """
         CREATE TABLE entry_tombstones (
             feed_id INTEGER NOT NULL REFERENCES feeds (id) ON DELETE CASCADE,
-            hash TEXT NOT NULL,
+            hash TEXT NOT NULL CHECK (hash <> ''),
             deleted_at INTEGER NOT NULL,
             PRIMARY KEY (feed_id, hash)
         )
@@ -121,8 +126,11 @@ public struct SchemaV1: AsyncMigration {
         """,
         "CREATE INDEX entries_feed_status_idx ON entries (feed_id, status)",
         "CREATE INDEX entries_user_status_published_idx ON entries (user_id, status, published_at)",
+        "CREATE INDEX entries_user_status_created_idx ON entries (user_id, status, created_at)",
+        "CREATE INDEX entries_user_id_status_starred_idx ON entries (user_id, status, starred)",
+        "CREATE INDEX feeds_user_category_idx ON feeds (user_id, category_id)",
         "CREATE INDEX feeds_next_check_at_idx ON feeds (next_check_at)",
-        "CREATE INDEX feeds_user_id_idx ON feeds (user_id)",
+        "CREATE INDEX enclosures_entry_id_idx ON enclosures (entry_id)",
         "CREATE INDEX entry_tombstones_deleted_at_idx ON entry_tombstones (deleted_at)",
         """
         CREATE VIRTUAL TABLE entries_fts USING fts5 (
@@ -146,7 +154,7 @@ public struct SchemaV1: AsyncMigration {
         END
         """,
         """
-        CREATE TRIGGER entries_fts_au AFTER UPDATE ON entries BEGIN
+        CREATE TRIGGER entries_fts_au AFTER UPDATE OF title, content_text ON entries BEGIN
             INSERT INTO entries_fts (entries_fts, rowid, title, content_text)
             VALUES ('delete', old.id, old.title, old.content_text);
             INSERT INTO entries_fts (rowid, title, content_text)

@@ -10,6 +10,7 @@ public enum ConfigError: Error, Equatable, Sendable {
 }
 
 extension ConfigError: CustomStringConvertible {
+    /// Human-readable message used by the CLI error path.
     public var description: String {
         switch self {
         case .missingRequiredVariable(let name):

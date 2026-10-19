@@ -28,6 +28,23 @@ final class ConfigTests: XCTestCase {
         XCTAssertTrue(config.runMigrations)
     }
 
+    func testEmptyOptionalValuesFallBackToDefaults() throws {
+        // Miniflux treats empty values as "unset" (parseStringValue/parseBoolValue).
+        let config = try Config.load(environment: environment([
+            "LISTEN_ADDR": "",
+            "BASE_URL": "",
+            "LOG_LEVEL": "",
+            "LOG_FORMAT": "",
+            "RUN_MIGRATIONS": "",
+        ]))
+
+        XCTAssertEqual(config.listenAddress, ListenAddress(host: "127.0.0.1", port: 8080))
+        XCTAssertEqual(config.baseURL.absoluteString, "http://localhost")
+        XCTAssertEqual(config.logLevel, .info)
+        XCTAssertEqual(config.logFormat, .text)
+        XCTAssertTrue(config.runMigrations)
+    }
+
     func testIgnoresUnrelatedEnvironmentVariables() throws {
         let config = try Config.load(environment: environment([
             "PATH": "/usr/bin",
@@ -68,14 +85,22 @@ final class ConfigTests: XCTestCase {
         }
     }
 
+    func testDatabaseURLIsTrimmed() throws {
+        let config = try Config.load(environment: environment(database: "  /tmp/rivulet.db  "))
+        XCTAssertEqual(config.databasePath, "/tmp/rivulet.db")
+    }
+
     func testDatabaseURLRejectsURLSchemes() {
-        XCTAssertThrowsError(
-            try Config.load(environment: environment(database: "postgres://user@host/miniflux"))
-        ) { error in
-            guard case .invalidValue("DATABASE_URL", _, let reason)? = error as? ConfigError else {
-                return XCTFail("unexpected error: \(error)")
+        for value in ["postgres://user@host/miniflux", "mysql://host/db"] {
+            XCTAssertThrowsError(
+                try Config.load(environment: environment(database: value)),
+                "expected DATABASE_URL=\(value) to be rejected"
+            ) { error in
+                guard case .invalidValue("DATABASE_URL", _, let reason)? = error as? ConfigError else {
+                    return XCTFail("unexpected error: \(error)")
+                }
+                XCTAssertTrue(reason.contains("file path"))
             }
-            XCTAssertTrue(reason.contains("file path"))
         }
     }
 
@@ -88,6 +113,8 @@ final class ConfigTests: XCTestCase {
             (":9000", "0.0.0.0", 9000),
             ("[::1]:9000", "::1", 9000),
             ("localhost:1234", "localhost", 1234),
+            // Miniflux trims list items; we accept surrounding whitespace the same way.
+            (" 127.0.0.1:8080 ", "127.0.0.1", 8080),
         ]
 
         for testCase in cases {
@@ -108,9 +135,12 @@ final class ConfigTests: XCTestCase {
             "127.0.0.1:0",             // port out of range
             "127.0.0.1:65536",         // port out of range
             "127.0.0.1:abc",           // non-numeric port
-            "",                        // empty
             "127.0.0.1:8080 :8081",    // multiple listeners
-            "127.0.0.1:8080 127.0.0.1:8081",
+            "127.0.0.1:8080,127.0.0.1:8081",
+            "::1",                     // IPv6 without brackets
+            "2001:db8::1",             // IPv6 without brackets
+            "[::1]",                   // IPv6 without port
+            "[]:8080",                 // empty IPv6 host
         ]
 
         for value in invalidValues {
@@ -139,6 +169,20 @@ final class ConfigTests: XCTestCase {
         XCTAssertNoThrow(try Config.load(environment: environment(["BASE_URL": "https://reader.example.com/rivulet"])))
     }
 
+    func testBaseURLTrailingSlashIsTrimmed() throws {
+        // Miniflux strips a single trailing slash (strings.TrimSuffix).
+        let cases = [
+            ("https://example.com/", "https://example.com"),
+            ("https://example.com/app/", "https://example.com/app"),
+            ("https://example.com/app//", "https://example.com/app/"),
+        ]
+
+        for (value, expected) in cases {
+            let config = try Config.load(environment: environment(["BASE_URL": value]))
+            XCTAssertEqual(config.baseURL.absoluteString, expected, "for BASE_URL=\(value)")
+        }
+    }
+
     // MARK: - LOG_LEVEL / LOG_FORMAT / RUN_MIGRATIONS
 
     func testLogLevelIsCaseInsensitive() throws {
@@ -164,21 +208,29 @@ final class ConfigTests: XCTestCase {
     }
 
     func testRunMigrationsBooleanVariants() throws {
-        let truthy = ["1", "t", "T", "true", "TRUE", "True"]
+        // Miniflux parseBoolValue: case-insensitive 1/yes/true/on and 0/no/false/off.
+        let truthy = ["1", "yes", "true", "on", "TRUE", "Yes", "ON"]
         for value in truthy {
             XCTAssertTrue(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
         }
 
-        let falsy = ["0", "f", "F", "false", "FALSE", "False"]
+        let falsy = ["0", "no", "false", "off", "FALSE", "No", "OFF"]
         for value in falsy {
             XCTAssertFalse(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
         }
     }
 
     func testInvalidRunMigrationsFails() {
-        XCTAssertThrowsError(try Config.load(environment: environment(["RUN_MIGRATIONS": "yes"]))) { error in
-            guard case .invalidValue("RUN_MIGRATIONS", "yes", _)? = error as? ConfigError else {
-                return XCTFail("unexpected error: \(error)")
+        // `t`/`f` are Go strconv values that Miniflux rejects; whitespace is not trimmed.
+        for value in ["t", "f", "maybe", "yes "] {
+            XCTAssertThrowsError(
+                try Config.load(environment: environment(["RUN_MIGRATIONS": value])),
+                "expected RUN_MIGRATIONS=\(value) to be rejected"
+            ) { error in
+                guard case .invalidValue("RUN_MIGRATIONS", _, let reason)? = error as? ConfigError else {
+                    return XCTFail("unexpected error: \(error)")
+                }
+                XCTAssertTrue(reason.contains("on/off"))
             }
         }
     }

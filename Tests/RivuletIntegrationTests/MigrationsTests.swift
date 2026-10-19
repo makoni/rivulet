@@ -1,4 +1,5 @@
 import XCTest
+import Fluent
 import FluentSQLiteDriver
 import SQLKit
 @testable import RivuletCore
@@ -8,6 +9,9 @@ final class MigrationsTests: XCTestCase {
 
     override func setUp() async throws {
         database = try await TestDatabase.make()
+        // Production order: WAL first (the storage layer verifies it), then the schema.
+        let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
+        try await storage.prepare()
         try await database.app.autoMigrate()
     }
 
@@ -23,6 +27,9 @@ final class MigrationsTests: XCTestCase {
             "enclosures", "icons", "entries_fts",
         ]
         XCTAssertTrue(expected.isSubset(of: tables), "missing tables: \(expected.subtracting(tables))")
+
+        let ddl = try await entriesFTSDDL()
+        XCTAssertTrue(ddl.contains("USING fts5"), "entries_fts must be an FTS5 virtual table: \(ddl)")
     }
 
     func testSchemaContainsFTSyncTriggers() async throws {
@@ -35,11 +42,21 @@ final class MigrationsTests: XCTestCase {
         let expected: Set<String> = [
             "entries_feed_status_idx",
             "entries_user_status_published_idx",
+            "entries_user_status_created_idx",
+            "entries_user_id_status_starred_idx",
+            "feeds_user_category_idx",
             "feeds_next_check_at_idx",
-            "feeds_user_id_idx",
+            "enclosures_entry_id_idx",
             "entry_tombstones_deleted_at_idx",
         ]
         XCTAssertTrue(expected.isSubset(of: indexes), "missing indexes: \(expected.subtracting(indexes))")
+    }
+
+    func testIndexColumnsMatchTheQueriesTheyServe() async throws {
+        try await assertIndexColumns("entries_feed_status_idx", ["feed_id", "status"])
+        try await assertIndexColumns("entries_user_status_published_idx", ["user_id", "status", "published_at"])
+        try await assertIndexColumns("entries_user_status_created_idx", ["user_id", "status", "created_at"])
+        try await assertIndexColumns("entries_user_id_status_starred_idx", ["user_id", "status", "starred"])
     }
 
     func testMigrationsAreIdempotent() async throws {
@@ -81,5 +98,18 @@ final class MigrationsTests: XCTestCase {
             .raw("SELECT name FROM sqlite_master WHERE type = '\(unsafeRaw: type)'")
             .all()
         return try rows.map { try $0.decode(column: "name", as: String.self) }
+    }
+
+    private func entriesFTSDDL() async throws -> String {
+        let sql = try sqlDatabase()
+        let row = try await sql.raw("SELECT sql FROM sqlite_master WHERE name = 'entries_fts'").first()
+        return try XCTUnwrap(row?.decode(column: "sql", as: String.self))
+    }
+
+    private func assertIndexColumns(_ index: String, _ expected: [String]) async throws {
+        let sql = try sqlDatabase()
+        let rows = try await sql.raw("PRAGMA index_info('\(unsafeRaw: index)')").all()
+        let columns = try rows.map { try $0.decode(column: "name", as: String.self) }
+        XCTAssertEqual(columns, expected, "unexpected columns for \(index)")
     }
 }

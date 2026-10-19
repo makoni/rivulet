@@ -2,9 +2,10 @@ import Foundation
 
 /// A host and port pair the HTTP server listens on.
 ///
-/// Mirrors Miniflux's `LISTEN_ADDR`: `127.0.0.1:8080`, `:8080` (all interfaces),
-/// `[::1]:8080`. The upstream value is a whitespace-separated list; Rivulet currently
-/// serves a single address and rejects lists explicitly.
+/// Mirrors Miniflux's `LISTEN_ADDR` for the single-address case: `127.0.0.1:8080`,
+/// `:8080` (all interfaces), `[::1]:8080`. Upstream accepts a comma-separated list
+/// (Unix socket paths included); Rivulet serves one TCP address and rejects lists
+/// explicitly — see `docs/architecture.md`.
 public struct ListenAddress: Equatable, Sendable, CustomStringConvertible {
     /// Bind host (`0.0.0.0` for all interfaces).
     public let host: String
@@ -18,11 +19,15 @@ public struct ListenAddress: Equatable, Sendable, CustomStringConvertible {
         self.port = port
     }
 
+    /// `host:port`, with brackets around IPv6 hosts.
     public var description: String {
         host.contains(":") ? "[\(host)]:\(port)" : "\(host):\(port)"
     }
 
     /// Parses a `host:port` string as used by `LISTEN_ADDR`.
+    ///
+    /// Adapted from Miniflux `internal/config/parser.go` (`parseStringListValue`,
+    /// Apache-2.0): one item; the comma-separated list form is rejected.
     static func parse(_ rawValue: String) throws -> ListenAddress {
         let value = rawValue.trimmingCharacters(in: .whitespaces)
 
@@ -47,8 +52,20 @@ public struct ListenAddress: Equatable, Sendable, CustomStringConvertible {
 
         if host.hasPrefix("["), host.hasSuffix("]") {
             host = String(host.dropFirst().dropLast())
-        }
-        if host.isEmpty {
+            guard !host.isEmpty else {
+                throw ConfigError.invalidValue(
+                    variable: "LISTEN_ADDR",
+                    value: rawValue,
+                    reason: "empty IPv6 host"
+                )
+            }
+        } else if host.contains(":") {
+            throw ConfigError.invalidValue(
+                variable: "LISTEN_ADDR",
+                value: rawValue,
+                reason: "IPv6 addresses must be bracketed, e.g. [::1]:8080"
+            )
+        } else if host.isEmpty {
             host = "0.0.0.0"
         }
 

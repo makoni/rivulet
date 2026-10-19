@@ -1,4 +1,5 @@
 import XCTest
+import Fluent
 import FluentSQLiteDriver
 import SQLKit
 import Vapor
@@ -20,8 +21,13 @@ final class PragmasTests: XCTestCase {
         storage = nil
     }
 
-    func testPrepareEnablesWAL() async throws {
-        try await storage.withConnection { connection in
+    func testPrepareEnablesWALThatPersistsOnTheFile() async throws {
+        // `setUp` prepared WAL through one pooled connection; a connection on another
+        // event loop (a different pool) must observe the same persisted mode.
+        let loops = Self.eventLoops(of: database.app)
+        let readStorage = loops.count > 1 ? try makeStorage(on: loops[1]) : storage!
+
+        try await readStorage.withConnection { connection in
             let sql = try Self.sqlDatabase(from: connection)
             let row = try await sql.raw("PRAGMA journal_mode").first()
             let mode = try row?.decode(column: "journal_mode", as: String.self)
@@ -35,21 +41,33 @@ final class PragmasTests: XCTestCase {
         }
     }
 
-    func testSessionPragmasAreAppliedOnConcurrentConnections() async throws {
-        let storage = storage!
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for _ in 0..<8 {
-                group.addTask {
-                    try await storage.withConnection { connection in
-                        try await Self.assertSessionPragmas(on: connection)
-                    }
-                }
+    func testSessionPragmasAreAppliedOnConnectionsAcrossEventLoops() async throws {
+        // The driver keeps one pooled connection per event loop: every loop must get a
+        // connection with the pragmas applied (a single shared connection would hide a
+        // wrapper that applies them only once).
+        let loops = Self.eventLoops(of: database.app)
+        XCTAssertGreaterThanOrEqual(loops.count, 2, "the check needs at least two event loops")
+
+        for loop in loops {
+            let loopStorage = try makeStorage(on: loop)
+            try await loopStorage.withConnection { connection in
+                try await Self.assertSessionPragmas(on: connection)
             }
-            try await group.waitForAll()
         }
     }
 
     // MARK: - Helpers
+
+    private func makeStorage(on loop: any EventLoop) throws -> SQLiteStorage {
+        let connection = try XCTUnwrap(
+            database.app.databases.database(.sqlite, logger: database.app.logger, on: loop)
+        )
+        return SQLiteStorage(database: connection, path: database.path)
+    }
+
+    private static func eventLoops(of app: Application) -> [any EventLoop] {
+        Array(app.eventLoopGroup.makeIterator()).prefix(4).map { $0 }
+    }
 
     private static func assertSessionPragmas(on connection: any Database) async throws {
         let sql = try sqlDatabase(from: connection)
