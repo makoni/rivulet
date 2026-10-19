@@ -12,6 +12,10 @@ public struct SchemaV1: AsyncMigration {
     /// Creates the migration.
     public init() {}
 
+    /// The name Fluent records and `rivulet migrate` prints; the default would be the
+    /// module-qualified `RivuletCore.SchemaV1`.
+    public var name: String { "SchemaV1" }
+
     /// Creates the tables, indexes, FTS5 table and its triggers.
     public func prepare(on database: any Database) async throws {
         for statement in Self.statements {

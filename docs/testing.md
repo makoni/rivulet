@@ -7,7 +7,7 @@ afterthought — they run in CI together with unit tests.
 
 | Level | Location | Scope |
 | --- | --- | --- |
-| Unit | `Tests/RivuletCoreTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML |
+| Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
 | Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer — input bytes → golden output |
 | Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
 | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic diff against real Miniflux in Docker |
@@ -37,12 +37,19 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
-- `TestConsole.swift` — runs console commands in-process against a temp database.
+- `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke
+  tests run commands against a temp database through it.
+- `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the
+  CLI and probe tests).
+- `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
+  bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
+  (swift-log traps on a second one).
 - Clock injection: long-running logic (scheduler, retention) takes a `Clock` abstraction; tests
   use a manual clock and explicit `tick()` calls — no sleeping in tests.
 
-App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket
-(XCTVapor `.running` mode) — this is the mode used for the client-API journey tests.
+App-level tests build the real Vapor app with a temp database and speak real HTTP over a
+socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
+and use Vapor's client. `XCTVapor` `.running` mode is used for the client-API journey tests.
 
 Determinism rules: no fixed ports, no real-time waits, `TZ=UTC` for date tests, per-test temp
 directories, no network access except to the local stub server.

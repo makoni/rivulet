@@ -1,6 +1,16 @@
-import RivuletCore
+import ConsoleKit
+import RivuletApp
 
-// Placeholder entry point.
-// The real CLI — serve, migrate, add, import, refresh, status — will replace this
-// as the first milestone lands.
-print("rivulet \(RivuletCore.version) — development skeleton")
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Darwin)
+import Darwin
+#endif
+
+let console = Terminal()
+do {
+    try await RivuletCLI.run(console: console)
+} catch {
+    console.report(error: "Error: \(error)", newLine: true)
+    exit(EXIT_FAILURE)
+}

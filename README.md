@@ -2,7 +2,8 @@
 
 A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3).
 
-> **Status:** early development. The repository skeleton has just been laid down; nothing here is usable yet.
+> **Status:** early development. The foundation (configuration, SQLite storage, CLI skeleton,
+> `/healthz`) is in place; feed subscriptions land with the next stages.
 
 ## What it will be
 
@@ -13,6 +14,23 @@ Rivulet aims to be a small, single-binary RSS/Atom reader for a personal server:
 - **Client APIs** — Google Reader API and Fever API, so existing native clients keep working: NetNewsWire, lire, FeedFlow, Reeder Classic and friends.
 - **CLI-first** — no web interface: `rivulet add`, `rivulet import feeds.opml`, `rivulet refresh`, `rivulet serve`.
 - **Built with** — [Vapor 4](https://vapor.codes), [Fluent](https://docs.vapor.codes/fluent/overview/) + [SQLite](https://www.sqlite.org), [FeedKit](https://github.com/nmdias/FeedKit), [SwiftSoup](https://github.com/scinfu/SwiftSoup).
+
+## Commands
+
+Rivulet is CLI-first. The commands that exist so far:
+
+| Command | What it does |
+| --- | --- |
+| `rivulet serve` | Runs the HTTP server (`LISTEN_ADDR`); Vapor's server flags (`--hostname`, `--port`, `--bind`) work |
+| `rivulet migrate` | Creates or updates the SQLite schema |
+| `rivulet version` | Prints the version |
+| `rivulet --help` | Lists all commands, including the planned ones |
+
+The remaining commands are registered placeholders that report the stage implementing them:
+`create-admin`, `add`, `remove`, `list`, `import`, `export`, `refresh`, `status`,
+`integration-credentials`, `backup`, `vacuum`.
+
+`--help` and `version` work without any configuration; `serve` and `migrate` need `DATABASE_URL`.
 
 ## Development
 
