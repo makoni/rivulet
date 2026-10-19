@@ -9,12 +9,23 @@
 xcuserdata/
 *.xcodeproj
 
-# Runtime data
+# Editors
+.vscode/
+.idea/
+
+# Runtime data (SQLite databases and their sidecars)
 .env
 data/
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite*
+*.log
+
+# Coverage
+*.profraw
+*.profdata
 
 # macOS
 .DS_Store
