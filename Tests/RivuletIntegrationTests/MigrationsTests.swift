@@ -63,10 +63,46 @@ final class MigrationsTests: XCTestCase {
     }
 
     func testIndexColumnsMatchTheQueriesTheyServe() async throws {
-        try await assertIndexColumns("entries_feed_status_idx", ["feed_id", "status"])
-        try await assertIndexColumns("entries_user_status_published_idx", ["user_id", "status", "published_at"])
-        try await assertIndexColumns("entries_user_status_created_idx", ["user_id", "status", "created_at"])
-        try await assertIndexColumns("entries_user_id_status_starred_idx", ["user_id", "status", "starred"])
+        let sql = try sqlDatabase()
+        try await Self.assertIndexColumns("entries_feed_status_idx", ["feed_id", "status"], on: sql)
+        try await Self.assertIndexColumns("entries_user_status_published_idx", ["user_id", "status", "published_at"], on: sql)
+        try await Self.assertIndexColumns("entries_user_status_created_idx", ["user_id", "status", "created_at"], on: sql)
+        try await Self.assertIndexColumns("entries_user_id_status_starred_idx", ["user_id", "status", "starred"], on: sql)
+    }
+
+    func testIndexColumnsAreVisibleOnAPreMigrationConnection() async throws {
+        // Regression: a pooled connection can load its schema before the migration runs —
+        // `SQLiteStorage.prepare()` does that, since `PRAGMA journal_mode=WAL` on a fresh
+        // database populates the connection's schema cache. Index inspection must still
+        // see the migrated schema on such a connection.
+        let fresh = try await TestDatabase.make()
+        do {
+            let loops = Array(fresh.app.eventLoopGroup.makeIterator())
+            try XCTSkipUnless(loops.count > 1, "the scenario needs two event loops")
+
+            let preMigration = try XCTUnwrap(
+                fresh.app.databases.database(.sqlite, logger: fresh.app.logger, on: loops[0])
+            )
+            let modeRow = try await RawSQL.first("PRAGMA journal_mode = WAL", on: preMigration)
+            let mode = try modeRow?.decode(column: "journal_mode", as: String.self)
+            XCTAssertEqual(mode?.lowercased(), "wal")
+
+            let migration = try XCTUnwrap(
+                fresh.app.databases.database(.sqlite, logger: fresh.app.logger, on: loops[1])
+            )
+            try await SchemaV1().prepare(on: migration)
+
+            let sql = try XCTUnwrap(preMigration as? any SQLDatabase)
+            try await Self.assertIndexColumns(
+                "entries_user_status_created_idx",
+                ["user_id", "status", "created_at"],
+                on: sql
+            )
+        } catch {
+            await fresh.shutdown()
+            throw error
+        }
+        await fresh.shutdown()
     }
 
     func testMigrationsAreIdempotent() async throws {
@@ -116,10 +152,22 @@ final class MigrationsTests: XCTestCase {
         return try XCTUnwrap(row?.decode(column: "sql", as: String.self))
     }
 
-    private func assertIndexColumns(_ index: String, _ expected: [String]) async throws {
-        let sql = try sqlDatabase()
+    /// Asserts the column layout of an index as the schema migration created it.
+    ///
+    /// `PRAGMA index_info` resolves the index in the connection's cached schema at compile
+    /// time and does not refresh a stale cache, so a pooled connection that loaded its schema
+    /// before the migration would report no columns. The leading `SELECT` is an ordinary
+    /// statement: it goes through the schema-cookie check and refreshes the cache.
+    static func assertIndexColumns(
+        _ index: String,
+        _ expected: [String],
+        on sql: any SQLDatabase,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async throws {
+        _ = try await sql.raw("SELECT COUNT(*) FROM entries").all()
         let rows = try await sql.raw("PRAGMA index_info('\(unsafeRaw: index)')").all()
         let columns = try rows.map { try $0.decode(column: "name", as: String.self) }
-        XCTAssertEqual(columns, expected, "unexpected columns for \(index)")
+        XCTAssertEqual(columns, expected, "unexpected columns for \(index)", file: file, line: line)
     }
 }

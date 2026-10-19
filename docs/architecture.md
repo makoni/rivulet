@@ -96,6 +96,11 @@ validated before the fallback (an empty value is an error, like upstream); boole
   type in FluentKit — pool configuration lives in `FluentSQLiteConfiguration`.
 - `SQLiteStorage.prepare()` enables `journal_mode=WAL`, verifies that SQLite accepted it, and
   runs before migrations.
+- Schema-lookup pragmas (`index_info`, `table_info`, …) resolve against the connection's cached
+  schema and do not refresh it: a pooled connection that loaded its schema before the migration
+  (for example, the one that ran `journal_mode=WAL`) keeps seeing the old schema. Run an
+  ordinary statement first (or use a fresh connection) when such a pragma must observe the
+  current schema.
 - The driver keeps one pooled connection per event loop: `withConnection` bodies must not open
   a nested checkout (repositories take the checked-out connection) — a nested checkout waits
   for the pool and fails on the connection-pool timeout.
