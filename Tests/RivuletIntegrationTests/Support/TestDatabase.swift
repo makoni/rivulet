@@ -1,7 +1,6 @@
 import Foundation
 import Fluent
 import FluentSQLiteDriver
-import Logging
 import Vapor
 @testable import RivuletCore
 
@@ -28,7 +27,7 @@ final class TestDatabase {
     /// - Parameter poolTimeoutMilliseconds: overrides the driver's connection-pool timeout
     ///   (10 seconds by default); used by tests that pin the storage contract without waiting.
     static func make(poolTimeoutMilliseconds: Int? = nil) async throws -> TestDatabase {
-        bootstrapLoggingOnce()
+        TestLogging.bootstrapOnce()
 
         let directory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             .appendingPathComponent("rivulet-tests-\(UUID().uuidString)", isDirectory: true)
@@ -59,11 +58,4 @@ final class TestDatabase {
         try? FileManager.default.removeItem(at: directory)
     }
 
-    private static let loggingBootstrap: Void = {
-        LoggingSystem.bootstrap { _ in SwiftLogNoOpLogHandler() }
-    }()
-
-    private static func bootstrapLoggingOnce() {
-        _ = loggingBootstrap
-    }
 }
