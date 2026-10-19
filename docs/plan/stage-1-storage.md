@@ -2,7 +2,7 @@
 
 **Goal:** the single source of truth for all data: models, repositories, search, retention,
 tombstones.
-**Status:** not started. **Effort:** M. **Depends on:** Stage 0.
+**Status:** in progress. **Effort:** M. **Depends on:** Stage 0.
 
 ## Scope
 
@@ -16,12 +16,12 @@ tombstones.
 - [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
       counts (derived the way clients derive them), search via FTS5 with `bm25()` ranking
       (plain-text extraction at write time).
-- [ ] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
+- [x] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
       `parsing_error_message`, `fetched_at`.
 - [ ] Retention (port the reference defaults): daily cleanup — delete read entries older than
       60 days and unread older than 180 days, batch 10000, skip starred; per-feed policies are a
       possible extension, not MVP.
-- [ ] Storage wrapper: per-connection pragmas + single-writer discipline (see stage 0).
+- [x] Storage wrapper: per-connection pragmas + single-writer discipline (see stage 0).
 - [ ] Maintenance: `VACUUM INTO` backup helper (needs ~2× free space — documented), `vacuum`,
       `journal_size_limit`, checkpoint on shutdown, startup `PRAGMA quick_check`.
 - [ ] Seeding helper for benchmarks and tests (N feeds, 100k entries).

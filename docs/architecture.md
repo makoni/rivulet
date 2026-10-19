@@ -34,8 +34,7 @@ Rivulet is a single binary with two faces over one core:
 Sources/
 ├── RivuletCore/            # framework-independent core (+ DocC catalog: RivuletCore.docc)
 │   ├── Config/             # environment → Config, validation
-│   ├── Model/              # domain types: User, Category, Feed, Entry, Icon …
-│   ├── Storage/            # Fluent models + repositories + raw SQLKit queries
+│   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher, parser, dates, charset, sanitizer, OPML
 │   └── Scheduler/          # refresh loop, retention jobs
 ├── RivuletApp/             # application layer — the only target that knows Vapor
