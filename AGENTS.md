@@ -34,6 +34,8 @@ We work test-first: **red → green → refactor**.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an
   integration test, not just a unit test.
 - Ported Miniflux behavior must bring the corresponding ported tests.
+- Tests are written with Swift Testing (`@Suite`/`@Test`, `#expect`/`#require`, `Test.cancel`);
+  XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
   genuinely wrong, fix the test in the same commit with a clear explanation.
 - New public APIs without tests are not accepted.

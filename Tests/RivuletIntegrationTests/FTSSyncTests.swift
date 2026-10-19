@@ -1,78 +1,84 @@
-import XCTest
 import Fluent
 import FluentSQLiteDriver
 import SQLKit
+import Testing
 @testable import RivuletCore
 
 /// Exercises the FTS5 external-content triggers against real rows: search must follow
 /// inserts, updates and deletes (including cascades from feed deletion).
-final class FTSSyncTests: XCTestCase {
-    private var database: TestDatabase!
-    private var storage: SQLiteStorage!
-
-    override func setUp() async throws {
-        database = try await TestDatabase.make()
-        storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-        try await storage.prepare()
-        try await database.app.autoMigrate()
-    }
-
-    override func tearDown() async throws {
+@Suite struct FTSSyncTests {
+    /// Creates a database with the schema migrated and runs `body` with the storage.
+    private func withMigratedStorage(
+        _ body: (TestDatabase, SQLiteStorage) async throws -> Void
+    ) async throws {
+        let database = try await TestDatabase.make()
+        do {
+            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
+            try await storage.prepare()
+            try await database.app.autoMigrate()
+            try await body(database, storage)
+        } catch {
+            await database.shutdown()
+            throw error
+        }
         await database.shutdown()
-        database = nil
-        storage = nil
     }
 
-    func testFTSFollowsInsertsUpdatesAndDeletes() async throws {
-        try await storage.withConnection { connection in
-            let sql = try Self.sqlDatabase(from: connection)
-            try await Self.seedFeed(sql)
-            try await Self.seedEntry(
-                sql,
-                hash: "h1",
-                title: "Swift concurrency",
-                text: "structured concurrency and tasks"
-            )
+    @Test func ftsFollowsInsertsUpdatesAndDeletes() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let sql = try Self.sqlDatabase(from: connection)
+                try await Self.seedFeed(sql)
+                try await Self.seedEntry(
+                    sql,
+                    hash: "h1",
+                    title: "Swift concurrency",
+                    text: "structured concurrency and tasks"
+                )
 
-            try await Self.assertSearchCount(sql, term: "swift", is: 1)
-            try await Self.assertSearchCount(sql, term: "structured", is: 1)
-            try await Self.assertSearchCount(sql, term: "kotlin", is: 0)
+                try await Self.assertSearchCount(sql, term: "swift", is: 1)
+                try await Self.assertSearchCount(sql, term: "structured", is: 1)
+                try await Self.assertSearchCount(sql, term: "kotlin", is: 0)
 
-            try await sql.raw(
-                "UPDATE entries SET title = 'Kotlin coroutines', content_text = 'cold flows' WHERE hash = 'h1'"
-            ).run()
+                try await sql.raw(
+                    "UPDATE entries SET title = 'Kotlin coroutines', content_text = 'cold flows' WHERE hash = 'h1'"
+                ).run()
 
-            try await Self.assertSearchCount(sql, term: "swift", is: 0, "old terms must leave the index")
-            try await Self.assertSearchCount(sql, term: "structured", is: 0)
-            try await Self.assertSearchCount(sql, term: "kotlin", is: 1)
+                try await Self.assertSearchCount(sql, term: "swift", is: 0, "old terms must leave the index")
+                try await Self.assertSearchCount(sql, term: "structured", is: 0)
+                try await Self.assertSearchCount(sql, term: "kotlin", is: 1)
 
-            // Updates to non-indexed columns must not disturb the index.
-            try await sql.raw("UPDATE entries SET status = 'read', starred = 1 WHERE hash = 'h1'").run()
-            try await Self.assertSearchCount(sql, term: "kotlin", is: 1)
-            try await Self.assertSearchCount(sql, term: "swift", is: 0)
+                // Updates to non-indexed columns must not disturb the index.
+                try await sql.raw("UPDATE entries SET status = 'read', starred = 1 WHERE hash = 'h1'").run()
+                try await Self.assertSearchCount(sql, term: "kotlin", is: 1)
+                try await Self.assertSearchCount(sql, term: "swift", is: 0)
 
-            try await sql.raw("DELETE FROM entries WHERE hash = 'h1'").run()
-            try await Self.assertSearchCount(sql, term: "kotlin", is: 0)
+                try await sql.raw("DELETE FROM entries WHERE hash = 'h1'").run()
+                try await Self.assertSearchCount(sql, term: "kotlin", is: 0)
+            }
         }
     }
 
-    func testDeletingAFeedCascadesToEntriesAndSearchRows() async throws {
-        try await storage.withConnection { connection in
-            let sql = try Self.sqlDatabase(from: connection)
-            try await Self.seedFeed(sql)
-            try await Self.seedEntry(sql, hash: "h1", title: "alpha", text: "first entry")
-            try await Self.seedEntry(sql, hash: "h2", title: "beta", text: "second entry")
+    @Test func deletingAFeedCascadesToEntriesAndSearchRows() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let sql = try Self.sqlDatabase(from: connection)
+                try await Self.seedFeed(sql)
+                try await Self.seedEntry(sql, hash: "h1", title: "alpha", text: "first entry")
+                try await Self.seedEntry(sql, hash: "h2", title: "beta", text: "second entry")
 
-            try await Self.assertSearchCount(sql, term: "alpha", is: 1)
-            try await Self.assertSearchCount(sql, term: "beta", is: 1)
+                try await Self.assertSearchCount(sql, term: "alpha", is: 1)
+                try await Self.assertSearchCount(sql, term: "beta", is: 1)
 
-            // Requires `PRAGMA foreign_keys = ON` from the storage wrapper.
-            try await sql.raw("DELETE FROM feeds WHERE id = 1").run()
+                // Requires `PRAGMA foreign_keys = ON` from the storage wrapper.
+                try await sql.raw("DELETE FROM feeds WHERE id = 1").run()
 
-            let count = try await sql.raw("SELECT COUNT(*) AS count FROM entries").first()
-            XCTAssertEqual(try count?.decode(column: "count", as: Int.self), 0)
-            try await Self.assertSearchCount(sql, term: "alpha", is: 0)
-            try await Self.assertSearchCount(sql, term: "beta", is: 0)
+                let count = try await sql.raw("SELECT COUNT(*) AS count FROM entries").first()
+                let entryCount = try count?.decode(column: "count", as: Int.self)
+                #expect(entryCount == 0)
+                try await Self.assertSearchCount(sql, term: "alpha", is: 0)
+                try await Self.assertSearchCount(sql, term: "beta", is: 0)
+            }
         }
     }
 
@@ -116,11 +122,10 @@ final class FTSSyncTests: XCTestCase {
         term: String,
         is expected: Int,
         _ comment: String = "",
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) async throws {
         let count = try await searchCount(sql, term: term)
-        XCTAssertEqual(count, expected, "MATCH '\(term)' \(comment)", file: file, line: line)
+        #expect(count == expected, "MATCH '\(term)' \(comment)", sourceLocation: sourceLocation)
     }
 
     private static func searchCount(_ sql: any SQLDatabase, term: String) async throws -> Int {

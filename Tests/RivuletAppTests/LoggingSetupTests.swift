@@ -1,27 +1,27 @@
 import Logging
-import XCTest
+import Testing
 @testable import RivuletApp
 import RivuletCore
 
-final class LoggingSetupTests: XCTestCase {
-    func testTextFormatBuildsAStreamLogHandlerWithTheConfiguredLevel() {
+@Suite struct LoggingSetupTests {
+    @Test func textFormatBuildsAStreamLogHandlerWithTheConfiguredLevel() {
         let handler = LoggingSetup.makeHandler(label: "rivulet.tests", logLevel: .warning, format: .text)
 
-        XCTAssertTrue(handler is StreamLogHandler)
-        XCTAssertEqual(handler.logLevel, .warning)
+        #expect(handler is StreamLogHandler)
+        #expect(handler.logLevel == .warning)
     }
 
-    func testJSONFormatBuildsAJSONLogHandlerWithTheConfiguredLevel() {
+    @Test func jsonFormatBuildsAJSONLogHandlerWithTheConfiguredLevel() {
         let handler = LoggingSetup.makeHandler(label: "rivulet.tests", logLevel: .debug, format: .json)
 
-        XCTAssertTrue(handler is JSONLogHandler)
-        XCTAssertEqual(handler.logLevel, .debug)
+        #expect(handler is JSONLogHandler)
+        #expect(handler.logLevel == .debug)
     }
 
-    func testConfigurationLogLevelsMapOntoSwiftLogLevels() {
-        XCTAssertEqual(Logger.Level(Config.LogLevel.debug), .debug)
-        XCTAssertEqual(Logger.Level(Config.LogLevel.info), .info)
-        XCTAssertEqual(Logger.Level(Config.LogLevel.warning), .warning)
-        XCTAssertEqual(Logger.Level(Config.LogLevel.error), .error)
+    @Test func configurationLogLevelsMapOntoSwiftLogLevels() {
+        #expect(Logger.Level(Config.LogLevel.debug) == .debug)
+        #expect(Logger.Level(Config.LogLevel.info) == .info)
+        #expect(Logger.Level(Config.LogLevel.warning) == .warning)
+        #expect(Logger.Level(Config.LogLevel.error) == .error)
     }
 }

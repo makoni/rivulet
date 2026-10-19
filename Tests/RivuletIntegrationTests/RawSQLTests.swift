@@ -1,37 +1,40 @@
-import XCTest
 import Fluent
 import FluentSQLiteDriver
 import SQLKit
+import Testing
 @testable import RivuletCore
 
 /// Pins how `RawSQL` treats strings that contain several statements.
-final class RawSQLTests: XCTestCase {
-    private var database: TestDatabase!
-
-    override func setUp() async throws {
-        database = try await TestDatabase.make()
-    }
-
-    override func tearDown() async throws {
+@Suite struct RawSQLTests {
+    /// Creates a bare database (no migration) and runs `body` against it.
+    private func withDatabase(_ body: (TestDatabase) async throws -> Void) async throws {
+        let database = try await TestDatabase.make()
+        do {
+            try await body(database)
+        } catch {
+            await database.shutdown()
+            throw error
+        }
         await database.shutdown()
-        database = nil
     }
 
-    func testOnlyTheFirstStatementOfAStringIsExecuted() async throws {
-        // sqlite-nio prepares one statement per call; the rest of the string is silently
-        // ignored (see `RawSQL`). This test pins that behavior so a multi-statement
-        // string is never mistaken for "applied".
-        let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
-        try await storage.withConnection { connection in
-            let sql = try Self.sqlDatabase(from: connection)
-            try await RawSQL.run(
-                "CREATE TABLE first_table (id INTEGER); CREATE TABLE second_table (id INTEGER)",
-                on: connection
-            )
+    @Test func onlyTheFirstStatementOfAStringIsExecuted() async throws {
+        try await withDatabase { database in
+            // sqlite-nio prepares one statement per call; the rest of the string is silently
+            // ignored (see `RawSQL`). This test pins that behavior so a multi-statement
+            // string is never mistaken for "applied".
+            let storage = SQLiteStorage(database: database.app.db(.sqlite), path: database.path)
+            try await storage.withConnection { connection in
+                let sql = try Self.sqlDatabase(from: connection)
+                try await RawSQL.run(
+                    "CREATE TABLE first_table (id INTEGER); CREATE TABLE second_table (id INTEGER)",
+                    on: connection
+                )
 
-            let names = try await Self.tableNames(sql)
-            XCTAssertTrue(names.contains("first_table"), "the first statement should run")
-            XCTAssertFalse(names.contains("second_table"), "trailing statements must never run")
+                let names = try await Self.tableNames(sql)
+                #expect(names.contains("first_table"), "the first statement should run")
+                #expect(!names.contains("second_table"), "trailing statements must never run")
+            }
         }
     }
 

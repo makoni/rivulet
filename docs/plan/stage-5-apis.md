@@ -56,7 +56,7 @@
 - Token derivation; Google Reader response encoders (JSON + plain text); OPML round-trip;
   pagination math.
 
-### Integration (the acceptance backbone, real sockets via XCTVapor `.running`)
+### Integration (the acceptance backbone, real sockets through Vapor's client)
 
 - Full journey: `create-admin` + integration credentials via CLI → OPML import adds feeds →
   refresh fetches entries (stub server) → Google Reader: `ClientLogin` (plain-text `SID/LSID/Auth`

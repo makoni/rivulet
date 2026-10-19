@@ -1,15 +1,15 @@
 import Foundation
 import Vapor
-import XCTest
+import Testing
 import RivuletApp
 import RivuletCore
 
-final class HealthRoutesTests: XCTestCase {
-    override func setUp() {
+@Suite struct HealthRoutesTests {
+    init() {
         TestLogging.bootstrapOnce()
     }
 
-    func testBootedApplicationServesHealthzOverARealSocket() async throws {
+    @Test func bootedApplicationServesHealthzOverARealSocket() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         let config = try Config.load(environment: ["DATABASE_URL": directory.path("rivulet.db")])
@@ -17,8 +17,8 @@ final class HealthRoutesTests: XCTestCase {
 
         do {
             // The factory wires the configured LISTEN_ADDR into the server.
-            XCTAssertEqual(rivulet.application.http.server.configuration.hostname, config.listenAddress.host)
-            XCTAssertEqual(rivulet.application.http.server.configuration.port, config.listenAddress.port)
+            #expect(rivulet.application.http.server.configuration.hostname == config.listenAddress.host)
+            #expect(rivulet.application.http.server.configuration.port == config.listenAddress.port)
 
             try await rivulet.storage.prepare()
             try await rivulet.application.asyncBoot()
@@ -26,23 +26,25 @@ final class HealthRoutesTests: XCTestCase {
             // Deterministic sockets: bind port 0 and use the port the kernel assigns
             // (the configured port above is never really bound by this test).
             try await rivulet.application.server.start(address: .hostname("127.0.0.1", port: 0))
-            let address = try XCTUnwrap(rivulet.application.http.server.shared.localAddress)
-            XCTAssertEqual(address.hostname, "127.0.0.1")
-            let port = try XCTUnwrap(address.port)
-            XCTAssertNotEqual(port, 0, "the kernel must have assigned a port")
+            let address = try #require(rivulet.application.http.server.shared.localAddress)
+            #expect(address.hostname == "127.0.0.1")
+            let port = try #require(address.port)
+            #expect(port != 0, "the kernel must have assigned a port")
 
             let response = try await rivulet.application.client.get(
                 URI(string: "http://127.0.0.1:\(port)/healthz")
             )
-            XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try bodyString(of: response), "OK")
+            #expect(response.status == .ok)
+            let body = try bodyString(of: response)
+            #expect(body == "OK")
 
             // Miniflux registers the probe without a method, so every method answers.
             let post = try await rivulet.application.client.post(
                 URI(string: "http://127.0.0.1:\(port)/healthz")
             )
-            XCTAssertEqual(post.status, .ok)
-            XCTAssertEqual(try bodyString(of: post), "OK")
+            #expect(post.status == .ok)
+            let postBody = try bodyString(of: post)
+            #expect(postBody == "OK")
 
             await rivulet.application.server.shutdown()
         } catch {
@@ -56,7 +58,7 @@ final class HealthRoutesTests: XCTestCase {
         try await rivulet.shutdown()
     }
 
-    func testHealthzIsALivenessProbeThatDoesNotTouchTheDatabase() async throws {
+    @Test func healthzIsALivenessProbeThatDoesNotTouchTheDatabase() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         // The parent directory of the database file does not exist, so any database access
@@ -68,19 +70,20 @@ final class HealthRoutesTests: XCTestCase {
             // Pin the premise: the database really is unreachable.
             do {
                 try await rivulet.storage.prepare()
-                XCTFail("the database must be unreachable for this test's premise")
+                Issue.record("the database must be unreachable for this test's premise")
             } catch {}
 
             try await rivulet.application.asyncBoot()
             try await rivulet.application.server.start(address: .hostname("127.0.0.1", port: 0))
-            let address = try XCTUnwrap(rivulet.application.http.server.shared.localAddress)
-            let port = try XCTUnwrap(address.port)
+            let address = try #require(rivulet.application.http.server.shared.localAddress)
+            let port = try #require(address.port)
 
             let response = try await rivulet.application.client.get(
                 URI(string: "http://127.0.0.1:\(port)/healthz")
             )
-            XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try bodyString(of: response), "OK")
+            #expect(response.status == .ok)
+            let body = try bodyString(of: response)
+            #expect(body == "OK")
 
             await rivulet.application.server.shutdown()
         } catch {
@@ -94,7 +97,7 @@ final class HealthRoutesTests: XCTestCase {
 
     /// The response body decoded as UTF-8 (the only content our probes produce).
     private func bodyString(of response: ClientResponse) throws -> String {
-        let body = try XCTUnwrap(response.body)
+        let body = try #require(response.body)
         return String(decoding: body.readableBytesView, as: UTF8.self)
     }
 }

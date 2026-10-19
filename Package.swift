@@ -67,7 +67,6 @@ let package = Package(
             dependencies: [
                 "RivuletCore",
                 "RivuletApp",
-                .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),

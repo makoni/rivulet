@@ -2,16 +2,16 @@ import Fluent
 import FluentSQLiteDriver
 import Foundation
 import SQLKit
-import XCTest
+import Testing
 import RivuletApp
 import RivuletCore
 
-final class CommandLineTests: XCTestCase {
-    override func setUp() {
+@Suite struct CommandLineTests {
+    init() {
         TestLogging.bootstrapOnce()
     }
 
-    func testHelpListsEveryCommandWithoutConfiguration() async throws {
+    @Test func helpListsEveryCommandWithoutConfiguration() async throws {
         let console = TestConsole()
 
         try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", "--help"])
@@ -29,50 +29,50 @@ final class CommandLineTests: XCTestCase {
                 .compactMap { $0.split(separator: " ").first.map(String.init) }
         )
         for name in expected {
-            XCTAssertTrue(listed.contains(name), "`\(name)` is missing from --help:\n\(console.output)")
+            #expect(listed.contains(name), "`\(name)` is missing from --help:\n\(console.output)")
         }
     }
 
-    func testVersionPrintsTheVersionWithoutConfiguration() async throws {
+    @Test func versionPrintsTheVersionWithoutConfiguration() async throws {
         let console = TestConsole()
 
         try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", "version"])
 
-        XCTAssertTrue(console.output.contains("rivulet \(RivuletCore.version)"), console.output)
+        #expect(console.output.contains("rivulet \(RivuletCore.version)"), "\(console.output)")
     }
 
-    func testServeHelpMentionsTheServerOptions() async throws {
+    @Test func serveHelpMentionsTheServerOptions() async throws {
         let console = TestConsole()
 
         try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", "serve", "--help"])
 
-        XCTAssertTrue(console.output.contains("--port"), console.output)
+        #expect(console.output.contains("--port"), "\(console.output)")
     }
 
-    func testBareInvocationPrintsHelpAndFails() async throws {
+    @Test func bareInvocationPrintsHelpAndFails() async throws {
         let console = TestConsole()
 
         do {
             try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet"])
-            XCTFail("a bare invocation must not succeed")
+            Issue.record("a bare invocation must not succeed")
         } catch {
-            XCTAssertTrue(String(describing: error).contains("Missing command"), "\(error)")
+            #expect(String(describing: error).contains("Missing command"), "\(error)")
         }
-        XCTAssertTrue(console.output.contains("Usage:"), console.output)
+        #expect(console.output.contains("Usage:"), "\(console.output)")
     }
 
-    func testUnknownCommandIsRejected() async throws {
+    @Test func unknownCommandIsRejected() async throws {
         let console = TestConsole()
 
         do {
             try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", "frobnicate"])
-            XCTFail("an unknown command must not succeed")
+            Issue.record("an unknown command must not succeed")
         } catch {
-            XCTAssertTrue(String(describing: error).contains("Unknown command"), "\(error)")
+            #expect(String(describing: error).contains("Unknown command"), "\(error)")
         }
     }
 
-    func testPlannedCommandsReportTheStageThatImplementsThem() async throws {
+    @Test func plannedCommandsReportTheStageThatImplementsThem() async throws {
         let planned: [(name: String, stage: Int)] = [
             ("create-admin", 5),
             ("add", 6),
@@ -91,17 +91,17 @@ final class CommandLineTests: XCTestCase {
             let console = TestConsole()
             do {
                 try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", name])
-                XCTFail("`\(name)` must not succeed before stage \(stage)")
+                Issue.record("`\(name)` must not succeed before stage \(stage)")
             } catch let error as CLIError {
-                XCTAssertTrue(error.message.contains("not implemented yet"), error.message)
-                XCTAssertTrue(error.message.contains("stage \(stage)"), error.message)
+                #expect(error.message.contains("not implemented yet"), "\(error.message)")
+                #expect(error.message.contains("stage \(stage)"), "\(error.message)")
             } catch {
-                XCTFail("unexpected error for `\(name)`: \(error)")
+                Issue.record("unexpected error for `\(name)`: \(error)")
             }
         }
     }
 
-    func testMigrateCreatesTheSchema() async throws {
+    @Test func migrateCreatesTheSchema() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         // `RUN_MIGRATIONS` only gates what `serve` does: `migrate` always migrates.
@@ -109,25 +109,26 @@ final class CommandLineTests: XCTestCase {
 
         let first = TestConsole()
         try await RivuletCLI.run(console: first, environment: environment, arguments: ["rivulet", "migrate"])
-        XCTAssertTrue(first.output.contains("Applied 1 migration(s): SchemaV1."), first.output)
+        #expect(first.output.contains("Applied 1 migration(s): SchemaV1."), "\(first.output)")
 
         // A second run is a no-op and says so.
         let second = TestConsole()
         try await RivuletCLI.run(console: second, environment: environment, arguments: ["rivulet", "migrate"])
-        XCTAssertTrue(second.output.contains("up to date"), second.output)
+        #expect(second.output.contains("up to date"), "\(second.output)")
 
         // The schema really exists: open the same file through the application factory.
         let config = try Config.load(environment: environment)
         let rivulet = try await ApplicationFactory.make(config: config)
         do {
-            let sql = try XCTUnwrap(rivulet.application.db(.sqlite) as? any SQLDatabase)
+            let sql = try #require(rivulet.application.db(.sqlite) as? any SQLDatabase)
             let rows = try await sql.raw("SELECT name FROM sqlite_master WHERE type = 'table'").all()
             let tables = try rows.map { try $0.decode(column: "name", as: String.self) }
-            XCTAssertTrue(tables.contains("users"), "\(tables)")
-            XCTAssertTrue(tables.contains("entries_fts"), "\(tables)")
+            #expect(tables.contains("users"), "\(tables)")
+            #expect(tables.contains("entries_fts"), "\(tables)")
 
             let countRow = try await sql.raw("SELECT COUNT(*) AS count FROM _fluent_migrations").first()
-            XCTAssertEqual(try countRow?.decode(column: "count", as: Int.self), 1)
+            let count = try countRow?.decode(column: "count", as: Int.self)
+            #expect(count == 1)
         } catch {
             try? await rivulet.shutdown()
             throw error
@@ -135,7 +136,7 @@ final class CommandLineTests: XCTestCase {
         try await rivulet.shutdown()
     }
 
-    func testPlannedCommandsReportTheStageEvenWithArguments() async throws {
+    @Test func plannedCommandsReportTheStageEvenWithArguments() async throws {
         let invocations: [(arguments: [String], stage: Int)] = [
             (["add", "https://example.com/feed"], 6),
             (["import", "feeds.opml"], 5),
@@ -150,17 +151,17 @@ final class CommandLineTests: XCTestCase {
                     environment: [:],
                     arguments: ["rivulet"] + arguments
                 )
-                XCTFail("`\(arguments.joined(separator: " "))` must not succeed before stage \(stage)")
+                Issue.record("`\(arguments.joined(separator: " "))` must not succeed before stage \(stage)")
             } catch let error as CLIError {
-                XCTAssertTrue(error.message.contains("not implemented yet"), error.message)
-                XCTAssertTrue(error.message.contains("stage \(stage)"), error.message)
+                #expect(error.message.contains("not implemented yet"), "\(error.message)")
+                #expect(error.message.contains("stage \(stage)"), "\(error.message)")
             } catch {
-                XCTFail("unexpected error for `\(arguments.joined(separator: " "))`: \(error)")
+                Issue.record("unexpected error for `\(arguments.joined(separator: " "))`: \(error)")
             }
         }
     }
 
-    func testServeRejectsUnsupportedArgumentsBeforeCreatingTheDatabase() async throws {
+    @Test func serveRejectsUnsupportedArgumentsBeforeCreatingTheDatabase() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         let databasePath = directory.path("rivulet.db")
@@ -181,25 +182,25 @@ final class CommandLineTests: XCTestCase {
                     environment: environment,
                     arguments: ["rivulet"] + arguments
                 )
-                XCTFail("`\(arguments.joined(separator: " "))` must not succeed")
+                Issue.record("`\(arguments.joined(separator: " "))` must not succeed")
             } catch {
-                XCTAssertTrue(String(describing: error).contains(expected), "\(arguments): \(error)")
+                #expect(String(describing: error).contains(expected), "\(arguments): \(error)")
             }
-            XCTAssertFalse(
-                FileManager.default.fileExists(atPath: databasePath),
+            #expect(
+                !FileManager.default.fileExists(atPath: databasePath),
                 "`\(arguments.joined(separator: " "))` must fail before the database is created"
             )
         }
     }
 
-    func testMigrateRequiresTheDatabasePath() async throws {
+    @Test func migrateRequiresTheDatabasePath() async throws {
         let console = TestConsole()
 
         do {
             try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", "migrate"])
-            XCTFail("migrate without DATABASE_URL must not succeed")
+            Issue.record("migrate without DATABASE_URL must not succeed")
         } catch {
-            XCTAssertTrue(String(describing: error).contains("DATABASE_URL"), "\(error)")
+            #expect(String(describing: error).contains("DATABASE_URL"), "\(error)")
         }
     }
 }
