@@ -58,6 +58,7 @@ let package = Package(
             name: "RivuletAppTests",
             dependencies: [
                 "RivuletApp",
+                "RivuletCore",
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),

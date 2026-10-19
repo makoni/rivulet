@@ -5,9 +5,10 @@ import Synchronization
 
 /// Process-wide swift-log bootstrap.
 ///
-/// `LoggingSystem.bootstrap` may run only once per process: the first call wins and every
-/// later call is ignored. Test support claims the same slot, so a command run in-process
-/// can never bootstrap twice.
+/// `LoggingSystem.bootstrap` traps when it runs twice, so a process installs exactly one
+/// handler: the first ``bootstrap(logLevel:format:)`` call claims a slot and later calls
+/// return without touching swift-log. Test support claims the same slot, so a command run
+/// in-process can never bootstrap twice.
 public enum LoggingSetup {
     private static let claimed = Mutex(false)
 
@@ -16,7 +17,7 @@ public enum LoggingSetup {
     /// - `.text`: human-readable lines on standard error (`StreamLogHandler`).
     /// - `.json`: one JSON object per line (``JSONLogHandler``).
     ///
-    /// Only the first call per process has an effect (see ``claimBootstrapSlot()``).
+    /// Only the first call per process has an effect.
     public static func bootstrap(logLevel: Config.LogLevel, format: Config.LogFormat) {
         guard claimBootstrapSlot() else {
             return
@@ -40,7 +41,11 @@ public enum LoggingSetup {
         }
     }
 
-    private static func makeHandler(
+    /// Builds the handler for the configured format and level.
+    ///
+    /// Internal (rather than private) so the format switch and the level mapping stay
+    /// unit-testable without claiming the process-wide bootstrap slot.
+    static func makeHandler(
         label: String,
         logLevel: Logger.Level,
         format: Config.LogFormat
@@ -58,7 +63,7 @@ public enum LoggingSetup {
     }
 }
 
-private extension Logger.Level {
+extension Logger.Level {
     /// Maps the Miniflux-compatible ``Config/LogLevel`` onto swift-log.
     init(_ level: Config.LogLevel) {
         self = switch level {

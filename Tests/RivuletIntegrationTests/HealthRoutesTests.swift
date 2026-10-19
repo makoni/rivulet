@@ -37,8 +37,19 @@ final class HealthRoutesTests: XCTestCase {
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(try bodyString(of: response), "OK")
 
+            // Miniflux registers the probe without a method, so every method answers.
+            let post = try await rivulet.application.client.post(
+                URI(string: "http://127.0.0.1:\(port)/healthz")
+            )
+            XCTAssertEqual(post.status, .ok)
+            XCTAssertEqual(try bodyString(of: post), "OK")
+
             await rivulet.application.server.shutdown()
         } catch {
+            // Only Vapor's `ServeCommand` stops the server for us; a failure after
+            // `server.start` must stop it explicitly, or the app shutdown trips
+            // `HTTPServer`'s deinit assertion instead of reporting the real failure.
+            await rivulet.application.server.shutdown()
             try? await rivulet.shutdown()
             throw error
         }
@@ -54,6 +65,12 @@ final class HealthRoutesTests: XCTestCase {
         let rivulet = try await ApplicationFactory.make(config: config)
 
         do {
+            // Pin the premise: the database really is unreachable.
+            do {
+                try await rivulet.storage.prepare()
+                XCTFail("the database must be unreachable for this test's premise")
+            } catch {}
+
             try await rivulet.application.asyncBoot()
             try await rivulet.application.server.start(address: .hostname("127.0.0.1", port: 0))
             let address = try XCTUnwrap(rivulet.application.http.server.shared.localAddress)
@@ -67,6 +84,8 @@ final class HealthRoutesTests: XCTestCase {
 
             await rivulet.application.server.shutdown()
         } catch {
+            // See the comment in the test above: stop a started server before the app.
+            await rivulet.application.server.shutdown()
             try? await rivulet.shutdown()
             throw error
         }

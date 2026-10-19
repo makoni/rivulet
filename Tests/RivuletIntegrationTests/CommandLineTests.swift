@@ -104,11 +104,12 @@ final class CommandLineTests: XCTestCase {
     func testMigrateCreatesTheSchema() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
-        let environment = ["DATABASE_URL": directory.path("rivulet.db")]
+        // `RUN_MIGRATIONS` only gates what `serve` does: `migrate` always migrates.
+        let environment = ["DATABASE_URL": directory.path("rivulet.db"), "RUN_MIGRATIONS": "false"]
 
         let first = TestConsole()
         try await RivuletCLI.run(console: first, environment: environment, arguments: ["rivulet", "migrate"])
-        XCTAssertTrue(first.output.contains("Applied 1 migration"), first.output)
+        XCTAssertTrue(first.output.contains("Applied 1 migration(s): SchemaV1."), first.output)
 
         // A second run is a no-op and says so.
         let second = TestConsole()
@@ -132,6 +133,60 @@ final class CommandLineTests: XCTestCase {
             throw error
         }
         try await rivulet.shutdown()
+    }
+
+    func testPlannedCommandsReportTheStageEvenWithArguments() async throws {
+        let invocations: [(arguments: [String], stage: Int)] = [
+            (["add", "https://example.com/feed"], 6),
+            (["import", "feeds.opml"], 5),
+            (["status", "--json"], 4),
+        ]
+
+        for (arguments, stage) in invocations {
+            let console = TestConsole()
+            do {
+                try await RivuletCLI.run(
+                    console: console,
+                    environment: [:],
+                    arguments: ["rivulet"] + arguments
+                )
+                XCTFail("`\(arguments.joined(separator: " "))` must not succeed before stage \(stage)")
+            } catch let error as CLIError {
+                XCTAssertTrue(error.message.contains("not implemented yet"), error.message)
+                XCTAssertTrue(error.message.contains("stage \(stage)"), error.message)
+            } catch {
+                XCTFail("unexpected error for `\(arguments.joined(separator: " "))`: \(error)")
+            }
+        }
+    }
+
+    func testServeRejectsUnsupportedArgumentsBeforeCreatingTheDatabase() async throws {
+        let directory = try TemporaryDirectory()
+        defer { directory.remove() }
+        let databasePath = directory.path("rivulet.db")
+        let environment = ["DATABASE_URL": databasePath]
+
+        let cases: [(arguments: [String], expected: String)] = [
+            (["serve", "--bogus"], "Input not recognized: --bogus"),
+            (["serve", "--port", "abc"], "Could not convert option for `port`"),
+        ]
+        for (arguments, expected) in cases {
+            let console = TestConsole()
+            do {
+                try await RivuletCLI.run(
+                    console: console,
+                    environment: environment,
+                    arguments: ["rivulet"] + arguments
+                )
+                XCTFail("`\(arguments.joined(separator: " "))` must not succeed")
+            } catch {
+                XCTAssertTrue(String(describing: error).contains(expected), "\(arguments): \(error)")
+            }
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: databasePath),
+                "`\(arguments.joined(separator: " "))` must fail before the database is created"
+            )
+        }
     }
 
     func testMigrateRequiresTheDatabasePath() async throws {

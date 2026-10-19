@@ -40,6 +40,29 @@ final class JSONLogHandlerTests: XCTestCase {
         XCTAssertEqual(metadata["feed_id"] as? String, "call")
     }
 
+    func testMergesProviderMetadataOverHandlerAndUnderTheCall() throws {
+        let captured = CapturedLines()
+        var handler = JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
+        handler.metadata["component"] = "reader"
+        handler.metadata["feed_id"] = "handler"
+        handler.metadataProvider = Logger.MetadataProvider {
+            ["provider_key": "provider", "feed_id": "provider"]
+        }
+        let logger = Logger(label: "rivulet.tests") { _ in handler }
+
+        logger.info("without call metadata")
+        logger.info("with call metadata", metadata: ["feed_id": "call"])
+
+        let objects = try parsedLines(from: captured)
+        XCTAssertEqual(objects.count, 2)
+        let providerWins = try XCTUnwrap(objects.first?["metadata"] as? [String: Any])
+        XCTAssertEqual(providerWins["component"] as? String, "reader")
+        XCTAssertEqual(providerWins["provider_key"] as? String, "provider")
+        XCTAssertEqual(providerWins["feed_id"] as? String, "provider", "the provider overrides handler metadata")
+        let callWins = try XCTUnwrap(objects.last?["metadata"] as? [String: Any])
+        XCTAssertEqual(callWins["feed_id"] as? String, "call", "call metadata overrides the provider")
+    }
+
     func testOmitsMetadataWhenThereIsNone() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
@@ -76,6 +99,27 @@ final class JSONLogHandlerTests: XCTestCase {
         XCTAssertEqual((metadata["nested"] as? [String: Any])?["key"] as? String, "value")
     }
 
+    func testKeepsNonFiniteNumbersEncodableAsText() throws {
+        let captured = CapturedLines()
+        let logger = Logger(label: "rivulet.tests") { _ in
+            JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
+        }
+
+        logger.info(
+            "stats",
+            metadata: [
+                "ratio": .stringConvertible(Double.nan),
+                "limit": .stringConvertible(Double.infinity),
+            ]
+        )
+
+        let object = try XCTUnwrap(parseSingleLine(from: captured))
+        XCTAssertEqual(object["message"] as? String, "stats", "the record must not fall back to the emergency line")
+        let metadata = try XCTUnwrap(object["metadata"] as? [String: Any])
+        XCTAssertEqual(metadata["ratio"] as? String, "nan")
+        XCTAssertEqual(metadata["limit"] as? String, "inf")
+    }
+
     func testIncludesTheErrorDescription() throws {
         struct Failure: Error, CustomStringConvertible {
             var description: String { "boom" }
@@ -99,12 +143,9 @@ final class JSONLogHandlerTests: XCTestCase {
         logger.info("filtered")
         logger.warning("kept")
 
-        let lines = captured.lines
-        XCTAssertEqual(lines.count, 1)
-        let object = try XCTUnwrap(
-            JSONSerialization.jsonObject(with: Data(try XCTUnwrap(lines.first).utf8)) as? [String: Any]
-        )
-        XCTAssertEqual(object["level"] as? String, "warning")
+        let objects = try parsedLines(from: captured)
+        XCTAssertEqual(objects.count, 1)
+        XCTAssertEqual(objects.first?["level"] as? String, "warning")
     }
 
     func testEscapesControlCharactersIntoASingleValidLine() throws {
@@ -116,24 +157,32 @@ final class JSONLogHandlerTests: XCTestCase {
 
         logger.info(Logger.Message(stringLiteral: message))
 
-        let lines = captured.lines
-        XCTAssertEqual(lines.count, 1, "a message with newlines must stay on one line")
-        let object = try XCTUnwrap(
-            JSONSerialization.jsonObject(with: Data(try XCTUnwrap(lines.first).utf8)) as? [String: Any]
-        )
-        XCTAssertEqual(object["message"] as? String, message)
+        let objects = try parsedLines(from: captured)
+        XCTAssertEqual(objects.count, 1, "a message with newlines must stay on one line")
+        XCTAssertEqual(objects.first?["message"] as? String, message)
     }
 
     // MARK: - Helpers
 
+    /// Decodes the single captured write.
     private func parseSingleLine(from captured: CapturedLines) throws -> [String: Any] {
-        let lines = captured.lines
-        XCTAssertEqual(lines.count, 1)
-        let line = try XCTUnwrap(lines.first)
-        return try XCTUnwrap(
-            JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any],
-            "not a JSON object: \(line)"
-        )
+        let objects = try parsedLines(from: captured)
+        XCTAssertEqual(objects.count, 1)
+        return try XCTUnwrap(objects.first)
+    }
+
+    /// Decodes every captured write, pinning the wire contract: each write is one JSON
+    /// object terminated by a newline.
+    private func parsedLines(from captured: CapturedLines) throws -> [[String: Any]] {
+        try captured.lines.map { write in
+            XCTAssertTrue(write.hasSuffix("\n"), "each write must end with a newline: \(write.debugDescription)")
+            let line = String(write.dropLast())
+            XCTAssertFalse(line.contains("\n"), "one JSON object per line: \(write.debugDescription)")
+            return try XCTUnwrap(
+                JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any],
+                "not a JSON object: \(line)"
+            )
+        }
     }
 }
 

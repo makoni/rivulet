@@ -24,6 +24,6 @@ public enum ApplicationFactory {
         HealthRoutes.register(on: application)
 
         let storage = SQLiteStorage(database: application.db(.sqlite), path: config.databasePath)
-        return RivuletApplication(application: application, storage: storage, config: config)
+        return RivuletApplication(application: application, storage: storage)
     }
 }

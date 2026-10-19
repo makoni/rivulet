@@ -30,7 +30,7 @@ The remaining commands are registered placeholders that report the stage impleme
 `create-admin`, `add`, `remove`, `list`, `import`, `export`, `refresh`, `status`,
 `integration-credentials`, `backup`, `vacuum`.
 
-`--help` and `version` work without any configuration; everything else needs `DATABASE_URL`.
+`--help` and `version` work without any configuration; `serve` and `migrate` need `DATABASE_URL`.
 
 ## Development
 

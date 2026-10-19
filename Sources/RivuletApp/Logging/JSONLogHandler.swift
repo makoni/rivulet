@@ -54,10 +54,30 @@ public struct JSONLogHandler: LogHandler {
         else {
             // Records hold only strings and JSON-representable metadata values, so this
             // cannot normally happen; keep the failure visible instead of dropping a line.
-            write(#"{"level":"error","label":"rivulet","message":"could not encode a log record"}"# + "\n")
+            write(Self.fallbackLine(label: label) + "\n")
             return
         }
         write(json + "\n")
+    }
+
+    /// The emergency line for a record that refused to encode: still this handler's label,
+    /// still one JSON object on one line. The static line covers the (unreachable) case of
+    /// the emergency record itself failing to encode.
+    private static func fallbackLine(label: String) -> String {
+        let record = Record(
+            timestamp: Date().formatted(.iso8601),
+            level: "error",
+            label: label,
+            message: "could not encode a log record",
+            error: nil,
+            metadata: nil
+        )
+        guard let data = try? makeEncoder().encode(record),
+              let json = String(data: data, encoding: .utf8)
+        else {
+            return #"{"level":"error","message":"could not encode a log record"}"#
+        }
+        return json
     }
 
     /// Handler, provider and call metadata merged in that order; the call wins on conflicts.
@@ -108,7 +128,8 @@ public struct JSONLogHandler: LogHandler {
                 } else if let int = convertible as? Int {
                     self = .number(Double(int))
                 } else if let double = convertible as? Double {
-                    self = .number(double)
+                    // JSON has no NaN or infinity; keep the record encodable as text.
+                    self = double.isFinite ? .number(double) : .string(String(double))
                 } else {
                     self = .string(convertible.description)
                 }

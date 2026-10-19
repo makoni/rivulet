@@ -77,7 +77,8 @@ non-zero exit status — everything else lives in `RivuletApp`.
 - `serve` — builds the app via `ApplicationFactory`, applies WAL, migrates when
   `RUN_MIGRATIONS=true`, boots, then delegates to Vapor's built-in `ServeCommand` (so
   `--hostname`/`--port`/`--bind` keep working) and waits for the shutdown signal, like
-  `Application.execute()` does. The default server address comes from `LISTEN_ADDR`.
+  `Application.execute()` does. Unsupported arguments are rejected before the database is
+  touched. The default server address comes from `LISTEN_ADDR`.
 - `migrate` — creates or updates the SQLite schema; it always migrates (`RUN_MIGRATIONS` only
   gates what `serve` does on start).
 - `version` — prints the version.
@@ -89,8 +90,9 @@ non-zero exit status — everything else lives in `RivuletApp`.
 
 ## HTTP surface
 
-- `GET /healthz` — liveness probe: `200 OK`, body `OK`, no database access (upstream parity;
-  upstream's `/readiness` probe pings the database and arrives together with the client APIs).
+- `/healthz` — liveness probe: any method answers `200 OK`, body `OK`, no database access
+  (upstream parity — Miniflux registers it on a method-less pattern; upstream's `/readiness`
+  probe pings the database and arrives together with the client APIs).
 
 ## Decisions and deviations from Miniflux
 

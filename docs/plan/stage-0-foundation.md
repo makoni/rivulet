@@ -27,14 +27,16 @@
       `icons`, `entries_fts` + sync triggers and indexes (see `docs/architecture.md`).
 - [x] CLI skeleton with stubs for the full final command set: `serve`, `migrate`, `create-admin`,
       `add`, `remove`, `list`, `import`, `export`, `refresh`, `status`, `integration-credentials`,
-      `backup`, `vacuum`, `version`. `serve` reuses Vapor's built-in `ServeCommand` (configured
-      from our config) — no custom command with the same name. Stubs report the stage that
-      implements them; `--help` and `version` work without configuration.
-- [x] Minimal HTTP server with `GET /healthz` (liveness probe, upstream parity: `200 OK`
-      body `OK`, no database access).
+      `backup`, `vacuum`, `version`. Our `serve` is a thin wrapper that delegates to Vapor's
+      built-in `ServeCommand` — so its flags keep working — and validates the delegated
+      arguments before it touches the database. Stubs report the stage that implements them
+      (with or without arguments); `--help` and `version` work without configuration.
+- [x] Minimal HTTP server with a method-agnostic `/healthz` (liveness probe, upstream parity:
+      any method answers `200 OK` body `OK`, no database access).
 - [x] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
-      (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`;
-      `StubFeedServer` arrives with stage 2, when it is first needed).
+      (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`,
+      `TemporaryDirectory`, `TestLogging`; `StubFeedServer` arrives with stage 2, when it is
+      first needed).
 
 ## Implementation notes
 
@@ -52,9 +54,12 @@
   must not open a nested checkout (repositories take the checked-out connection); a nested
   checkout fails fast on the connection-pool timeout. `prepare()` runs before migrations.
 - CLI topology: the executable target is a thin entry point; `RivuletApp` builds the command
-  group (ConsoleKit), the application factory and the routes. `serve` delegates to Vapor's
-  `ServeCommand` and, like `Application.execute()`, waits for the shutdown signal before
-  shutting down; `migrate` always migrates — `RUN_MIGRATIONS` only gates what `serve` does.
+  group (ConsoleKit), the application factory and the routes. `serve` validates the delegated
+  arguments before any database work (Vapor's `ServeCommand` would only reject them after
+  prepare/migrate/boot, and Fluent's boot-time scan reacts to `--auto-migrate`/`--auto-revert`
+  first), then delegates to `ServeCommand` and, like `Application.execute()`, waits for the
+  shutdown signal before shutting down; `migrate` always migrates — `RUN_MIGRATIONS` only gates
+  what `serve` does.
 - Logging bootstrap (`LoggingSetup`) claims a process-wide single slot because swift-log allows
   one `LoggingSystem.bootstrap` per process; the integration tests claim the same slot through
   `TestLogging`, so running a command in-process cannot bootstrap twice.
@@ -64,6 +69,9 @@
 ### Unit
 
 - Config: defaults, overrides, invalid values, missing `DATABASE_URL` error, `LISTEN_ADDR` parsing.
+- Logging: the JSON handler's record fields, metadata merge order (handler → provider → call),
+  level filtering, one-line escaping, non-finite doubles; the format switch and the level
+  mapping of `LoggingSetup`.
 
 ### Integration
 
@@ -72,8 +80,10 @@
 - Pragmas are applied on every pooled connection (open several connections, read the pragma
   values back).
 - CLI smoke through the in-process console: `--help` lists all commands, `version` prints,
-  `migrate` creates the schema.
-- App boot: the server starts with a temp database; `GET /healthz` returns 200.
+  `migrate` creates the schema (also with `RUN_MIGRATIONS=false`), planned commands report
+  their stage even with arguments, `serve` rejects unsupported arguments before creating the
+  database.
+- App boot: the server starts with a temp database; `/healthz` returns 200 for any method.
 
 ## Exit criteria
 

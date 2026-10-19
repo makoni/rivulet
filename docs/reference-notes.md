@@ -24,6 +24,7 @@ Source: `internal/config/parser.go`, `internal/config/options.go`.
 Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
 - `/liveness` and `/healthz` are liveness probes: `200 OK`, body `OK`, no database access.
+  Upstream registers them method-less, so any method (not only GET) answers.
 - `/readiness` and `/readyz` ping the database; on failure they answer `503 Service Unavailable`
   with `Database Connection Error: ...`.
 - All four are mounted on the root mux — they stay at the server root regardless of the

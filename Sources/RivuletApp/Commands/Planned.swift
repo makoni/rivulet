@@ -15,6 +15,13 @@ extension RivuletCLI {
 
         var help: String { "Arrives with stage \(stage)." }
 
+        // Entry point of `AnyAsyncCommand`, overriding the default `AsyncCommand`
+        // implementation: that one rejects leftover input, but natural invocations —
+        // `rivulet add <url>`, `rivulet status --json` — must still report the stage.
+        func run(using context: inout CommandContext) async throws {
+            try await run(using: context, signature: Signature())
+        }
+
         func run(using context: CommandContext, signature: Signature) async throws {
             throw CLIError("The `\(name)` command is not implemented yet (planned for stage \(stage)).")
         }

@@ -41,12 +41,15 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   tests run commands against a temp database through it.
 - `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the
   CLI and probe tests).
+- `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
+  bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
+  (swift-log traps on a second one).
 - Clock injection: long-running logic (scheduler, retention) takes a `Clock` abstraction; tests
   use a manual clock and explicit `tick()` calls — no sleeping in tests.
 
-App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket
-(XCTVapor `.running` mode; the `/healthz` test starts the server on an ephemeral port and uses
-Vapor's client) — this is the mode used for the client-API journey tests.
+App-level tests build the real Vapor app with a temp database and speak real HTTP over a
+socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
+and use Vapor's client. `XCTVapor` `.running` mode is used for the client-API journey tests.
 
 Determinism rules: no fixed ports, no real-time waits, `TZ=UTC` for date tests, per-test temp
 directories, no network access except to the local stub server.
