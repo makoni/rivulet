@@ -35,6 +35,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 
 - `TestDatabase.swift` — temp-file SQLite database in a temp dir per test; the schema migration
   is registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
+- `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase`
+  and a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp
+  dir) on both success and failure; used by every suite that needs the migrated schema.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
