@@ -1,0 +1,10 @@
+Rivulet
+Copyright 2026 Sergey Armodin
+
+This software is an independent Swift implementation inspired by Miniflux.
+It aims to be compatible with Miniflux's client APIs and overall behavior.
+
+Miniflux
+Copyright (c) Frédéric Guillot and contributors
+Licensed under the Apache License, Version 2.0
+https://github.com/miniflux/v2
