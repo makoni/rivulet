@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import RivuletCore
 
-final class RivuletCoreTests: XCTestCase {
-    func testVersionIsPresent() {
-        XCTAssertFalse(RivuletCore.version.isEmpty)
+@Suite struct RivuletCoreTests {
+    @Test func versionIsPresent() {
+        #expect(!RivuletCore.version.isEmpty)
     }
 }

@@ -34,7 +34,7 @@
 - [x] Minimal HTTP server with a method-agnostic `/healthz` (liveness probe, upstream parity:
       every standard method answers `200 OK` body `OK`, no database access).
 - [x] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
-      (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`,
+      and the `Support/` skeleton (`TestDatabase`, `TestConsole`,
       `TemporaryDirectory`, `TestLogging`; `StubFeedServer` arrives with stage 2, when it is
       first needed).
 

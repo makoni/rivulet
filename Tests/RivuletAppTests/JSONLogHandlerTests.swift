@@ -1,11 +1,11 @@
 import Foundation
 import Logging
 import Synchronization
-import XCTest
+import Testing
 import RivuletApp
 
-final class JSONLogHandlerTests: XCTestCase {
-    func testWritesTheCoreFieldsAsOneJSONObject() throws {
+@Suite struct JSONLogHandlerTests {
+    @Test func writesTheCoreFieldsAsOneJSONObject() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
             JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
@@ -13,19 +13,19 @@ final class JSONLogHandlerTests: XCTestCase {
 
         logger.info("feed refreshed")
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        XCTAssertEqual(object["level"] as? String, "info")
-        XCTAssertEqual(object["label"] as? String, "rivulet.tests")
-        XCTAssertEqual(object["message"] as? String, "feed refreshed")
+        let object = try parseSingleLine(from: captured)
+        #expect(object["level"] as? String == "info")
+        #expect(object["label"] as? String == "rivulet.tests")
+        #expect(object["message"] as? String == "feed refreshed")
 
-        let timestamp = try XCTUnwrap(object["timestamp"] as? String, "timestamp is required")
-        XCTAssertNotNil(
-            try? Date.ISO8601FormatStyle().parse(timestamp),
+        let timestamp = try #require(object["timestamp"] as? String, "timestamp is required")
+        #expect(
+            (try? Date.ISO8601FormatStyle().parse(timestamp)) != nil,
             "timestamp must be ISO-8601: \(timestamp)"
         )
     }
 
-    func testMergesHandlerAndCallMetadataWithTheCallWinning() throws {
+    @Test func mergesHandlerAndCallMetadataWithTheCallWinning() throws {
         let captured = CapturedLines()
         var handler = JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
         handler.metadata["component"] = "reader"
@@ -34,13 +34,13 @@ final class JSONLogHandlerTests: XCTestCase {
 
         logger.info("feed refreshed", metadata: ["feed_id": "call"])
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        let metadata = try XCTUnwrap(object["metadata"] as? [String: Any])
-        XCTAssertEqual(metadata["component"] as? String, "reader")
-        XCTAssertEqual(metadata["feed_id"] as? String, "call")
+        let object = try parseSingleLine(from: captured)
+        let metadata = try #require(object["metadata"] as? [String: Any])
+        #expect(metadata["component"] as? String == "reader")
+        #expect(metadata["feed_id"] as? String == "call")
     }
 
-    func testMergesProviderMetadataOverHandlerAndUnderTheCall() throws {
+    @Test func mergesProviderMetadataOverHandlerAndUnderTheCall() throws {
         let captured = CapturedLines()
         var handler = JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
         handler.metadata["component"] = "reader"
@@ -54,16 +54,16 @@ final class JSONLogHandlerTests: XCTestCase {
         logger.info("with call metadata", metadata: ["feed_id": "call"])
 
         let objects = try parsedLines(from: captured)
-        XCTAssertEqual(objects.count, 2)
-        let providerWins = try XCTUnwrap(objects.first?["metadata"] as? [String: Any])
-        XCTAssertEqual(providerWins["component"] as? String, "reader")
-        XCTAssertEqual(providerWins["provider_key"] as? String, "provider")
-        XCTAssertEqual(providerWins["feed_id"] as? String, "provider", "the provider overrides handler metadata")
-        let callWins = try XCTUnwrap(objects.last?["metadata"] as? [String: Any])
-        XCTAssertEqual(callWins["feed_id"] as? String, "call", "call metadata overrides the provider")
+        #expect(objects.count == 2)
+        let providerWins = try #require(objects.first?["metadata"] as? [String: Any])
+        #expect(providerWins["component"] as? String == "reader")
+        #expect(providerWins["provider_key"] as? String == "provider")
+        #expect(providerWins["feed_id"] as? String == "provider", "the provider overrides handler metadata")
+        let callWins = try #require(objects.last?["metadata"] as? [String: Any])
+        #expect(callWins["feed_id"] as? String == "call", "call metadata overrides the provider")
     }
 
-    func testOmitsMetadataWhenThereIsNone() throws {
+    @Test func omitsMetadataWhenThereIsNone() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
             JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
@@ -71,11 +71,11 @@ final class JSONLogHandlerTests: XCTestCase {
 
         logger.info("plain")
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        XCTAssertNil(object["metadata"])
+        let object = try parseSingleLine(from: captured)
+        #expect(object["metadata"] == nil)
     }
 
-    func testProjectsMetadataValuesIntoJSON() throws {
+    @Test func projectsMetadataValuesIntoJSON() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
             JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
@@ -91,15 +91,15 @@ final class JSONLogHandlerTests: XCTestCase {
             ]
         )
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        let metadata = try XCTUnwrap(object["metadata"] as? [String: Any])
-        XCTAssertEqual((metadata["count"] as? NSNumber)?.intValue, 42)
-        XCTAssertEqual((metadata["enabled"] as? NSNumber)?.boolValue, true)
-        XCTAssertEqual(metadata["tags"] as? [String], ["a", "b"])
-        XCTAssertEqual((metadata["nested"] as? [String: Any])?["key"] as? String, "value")
+        let object = try parseSingleLine(from: captured)
+        let metadata = try #require(object["metadata"] as? [String: Any])
+        #expect((metadata["count"] as? NSNumber)?.intValue == 42)
+        #expect((metadata["enabled"] as? NSNumber)?.boolValue == true)
+        #expect(metadata["tags"] as? [String] == ["a", "b"])
+        #expect((metadata["nested"] as? [String: Any])?["key"] as? String == "value")
     }
 
-    func testKeepsNonFiniteNumbersEncodableAsText() throws {
+    @Test func keepsNonFiniteNumbersEncodableAsText() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
             JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
@@ -113,14 +113,14 @@ final class JSONLogHandlerTests: XCTestCase {
             ]
         )
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        XCTAssertEqual(object["message"] as? String, "stats", "the record must not fall back to the emergency line")
-        let metadata = try XCTUnwrap(object["metadata"] as? [String: Any])
-        XCTAssertEqual(metadata["ratio"] as? String, "nan")
-        XCTAssertEqual(metadata["limit"] as? String, "inf")
+        let object = try parseSingleLine(from: captured)
+        #expect(object["message"] as? String == "stats", "the record must not fall back to the emergency line")
+        let metadata = try #require(object["metadata"] as? [String: Any])
+        #expect(metadata["ratio"] as? String == "nan")
+        #expect(metadata["limit"] as? String == "inf")
     }
 
-    func testIncludesTheErrorDescription() throws {
+    @Test func includesTheErrorDescription() throws {
         struct Failure: Error, CustomStringConvertible {
             var description: String { "boom" }
         }
@@ -131,11 +131,11 @@ final class JSONLogHandlerTests: XCTestCase {
 
         logger.error("refresh failed", error: Failure())
 
-        let object = try XCTUnwrap(parseSingleLine(from: captured))
-        XCTAssertEqual(object["error"] as? String, "boom")
+        let object = try parseSingleLine(from: captured)
+        #expect(object["error"] as? String == "boom")
     }
 
-    func testDropsRecordsBelowTheConfiguredLevel() throws {
+    @Test func dropsRecordsBelowTheConfiguredLevel() throws {
         let captured = CapturedLines()
         let handler = JSONLogHandler(label: "rivulet.tests", logLevel: .warning, write: captured.append)
         let logger = Logger(label: "rivulet.tests") { _ in handler }
@@ -144,11 +144,11 @@ final class JSONLogHandlerTests: XCTestCase {
         logger.warning("kept")
 
         let objects = try parsedLines(from: captured)
-        XCTAssertEqual(objects.count, 1)
-        XCTAssertEqual(objects.first?["level"] as? String, "warning")
+        #expect(objects.count == 1)
+        #expect(objects.first?["level"] as? String == "warning")
     }
 
-    func testEscapesControlCharactersIntoASingleValidLine() throws {
+    @Test func escapesControlCharactersIntoASingleValidLine() throws {
         let captured = CapturedLines()
         let logger = Logger(label: "rivulet.tests") { _ in
             JSONLogHandler(label: "rivulet.tests", logLevel: .trace, write: captured.append)
@@ -158,8 +158,8 @@ final class JSONLogHandlerTests: XCTestCase {
         logger.info(Logger.Message(stringLiteral: message))
 
         let objects = try parsedLines(from: captured)
-        XCTAssertEqual(objects.count, 1, "a message with newlines must stay on one line")
-        XCTAssertEqual(objects.first?["message"] as? String, message)
+        #expect(objects.count == 1, "a message with newlines must stay on one line")
+        #expect(objects.first?["message"] as? String == message)
     }
 
     // MARK: - Helpers
@@ -167,18 +167,18 @@ final class JSONLogHandlerTests: XCTestCase {
     /// Decodes the single captured write.
     private func parseSingleLine(from captured: CapturedLines) throws -> [String: Any] {
         let objects = try parsedLines(from: captured)
-        XCTAssertEqual(objects.count, 1)
-        return try XCTUnwrap(objects.first)
+        #expect(objects.count == 1)
+        return try #require(objects.first)
     }
 
     /// Decodes every captured write, pinning the wire contract: each write is one JSON
     /// object terminated by a newline.
     private func parsedLines(from captured: CapturedLines) throws -> [[String: Any]] {
         try captured.lines.map { write in
-            XCTAssertTrue(write.hasSuffix("\n"), "each write must end with a newline: \(write.debugDescription)")
+            #expect(write.hasSuffix("\n"), "each write must end with a newline: \(write.debugDescription)")
             let line = String(write.dropLast())
-            XCTAssertFalse(line.contains("\n"), "one JSON object per line: \(write.debugDescription)")
-            return try XCTUnwrap(
+            #expect(!line.contains("\n"), "one JSON object per line: \(write.debugDescription)")
+            return try #require(
                 JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any],
                 "not a JSON object: \(line)"
             )

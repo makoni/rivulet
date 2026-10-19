@@ -1,7 +1,7 @@
-import XCTest
+import Testing
 @testable import RivuletCore
 
-final class ConfigTests: XCTestCase {
+@Suite struct ConfigTests {
     // MARK: - Helpers
 
     private func environment(
@@ -15,20 +15,38 @@ final class ConfigTests: XCTestCase {
         return env
     }
 
-    // MARK: - Defaults
-
-    func testLoadsDefaults() throws {
-        let config = try Config.load(environment: environment())
-
-        XCTAssertEqual(config.listenAddress, ListenAddress(host: "127.0.0.1", port: 8080))
-        XCTAssertEqual(config.baseURL.absoluteString, "http://localhost")
-        XCTAssertEqual(config.databasePath, "/tmp/rivulet-test.db")
-        XCTAssertEqual(config.logLevel, .info)
-        XCTAssertEqual(config.logFormat, .text)
-        XCTAssertTrue(config.runMigrations)
+    /// Loads `environment`, expecting `Config.load` to fail: returns the thrown
+    /// `ConfigError`, recording an issue for any other outcome.
+    private func configError(
+        from environment: [String: String],
+        sourceLocation: SourceLocation = #_sourceLocation
+    ) -> ConfigError? {
+        do {
+            _ = try Config.load(environment: environment)
+            Issue.record("expected loading the configuration to fail", sourceLocation: sourceLocation)
+            return nil
+        } catch let error as ConfigError {
+            return error
+        } catch {
+            Issue.record("unexpected error: \(error)", sourceLocation: sourceLocation)
+            return nil
+        }
     }
 
-    func testEmptyOptionalValuesFallBackToDefaults() throws {
+    // MARK: - Defaults
+
+    @Test func loadsDefaults() throws {
+        let config = try Config.load(environment: environment())
+
+        #expect(config.listenAddress == ListenAddress(host: "127.0.0.1", port: 8080))
+        #expect(config.baseURL.absoluteString == "http://localhost")
+        #expect(config.databasePath == "/tmp/rivulet-test.db")
+        #expect(config.logLevel == .info)
+        #expect(config.logFormat == .text)
+        #expect(config.runMigrations)
+    }
+
+    @Test func emptyOptionalValuesFallBackToDefaults() throws {
         // Miniflux treats empty values as "unset" (parseStringValue/parseBoolValue).
         let config = try Config.load(environment: environment([
             "LISTEN_ADDR": "",
@@ -36,14 +54,14 @@ final class ConfigTests: XCTestCase {
             "RUN_MIGRATIONS": "",
         ]))
 
-        XCTAssertEqual(config.listenAddress, ListenAddress(host: "127.0.0.1", port: 8080))
-        XCTAssertEqual(config.baseURL.absoluteString, "http://localhost")
-        XCTAssertEqual(config.logLevel, .info)
-        XCTAssertEqual(config.logFormat, .text)
-        XCTAssertTrue(config.runMigrations)
+        #expect(config.listenAddress == ListenAddress(host: "127.0.0.1", port: 8080))
+        #expect(config.baseURL.absoluteString == "http://localhost")
+        #expect(config.logLevel == .info)
+        #expect(config.logFormat == .text)
+        #expect(config.runMigrations)
     }
 
-    func testWhitespaceOnlyValuesFallBackToDefaults() throws {
+    @Test func whitespaceOnlyValuesFallBackToDefaults() throws {
         // Upstream trims values before the empty check (parseLines).
         let config = try Config.load(environment: environment([
             "LISTEN_ADDR": "   ",
@@ -51,37 +69,34 @@ final class ConfigTests: XCTestCase {
             "RUN_MIGRATIONS": "   ",
         ]))
 
-        XCTAssertEqual(config.listenAddress, ListenAddress(host: "127.0.0.1", port: 8080))
-        XCTAssertEqual(config.baseURL.absoluteString, "http://localhost")
-        XCTAssertTrue(config.runMigrations)
+        #expect(config.listenAddress == ListenAddress(host: "127.0.0.1", port: 8080))
+        #expect(config.baseURL.absoluteString == "http://localhost")
+        #expect(config.runMigrations)
     }
 
-    func testEmptyLogLevelAndFormatAreRejected() {
+    @Test func emptyLogLevelAndFormatAreRejected() {
         // Upstream runs the choices validator before the empty-value fallback.
         for variable in ["LOG_LEVEL", "LOG_FORMAT"] {
             for value in ["", "   "] {
-                XCTAssertThrowsError(
-                    try Config.load(environment: environment([variable: value])),
+                let payload = configError(from: environment([variable: value]))?.invalidValuePayload
+                #expect(
+                    payload?.name == variable,
                     "expected \(variable)=\(value.debugDescription) to be rejected"
-                ) { error in
-                    guard case .invalidValue(let name, _, _)? = error as? ConfigError, name == variable else {
-                        return XCTFail("unexpected error: \(error)")
-                    }
-                }
+                )
             }
         }
     }
 
-    func testIgnoresUnrelatedEnvironmentVariables() throws {
+    @Test func ignoresUnrelatedEnvironmentVariables() throws {
         let config = try Config.load(environment: environment([
             "PATH": "/usr/bin",
             "HOME": "/home/user",
         ]))
 
-        XCTAssertEqual(config.databasePath, "/tmp/rivulet-test.db")
+        #expect(config.databasePath == "/tmp/rivulet-test.db")
     }
 
-    func testLoadsOverrides() throws {
+    @Test func loadsOverrides() throws {
         let config = try Config.load(environment: environment([
             "LISTEN_ADDR": "0.0.0.0:9999",
             "BASE_URL": "https://reader.example.com",
@@ -90,50 +105,42 @@ final class ConfigTests: XCTestCase {
             "RUN_MIGRATIONS": "0",
         ]))
 
-        XCTAssertEqual(config.listenAddress, ListenAddress(host: "0.0.0.0", port: 9999))
-        XCTAssertEqual(config.baseURL.absoluteString, "https://reader.example.com")
-        XCTAssertEqual(config.logLevel, .debug)
-        XCTAssertEqual(config.logFormat, .json)
-        XCTAssertFalse(config.runMigrations)
+        #expect(config.listenAddress == ListenAddress(host: "0.0.0.0", port: 9999))
+        #expect(config.baseURL.absoluteString == "https://reader.example.com")
+        #expect(config.logLevel == .debug)
+        #expect(config.logFormat == .json)
+        #expect(!config.runMigrations)
     }
 
     // MARK: - DATABASE_URL
 
-    func testMissingDatabaseURLFails() {
-        XCTAssertThrowsError(try Config.load(environment: [:])) { error in
-            XCTAssertEqual(error as? ConfigError, .missingRequiredVariable("DATABASE_URL"))
-            XCTAssertTrue(String(describing: error).contains("DATABASE_URL"))
-        }
+    @Test func missingDatabaseURLFails() throws {
+        let error = try #require(configError(from: [:]))
+        #expect(error == .missingRequiredVariable("DATABASE_URL"))
+        #expect(String(describing: error).contains("DATABASE_URL"))
     }
 
-    func testEmptyDatabaseURLFails() {
-        XCTAssertThrowsError(try Config.load(environment: environment(database: ""))) { error in
-            XCTAssertEqual(error as? ConfigError, .missingRequiredVariable("DATABASE_URL"))
-        }
+    @Test func emptyDatabaseURLFails() throws {
+        let error = try #require(configError(from: environment(database: "")))
+        #expect(error == .missingRequiredVariable("DATABASE_URL"))
     }
 
-    func testDatabaseURLIsTrimmed() throws {
+    @Test func databaseURLIsTrimmed() throws {
         let config = try Config.load(environment: environment(database: "  /tmp/rivulet.db  "))
-        XCTAssertEqual(config.databasePath, "/tmp/rivulet.db")
+        #expect(config.databasePath == "/tmp/rivulet.db")
     }
 
-    func testDatabaseURLRejectsURLSchemes() {
+    @Test func databaseURLRejectsURLSchemes() {
         for value in ["postgres://user@host/miniflux", "mysql://host/db"] {
-            XCTAssertThrowsError(
-                try Config.load(environment: environment(database: value)),
-                "expected DATABASE_URL=\(value) to be rejected"
-            ) { error in
-                guard case .invalidValue("DATABASE_URL", _, let reason)? = error as? ConfigError else {
-                    return XCTFail("unexpected error: \(error)")
-                }
-                XCTAssertTrue(reason.contains("file path"))
-            }
+            let payload = configError(from: environment(database: value))?.invalidValuePayload
+            #expect(payload?.name == "DATABASE_URL", "expected DATABASE_URL=\(value) to be rejected")
+            #expect(payload?.reason.contains("file path") == true)
         }
     }
 
     // MARK: - LISTEN_ADDR
 
-    func testListenAddressVariants() throws {
+    @Test func listenAddressVariants() throws {
         let cases: [(value: String, host: String, port: Int)] = [
             ("127.0.0.1:8080", "127.0.0.1", 8080),
             ("0.0.0.0:9000", "0.0.0.0", 9000),
@@ -149,15 +156,14 @@ final class ConfigTests: XCTestCase {
             let config = try Config.load(environment: environment([
                 "LISTEN_ADDR": testCase.value,
             ]))
-            XCTAssertEqual(
-                config.listenAddress,
-                ListenAddress(host: testCase.host, port: testCase.port),
+            #expect(
+                config.listenAddress == ListenAddress(host: testCase.host, port: testCase.port),
                 "for LISTEN_ADDR=\(testCase.value)"
             )
         }
     }
 
-    func testListenAddressInvalidValues() {
+    @Test func listenAddressInvalidValues() {
         let invalidValues = [
             "127.0.0.1",               // missing port
             "127.0.0.1:0",             // port out of range
@@ -172,32 +178,27 @@ final class ConfigTests: XCTestCase {
         ]
 
         for value in invalidValues {
-            XCTAssertThrowsError(
-                try Config.load(environment: environment(["LISTEN_ADDR": value])),
-                "expected LISTEN_ADDR=\(value) to be rejected"
-            ) { error in
-                guard case .invalidValue("LISTEN_ADDR", _, _)? = error as? ConfigError else {
-                    return XCTFail("unexpected error for \(value): \(error)")
-                }
-            }
+            let payload = configError(from: environment(["LISTEN_ADDR": value]))?.invalidValuePayload
+            #expect(payload?.name == "LISTEN_ADDR", "expected LISTEN_ADDR=\(value) to be rejected")
         }
     }
 
     // MARK: - BASE_URL
 
-    func testBaseURLMustBeAbsoluteHTTP() {
+    @Test func baseURLMustBeAbsoluteHTTP() {
         let invalidValues = ["localhost", "ftp://example.com", "/relative", "example.com/reader"]
         for value in invalidValues {
-            XCTAssertThrowsError(
-                try Config.load(environment: environment(["BASE_URL": value])),
-                "expected BASE_URL=\(value) to be rejected"
-            )
+            #expect(throws: ConfigError.self, "expected BASE_URL=\(value) to be rejected") {
+                try Config.load(environment: environment(["BASE_URL": value]))
+            }
         }
 
-        XCTAssertNoThrow(try Config.load(environment: environment(["BASE_URL": "https://reader.example.com/rivulet"])))
+        #expect(throws: Never.self) {
+            try Config.load(environment: environment(["BASE_URL": "https://reader.example.com/rivulet"]))
+        }
     }
 
-    func testBaseURLTrailingSlashIsTrimmed() throws {
+    @Test func baseURLTrailingSlashIsTrimmed() throws {
         // Miniflux trims the value and strips a single trailing slash (strings.TrimSuffix).
         let cases = [
             ("https://example.com/", "https://example.com"),
@@ -208,59 +209,61 @@ final class ConfigTests: XCTestCase {
 
         for (value, expected) in cases {
             let config = try Config.load(environment: environment(["BASE_URL": value]))
-            XCTAssertEqual(config.baseURL.absoluteString, expected, "for BASE_URL=\(value)")
+            #expect(config.baseURL.absoluteString == expected, "for BASE_URL=\(value)")
         }
     }
 
     // MARK: - LOG_LEVEL / LOG_FORMAT / RUN_MIGRATIONS
 
-    func testLogLevelIsCaseInsensitiveAndTrimmed() throws {
+    @Test func logLevelIsCaseInsensitiveAndTrimmed() throws {
         let config = try Config.load(environment: environment(["LOG_LEVEL": " INFO "]))
-        XCTAssertEqual(config.logLevel, .info)
+        #expect(config.logLevel == .info)
     }
 
-    func testInvalidLogLevelFails() {
-        XCTAssertThrowsError(try Config.load(environment: environment(["LOG_LEVEL": "bogus"]))) { error in
-            guard case .invalidValue("LOG_LEVEL", "bogus", let reason)? = error as? ConfigError else {
-                return XCTFail("unexpected error: \(error)")
-            }
-            XCTAssertTrue(reason.contains("debug"))
-        }
+    @Test func invalidLogLevelFails() {
+        let payload = configError(from: environment(["LOG_LEVEL": "bogus"]))?.invalidValuePayload
+        #expect(payload?.name == "LOG_LEVEL")
+        #expect(payload?.value == "bogus")
+        #expect(payload?.reason.contains("debug") == true)
     }
 
-    func testInvalidLogFormatFails() {
-        XCTAssertThrowsError(try Config.load(environment: environment(["LOG_FORMAT": "yaml"]))) { error in
-            guard case .invalidValue("LOG_FORMAT", "yaml", _)? = error as? ConfigError else {
-                return XCTFail("unexpected error: \(error)")
-            }
-        }
+    @Test func invalidLogFormatFails() {
+        let payload = configError(from: environment(["LOG_FORMAT": "yaml"]))?.invalidValuePayload
+        #expect(payload?.name == "LOG_FORMAT")
+        #expect(payload?.value == "yaml")
     }
 
-    func testRunMigrationsBooleanVariants() throws {
+    @Test func runMigrationsBooleanVariants() throws {
         // Miniflux parseBoolValue: case-insensitive 1/yes/true/on and 0/no/false/off.
         let truthy = ["1", "yes", "true", "on", "TRUE", "Yes", "ON", " yes "]
         for value in truthy {
-            XCTAssertTrue(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
+            let config = try Config.load(environment: environment(["RUN_MIGRATIONS": value]))
+            #expect(config.runMigrations, "for RUN_MIGRATIONS=\(value)")
         }
 
         let falsy = ["0", "no", "false", "off", "FALSE", "No", "OFF", " off "]
         for value in falsy {
-            XCTAssertFalse(try Config.load(environment: environment(["RUN_MIGRATIONS": value])).runMigrations)
+            let config = try Config.load(environment: environment(["RUN_MIGRATIONS": value]))
+            #expect(!config.runMigrations, "for RUN_MIGRATIONS=\(value)")
         }
     }
 
-    func testInvalidRunMigrationsFails() {
+    @Test func invalidRunMigrationsFails() {
         // `t`/`f` are Go strconv values that Miniflux rejects.
         for value in ["t", "f", "maybe"] {
-            XCTAssertThrowsError(
-                try Config.load(environment: environment(["RUN_MIGRATIONS": value])),
-                "expected RUN_MIGRATIONS=\(value) to be rejected"
-            ) { error in
-                guard case .invalidValue("RUN_MIGRATIONS", _, let reason)? = error as? ConfigError else {
-                    return XCTFail("unexpected error: \(error)")
-                }
-                XCTAssertTrue(reason.contains("on/off"))
-            }
+            let payload = configError(from: environment(["RUN_MIGRATIONS": value]))?.invalidValuePayload
+            #expect(payload?.name == "RUN_MIGRATIONS", "expected RUN_MIGRATIONS=\(value) to be rejected")
+            #expect(payload?.reason.contains("on/off") == true)
         }
+    }
+}
+
+/// The `.invalidValue` payload when this error is that case (`nil` otherwise).
+private extension ConfigError {
+    var invalidValuePayload: (name: String, value: String, reason: String)? {
+        guard case .invalidValue(let name, let value, let reason) = self else {
+            return nil
+        }
+        return (name, value, reason)
     }
 }
