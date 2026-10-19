@@ -11,7 +11,15 @@ Rivulet is a single binary with two faces over one core:
 │ import · refresh · status … │   │ /feed-icon · /healthz          │
 └──────────────┬──────────────┘   └───────────────┬────────────────┘
                │                                  │
-        ┌──────▼──────────────────────────────────▼──────┐
+               └───────────────┬──────────────────┘
+                               │
+        ┌──────────────────────▼─────────────────────────┐
+        │                    RivuletApp                  │
+        │  application factory · commands · routes ·     │
+        │  logging bootstrap                             │
+        └──────────────────────┬─────────────────────────┘
+                               │
+        ┌──────────────────────▼─────────────────────────┐
         │                   RivuletCore                  │
         │  config · storage · fetcher · parser ·         │
         │  sanitizer · scheduler · OPML                  │
@@ -30,9 +38,11 @@ Sources/
 │   ├── Storage/            # Fluent models + repositories + raw SQLKit queries
 │   ├── Reader/             # fetcher, parser, dates, charset, sanitizer, OPML
 │   └── Scheduler/          # refresh loop, retention jobs
-└── rivulet/                # executable
-    ├── Commands/           # serve, migrate, create-admin, add, import, refresh, status, …
-    └── API/                # Google Reader API, Fever API, /feed-icon, /healthz
+├── RivuletApp/             # application layer — the only target that knows Vapor
+│   ├── Commands/           # serve, migrate, version + registered stubs for the final CLI
+│   ├── Logging/            # text/JSON swift-log bootstrap
+│   └── Routes/             # /healthz now; client APIs arrive in stage 5
+└── rivulet/                # executable: entry point only
 ```
 
 ## Data model
@@ -56,6 +66,32 @@ Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, pub
 `next_check_at` and `(user_id, category_id)`; enclosures by `entry_id`; tombstones by
 `(feed_id, hash)` and `deleted_at`; FTS5 handles search.
 
+Until the first release the schema is edited in place (`SchemaV1`); versioned migrations start
+with the first release.
+
+## CLI
+
+ConsoleKit; the executable is a thin entry point that runs `RivuletCLI.run` and maps errors to a
+non-zero exit status — everything else lives in `RivuletApp`.
+
+- `serve` — builds the app via `ApplicationFactory`, applies WAL, migrates when
+  `RUN_MIGRATIONS=true`, boots, then delegates to Vapor's built-in `ServeCommand` (so
+  `--hostname`/`--port`/`--bind` keep working) and waits for the shutdown signal, like
+  `Application.execute()` does. The default server address comes from `LISTEN_ADDR`.
+- `migrate` — creates or updates the SQLite schema; it always migrates (`RUN_MIGRATIONS` only
+  gates what `serve` does on start).
+- `version` — prints the version.
+- Every other command of the final surface (`create-admin`, `add`, `remove`, `list`, `import`,
+  `export`, `refresh`, `status`, `integration-credentials`, `backup`, `vacuum`) is a registered
+  stub that reports the stage implementing it.
+
+`--help` lists every command and, like `version`, works without configuration.
+
+## HTTP surface
+
+- `GET /healthz` — liveness probe: `200 OK`, body `OK`, no database access (upstream parity;
+  upstream's `/readiness` probe pings the database and arrives together with the client APIs).
+
 ## Decisions and deviations from Miniflux
 
 | Topic | Miniflux | Rivulet | Why |
@@ -68,6 +104,7 @@ Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, pub
 | Timestamps | `timestamptz` | unix seconds (INTEGER) | SQLite convention; avoids timezone ambiguity |
 | Arrays | PostgreSQL arrays | child tables | SQLite has no array types |
 | Web sessions | cookie sessions for the web UI | none | No web UI (explicit non-goal) |
+| Bare invocation | `miniflux` starts the server | `rivulet` prints help and fails | The CLI is explicit about what it runs; `serve` is a command like any other |
 | Config names | `LISTEN_ADDR`, `BASE_URL`, `LOG_LEVEL`, … | same where meaningful; `DATABASE_URL` = SQLite file path | Familiar to Miniflux users |
 | Web UI and REST v1 | full UI + REST v1 | none in MVP; REST subset later on demand | Focus on the client APIs that matter |
 

@@ -1,7 +1,7 @@
 # Stage 0 — Foundation
 
 **Goal:** a buildable, runnable skeleton: configuration, database bootstrap, CLI shell, CI.
-**Status:** in progress (package skeleton, CI and docs scaffolding done).
+**Status:** done (CLI, logging and `/healthz` landed in part 2).
 **Effort:** M. **Depends on:** —
 
 ## Scope
@@ -16,19 +16,23 @@
       trimmed, empty values fall back to defaults (choice options validate first, so an empty
       `LOG_LEVEL`/`LOG_FORMAT` is an error), booleans `1/yes/true/on` / `0/no/false/off`,
       `BASE_URL` trailing slash trimmed; a single `LISTEN_ADDR` (lists rejected).
-- [ ] Logging: swift-log via Vapor; text (default) and JSON format options.
+- [x] Logging: swift-log via Vapor; text (default, standard error) and JSON (one object per line)
+      formats; the bootstrap runs once per process, so the first command run decides the level
+      and format.
 - [x] Storage bootstrap: SQLite via Fluent through a thin **storage wrapper** that applies
       per-connection pragmas on every connection checkout (`foreign_keys=ON`, `busy_timeout=5000`,
       `synchronous=NORMAL`) and sets `journal_mode=WAL` once per file (`prepare()` verifies that
       SQLite accepted it); Fluent migration runner.
 - [x] Schema v1: `users`, `categories`, `feeds`, `entries`, `entry_tombstones`, `enclosures`,
       `icons`, `entries_fts` + sync triggers and indexes (see `docs/architecture.md`).
-- [ ] CLI skeleton with stubs for the full final command set: `serve`, `migrate`, `create-admin`,
+- [x] CLI skeleton with stubs for the full final command set: `serve`, `migrate`, `create-admin`,
       `add`, `remove`, `list`, `import`, `export`, `refresh`, `status`, `integration-credentials`,
       `backup`, `vacuum`, `version`. `serve` reuses Vapor's built-in `ServeCommand` (configured
-      from our config) — do not register a custom command with the same name.
-- [ ] Minimal HTTP server with `GET /healthz`.
-- [ ] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
+      from our config) — no custom command with the same name. Stubs report the stage that
+      implements them; `--help` and `version` work without configuration.
+- [x] Minimal HTTP server with `GET /healthz` (liveness probe, upstream parity: `200 OK`
+      body `OK`, no database access).
+- [x] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
       (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`;
       `StubFeedServer` arrives with stage 2, when it is first needed).
 
@@ -47,6 +51,13 @@
 - The driver keeps one pooled connection per event loop, so `SQLiteStorage.withConnection` bodies
   must not open a nested checkout (repositories take the checked-out connection); a nested
   checkout fails fast on the connection-pool timeout. `prepare()` runs before migrations.
+- CLI topology: the executable target is a thin entry point; `RivuletApp` builds the command
+  group (ConsoleKit), the application factory and the routes. `serve` delegates to Vapor's
+  `ServeCommand` and, like `Application.execute()`, waits for the shutdown signal before
+  shutting down; `migrate` always migrates — `RUN_MIGRATIONS` only gates what `serve` does.
+- Logging bootstrap (`LoggingSetup`) claims a process-wide single slot because swift-log allows
+  one `LoggingSystem.bootstrap` per process; the integration tests claim the same slot through
+  `TestLogging`, so running a command in-process cannot bootstrap twice.
 
 ## Tests
 
@@ -66,9 +77,9 @@
 
 ## Exit criteria
 
-- [ ] `swift test` green locally and in CI (`ubuntu-latest` + `swift:latest`).
-- [ ] `rivulet migrate && rivulet serve` works against a fresh database; `/healthz` responds.
-- [ ] README lists the commands that exist so far.
+- [x] `swift test` green locally and in CI (`ubuntu-latest` + `swift:latest`).
+- [x] `rivulet migrate && rivulet serve` works against a fresh database; `/healthz` responds.
+- [x] README lists the commands that exist so far.
 
 ## Risks
 

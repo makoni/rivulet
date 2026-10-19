@@ -16,7 +16,7 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 0 — Foundation**. Keep this line and the plan's status table in sync.
+Current focus: **Stage 1 — Storage layer**. Keep this line and the plan's status table in sync.
 
 ## Toolchain
 
@@ -84,7 +84,8 @@ swift run rivulet --help
 - Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
   Ported tests keep a comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
-  wrapper; never fsync per row.
+  wrapper; never fsync per row. Until the first release the schema is edited in place
+  (`SchemaV1`) — versioned migrations start at the first release.
 - No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals,
   not oversights.
 

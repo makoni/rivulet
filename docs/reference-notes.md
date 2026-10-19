@@ -19,6 +19,16 @@ Source: `internal/config/parser.go`, `internal/config/options.go`.
 - `BASE_URL`: must parse as an absolute URL; a single trailing slash is trimmed
   (`strings.TrimSuffix`).
 
+## Health probes
+
+Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
+
+- `/liveness` and `/healthz` are liveness probes: `200 OK`, body `OK`, no database access.
+- `/readiness` and `/readyz` ping the database; on failure they answer `503 Service Unavailable`
+  with `Database Connection Error: ...`.
+- All four are mounted on the root mux — they stay at the server root regardless of the
+  configured base path.
+
 ## Scheduling and refresh
 
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
