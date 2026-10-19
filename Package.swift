@@ -38,5 +38,12 @@ let package = Package(
             name: "RivuletCoreTests",
             dependencies: ["RivuletCore"]
         ),
+        .testTarget(
+            name: "RivuletIntegrationTests",
+            dependencies: [
+                "RivuletCore",
+                .product(name: "XCTVapor", package: "vapor"),
+            ]
+        ),
     ]
 )
