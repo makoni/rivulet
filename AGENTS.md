@@ -61,10 +61,11 @@ We work test-first: **red → green → refactor**.
   go to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
 - Prefer the standard library and existing dependencies. `swift-collections`
-  (`Deque`, `OrderedDictionary`, …) and `swift-algorithms` are pre-approved when they make data
-  structures or algorithms clearer or more efficient — add them as direct dependencies when first
-  used (they are already in the dependency graph via Vapor). Any other new dependency needs
-  explicit approval — Linux-first, keep the surface small.
+  (`Deque`, `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are
+  pre-approved when they make data structures, algorithms or hashing clearer or more efficient —
+  add them as direct dependencies of the module that uses them when first used (they are already
+  in the dependency graph via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new
+  dependency needs explicit approval — Linux-first, keep the surface small.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
 ## Commands

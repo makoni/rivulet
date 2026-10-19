@@ -39,7 +39,7 @@ Sources/
 
 | Table | Key columns |
 | --- | --- |
-| `users` | id, username, password_hash (bcrypt), is_admin, google_reader_username, google_reader_password_hash, fever_token, created_at |
+| `users` | id, username, password_hash (bcrypt), is_admin, google_reader_username, google_reader_password_hash, fever_username, fever_token, created_at |
 | `categories` | id, user_id, title, position |
 | `feeds` | id, user_id, category_id, url, site_url, title, description, icon_id, etag, last_modified, next_check_at, check_interval, parsing_error_count, parsing_error_message, user_agent, fetched_at, created_at, updated_at |
 | `entries` | id, user_id, feed_id, hash, title, url, author, content (sanitized HTML), content_text (plain text), status (`unread` / `read`), starred, published_at, created_at, updated_at |
@@ -59,7 +59,7 @@ feeds by `next_check_at`; tombstones by `(feed_id, hash)`; FTS5 handles search.
 | Full-text search | `tsvector` + `ts_rank` | FTS5 + `bm25()` | SQLite-native; ranking tuned, not matched exactly |
 | Feed ↔ icon | `feed_icons` join table (many-to-many) | direct `feeds.icon_id` | One icon per feed is sufficient; dedup by hash retained |
 | Integration credentials | configured on the web UI integrations page | set via a CLI command | No web UI (explicit non-goal) |
-| Acceptance encoding | `br,gzip` | `gzip` advertised (brotli deferred) | AsyncHTTPClient decompression is gzip/deflate only; documented in parity notes |
+| Accept-Encoding | `br,gzip` | `gzip` advertised (brotli deferred) | AsyncHTTPClient decompression is gzip/deflate only; documented in parity notes |
 | Timestamps | `timestamptz` | unix seconds (INTEGER) | SQLite convention; avoids timezone ambiguity |
 | Arrays | PostgreSQL arrays | child tables | SQLite has no array types |
 | Web sessions | cookie sessions for the web UI | none | No web UI (explicit non-goal) |

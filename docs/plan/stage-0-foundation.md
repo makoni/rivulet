@@ -35,7 +35,11 @@
 - Migrations: sqlite-nio prepares exactly one statement per call — execute multi-statement DDL
   one statement at a time; create the FTS5 table and triggers via raw SQL (`sql.raw(...).run()`
   on the SQLKit view of the database).
-- `DATABASE_URL` required matches Miniflux behavior; the config test covers the error path.
+- Intentional deviations from upstream defaults: `DATABASE_URL` is required here with a clear
+  error (Miniflux ships a default DSN), and `RUN_MIGRATIONS` defaults to `true` (upstream defaults
+  to `false`). The config test covers the error path.
+- `app.db` stays private to the storage layer: repositories are the only accessors, so the pragma
+  wrapper cannot be bypassed by other modules.
 
 ## Tests
 

@@ -13,7 +13,8 @@ on. When in doubt, re-check the cited files in the reference clone.
   (`POLLING_LIMIT_PER_HOST`, default 0 = off).
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
-  - entry-frequency mode: `(7d / weekly_entries × factor)` clamped to [5m, 1440m];
+  - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when
+    `weekly_entries ≤ 0` the interval is the maximum (1440m);
   - `interval = max(interval, refreshDelay)`, where `refreshDelay` comes from the RSS `<ttl>`,
     `Retry-After` (429), `Cache-Control: max-age` or `Expires` (`internal/reader/handler/handler.go`);
   - `next_check_at = now + interval`.
@@ -31,8 +32,8 @@ on. When in doubt, re-check the cited files in the reference clone.
   skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
 - Tombstones: `entry_tombstones(feed_id, hash, deleted_at)`; a tombstoned `(feed_id, hash)` must
   never be re-inserted (`ErrEntryTombstoned`).
-- Entry statuses are only `unread` and `read` (`internal/model/entry.go`); there is no
-  "removed" status.
+- Entry statuses in the application are only `unread` and `read` (`internal/model/entry.go`); the
+  legacy `removed` enum value survives only in old migrations and is no longer used.
 
 ## Entry identity and hashing
 
@@ -74,7 +75,9 @@ Implemented routes (`handler.go`, Go 1.22 mux):
 - `GET  /reader/api/0/user-info`
 - `GET  /reader/api/0/subscription/list` (embeds `iconUrl`)
 - `POST /reader/api/0/subscription/edit` (`ac=subscribe|edit|unsubscribe`)
-- `POST /reader/api/0/subscription/quickadd` (performs feed discovery on website URLs)
+- `POST /reader/api/0/subscription/quickadd` (performs feed discovery on website URLs; the
+  reference finder additionally probes well-known paths and a few site-specific handlers —
+  Rivulet's minimal `<link rel="alternate">` scan is a recorded deviation)
 - `GET  /reader/api/0/stream/items/ids`
 - `POST /reader/api/0/stream/items/contents`
 - `POST /reader/api/0/mark-all-as-read`
@@ -88,7 +91,12 @@ Authentication:
 - `ClientLogin` exchanges them for a stateless token:
   `username + "/" + hex(HMAC-SHA256(key: username+password, message: empty))`; `GET /token`
   returns the same value.
-- Requests carry the token in the `T` form parameter or `Authorization: GoogleLogin auth=<token>`.
+- Token transport is method-specific: **POST routes read the `T` form field only; GET routes read
+  the `Authorization: GoogleLogin auth=<token>` header only.**
+- `ClientLogin` returns plain text `SID=…\nLSID=…\nAuth=…` by default (`output=json` switches to
+  JSON) — clients like NetNewsWire parse the text lines. `GET /token` returns the bare token as
+  plain text; write operations (`edit-tag`, `rename-tag`, `disable-tag`, `subscription/edit`,
+  `mark-all-as-read`) return plain text `OK`.
 - Failure: HTTP 401, `text/plain`, body `Unauthorized`, header `X-Reader-Google-Bad-Token: true`;
   `ClientLogin` failure returns JSON `{"error_message": "access unauthorized"}`.
 
@@ -97,7 +105,8 @@ Contract details worth pinning in golden tests:
 - page size `n` clamped to `MaxEntryLimit` = 1000 (0 → 1000);
   `continuation` is a numeric offset encoded as a JSON string, omitted when 0;
 - `edit-tag` reads its tags from the body (`a`/`r`); item ids (`i`) are accepted in 4 formats;
-- response id formats differ per endpoint; `output=json` is required on some endpoints;
+- response id formats differ per endpoint; `output=json` is required on some endpoints
+  (`tag/list`, `subscription/list`, `stream/items/ids`, `stream/items/contents`);
 - unknown/ambiguous stream selections → HTTP 500; label streams are unsupported on
   `stream/items/ids`.
 
@@ -109,12 +118,17 @@ empty base response.
 
 Semantics:
 
-- `mark=item`: read/unread/saved/unsaved; `mark=feed` and `mark=group`: read-before-timestamp only.
+- `mark=item`: read/unread/saved/unsaved.
+- `mark=feed`: `id ≤ 0` → empty 200; `id > 0` → that feed read before `before`.
+- `mark=group`: `id < 0` → empty 200; **`id = 0` → mark *all* items as read (user-wide, `before`
+  is ignored)** — real clients use this; `id > 0` → that category read before `before`.
 - Items: fixed limit 50; precedence `since_id` > `max_id` > `with_ids`; `as=saved|unsaved`
   toggles; invalid id → id 0; `id<=0` → empty 200.
+- Every response carries `last_refreshed_on_time` (server time at response time; `0` on auth
+  failure); `items` additionally carries `total_items`.
 - Reported API version: 3. No `keys` or `hot` endpoints.
 - Auth: `api_key` = stored MD5 token of `fever_username:fever_password` (lookup case-insensitive).
-  Failure → HTTP 200 with `{"api_version": 3, "auth": 0}`.
+  Failure → HTTP 200 with `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`.
 - `internal/fever` has no tests upstream — the code is the spec, so our contract tests are
   written from the handler.
 

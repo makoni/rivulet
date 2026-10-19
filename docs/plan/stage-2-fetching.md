@@ -17,8 +17,12 @@
       see `docs/reference-notes.md`); at the error limit the scheduler excludes the feed until a
       forced refresh succeeds.
 - [ ] Per-feed overrides: custom user agent, "ignore HTTP cache", proxy.
-- [ ] Security: SSRF protection at the dialer level after DNS resolution (TOCTOU-safe), active
-      unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (needed for tests only).
+- [ ] Security: SSRF protection without relying on a connect-time hook (AsyncHTTPClient has none):
+      resolve the host with NIO, reject the request if **any** resolved address is
+      private/loopback/link-local, then connect through a client pinned to the validated address
+      (`dnsOverride`, one short-TTL client per host). A DNS-rebinding test proves a second lookup
+      cannot swap in a private address. Escape hatch: `FETCHER_ALLOW_PRIVATE_NETWORKS=true`
+      (tests only).
 
 ## Implementation notes
 
