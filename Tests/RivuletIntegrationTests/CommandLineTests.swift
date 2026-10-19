@@ -169,6 +169,9 @@ final class CommandLineTests: XCTestCase {
         let cases: [(arguments: [String], expected: String)] = [
             (["serve", "--bogus"], "Input not recognized: --bogus"),
             (["serve", "--port", "abc"], "Could not convert option for `port`"),
+            // The case that motivated the early validation: Fluent's boot scan would
+            // otherwise revert the schema before Vapor rejects the flag.
+            (["serve", "--auto-revert"], "Input not recognized: --auto-revert"),
         ]
         for (arguments, expected) in cases {
             let console = TestConsole()

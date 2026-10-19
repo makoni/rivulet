@@ -90,9 +90,10 @@ non-zero exit status — everything else lives in `RivuletApp`.
 
 ## HTTP surface
 
-- `/healthz` — liveness probe: any method answers `200 OK`, body `OK`, no database access
-  (upstream parity — Miniflux registers it on a method-less pattern; upstream's `/readiness`
-  probe pings the database and arrives together with the client APIs).
+- `/healthz` — liveness probe: every standard method answers `200 OK`, body `OK`, no database
+  access (upstream registers it on a method-less pattern; Rivulet registers the standard NIO
+  set, and upstream's `/readiness` probe pings the database and arrives together with the
+  client APIs).
 
 ## Decisions and deviations from Miniflux
 

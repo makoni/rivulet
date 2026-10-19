@@ -6,9 +6,9 @@ import Vapor
 ///
 /// Like upstream `/healthz`, this is a liveness probe: it answers `OK` whenever the process
 /// serves requests and deliberately does not touch the database. Miniflux registers it on a
-/// method-less mux pattern, so every method answers; the standard NIO method set is
-/// registered here to mirror that. (Upstream also has a `/readiness` probe that pings the
-/// database; it arrives together with the client APIs.)
+/// method-less mux pattern; the standard NIO method set is registered here to mirror that
+/// (custom methods beyond the set still answer 404). (Upstream also has a `/readiness` probe
+/// that pings the database; it arrives together with the client APIs.)
 enum HealthRoutes {
     /// The methods the method-less upstream pattern matches (NIO's standard method set).
     private static let probeMethods: [HTTPMethod] = [

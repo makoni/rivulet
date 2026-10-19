@@ -32,7 +32,7 @@
       arguments before it touches the database. Stubs report the stage that implements them
       (with or without arguments); `--help` and `version` work without configuration.
 - [x] Minimal HTTP server with a method-agnostic `/healthz` (liveness probe, upstream parity:
-      any method answers `200 OK` body `OK`, no database access).
+      every standard method answers `200 OK` body `OK`, no database access).
 - [x] Integration test target `Tests/RivuletIntegrationTests` wired into `Package.swift`
       (with the `XCTVapor` product) and the `Support/` skeleton (`TestDatabase`, `TestConsole`,
       `TemporaryDirectory`, `TestLogging`; `StubFeedServer` arrives with stage 2, when it is
@@ -83,7 +83,8 @@
   `migrate` creates the schema (also with `RUN_MIGRATIONS=false`), planned commands report
   their stage even with arguments, `serve` rejects unsupported arguments before creating the
   database.
-- App boot: the server starts with a temp database; `/healthz` returns 200 for any method.
+- App boot: the server starts with a temp database; `/healthz` returns 200 for every standard
+  method.
 
 ## Exit criteria
 
