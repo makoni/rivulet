@@ -43,6 +43,19 @@ final class ConfigTests: XCTestCase {
         XCTAssertTrue(config.runMigrations)
     }
 
+    func testWhitespaceOnlyValuesFallBackToDefaults() throws {
+        // Upstream trims values before the empty check (parseLines).
+        let config = try Config.load(environment: environment([
+            "LISTEN_ADDR": "   ",
+            "BASE_URL": "   ",
+            "RUN_MIGRATIONS": "   ",
+        ]))
+
+        XCTAssertEqual(config.listenAddress, ListenAddress(host: "127.0.0.1", port: 8080))
+        XCTAssertEqual(config.baseURL.absoluteString, "http://localhost")
+        XCTAssertTrue(config.runMigrations)
+    }
+
     func testEmptyLogLevelAndFormatAreRejected() {
         // Upstream runs the choices validator before the empty-value fallback.
         for variable in ["LOG_LEVEL", "LOG_FORMAT"] {

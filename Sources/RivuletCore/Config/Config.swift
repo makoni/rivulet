@@ -57,8 +57,9 @@ public struct Config: Sendable, Equatable {
 
     /// Loads the configuration from an environment dictionary.
     ///
-    /// Unknown variables are ignored. Empty values mean "unset" (Miniflux semantics) and
-    /// fall back to the defaults; `DATABASE_URL` is the only required variable.
+    /// Unknown variables are ignored. Keys and values are trimmed; empty values fall back to
+    /// the defaults — except the choice options, which validate first (an empty `LOG_LEVEL`
+    /// or `LOG_FORMAT` is an error). `DATABASE_URL` is the only required variable.
     ///
     /// - Throws: ``ConfigError`` when a required variable is missing or a value is invalid.
     public static func load(
@@ -108,10 +109,11 @@ public struct Config: Sendable, Equatable {
 
     /// `LISTEN_ADDR`; the Miniflux default is a single loopback listener.
     private static func parseListenAddress(_ rawValue: String?) throws -> ListenAddress {
-        guard let rawValue, !rawValue.isEmpty else {
+        let value = (rawValue ?? "").trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else {
             return ListenAddress(host: "127.0.0.1", port: 8080)
         }
-        return try ListenAddress.parse(rawValue)
+        return try ListenAddress.parse(value)
     }
 
     /// `BASE_URL`; http(s) only, a single trailing slash is trimmed like upstream.
