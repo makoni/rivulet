@@ -27,14 +27,22 @@ import Testing
 
                 // Alice may only change her own entries, even when Bob's id is passed in.
                 try await entries.setStatus(userID: aliceID, entryIDs: [aliceEntryID, bobEntryID], status: .read)
-                try await entries.setStarred(userID: aliceID, entryIDs: [aliceEntryID, bobEntryID], starred: true)
 
-                let aliceEntry = try #require(try await entries.fetch(id: aliceEntryID))
-                let bobEntry = try #require(try await entries.fetch(id: bobEntryID))
+                var aliceEntry = try #require(try await entries.fetch(id: aliceEntryID))
+                var bobEntry = try #require(try await entries.fetch(id: bobEntryID))
                 #expect(aliceEntry.status == .read)
-                #expect(aliceEntry.starred)
                 #expect(aliceEntry.updatedAt > 1)
                 #expect(bobEntry.status == .unread)
+                #expect(bobEntry.updatedAt == 1)
+
+                // Starring stamps the row as well and stays scoped to the owner.
+                try await backdateUpdatedAt(connection, id: aliceEntryID, updatedAt: 1)
+                try await entries.setStarred(userID: aliceID, entryIDs: [aliceEntryID, bobEntryID], starred: true)
+
+                aliceEntry = try #require(try await entries.fetch(id: aliceEntryID))
+                bobEntry = try #require(try await entries.fetch(id: bobEntryID))
+                #expect(aliceEntry.starred)
+                #expect(aliceEntry.updatedAt > 1)
                 #expect(bobEntry.starred == false)
                 #expect(bobEntry.updatedAt == 1)
 
@@ -65,6 +73,25 @@ import Testing
                 } catch let error as StorageError {
                     #expect(error == .entryNotFound(id: 999))
                 }
+
+                // Another user's entry is reported as missing and left untouched.
+                let (otherUserID, _, otherFeedID) = try await seedFeed(
+                    connection,
+                    username: "bob",
+                    feedURL: "https://bob.example/feed.xml"
+                )
+                let otherEntryID = try #require(
+                    try await Self.seedEntries(
+                        connection, userID: otherUserID, feedID: otherFeedID, hashes: ["b"]
+                    ).first
+                )
+                do {
+                    _ = try await entries.toggleStarred(userID: userID, entryID: otherEntryID)
+                    Issue.record("expected another user's entry to be reported as missing")
+                } catch let error as StorageError {
+                    #expect(error == .entryNotFound(id: otherEntryID))
+                }
+                #expect(try await entries.fetch(id: otherEntryID)?.starred == false)
             }
         }
     }
@@ -94,6 +121,12 @@ import Testing
                         connection, userID: aliceID, feedID: aliceFeedID, hashes: ["read"], publishedAt: 2_000
                     ).first
                 )
+                // `before` is exclusive: an entry published exactly at the boundary stays unread.
+                let boundaryID = try #require(
+                    try await Self.seedEntries(
+                        connection, userID: aliceID, feedID: aliceFeedID, hashes: ["boundary"], publishedAt: 2_000
+                    ).first
+                )
                 let bobEntryID = try #require(
                     try await Self.seedEntries(connection, userID: bobID, feedID: bobFeedID, hashes: ["b"]).first
                 )
@@ -102,6 +135,7 @@ import Testing
                 try await entries.markAllAsRead(userID: aliceID, before: 2_000)
                 #expect(try await entries.fetch(id: oldID)?.status == .read)
                 #expect(try await entries.fetch(id: newID)?.status == .unread)
+                #expect(try await entries.fetch(id: boundaryID)?.status == .unread)
                 #expect(try await entries.fetch(id: bobEntryID)?.status == .unread)
 
                 try await entries.markAllAsRead(userID: aliceID)
@@ -128,9 +162,13 @@ import Testing
                 let newReadID = try #require(
                     try await Self.seedEntries(connection, userID: userID, feedID: feedID, hashes: ["new-read"]).first
                 )
+                // The cutoff is exclusive: an entry created exactly at it is kept.
+                let boundaryReadID = try #require(
+                    try await Self.seedEntries(connection, userID: userID, feedID: feedID, hashes: ["boundary"]).first
+                )
                 try await entries.setStatus(
                     userID: userID,
-                    entryIDs: [oldReadID, oldReadStarredID, newReadID],
+                    entryIDs: [oldReadID, oldReadStarredID, newReadID, boundaryReadID],
                     status: .read
                 )
                 try await entries.setStarred(userID: userID, entryIDs: [oldReadStarredID], starred: true)
@@ -139,6 +177,7 @@ import Testing
                 for id in [oldReadID, oldReadStarredID, oldUnreadID] {
                     try await backdateCreatedAt(connection, id: id, createdAt: cutoff - 1)
                 }
+                try await backdateCreatedAt(connection, id: boundaryReadID, createdAt: cutoff)
 
                 let deleted = try await entries.archive(status: .read, createdBefore: cutoff, limit: 100)
 
@@ -147,6 +186,7 @@ import Testing
                 #expect(try await entries.fetch(id: oldReadStarredID) != nil)
                 #expect(try await entries.fetch(id: oldUnreadID) != nil)
                 #expect(try await entries.fetch(id: newReadID) != nil)
+                #expect(try await entries.fetch(id: boundaryReadID) != nil)
                 #expect(try await tombstoneCount(connection) == 1)
 
                 let outcome = try await entries.upsert(

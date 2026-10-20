@@ -15,7 +15,9 @@ tombstones.
       NOTHING`); inserts/updates must refuse a tombstoned `(feed_id, hash)`.
 - [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
       counts (derived the way clients derive them), search via FTS5 with `bm25()` ranking
-      (plain-text extraction at write time).
+      (plain-text extraction at write time); bulk mark-as-read scoped to a feed or a category
+      (Fever `mark=feed` / `mark=group`, Google Reader feed/label streams — reference
+      `MarkFeedAsRead` / `MarkCategoryAsRead`).
 - [x] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
       `parsing_error_message`, `fetched_at`.
 - [ ] Retention (port the reference defaults): daily cleanup — delete read entries older than

@@ -7,10 +7,10 @@ import FluentKit
 /// re-imported GUID updates the stored row instead of duplicating it.
 ///
 /// `content` holds sanitized HTML; `contentText` is the plain text extracted
-/// from it at write time and indexed by FTS5. `status`, `starred` and
-/// `publishedAt` belong to the user's view of the entry: refreshing a feed
-/// never overwrites them (upstream `updateEntry`), while the user-state
-/// mutations stamp `updatedAt` (upstream `changed_at`).
+/// from it at write time and indexed by FTS5. `status` and `starred` are the
+/// user's state: a feed refresh never overwrites them, while the user-state
+/// mutations stamp `updatedAt` (upstream `changed_at`). `publishedAt` is feed
+/// data that the reference likewise leaves alone on refresh.
 ///
 /// `@unchecked Sendable` is safe: an instance is created, populated and used
 /// inside a single `SQLiteStorage.withTransaction` checkout and is never

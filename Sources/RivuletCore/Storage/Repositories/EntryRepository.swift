@@ -1,4 +1,5 @@
-// Ported from Miniflux internal/storage/entry.go (Apache-2.0); adapted for Swift/SQLite.
+// Ported from Miniflux internal/storage/entry.go and internal/storage/enclosure.go
+// (Apache-2.0); adapted for Swift/SQLite.
 import Foundation
 import FluentKit
 import SQLKit
@@ -7,10 +8,11 @@ import SQLKit
 ///
 /// The write path mirrors the reference refresh loop: a new entry is inserted
 /// behind an atomic tombstone guard, an existing entry only has its feed-side
-/// fields refreshed, and the user's own state (`status`, `starred`,
-/// `publishedAt`) is never overwritten by a refresh. Deletion is a real
-/// `DELETE` that records a tombstone for every non-empty hash, so a refreshed
-/// feed cannot bring a cleaned-up entry back.
+/// fields refreshed, and the user's state (`status`, `starred`) is never
+/// overwritten by a refresh (`publishedAt` is feed data and is equally left
+/// alone: the reference does not rewrite it). Deletion is a real `DELETE` that
+/// records a tombstone for every non-empty hash, so a refreshed feed cannot
+/// bring a cleaned-up entry back.
 ///
 /// Ported semantics: `createEntry`, `updateEntry`, `entryExists`,
 /// `IsNewEntry`, `SetEntriesStatus`, `SetEntriesStarredState`,
@@ -86,6 +88,10 @@ public struct EntryRepository {
         updateExisting: Bool
     ) async throws -> EntryUpsertOutcome {
         let sql = try RawSQL.sql(on: database)
+
+        if !updateExisting, try await storedEntryID(feedID: feedID, hash: input.hash) != nil {
+            return .existing
+        }
         let contentText = EntryText.plainText(fromHTML: input.content)
 
         if updateExisting {
@@ -106,8 +112,6 @@ public struct EntryRepository {
                 try await replaceEnclosures(entryID: entryID, with: input.enclosures)
                 return .updated
             }
-        } else if try await storedEntryID(feedID: feedID, hash: input.hash) != nil {
-            return .existing
         }
 
         let now = Self.now()
@@ -146,6 +150,9 @@ public struct EntryRepository {
         entry.publishedAt = input.publishedAt
         entry.createdAt = now
         entry.updatedAt = now
+        // The row is stored: mark the identity as persisted, so the returned value
+        // behaves like a fetched model (FluentKit precondition for update/save).
+        entry._$idExists = true
         try await insertEnclosures(entryID: entryID, from: input.enclosures)
         return .created(entry)
     }
@@ -219,7 +226,9 @@ public struct EntryRepository {
     /// delete and the tombstone insert are one atomic step only inside
     /// ``SQLiteStorage/withTransaction(_:)``, which callers must provide.
     ///
-    /// - Returns: the number of deleted entries.
+    /// - Returns: the number of deleted entries. The reference returns the
+    ///   number of inserted tombstones instead; the two differ only for the
+    ///   empty hashes the parser never produces.
     @discardableResult
     public func archive(status: EntryStatus, createdBefore: Int, limit: Int) async throws -> Int {
         guard limit > 0 else { return 0 }
@@ -290,16 +299,27 @@ public struct EntryRepository {
         }
     }
 
-    /// Replaces the attachments of a refreshed entry.
+    /// Refreshes the attachments of a refreshed entry (upstream `updateEnclosures`).
     ///
-    /// The reference keeps rows whose URL is still present only to preserve
-    /// reader-specific progress, which Rivulet does not store; replacing the
-    /// set yields the same `(url, mime_type, size)` rows.
+    /// A URL that is still declared keeps its stored row and metadata; rows
+    /// whose URL disappeared are deleted and only new URLs are inserted. The
+    /// reference deduplicates inserts on `(entry_id, sha256(url))`, so a
+    /// conflicting URL also keeps the stored metadata.
     private func replaceEnclosures(entryID: Int, with enclosures: [EntryInput.Enclosure]) async throws {
-        try await Enclosure.query(on: database)
-            .filter(\Enclosure.$entryID == entryID)
-            .delete()
-        try await insertEnclosures(entryID: entryID, from: enclosures)
+        let incoming = Self.uniqueEnclosures(enclosures)
+        let stored = try await fetchEnclosures(entryID: entryID)
+        let incomingURLs = Set(incoming.map(\.url))
+        let staleIDs = stored.filter { !incomingURLs.contains($0.url) }.compactMap(\.id)
+        if !staleIDs.isEmpty {
+            try await Enclosure.query(on: database)
+                .filter(\Enclosure.$id ~~ staleIDs)
+                .delete()
+        }
+        let storedURLs = Set(stored.map(\.url))
+        try await insertEnclosures(
+            entryID: entryID,
+            from: incoming.filter { !storedURLs.contains($0.url) }
+        )
     }
 
     /// Trims URLs, drops empty ones and keeps the first row per URL.

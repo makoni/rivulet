@@ -30,6 +30,8 @@ import Testing
                 #expect(created.status == .unread)
                 #expect(created.starred == false)
                 #expect(created.createdAt == created.updatedAt)
+                // The value behaves like a fetched model, so callers may persist it.
+                #expect(created._$idExists)
                 let stored = try #require(try await entries.fetch(id: id))
                 #expect(created.createdAt == stored.createdAt)
                 #expect(stored.userID == userID)
@@ -68,6 +70,8 @@ import Testing
                 try await entries.setStatus(userID: userID, entryIDs: [id], status: .read)
                 try await entries.setStarred(userID: userID, entryIDs: [id], starred: true)
                 let withUserState = try #require(try await entries.fetch(id: id))
+                // A refresh must not restamp the row: only user-state changes do.
+                try await backdateUpdatedAt(connection, id: id, updatedAt: 1_500_000_000)
 
                 let outcome = try await entries.upsert(
                     userID: userID,
@@ -96,6 +100,7 @@ import Testing
                 #expect(stored.starred)
                 #expect(stored.publishedAt == 1_700_000_000)
                 #expect(stored.createdAt == withUserState.createdAt)
+                #expect(stored.updatedAt == 1_500_000_000)
                 #expect(try await entryCount(connection) == 1)
             }
         }
@@ -273,16 +278,24 @@ import Testing
                 #expect(stored.map(\.url) == ["https://cdn.example/a.mp3", "https://cdn.example/b.jpg"])
                 #expect(stored.map(\.mimeType) == ["audio/mpeg", "image/jpeg"])
                 #expect(stored.map(\.size) == [10, 20])
+                let storedAID = try #require(stored.first?.id)
 
+                // A URL that is still declared keeps its row and stored metadata; new URLs
+                // are inserted and disappeared ones are deleted (upstream `updateEnclosures`).
                 _ = try await entries.upsert(
                     userID: userID,
                     feedID: feedID,
                     input: entryInput(enclosures: [
-                        .init(url: "https://cdn.example/c.mp3", mimeType: "audio/mpeg", size: 30)
+                        .init(url: "https://cdn.example/a.mp3", mimeType: "audio/ogg", size: 99),
+                        .init(url: "https://cdn.example/c.mp3", mimeType: "audio/mpeg", size: 30),
                     ]),
                     updateExisting: true
                 )
-                #expect(try await entries.fetchEnclosures(entryID: id).map(\.url) == ["https://cdn.example/c.mp3"])
+                let refreshed = try await entries.fetchEnclosures(entryID: id)
+                #expect(refreshed.map(\.url) == ["https://cdn.example/a.mp3", "https://cdn.example/c.mp3"])
+                #expect(refreshed.map(\.mimeType) == ["audio/mpeg", "audio/mpeg"])
+                #expect(refreshed.map(\.size) == [10, 30])
+                #expect(refreshed.first?.id == storedAID)
 
                 // A refreshed entry without enclosures must not keep stale rows.
                 _ = try await entries.upsert(
@@ -292,6 +305,48 @@ import Testing
                     updateExisting: true
                 )
                 #expect(try await entries.fetchEnclosures(entryID: id).isEmpty)
+            }
+        }
+    }
+
+    @Test func theSearchIndexFollowsRepositoryWrites() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withTransaction { connection in
+                let (userID, _, feedID) = try await seedFeed(connection)
+                let entries = EntryRepository(connection)
+
+                guard case .created(let created) = try await entries.upsert(
+                    userID: userID,
+                    feedID: feedID,
+                    input: entryInput(content: "<p>Swift concurrency</p>"),
+                    updateExisting: true
+                ) else {
+                    Issue.record("expected a new entry")
+                    return
+                }
+                let id = try #require(created.id)
+                // content_text is written by the repository and indexed by the triggers.
+                #expect(try await searchCount(connection, term: "concurrency") == 1)
+                #expect(try await searchCount(connection, term: "swift") == 1)
+
+                _ = try await entries.upsert(
+                    userID: userID,
+                    feedID: feedID,
+                    input: entryInput(content: "<p>Kotlin coroutines</p>"),
+                    updateExisting: true
+                )
+                #expect(try await searchCount(connection, term: "concurrency") == 0)
+                #expect(try await searchCount(connection, term: "coroutines") == 1)
+
+                // The delete trigger keeps the index in sync with the retention path.
+                let stored = try #require(try await entries.fetch(id: id))
+                try await entries.setStatus(userID: userID, entryIDs: [id], status: .read)
+                _ = try await entries.archive(
+                    status: .read,
+                    createdBefore: stored.createdAt + 1,
+                    limit: 10
+                )
+                #expect(try await searchCount(connection, term: "coroutines") == 0)
             }
         }
     }

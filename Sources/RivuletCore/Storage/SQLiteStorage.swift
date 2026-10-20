@@ -57,6 +57,11 @@ public struct SQLiteStorage: Sendable {
                 try await RawSQL.run("COMMIT", on: connection)
                 return result
             } catch {
+                // SQLite rolls the transaction back itself after most fatal statement
+                // errors, in which case ROLLBACK reports "no transaction is active".
+                // Its failure must not mask the body error; a connection that is left
+                // with an open transaction fails on its next checkout, the same trade-off
+                // the driver's own `transaction` implementation makes.
                 try? await RawSQL.run("ROLLBACK", on: connection)
                 throw error
             }

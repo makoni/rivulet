@@ -64,6 +64,14 @@ func tombstoneCount(_ connection: any Database) async throws -> Int {
     try await count("entry_tombstones", on: connection)
 }
 
+/// Number of FTS5 matches for `term`; the write path must keep `entries_fts` in sync.
+func searchCount(_ connection: any Database, term: String) async throws -> Int {
+    let row = try await sqlDatabase(connection)
+        .raw("SELECT COUNT(*) AS count FROM entries_fts WHERE entries_fts MATCH \(bind: term)")
+        .first()
+    return try row?.decode(column: "count", as: Int.self) ?? -1
+}
+
 /// Moves `created_at` into the past; the retention cutoff reads this column.
 func backdateCreatedAt(_ connection: any Database, id: Int, createdAt: Int) async throws {
     try await sqlDatabase(connection)
