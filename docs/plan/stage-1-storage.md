@@ -13,7 +13,7 @@ tombstones.
       fallback rules (see `docs/reference-notes.md`) lands with the parsers in stage 3.
 - [x] Tombstones: inserted when cleanup deletes entries (skip empty hashes, `ON CONFLICT DO
       NOTHING`); inserts/updates must refuse a tombstoned `(feed_id, hash)`.
-- [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
+- [x] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
       counts (derived the way clients derive them), search via FTS5 with `bm25()` ranking
       (plain-text extraction at write time); bulk mark-as-read scoped to a feed or a category
       (Fever `mark=feed` / `mark=group`, Google Reader feed/label streams — reference
@@ -41,17 +41,35 @@ tombstones.
 - Archive: SQLite has no data-modifying CTEs, so the reference's single `ArchiveEntries`
   statement becomes an ordered, limited `DELETE … RETURNING` plus a batched tombstone
   `INSERT … ON CONFLICT DO NOTHING` in that transaction.
+- Search: the reference's PostgreSQL `websearch_to_tsquery`/`ts_rank` become FTS5 `MATCH` and
+  `bm25()`, weighted 2.5:1 for title/content (PostgreSQL weights A/B). Relevance is the primary
+  order and the requested sort is the tiebreaker; the reference's recency term is not ported
+  because `ts_rank` and `bm25()` live on different scales (a fixed age term either dominates or
+  vanishes). User input is re-quoted (bare words ANDed, double quotes group a phrase), so FTS5
+  operators are searched as text and cannot break the query. There is no counter table: clients
+  count filtered id lists (Fever) and `count` uses the same filters as `list` (the reference's
+  per-feed web-UI counters are out of scope).
+- Listings tie-break equal `published_at` by entry id so page boundaries stay stable; `limit`
+  follows `WithLimit` (non-positive or oversized → 1000) while `nil` is unbounded for Fever's id
+  lists. Scoped mark-as-read is one `UPDATE` (a `feeds` subquery for categories) over the
+  caller's unread entries published before the cutoff, stamping `updated_at`.
 
 ## Tests
 
 ### Unit
 
-- Plain-text extraction from HTML; query-builder units (filters → SQL).
+- Plain-text extraction from HTML; search-text → FTS5 `MATCH` translation (terms, quoted
+  phrases, FTS5 operators kept as text, input without terms).
 
 ### Integration
 
 - CRUD round-trip for every entity against a temp SQLite file.
 - FTS5: trigger sync on insert/update/delete; search finds expected entries; ranking is sane.
+- Entry queries: owner scoping, status/starred/feed/category filters, strict date and id
+  cursors, deterministic pagination with limit clamping, batch enclosures, search matching and
+  `bm25()` ranking across those filters.
+- Scoped mark-as-read: only the caller's unread entries published before the cutoff change;
+  `updated_at` is stamped; other feeds, categories and users are untouched.
 - Entry upsert: re-importing the same GUID creates no duplicate; status/starred survive updates;
   a tombstoned entry is refused.
 - Unread counts with mixed read/starred states.

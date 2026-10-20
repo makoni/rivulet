@@ -75,6 +75,46 @@ Per-format fallbacks before hashing (`internal/reader/*/adapter.go`):
 
 Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, hash)`.
 
+## Entry queries (`internal/storage/entry_query_builder.go`)
+
+- Every listing is scoped to a user and optionally filtered by a status list, the starred flag,
+  a feed, a category (through a `feeds` join), a list of entry ids, a strict `published_at`
+  window and strict id cursors (`AfterEntryID`/`BeforeEntryID`, used by Fever `since_id`/
+  `max_id`). `GetEntries` returns rows, `GetEntryIDs` returns ids only and `CountEntries` ignores
+  limit/offset. Rivulet exposes the same knobs as `EntryQuery` (`list`, `listIDs`, `count`), but
+  uses `nil` for an unset filter: a set id is applied literally, so callers map zero sentinels
+  to `nil` (`feedID: 0` and `categoryID: 0` select nothing, while `afterID: 0` still means
+  `id > 0`).
+- Search uses PostgreSQL `websearch_to_tsquery`; the rank expression
+  `ts_rank(...) - extract(epoch from now() - published_at) * 0.0000001 DESC` is appended after
+  the requested sort by the REST API (`internal/api/entry_handlers.go`) and is the primary order
+  only where no sort is applied (web UI). SQLite searches the FTS5 index over `title` +
+  `content_text` with `bm25()`, weighted 2.5:1 to approximate PostgreSQL's title `A` (1.0) and
+  content `B` (0.4) weights. Rivulet makes relevance primary and the requested sort the
+  tiebreaker (every query carries a sort; a date-first order would defeat search) and does not
+  port the recency component: `ts_rank` and `bm25()` have different scales, so a fixed age term
+  can dominate `bm25()`'s tiny scores for common terms and vanish against its larger scores for
+  rare ones. User input is re-quoted: bare words are ANDed and double quotes group a phrase. FTS5
+  syntax (`OR`, `-`, `*`, `NEAR`) is searched as text: no FTS5 operator is interpreted, and only
+  double quotes group a phrase. `nil` and the empty string mean no filter (the reference skips
+  only `""`); any other input is translated, and input without a term (whitespace, a lone quote)
+  matches nothing.
+- `WithLimit(0)`, negative values and values above `MaxEntryLimit` (1000) are clamped to 1000;
+  no limit at all is how the reference lists every id for Fever's `unread_item_ids`/
+  `saved_item_ids`. Rivulet keeps that distinction (`nil` vs a number) and emits
+  `LIMIT -1 OFFSET n` when an offset has no limit, since SQLite requires a `LIMIT`.
+- Equal `published_at` values have no specified order in the reference builder (the UI appends
+  `id` in some views); Rivulet always appends the entry id in the sort direction, so consecutive
+  pages are stable when no write intervenes.
+- There is no unread-counter table: `CountAllEntries` groups by status, and the web UI's
+  per-feed/per-category counters are `COUNT(*) … GROUP BY` queries. Rivulet derives counts the
+  same way (`count` with the listing filters); client APIs either use those or count the id
+  lists themselves.
+- `MarkFeedAsRead` / `MarkCategoryAsRead` update only unread rows with `published_at < before`
+  and stamp `changed_at`; the category variant joins `feeds` and scopes by `feeds.user_id`.
+  Starred entries are marked too (only the flag survives). Rivulet has no `changed_at` column and
+  stamps `updated_at`, using one `UPDATE` with a `feeds` subquery for the category scope.
+
 ## Dates (`internal/reader/date/parser.go`)
 
 - Integer Unix timestamp first; then RFC822/850/1123 interpreted as local time; then ~70 layouts

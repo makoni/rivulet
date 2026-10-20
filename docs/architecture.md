@@ -65,6 +65,11 @@ Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, pub
 `next_check_at` and `(user_id, category_id)`; enclosures by `entry_id`; tombstones by
 `(feed_id, hash)` and `deleted_at`; FTS5 handles search.
 
+Entry listings use `EntryQuery` (status/starred/feed/category/id filters, date and id cursors,
+pagination and optional FTS5 search) through `EntryRepository`, which also owns feed- and
+category-scoped mark-as-read. Unread counts are derived from `status` through the same filters;
+there is no counter table.
+
 Until the first release the schema is edited in place (`SchemaV1`); versioned migrations start
 with the first release.
 
