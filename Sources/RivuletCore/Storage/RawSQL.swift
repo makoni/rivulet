@@ -15,7 +15,8 @@ enum RawSQL {
         try await sql(on: database).raw("\(unsafeRaw: statement)").first()
     }
 
-    private static func sql(on database: any Database) throws -> any SQLDatabase {
+    /// The database as SQL, or ``StorageError/notSQLDatabase``.
+    static func sql(on database: any Database) throws -> any SQLDatabase {
         guard let sql = database as? any SQLDatabase else {
             throw StorageError.notSQLDatabase
         }

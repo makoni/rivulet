@@ -35,6 +35,34 @@ public struct SQLiteStorage: Sendable {
         }
     }
 
+    /// Runs `body` inside a write transaction on a pooled connection.
+    ///
+    /// The transaction starts with `BEGIN IMMEDIATE`, so the write lock is taken
+    /// before the first statement and a batch cannot fail halfway on a concurrent
+    /// writer. Every write inside the closure commits together; any thrown error
+    /// rolls the whole batch back and is rethrown. Session pragmas are applied
+    /// before the transaction starts.
+    ///
+    /// - Important: As with ``withConnection(_:)``, do not open another connection
+    ///   from inside the closure: a nested checkout would wait for the pooled
+    ///   connection and time out. Compose by passing the connection to repositories
+    ///   instead.
+    public func withTransaction<T: Sendable>(
+        _ body: @escaping @Sendable (any Database) async throws -> T
+    ) async throws -> T {
+        try await withConnection { connection in
+            try await RawSQL.run("BEGIN IMMEDIATE", on: connection)
+            do {
+                let result = try await body(connection)
+                try await RawSQL.run("COMMIT", on: connection)
+                return result
+            } catch {
+                try? await RawSQL.run("ROLLBACK", on: connection)
+                throw error
+            }
+        }
+    }
+
     /// Enables WAL journaling and verifies that SQLite accepted it.
     ///
     /// Run once at startup, before migrations. WAL is a property of the database file; on

@@ -1,0 +1,326 @@
+// Ported from Miniflux internal/storage/entry.go (Apache-2.0); adapted for Swift/SQLite.
+import Foundation
+import FluentKit
+import SQLKit
+
+/// Stores entries, their user state, enclosures and tombstones.
+///
+/// The write path mirrors the reference refresh loop: a new entry is inserted
+/// behind an atomic tombstone guard, an existing entry only has its feed-side
+/// fields refreshed, and the user's own state (`status`, `starred`,
+/// `publishedAt`) is never overwritten by a refresh. Deletion is a real
+/// `DELETE` that records a tombstone for every non-empty hash, so a refreshed
+/// feed cannot bring a cleaned-up entry back.
+///
+/// Ported semantics: `createEntry`, `updateEntry`, `entryExists`,
+/// `IsNewEntry`, `SetEntriesStatus`, `SetEntriesStarredState`,
+/// `ToggleStarred`, `MarkAllAsRead`, `MarkAllAsReadBeforeDate` and
+/// `ArchiveEntries`.
+///
+/// - Important: ``upsert(userID:feedID:input:updateExisting:)`` and
+///   ``archive(status:createdBefore:limit:)`` span several statements and must
+///   run inside ``SQLiteStorage/withTransaction(_:)``, so the batch is atomic
+///   and serializes with the retention cleanup.
+public struct EntryRepository {
+    private let database: any Database
+
+    /// Creates the repository around a checked-out connection.
+    public init(_ database: any Database) {
+        self.database = database
+    }
+
+    // MARK: - Reads
+
+    /// Returns the entry with `id`, or `nil`.
+    public func fetch(id: Int) async throws -> Entry? {
+        try await Entry.query(on: database).filter(\Entry.$id == id).first()
+    }
+
+    /// Returns the enclosures of `entryID`, ordered by id.
+    public func fetchEnclosures(entryID: Int) async throws -> [Enclosure] {
+        try await Enclosure.query(on: database)
+            .filter(\Enclosure.$entryID == entryID)
+            .sort(\Enclosure.$id)
+            .all()
+    }
+
+    /// Returns `true` when `(feedID, hash)` is neither stored nor tombstoned
+    /// (upstream `IsNewEntry`).
+    public func isNewEntry(feedID: Int, hash: String) async throws -> Bool {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT (
+                EXISTS (
+                    SELECT 1 FROM entries WHERE feed_id = \(bind: feedID) AND hash = \(bind: hash)
+                ) OR EXISTS (
+                    SELECT 1 FROM entry_tombstones WHERE feed_id = \(bind: feedID) AND hash = \(bind: hash)
+                )
+            ) AS known
+            """).first()
+        let known = try row?.decode(column: "known", as: Int.self) ?? 0
+        return known == 0
+    }
+
+    // MARK: - Refresh
+
+    /// Inserts `input` as a new entry, or refreshes the stored entry with the
+    /// same `(feedID, hash)`.
+    ///
+    /// A refresh overwrites only the feed-side fields (title, url, author,
+    /// content, plain text, enclosures): `status`, `starred` and `publishedAt`
+    /// belong to the user and survive (upstream `updateEntry`). A tombstoned
+    /// `(feedID, hash)` is never re-inserted; the insert and the tombstone
+    /// check are one statement, so a concurrent cleanup cannot be undone.
+    ///
+    /// - Parameters:
+    ///   - userID: Owner of the entry.
+    ///   - feedID: Feed the entry was parsed from.
+    ///   - input: Parsed fields; `content` must already be sanitized HTML.
+    ///   - updateExisting: When `true`, an existing entry is refreshed; when
+    ///     `false`, it is left untouched (upstream `RefreshFeedEntries`).
+    /// - Returns: What happened to the entry.
+    @discardableResult
+    public func upsert(
+        userID: Int,
+        feedID: Int,
+        input: EntryInput,
+        updateExisting: Bool
+    ) async throws -> EntryUpsertOutcome {
+        let sql = try RawSQL.sql(on: database)
+        let contentText = EntryText.plainText(fromHTML: input.content)
+
+        if updateExisting {
+            if let row = try await sql.raw("""
+                UPDATE entries
+                SET
+                    title = \(bind: input.title),
+                    url = \(bind: input.url),
+                    author = \(bind: input.author),
+                    content = \(bind: input.content),
+                    content_text = \(bind: contentText)
+                WHERE user_id = \(bind: userID)
+                    AND feed_id = \(bind: feedID)
+                    AND hash = \(bind: input.hash)
+                RETURNING id
+                """).first() {
+                let entryID = try row.decode(column: "id", as: Int.self)
+                try await replaceEnclosures(entryID: entryID, with: input.enclosures)
+                return .updated
+            }
+        } else if try await storedEntryID(feedID: feedID, hash: input.hash) != nil {
+            return .existing
+        }
+
+        let now = Self.now()
+        guard let row = try await sql.raw("""
+            INSERT INTO entries (
+                user_id, feed_id, hash, title, url, author,
+                content, content_text, published_at, created_at, updated_at
+            )
+            SELECT
+                \(bind: userID), \(bind: feedID), \(bind: input.hash),
+                \(bind: input.title), \(bind: input.url), \(bind: input.author),
+                \(bind: input.content), \(bind: contentText),
+                \(bind: input.publishedAt), \(bind: now), \(bind: now)
+            WHERE NOT EXISTS (
+                SELECT 1 FROM entry_tombstones
+                WHERE feed_id = \(bind: feedID) AND hash = \(bind: input.hash)
+            )
+            RETURNING id
+            """).first() else {
+            return .tombstoned
+        }
+
+        let entry = Entry()
+        let entryID = try row.decode(column: "id", as: Int.self)
+        entry.id = entryID
+        entry.userID = userID
+        entry.feedID = feedID
+        entry.hash = input.hash
+        entry.title = input.title
+        entry.url = input.url
+        entry.author = input.author
+        entry.content = input.content
+        entry.contentText = contentText
+        entry.status = .unread
+        entry.starred = false
+        entry.publishedAt = input.publishedAt
+        entry.createdAt = now
+        entry.updatedAt = now
+        try await insertEnclosures(entryID: entryID, from: input.enclosures)
+        return .created(entry)
+    }
+
+    // MARK: - User state
+
+    /// Sets the status of `entryIDs` owned by `userID` and stamps
+    /// `updated_at` (upstream `SetEntriesStatus`). Entries of other users are
+    /// left alone; an empty list is a no-op.
+    public func setStatus(userID: Int, entryIDs: [Int], status: EntryStatus) async throws {
+        guard !entryIDs.isEmpty else { return }
+        try await Entry.query(on: database)
+            .filter(\Entry.$userID == userID)
+            .filter(\Entry.$id ~~ entryIDs)
+            .set(\Entry.$status, to: status)
+            .set(\Entry.$updatedAt, to: Self.now())
+            .update()
+    }
+
+    /// Sets the starred flag of `entryIDs` owned by `userID` and stamps
+    /// `updated_at` (upstream `SetEntriesStarredState`). Starred entries are
+    /// never purged; an empty list is a no-op.
+    public func setStarred(userID: Int, entryIDs: [Int], starred: Bool) async throws {
+        guard !entryIDs.isEmpty else { return }
+        try await Entry.query(on: database)
+            .filter(\Entry.$userID == userID)
+            .filter(\Entry.$id ~~ entryIDs)
+            .set(\Entry.$starred, to: starred)
+            .set(\Entry.$updatedAt, to: Self.now())
+            .update()
+    }
+
+    /// Flips the starred flag of one entry and returns the new state
+    /// (upstream `ToggleStarred`).
+    ///
+    /// - Throws: ``StorageError/entryNotFound(id:)`` when the entry does not
+    ///   exist for `userID`.
+    @discardableResult
+    public func toggleStarred(userID: Int, entryID: Int) async throws -> Bool {
+        let row = try await RawSQL.sql(on: database).raw("""
+            UPDATE entries
+            SET starred = NOT starred, updated_at = \(bind: Self.now())
+            WHERE user_id = \(bind: userID) AND id = \(bind: entryID)
+            RETURNING starred
+            """).first()
+        guard let row else {
+            throw StorageError.entryNotFound(id: entryID)
+        }
+        return try row.decode(column: "starred", as: Bool.self)
+    }
+
+    /// Marks every unread entry of `userID` as read and stamps `updated_at`
+    /// (upstream `MarkAllAsRead`).
+    public func markAllAsRead(userID: Int) async throws {
+        try await markUnreadAsRead(userID: userID, before: nil)
+    }
+
+    /// Marks unread entries of `userID` published before `before` (Unix
+    /// seconds) as read (upstream `MarkAllAsReadBeforeDate`).
+    public func markAllAsRead(userID: Int, before: Int) async throws {
+        try await markUnreadAsRead(userID: userID, before: before)
+    }
+
+    // MARK: - Retention
+
+    /// Deletes up to `limit` entries with `status` created before
+    /// `createdBefore` (Unix seconds), oldest first, and records a tombstone
+    /// for every deleted non-empty hash (upstream `ArchiveEntries`).
+    ///
+    /// Starred entries are kept. A non-positive `limit` deletes nothing. The
+    /// delete and the tombstone insert are one atomic step only inside
+    /// ``SQLiteStorage/withTransaction(_:)``, which callers must provide.
+    ///
+    /// - Returns: the number of deleted entries.
+    @discardableResult
+    public func archive(status: EntryStatus, createdBefore: Int, limit: Int) async throws -> Int {
+        guard limit > 0 else { return 0 }
+        let sql = try RawSQL.sql(on: database)
+        let deleted = try await sql.raw("""
+            DELETE FROM entries
+            WHERE id IN (
+                SELECT id FROM entries
+                WHERE status = \(bind: status.rawValue)
+                    AND starred = 0
+                    AND created_at < \(bind: createdBefore)
+                ORDER BY created_at ASC
+                LIMIT \(bind: limit)
+            )
+            RETURNING feed_id, hash
+            """).all()
+        let tombstones = try deleted.compactMap { row -> (feedID: Int, hash: String)? in
+            let hash = try row.decode(column: "hash", as: String.self)
+            guard !hash.isEmpty else { return nil }
+            return (try row.decode(column: "feed_id", as: Int.self), hash)
+        }
+        if !tombstones.isEmpty {
+            let now = Self.now()
+            let insert = sql.insert(into: "entry_tombstones")
+                .columns("feed_id", "hash", "deleted_at")
+                .ignoringConflicts(with: ["feed_id", "hash"])
+            for tombstone in tombstones {
+                insert.values(tombstone.feedID, tombstone.hash, now)
+            }
+            try await insert.run()
+        }
+        return deleted.count
+    }
+
+    // MARK: - Helpers
+
+    /// Returns the id of the stored entry with `(feedID, hash)`, or `nil`.
+    private func storedEntryID(feedID: Int, hash: String) async throws -> Int? {
+        let row = try await RawSQL.sql(on: database).raw(
+            "SELECT id FROM entries WHERE feed_id = \(bind: feedID) AND hash = \(bind: hash) LIMIT 1"
+        ).first()
+        return try row?.decode(column: "id", as: Int.self)
+    }
+
+    /// Marks unread entries of `userID` as read, optionally up to `before`.
+    private func markUnreadAsRead(userID: Int, before: Int?) async throws {
+        var query = Entry.query(on: database)
+            .filter(\Entry.$userID == userID)
+            .filter(\Entry.$status == .unread)
+        if let before {
+            query = query.filter(\Entry.$publishedAt < before)
+        }
+        try await query
+            .set(\Entry.$status, to: .read)
+            .set(\Entry.$updatedAt, to: Self.now())
+            .update()
+    }
+
+    /// Inserts the attachments of a new entry.
+    private func insertEnclosures(entryID: Int, from enclosures: [EntryInput.Enclosure]) async throws {
+        for input in Self.uniqueEnclosures(enclosures) {
+            let enclosure = Enclosure()
+            enclosure.entryID = entryID
+            enclosure.url = input.url
+            enclosure.mimeType = input.mimeType
+            enclosure.size = input.size
+            try await enclosure.create(on: database)
+        }
+    }
+
+    /// Replaces the attachments of a refreshed entry.
+    ///
+    /// The reference keeps rows whose URL is still present only to preserve
+    /// reader-specific progress, which Rivulet does not store; replacing the
+    /// set yields the same `(url, mime_type, size)` rows.
+    private func replaceEnclosures(entryID: Int, with enclosures: [EntryInput.Enclosure]) async throws {
+        try await Enclosure.query(on: database)
+            .filter(\Enclosure.$entryID == entryID)
+            .delete()
+        try await insertEnclosures(entryID: entryID, from: enclosures)
+    }
+
+    /// Trims URLs, drops empty ones and keeps the first row per URL.
+    ///
+    /// The reference deduplicates on `(entry_id, sha256(url))`; the schema has
+    /// no unique constraint, so the same rule is applied before inserting.
+    static func uniqueEnclosures(_ enclosures: [EntryInput.Enclosure]) -> [EntryInput.Enclosure] {
+        var seen: Set<String> = []
+        return enclosures.compactMap { input in
+            let url = input.url.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !url.isEmpty, seen.insert(url).inserted else {
+                return nil
+            }
+            var unique = input
+            unique.url = url
+            return unique
+        }
+    }
+
+    /// Unix seconds, the storage clock.
+    private static func now() -> Int {
+        Int(Date.now.timeIntervalSince1970)
+    }
+}
