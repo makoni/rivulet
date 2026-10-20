@@ -14,8 +14,8 @@ import SQLKit
 /// records a tombstone for every non-empty hash, so a refreshed feed cannot
 /// bring a cleaned-up entry back.
 ///
-/// Ported semantics: `createEntry`, `updateEntry`, `entryExists`,
-/// `IsNewEntry`, `SetEntriesStatus`, `SetEntriesStarredState`,
+/// Ported semantics: `createEntry`, `updateEntry`, `updateEnclosures`,
+/// `entryExists`, `IsNewEntry`, `SetEntriesStatus`, `SetEntriesStarredState`,
 /// `ToggleStarred`, `MarkAllAsRead`, `MarkAllAsReadBeforeDate` and
 /// `ArchiveEntries`.
 ///
@@ -68,8 +68,11 @@ public struct EntryRepository {
     /// same `(feedID, hash)`.
     ///
     /// A refresh overwrites only the feed-side fields (title, url, author,
-    /// content, plain text, enclosures): `status`, `starred` and `publishedAt`
-    /// belong to the user and survive (upstream `updateEntry`). A tombstoned
+    /// content, plain text): `status` and `starred` are the user's state, and
+    /// `publishedAt` is feed data the reference also leaves alone (upstream
+    /// `updateEntry`). Enclosures are reconciled: a URL that is still declared
+    /// keeps its stored row and metadata, a disappeared URL is deleted and a
+    /// new URL is inserted (upstream `updateEnclosures`). A tombstoned
     /// `(feedID, hash)` is never re-inserted; the insert and the tombstone
     /// check are one statement, so a concurrent cleanup cannot be undone.
     ///
