@@ -58,6 +58,9 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
 - Tombstones: `entry_tombstones(feed_id, hash, deleted_at)`; a tombstoned `(feed_id, hash)` must
   never be re-inserted (`ErrEntryTombstoned`).
+- SQLite has no data-modifying CTEs: Rivulet deletes with an ordered, limited `DELETE … RETURNING`
+  and inserts the tombstones in the same caller-provided transaction
+  (`SQLiteStorage.withTransaction`), where the reference uses one statement.
 - Entry statuses in the application are only `unread` and `read` (`internal/model/entry.go`); the
   legacy `removed` enum value survives only in old migrations and is no longer used.
 

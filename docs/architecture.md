@@ -143,6 +143,10 @@ validated before the fallback (an empty value is an error, like upstream); boole
 - The driver keeps one pooled connection per event loop: `withConnection` bodies must not open
   a nested checkout (repositories take the checked-out connection) — a nested checkout waits
   for the pool and fails on the connection-pool timeout.
+- `withTransaction` wraps a checkout in `BEGIN IMMEDIATE` … `COMMIT`, or `ROLLBACK` when the body
+  throws. The immediate lock makes a write batch fail cleanly instead of upgrading a read
+  snapshot halfway; the tombstone guard is part of the insert statement, so a refresh cannot
+  race a cleanup that commits between an existence check and the insert.
 - A feed refresh batches all its writes in one transaction; readers use separate connections.
 - The scheduler is an actor; long jobs (retention, vacuum) run off the request path.
 - WAL allows concurrent readers with a single writer; `busy_timeout` absorbs short lock

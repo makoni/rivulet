@@ -223,8 +223,3 @@ import Testing
         }
     }
 }
-
-/// Unix seconds, for the "before and after" timestamp assertions.
-private func nowInSeconds() -> Int {
-    Int(Date.now.timeIntervalSince1970)
-}

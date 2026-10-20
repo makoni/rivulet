@@ -6,16 +6,18 @@ tombstones.
 
 ## Scope
 
-- [ ] Repository API over Fluent + SQLKit for every table (users, categories, feeds, entries,
+- [x] Repository API over Fluent + SQLKit for every table (users, categories, feeds, entries,
       tombstones, enclosures, icons).
-- [ ] Entry lifecycle: statuses `unread`/`read` and `starred`; SHA-256 hash identity with
-      per-format fallback rules (see `docs/reference-notes.md`); an upsert that preserves user
-      state; deletion is a real `DELETE` + tombstone.
-- [ ] Tombstones: inserted when cleanup deletes entries (skip empty hashes, `ON CONFLICT DO
+- [x] Entry lifecycle: statuses `unread`/`read` and `starred`; an upsert that preserves user
+      state; deletion is a real `DELETE` + tombstone. Hash generation with the per-format
+      fallback rules (see `docs/reference-notes.md`) lands with the parsers in stage 3.
+- [x] Tombstones: inserted when cleanup deletes entries (skip empty hashes, `ON CONFLICT DO
       NOTHING`); inserts/updates must refuse a tombstoned `(feed_id, hash)`.
 - [ ] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread
       counts (derived the way clients derive them), search via FTS5 with `bm25()` ranking
-      (plain-text extraction at write time).
+      (plain-text extraction at write time); bulk mark-as-read scoped to a feed or a category
+      (Fever `mark=feed` / `mark=group`, Google Reader feed/label streams — reference
+      `MarkFeedAsRead` / `MarkCategoryAsRead`).
 - [x] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
       `parsing_error_message`, `fetched_at`.
 - [ ] Retention (port the reference defaults): daily cleanup — delete read entries older than
@@ -32,8 +34,13 @@ tombstones.
   (arrays, `FOR UPDATE SKIP LOCKED`, `RETURNING` usage) do not map 1:1.
 - FTS5: external-content table over `entries(title, content_text)`; sync via triggers;
   `content_text` computed with SwiftSoup `.text()` at write time.
-- Write path: all mutations of a batch run inside one transaction; readers use separate
-  connections (WAL allows concurrent readers with a single writer).
+- Write path: all mutations of a batch run inside one transaction (`SQLiteStorage.withTransaction`,
+  `BEGIN IMMEDIATE` … `COMMIT`/`ROLLBACK`); readers use separate connections (WAL allows
+  concurrent readers with a single writer). Entry upserts keep the entry and its enclosures in
+  one commit; the retention delete and its tombstones are atomic for the same reason.
+- Archive: SQLite has no data-modifying CTEs, so the reference's single `ArchiveEntries`
+  statement becomes an ordered, limited `DELETE … RETURNING` plus a batched tombstone
+  `INSERT … ON CONFLICT DO NOTHING` in that transaction.
 
 ## Tests
 

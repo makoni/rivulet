@@ -11,6 +11,9 @@ public enum StorageError: Error, Sendable, Equatable {
 
     /// A bookkeeping call referenced a feed that does not exist.
     case feedNotFound(id: Int)
+
+    /// A user-state call referenced an entry that does not exist for the user.
+    case entryNotFound(id: Int)
 }
 
 extension StorageError: CustomStringConvertible {
@@ -24,6 +27,8 @@ extension StorageError: CustomStringConvertible {
                 + "check that the database lives on a local filesystem"
         case .feedNotFound(let id):
             return "feed #\(id) does not exist"
+        case .entryNotFound(let id):
+            return "entry #\(id) does not exist"
         }
     }
 }

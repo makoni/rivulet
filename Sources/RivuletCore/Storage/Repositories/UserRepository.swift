@@ -15,10 +15,10 @@ public struct UserRepository {
     }
 
     /// Creates a user with the integration credentials unset, together with
-    /// the default "All" category (upstream parity: `CreateUser` creates the
-    /// user and the category in one transaction; here they are two statements
-    /// because the storage wrapper does not offer a multi-statement
-    /// transaction yet, and a repository must not open a nested connection).
+    /// the default "All" category (upstream parity: `CreateUser` creates both
+    /// in one transaction). They are two statements here: wrap the call in
+    /// ``SQLiteStorage/withTransaction(_:)`` when the pair must be atomic; a
+    /// repository must not open a nested connection itself.
     public func create(username: String, passwordHash: String, isAdmin: Bool) async throws -> User {
         let now = Int(Date.now.timeIntervalSince1970)
         let user = User()
