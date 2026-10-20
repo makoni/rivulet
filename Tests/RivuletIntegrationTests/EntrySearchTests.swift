@@ -1,4 +1,5 @@
 import Foundation
+import Fluent
 import Testing
 @testable import RivuletCore
 
@@ -361,74 +362,30 @@ import Testing
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let feed = try await seedFeed(connection)
-                let one = try await seedEntry(
-                    connection,
-                    userID: feed.userID,
-                    feedID: feed.feedID,
-                    hash: "one",
-                    title: "One",
-                    content: "<p>swift alpha beta gamma</p>",
-                    publishedAt: 100,
-                    starred: true
-                )
-                let two = try await seedEntry(
-                    connection,
-                    userID: feed.userID,
-                    feedID: feed.feedID,
-                    hash: "two",
-                    title: "Two",
-                    content: "<p>swift swift alpha beta</p>",
-                    publishedAt: 100,
-                    status: .read
-                )
-                let three = try await seedEntry(
-                    connection,
-                    userID: feed.userID,
-                    feedID: feed.feedID,
-                    hash: "three",
-                    title: "Three",
-                    content: "<p>swift swift swift alpha</p>",
-                    publishedAt: 100
-                )
-                let four = try await seedEntry(
-                    connection,
-                    userID: feed.userID,
-                    feedID: feed.feedID,
-                    hash: "four",
-                    title: "Four",
-                    content: "<p>swift swift swift swift</p>",
-                    publishedAt: 100
-                )
-                _ = try await seedEntry(
-                    connection,
-                    userID: feed.userID,
-                    feedID: feed.feedID,
-                    hash: "none",
-                    title: "Other",
-                    content: "<p>Nothing here</p>",
-                    publishedAt: 100
+                let graph = try await seedSearchPaginationEntries(
+                    connection, userID: feed.userID, feedID: feed.feedID
                 )
                 let entries = EntryRepository(connection)
 
                 var page = EntryQuery(userID: feed.userID, search: "swift", limit: 2)
-                #expect(try await entries.listIDs(page) == [four, three])
+                #expect(try await entries.listIDs(page) == [graph.four, graph.three])
                 page.offset = 2
-                #expect(try await entries.listIDs(page) == [two, one])
+                #expect(try await entries.listIDs(page) == [graph.two, graph.one])
                 // The model listing follows the same ranked order and full rows.
                 let listed = try await entries.list(page)
-                #expect(listed.compactMap(\.id) == [two, one])
+                #expect(listed.compactMap(\.id) == [graph.two, graph.one])
                 #expect(listed.map(\.contentText) == ["swift swift alpha beta", "swift alpha beta gamma"])
                 #expect(listed.first?.content == "<p>swift swift alpha beta</p>")
 
                 #expect(
                     try await entries.listIDs(
                         EntryQuery(userID: feed.userID, starred: true, search: "swift")
-                    ) == [one]
+                    ) == [graph.one]
                 )
                 #expect(
                     try await entries.listIDs(
                         EntryQuery(userID: feed.userID, statuses: [.read], search: "swift")
-                    ) == [two]
+                    ) == [graph.two]
                 )
                 // Date bounds stay strict when combined with search.
                 #expect(
@@ -439,4 +396,59 @@ import Testing
             }
         }
     }
+}
+
+/// Seed graph for the pagination test: four "swift" matches with rising term
+/// frequency (one starred, one read) plus one non-matching entry.
+private func seedSearchPaginationEntries(
+    _ connection: any Database, userID: Int, feedID: Int
+) async throws -> (one: Int, two: Int, three: Int, four: Int) {
+    let one = try await seedEntry(
+        connection,
+        userID: userID,
+        feedID: feedID,
+        hash: "one",
+        title: "One",
+        content: "<p>swift alpha beta gamma</p>",
+        publishedAt: 100,
+        starred: true
+    )
+    let two = try await seedEntry(
+        connection,
+        userID: userID,
+        feedID: feedID,
+        hash: "two",
+        title: "Two",
+        content: "<p>swift swift alpha beta</p>",
+        publishedAt: 100,
+        status: .read
+    )
+    let three = try await seedEntry(
+        connection,
+        userID: userID,
+        feedID: feedID,
+        hash: "three",
+        title: "Three",
+        content: "<p>swift swift swift alpha</p>",
+        publishedAt: 100
+    )
+    let four = try await seedEntry(
+        connection,
+        userID: userID,
+        feedID: feedID,
+        hash: "four",
+        title: "Four",
+        content: "<p>swift swift swift swift</p>",
+        publishedAt: 100
+    )
+    _ = try await seedEntry(
+        connection,
+        userID: userID,
+        feedID: feedID,
+        hash: "none",
+        title: "Other",
+        content: "<p>Nothing here</p>",
+        publishedAt: 100
+    )
+    return (one, two, three, four)
 }
