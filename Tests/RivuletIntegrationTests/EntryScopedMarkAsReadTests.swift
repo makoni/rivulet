@@ -64,6 +64,8 @@ import Testing
                 let entries = EntryRepository(connection)
 
                 try await entries.markFeedAsRead(userID: userID, feedID: feed, before: 200)
+                // Passing another user's feed with this user id must not touch it.
+                try await entries.markFeedAsRead(userID: userID, feedID: otherUserFeed, before: 200)
 
                 let marked = try #require(try await entries.fetch(id: before))
                 #expect(marked.status == .read)
@@ -136,6 +138,8 @@ import Testing
                 let entries = EntryRepository(connection)
 
                 try await entries.markCategoryAsRead(userID: userID, categoryID: tech, before: 200)
+                // Passing another user's category with this user id must not touch it.
+                try await entries.markCategoryAsRead(userID: userID, categoryID: otherCategory, before: 200)
 
                 let markedFirst = try #require(try await entries.fetch(id: first))
                 #expect(markedFirst.status == .read)

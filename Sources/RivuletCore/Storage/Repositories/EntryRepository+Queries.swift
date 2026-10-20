@@ -1,6 +1,7 @@
 // Ported from Miniflux internal/storage/entry.go, internal/storage/entry_query_builder.go
 // and internal/storage/enclosure.go (Apache-2.0); adapted for Swift/SQLite.
 import FluentKit
+import Foundation
 import SQLKit
 
 /// Entry listings: filters, pagination, counts and full-text search.
@@ -29,8 +30,9 @@ extension EntryRepository {
     /// Returns the entries matching `query`, in query order.
     ///
     /// Search results are ordered by relevance first and by
-    /// ``EntryQuery/sort`` afterwards (upstream `WithSearchQuery` prepends the
-    /// rank expression the same way).
+    /// ``EntryQuery/sort`` afterwards. An unbounded query loads every matching
+    /// row, so callers pass a limit for pages and reserve `nil` for explicit id
+    /// sets (`stream/items/contents`).
     public func list(_ query: EntryQuery) async throws -> [Entry] {
         let rows = try await RawSQL.sql(on: database)
             .raw(Self.selectSQL(query, columns: Self.entryColumns, paginate: true))
@@ -78,8 +80,7 @@ extension EntryRepository {
 
         /// Classifies the raw search text.
         init(_ search: String?) {
-            guard let text = search?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !text.isEmpty else {
+            guard let text = search, !text.isEmpty else {
                 self = .none
                 return
             }
@@ -166,23 +167,25 @@ extension EntryRepository {
         return conditions
     }
 
-    /// `ORDER BY` for a listing, prepending the relevance order when searching.
+    /// `ORDER BY` for a listing, with the relevance order first when searching.
+    ///
+    /// The reference appends its rank expression after an explicit sort in the
+    /// REST API; Rivulet makes relevance primary and the requested sort the
+    /// tiebreaker, because every query carries a sort and a date-first order
+    /// would make search useless. The recency component of the reference rank
+    /// is not ported: `ts_rank` and `bm25()` live on different scales, and a
+    /// fixed age term either vanishes in `bm25()`'s noise or dominates it. The
+    /// 2.5:1 column weights approximate PostgreSQL's title `A` (1.0) and
+    /// content `B` (0.4) weights.
     private static func orderClause(for query: EntryQuery, ranked: Bool) -> SQLQueryString {
         var order: [SQLQueryString] = []
         if ranked {
-            // The reference sorts by `ts_rank(...) - age * 0.0000001 DESC`;
-            // FTS5's bm25() is lower-is-better, so the same recency term is
-            // added instead of subtracted.
-            order.append("""
-                bm25(entries_fts)
-                    + (CAST(strftime('%s', 'now') AS INTEGER) - e.published_at) * 0.0000001 ASC
-                """)
+            order.append("bm25(entries_fts, 2.5, 1.0) ASC")
         }
         let direction: SQLQueryString = query.sort.direction == .ascending ? "ASC" : "DESC"
         switch query.sort.field {
         case .publishedAt:
-            // The id makes pagination deterministic when dates collide (the
-            // reference leaves the order of equal dates unspecified).
+            // The id makes pagination deterministic when dates collide.
             order.append("e.published_at \(direction)")
             order.append("e.id \(direction)")
         case .id:

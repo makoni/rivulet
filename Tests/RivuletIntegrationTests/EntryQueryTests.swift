@@ -306,6 +306,17 @@ import Testing
                         EntryQuery(userID: feed.userID, entryIDs: [read])
                     ) == 1
                 )
+                // Filters combine: two unread entries after the boundary match the term.
+                #expect(
+                    try await entries.count(
+                        EntryQuery(
+                            userID: feed.userID,
+                            statuses: [.unread],
+                            publishedAfter: 100,
+                            search: "hello"
+                        )
+                    ) == 2
+                )
             }
         }
     }
@@ -319,12 +330,17 @@ import Testing
                 )
                 let entries = EntryRepository(connection)
 
+                #expect(EntryQuery.maximumLimit == 1_000)
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, limit: 5_000)).count
                         == EntryQuery.maximumLimit
                 )
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, limit: 0)).count
+                        == EntryQuery.maximumLimit
+                )
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, limit: -1)).count
                         == EntryQuery.maximumLimit
                 )
                 // No limit at all is how the reference lists every id (Fever).

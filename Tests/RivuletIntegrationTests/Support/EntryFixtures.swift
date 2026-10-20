@@ -46,6 +46,9 @@ func seedFeed(
 }
 
 /// Inserts an entry through the repository, applies the user state and returns its id.
+///
+/// Seeding runs in autocommit: the fixtures are single-owner, so the atomicity
+/// the repository expects from a caller transaction is irrelevant here.
 @discardableResult
 func seedEntry(
     _ connection: any Database,
@@ -150,7 +153,7 @@ func sqlDatabase(_ connection: any Database) throws -> any SQLDatabase {
     return sql
 }
 
-/// Number of stored entries; the repository has no listing API yet.
+/// Number of stored entries.
 func entryCount(_ connection: any Database) async throws -> Int {
     try await count("entries", on: connection)
 }

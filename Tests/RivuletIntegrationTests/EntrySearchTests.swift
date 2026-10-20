@@ -56,9 +56,10 @@ import Testing
                 // HTML tags are not indexed; only the plain text is.
                 #expect(try await entries.listIDs(search("<p>")).isEmpty)
                 #expect(try await entries.listIDs(search("hello")) == [plainTextMatch])
-                // An empty search is not a filter; whitespace behaves the same way.
+                // An empty search is not a filter; whitespace has no term, so it
+                // matches nothing (as `websearch_to_tsquery` would).
                 #expect(try await entries.listIDs(search("")).count == 3)
-                #expect(try await entries.listIDs(search("   ")).count == 3)
+                #expect(try await entries.listIDs(search("   ")).isEmpty)
             }
         }
     }
@@ -199,6 +200,240 @@ import Testing
                 // A query with no searchable term matches nothing.
                 #expect(try await entries.listIDs(search("\"")).isEmpty)
                 #expect(try await entries.listIDs(search("\"\"")).isEmpty)
+            }
+        }
+    }
+
+    @Test func searchKeepsRelevanceAheadOfThePublicationDate() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                for index in 0..<5 {
+                    try await seedEntry(
+                        connection,
+                        userID: feed.userID,
+                        feedID: feed.feedID,
+                        hash: "distractor-\(index)",
+                        title: "Unrelated",
+                        content: "<p>Nothing to see</p>",
+                        publishedAt: 1_700_000_000
+                    )
+                }
+                let weak = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "weak",
+                    title: "Same title",
+                    content: "<p>swift alpha beta gamma</p>",
+                    publishedAt: 1_700_000_000
+                )
+                let strong = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "strong",
+                    title: "Same title",
+                    content: "<p>swift swift swift swift</p>",
+                    publishedAt: 1_600_000_000
+                )
+                let entries = EntryRepository(connection)
+
+                // The stronger but older match must still come first.
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, search: "swift"))
+                        == [strong, weak]
+                )
+            }
+        }
+    }
+
+    @Test func searchWeightsTitleMatchesAboveContentMatches() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                for index in 0..<3 {
+                    try await seedEntry(
+                        connection,
+                        userID: feed.userID,
+                        feedID: feed.feedID,
+                        hash: "distractor-\(index)",
+                        title: "Unrelated",
+                        content: "<p>Nothing to see</p>",
+                        publishedAt: 1_700_000_000
+                    )
+                }
+                let contentMatch = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "content",
+                    title: "Notes",
+                    content: "<p>swift other words here</p>",
+                    publishedAt: 1_700_000_000
+                )
+                let titleMatch = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "title",
+                    title: "Swift release",
+                    content: "<p>notes</p>",
+                    publishedAt: 1_600_000_000
+                )
+                let entries = EntryRepository(connection)
+
+                // Title matches carry PostgreSQL's A/B weight ratio.
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, search: "swift"))
+                        == [titleMatch, contentMatch]
+                )
+            }
+        }
+    }
+
+    @Test func searchRanksCommonTermsByFrequency() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                for index in 0..<2 {
+                    try await seedEntry(
+                        connection,
+                        userID: feed.userID,
+                        feedID: feed.feedID,
+                        hash: "distractor-\(index)",
+                        title: "Other",
+                        content: "<p>Nothing to see</p>",
+                        publishedAt: 1_700_000_000
+                    )
+                }
+                let strong = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "strong",
+                    title: "Post",
+                    content: "<p>common common common common common</p>",
+                    publishedAt: 1_600_000_000
+                )
+                let first = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "first",
+                    title: "Post",
+                    content: "<p>common</p>",
+                    publishedAt: 1_700_000_000
+                )
+                let second = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "second",
+                    title: "Post",
+                    content: "<p>common</p>",
+                    publishedAt: 1_700_000_000
+                )
+                let third = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "third",
+                    title: "Post",
+                    content: "<p>common</p>",
+                    publishedAt: 1_700_000_000
+                )
+                let entries = EntryRepository(connection)
+
+                // A term present in most rows still ranks by frequency, even though
+                // SQLite clamps its inverse document frequency.
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, search: "common"))
+                        == [strong, first, second, third]
+                )
+            }
+        }
+    }
+
+    @Test func searchSupportsPaginationAndModelListings() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                let one = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "one",
+                    title: "One",
+                    content: "<p>swift alpha beta gamma</p>",
+                    publishedAt: 100,
+                    starred: true
+                )
+                let two = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "two",
+                    title: "Two",
+                    content: "<p>swift swift alpha beta</p>",
+                    publishedAt: 100,
+                    status: .read
+                )
+                let three = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "three",
+                    title: "Three",
+                    content: "<p>swift swift swift alpha</p>",
+                    publishedAt: 100
+                )
+                let four = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "four",
+                    title: "Four",
+                    content: "<p>swift swift swift swift</p>",
+                    publishedAt: 100
+                )
+                _ = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "none",
+                    title: "Other",
+                    content: "<p>Nothing here</p>",
+                    publishedAt: 100
+                )
+                let entries = EntryRepository(connection)
+
+                var page = EntryQuery(userID: feed.userID, search: "swift", limit: 2)
+                #expect(try await entries.listIDs(page) == [four, three])
+                page.offset = 2
+                #expect(try await entries.listIDs(page) == [two, one])
+                // The model listing follows the same ranked order and full rows.
+                let listed = try await entries.list(page)
+                #expect(listed.compactMap(\.id) == [two, one])
+                #expect(listed.map(\.contentText) == ["swift swift alpha beta", "swift alpha beta gamma"])
+                #expect(listed.first?.content == "<p>swift swift alpha beta</p>")
+
+                #expect(
+                    try await entries.listIDs(
+                        EntryQuery(userID: feed.userID, starred: true, search: "swift")
+                    ) == [one]
+                )
+                #expect(
+                    try await entries.listIDs(
+                        EntryQuery(userID: feed.userID, statuses: [.read], search: "swift")
+                    ) == [two]
+                )
+                // Date bounds stay strict when combined with search.
+                #expect(
+                    try await entries.listIDs(
+                        EntryQuery(userID: feed.userID, publishedAfter: 100, search: "swift")
+                    ).isEmpty
+                )
             }
         }
     }

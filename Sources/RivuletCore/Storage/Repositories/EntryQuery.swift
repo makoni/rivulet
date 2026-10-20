@@ -1,5 +1,6 @@
 // Ported from Miniflux internal/storage/entry_query_builder.go (Apache-2.0);
 // adapted for Swift/SQLite.
+import Foundation
 
 /// Filters, ordering and pagination for entry listings.
 ///
@@ -7,6 +8,11 @@
 /// (`internal/storage/entry_query_builder.go`); this value type carries the same
 /// knobs for ``EntryRepository/list(_:)``, ``EntryRepository/listIDs(_:)`` and
 /// ``EntryRepository/count(_:)``. Every query is scoped to ``userID``.
+///
+/// Unlike the reference builder, an identifier that is set is always applied:
+/// `feedID: 0` selects nothing instead of meaning "unset". Use `nil` for
+/// "unset"; callers translating request parameters where zero means absent
+/// must map zero to `nil` first.
 public struct EntryQuery: Sendable, Equatable {
     /// The largest limit a query may request (upstream `MaxEntryLimit`).
     public static let maximumLimit = 1_000
@@ -54,8 +60,9 @@ public struct EntryQuery: Sendable, Equatable {
     /// Bare words must all match and double quotes group a phrase (the common
     /// subset of the reference's `websearch_to_tsquery`); every term is
     /// re-quoted, so FTS5 operators in user input are searched as text. `nil`
-    /// and whitespace-only input mean "do not search"; input that contains no
-    /// searchable term (for example a lone quote) matches nothing.
+    /// and the empty string mean "do not search" (the reference only skips the
+    /// empty string); any other input is translated, so whitespace-only input
+    /// or a lone quote has no searchable term and matches nothing.
     public var search: String?
 
     /// Ordering; search results are ranked by relevance first (see
@@ -63,9 +70,9 @@ public struct EntryQuery: Sendable, Equatable {
     public var sort: EntrySort
 
     /// Maximum number of rows to return. `nil` means unbounded, which is how
-    /// the reference lists every matching id (Fever's unread/saved ids). Zero
-    /// and values above ``maximumLimit`` are clamped to ``maximumLimit``
-    /// (upstream `WithLimit`).
+    /// the reference lists every matching id (Fever's unread/saved ids).
+    /// Non-positive values and values above ``maximumLimit`` are clamped to
+    /// ``maximumLimit`` (upstream `WithLimit`).
     public var limit: Int?
 
     /// Number of rows to skip (upstream `WithOffset`); negative values mean no
