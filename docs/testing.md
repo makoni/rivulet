@@ -38,8 +38,10 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase`
   and a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp
   dir) on both success and failure; used by every suite that needs the migrated schema.
-- `EntryFixtures.swift` — seeds the user/category/feed graph entries need, builds entry inputs,
-  counts entries, tombstones and FTS matches, and backdates timestamps for the retention suites.
+- `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the
+  repository with a chosen status/starred state, bulk-seeds entries for pagination limits, builds
+  entry inputs, counts entries, tombstones and FTS matches, and backdates timestamps for the
+  retention suites.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.

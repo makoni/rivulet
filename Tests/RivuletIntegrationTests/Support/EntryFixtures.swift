@@ -20,6 +20,102 @@ func seedFeed(
     return (userID, categoryID, try #require(feed.id))
 }
 
+/// Seeds a user and returns its id.
+func seedUser(_ connection: any Database, username: String = "alice") async throws -> Int {
+    let user = try await UserRepository(connection)
+        .create(username: username, passwordHash: "hash", isAdmin: false)
+    return try #require(user.id)
+}
+
+/// Seeds a category of `userID` and returns its id.
+func seedCategory(_ connection: any Database, userID: Int, title: String) async throws -> Int {
+    let category = try await CategoryRepository(connection).create(userID: userID, title: title)
+    return try #require(category.id)
+}
+
+/// Seeds a feed in `categoryID` and returns its id.
+func seedFeed(
+    _ connection: any Database,
+    userID: Int,
+    categoryID: Int,
+    url: String
+) async throws -> Int {
+    let feed = try await FeedRepository(connection)
+        .create(userID: userID, categoryID: categoryID, url: url)
+    return try #require(feed.id)
+}
+
+/// Inserts an entry through the repository, applies the user state and returns its id.
+@discardableResult
+func seedEntry(
+    _ connection: any Database,
+    userID: Int,
+    feedID: Int,
+    hash: String,
+    title: String = "Title",
+    url: String = "https://example.com/entry",
+    author: String = "Author",
+    content: String = "<p>Hello world</p>",
+    publishedAt: Int = 1_700_000_000,
+    status: EntryStatus = .unread,
+    starred: Bool = false
+) async throws -> Int {
+    let entries = EntryRepository(connection)
+    let outcome = try await entries.upsert(
+        userID: userID,
+        feedID: feedID,
+        input: entryInput(
+            hash: hash,
+            title: title,
+            url: url,
+            author: author,
+            content: content,
+            publishedAt: publishedAt
+        ),
+        updateExisting: false
+    )
+    guard case .created(let entry) = outcome, let id = entry.id else {
+        throw EntryFixtureError.entryNotCreated
+    }
+    if status != .unread {
+        try await entries.setStatus(userID: userID, entryIDs: [id], status: status)
+    }
+    if starred {
+        try await entries.setStarred(userID: userID, entryIDs: [id], starred: true)
+    }
+    return id
+}
+
+/// Bulk-seeds `count` unread entries with distinct publication times and hashes.
+func seedManyEntries(
+    _ connection: any Database,
+    userID: Int,
+    feedID: Int,
+    count: Int,
+    firstPublishedAt: Int = 1_700_000_000
+) async throws {
+    try await sqlDatabase(connection).raw("""
+        WITH RECURSIVE seq(n) AS (
+            SELECT 1
+            UNION ALL
+            SELECT n + 1 FROM seq WHERE n < \(bind: count)
+        )
+        INSERT INTO entries (
+            user_id, feed_id, hash, title, url, author,
+            content, content_text, published_at, created_at, updated_at
+        )
+        SELECT
+            \(bind: userID), \(bind: feedID), 'bulk-' || n, 'Bulk ' || n, '', '',
+            '', '', \(bind: firstPublishedAt) + n, 0, 0
+        FROM seq
+        """).run()
+}
+
+/// Setup failures that the fixtures themselves cannot express.
+private enum EntryFixtureError: Error {
+    case entryNotCreated
+}
+
 /// Builds an entry input with recognizable defaults.
 func entryInput(
     hash: String = "h1",

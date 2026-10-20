@@ -75,6 +75,34 @@ Per-format fallbacks before hashing (`internal/reader/*/adapter.go`):
 
 Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, hash)`.
 
+## Entry queries (`internal/storage/entry_query_builder.go`)
+
+- Every listing is scoped to a user and optionally filtered by a status list, the starred flag,
+  a feed, a category (through a `feeds` join), a list of entry ids, a strict `published_at`
+  window and strict id cursors (`AfterEntryID`/`BeforeEntryID`, used by Fever `since_id`/
+  `max_id`). `GetEntries` returns rows, `GetEntryIDs` returns ids only and `CountEntries` ignores
+  limit/offset. Rivulet exposes the same knobs as `EntryQuery` (`list`, `listIDs`, `count`).
+- Search uses PostgreSQL `websearch_to_tsquery` with the primary order
+  `ts_rank(...) - extract(epoch from now() - published_at) * 0.0000001 DESC`. SQLite searches
+  the FTS5 index over `title` + `content_text`; `bm25()` is lower-is-better, so Rivulet orders
+  by `bm25(entries_fts) + age * 0.0000001 ASC`, then the requested sort. User input is
+  re-quoted: bare words are ANDed and double quotes group a phrase. FTS5 operators (`OR`, `-`,
+  `*`, `NEAR`) are searched as text, unlike `websearch_to_tsquery`; an input with no searchable
+  term matches nothing, while no search (or whitespace only) means no filter.
+- `WithLimit(0)` and values above `MaxEntryLimit` (1000) are clamped to 1000; no limit at all
+  is how the reference lists every id for Fever's `unread_item_ids`/`saved_item_ids`. Rivulet
+  keeps that distinction (`nil` vs a number) and emits `LIMIT -1 OFFSET n` when an offset has no
+  limit, since SQLite requires a `LIMIT`.
+- Equal `published_at` values have no specified order in the reference; Rivulet appends the
+  entry id in the sort direction so pagination cannot repeat or skip rows.
+- There is no unread-counter table: `CountAllEntries` groups by status, and the web UI's
+  per-feed/per-category counters are `COUNT(*) … GROUP BY` queries. Rivulet derives counts the
+  same way (`count` with the listing filters); client APIs either use those or count the id
+  lists themselves.
+- `MarkFeedAsRead` / `MarkCategoryAsRead` update only unread rows with `published_at < before`
+  and stamp `changed_at`; the category variant joins `feeds` and scopes by `feeds.user_id`.
+  Rivulet uses one `UPDATE` with a `feeds` subquery for the category scope.
+
 ## Dates (`internal/reader/date/parser.go`)
 
 - Integer Unix timestamp first; then RFC822/850/1123 interpreted as local time; then ~70 layouts

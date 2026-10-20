@@ -15,16 +15,19 @@ import SQLKit
 /// bring a cleaned-up entry back.
 ///
 /// Ported semantics: `createEntry`, `updateEntry`, `updateEnclosures`,
-/// `entryExists`, `IsNewEntry`, `SetEntriesStatus`, `SetEntriesStarredState`,
-/// `ToggleStarred`, `MarkAllAsRead`, `MarkAllAsReadBeforeDate` and
-/// `ArchiveEntries`.
+/// `entryExists`, `IsNewEntry`, `GetEntries`, `GetEntryIDs`, `CountEntries`,
+/// `EnclosuresByEntryIDs`, `SetEntriesStatus`, `SetEntriesStarredState`,
+/// `ToggleStarred`, `MarkAllAsRead`, `MarkAllAsReadBeforeDate`,
+/// `MarkFeedAsRead`, `MarkCategoryAsRead` and `ArchiveEntries`.
 ///
 /// - Important: ``upsert(userID:feedID:input:updateExisting:)`` and
 ///   ``archive(status:createdBefore:limit:)`` span several statements and must
 ///   run inside ``SQLiteStorage/withTransaction(_:)``, so the batch is atomic
 ///   and serializes with the retention cleanup.
 public struct EntryRepository {
-    private let database: any Database
+    /// The checked-out connection; the listings extension in
+    /// `EntryRepository+Queries.swift` shares it.
+    let database: any Database
 
     /// Creates the repository around a checked-out connection.
     public init(_ database: any Database) {
@@ -217,6 +220,39 @@ public struct EntryRepository {
     /// seconds) as read (upstream `MarkAllAsReadBeforeDate`).
     public func markAllAsRead(userID: Int, before: Int) async throws {
         try await markUnreadAsRead(userID: userID, before: before)
+    }
+
+    /// Marks the unread entries of `userID` in `feedID` published before
+    /// `before` (Unix seconds) as read and stamps `updated_at` (upstream
+    /// `MarkFeedAsRead`). Starred entries are marked like any other unread
+    /// entry; entries of other users are never touched.
+    public func markFeedAsRead(userID: Int, feedID: Int, before: Int) async throws {
+        try await RawSQL.sql(on: database).raw("""
+            UPDATE entries
+            SET status = \(bind: EntryStatus.read.rawValue), updated_at = \(bind: Self.now())
+            WHERE user_id = \(bind: userID)
+                AND feed_id = \(bind: feedID)
+                AND status = \(bind: EntryStatus.unread.rawValue)
+                AND published_at < \(bind: before)
+            """).run()
+    }
+
+    /// Marks the unread entries of `userID` in the feeds of `categoryID`
+    /// published before `before` (Unix seconds) as read and stamps `updated_at`
+    /// (upstream `MarkCategoryAsRead`). The category is resolved through the
+    /// feeds of the same user, so another user's category selects nothing.
+    public func markCategoryAsRead(userID: Int, categoryID: Int, before: Int) async throws {
+        try await RawSQL.sql(on: database).raw("""
+            UPDATE entries
+            SET status = \(bind: EntryStatus.read.rawValue), updated_at = \(bind: Self.now())
+            WHERE user_id = \(bind: userID)
+                AND status = \(bind: EntryStatus.unread.rawValue)
+                AND published_at < \(bind: before)
+                AND feed_id IN (
+                    SELECT id FROM feeds
+                    WHERE user_id = \(bind: userID) AND category_id = \(bind: categoryID)
+                )
+            """).run()
     }
 
     // MARK: - Retention
