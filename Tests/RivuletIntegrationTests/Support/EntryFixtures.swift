@@ -47,8 +47,8 @@ func seedFeed(
 
 /// Inserts an entry through the repository, applies the user state and returns its id.
 ///
-/// Seeding runs in autocommit: the fixtures are single-owner, so the atomicity
-/// the repository expects from a caller transaction is irrelevant here.
+/// Seeding runs in autocommit: fixtures are not concurrent with retention, so
+/// the atomicity the repository expects from a caller transaction is irrelevant.
 @discardableResult
 func seedEntry(
     _ connection: any Database,

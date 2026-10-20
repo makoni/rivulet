@@ -169,6 +169,9 @@ import Testing
                 )
                 // An entry of another user never leaks through a feed filter.
                 #expect(try await entries.listIDs(EntryQuery(userID: userID, feedID: otherFeed)).isEmpty)
+                // A set identifier is applied literally; zero selects nothing.
+                #expect(try await entries.listIDs(EntryQuery(userID: userID, feedID: 0)).isEmpty)
+                #expect(try await entries.listIDs(EntryQuery(userID: userID, categoryID: 0)).isEmpty)
                 #expect(try await entries.listIDs(EntryQuery(userID: otherUserID, feedID: otherFeed)) == [other])
             }
         }

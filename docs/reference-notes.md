@@ -82,8 +82,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   window and strict id cursors (`AfterEntryID`/`BeforeEntryID`, used by Fever `since_id`/
   `max_id`). `GetEntries` returns rows, `GetEntryIDs` returns ids only and `CountEntries` ignores
   limit/offset. Rivulet exposes the same knobs as `EntryQuery` (`list`, `listIDs`, `count`), but
-  uses `nil` for an unset filter: a set id is always applied (`0` selects nothing), so callers
-  map request sentinels to `nil`.
+  uses `nil` for an unset filter: a set id is applied literally, so callers map zero sentinels
+  to `nil` (`feedID: 0` and `categoryID: 0` select nothing, while `afterID: 0` still means
+  `id > 0`).
 - Search uses PostgreSQL `websearch_to_tsquery`; the rank expression
   `ts_rank(...) - extract(epoch from now() - published_at) * 0.0000001 DESC` is appended after
   the requested sort by the REST API (`internal/api/entry_handlers.go`) and is the primary order
@@ -92,11 +93,12 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   content `B` (0.4) weights. Rivulet makes relevance primary and the requested sort the
   tiebreaker (every query carries a sort; a date-first order would defeat search) and does not
   port the recency component: `ts_rank` and `bm25()` have different scales, so a fixed age term
-  either vanishes in `bm25()`'s noise for common terms or dominates it. User input is re-quoted:
-  bare words are ANDed and double quotes group a phrase. FTS5 syntax (`OR`, `-`, `*`, `NEAR`) is
-  searched as text; unlike `websearch_to_tsquery`, no operator is interpreted. `nil` and the
-  empty string mean no filter (the reference skips only `""`); any other input is translated, and
-  input without a term (whitespace, a lone quote) matches nothing.
+  can dominate `bm25()`'s tiny scores for common terms and vanish against its larger scores for
+  rare ones. User input is re-quoted: bare words are ANDed and double quotes group a phrase. FTS5
+  syntax (`OR`, `-`, `*`, `NEAR`) is searched as text: no FTS5 operator is interpreted, and only
+  double quotes group a phrase. `nil` and the empty string mean no filter (the reference skips
+  only `""`); any other input is translated, and input without a term (whitespace, a lone quote)
+  matches nothing.
 - `WithLimit(0)`, negative values and values above `MaxEntryLimit` (1000) are clamped to 1000;
   no limit at all is how the reference lists every id for Fever's `unread_item_ids`/
   `saved_item_ids`. Rivulet keeps that distinction (`nil` vs a number) and emits

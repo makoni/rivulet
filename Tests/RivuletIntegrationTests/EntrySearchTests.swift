@@ -226,7 +226,7 @@ import Testing
                     hash: "weak",
                     title: "Same title",
                     content: "<p>swift alpha beta gamma</p>",
-                    publishedAt: 1_700_000_000
+                    publishedAt: 1_600_000_000
                 )
                 let strong = try await seedEntry(
                     connection,
@@ -235,11 +235,11 @@ import Testing
                     hash: "strong",
                     title: "Same title",
                     content: "<p>swift swift swift swift</p>",
-                    publishedAt: 1_600_000_000
+                    publishedAt: 1_700_000_000
                 )
                 let entries = EntryRepository(connection)
 
-                // The stronger but older match must still come first.
+                // The default order would put the newest match last; relevance wins.
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, search: "swift"))
                         == [strong, weak]
@@ -269,21 +269,22 @@ import Testing
                     feedID: feed.feedID,
                     hash: "content",
                     title: "Notes",
-                    content: "<p>swift other words here</p>",
-                    publishedAt: 1_700_000_000
+                    content: "<p>swift swift alpha beta gamma delta epsilon</p>",
+                    publishedAt: 1_600_000_000
                 )
                 let titleMatch = try await seedEntry(
                     connection,
                     userID: feed.userID,
                     feedID: feed.feedID,
                     hash: "title",
-                    title: "Swift release",
-                    content: "<p>notes</p>",
-                    publishedAt: 1_600_000_000
+                    title: "Swift release notes today",
+                    content: "<p>x</p>",
+                    publishedAt: 1_700_000_000
                 )
                 let entries = EntryRepository(connection)
 
-                // Title matches carry PostgreSQL's A/B weight ratio.
+                // Date-first would put the newer title match last, and unweighted
+                // bm25 prefers the two-term content match; the A/B weights flip it.
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, search: "swift"))
                         == [titleMatch, contentMatch]
@@ -314,7 +315,7 @@ import Testing
                     hash: "strong",
                     title: "Post",
                     content: "<p>common common common common common</p>",
-                    publishedAt: 1_600_000_000
+                    publishedAt: 1_700_000_000
                 )
                 let first = try await seedEntry(
                     connection,
@@ -323,7 +324,7 @@ import Testing
                     hash: "first",
                     title: "Post",
                     content: "<p>common</p>",
-                    publishedAt: 1_700_000_000
+                    publishedAt: 1_600_000_000
                 )
                 let second = try await seedEntry(
                     connection,
@@ -332,7 +333,7 @@ import Testing
                     hash: "second",
                     title: "Post",
                     content: "<p>common</p>",
-                    publishedAt: 1_700_000_000
+                    publishedAt: 1_600_000_000
                 )
                 let third = try await seedEntry(
                     connection,
@@ -341,12 +342,13 @@ import Testing
                     hash: "third",
                     title: "Post",
                     content: "<p>common</p>",
-                    publishedAt: 1_700_000_000
+                    publishedAt: 1_600_000_000
                 )
                 let entries = EntryRepository(connection)
 
-                // A term present in most rows still ranks by frequency, even though
-                // SQLite clamps its inverse document frequency.
+                // A term present in most rows still ranks by frequency, even when
+                // the frequent match is the newest (date-first would put it last)
+                // and SQLite clamps its inverse document frequency.
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, search: "common"))
                         == [strong, first, second, third]

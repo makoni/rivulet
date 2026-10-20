@@ -1,7 +1,6 @@
 // Ported from Miniflux internal/storage/entry.go, internal/storage/entry_query_builder.go
 // and internal/storage/enclosure.go (Apache-2.0); adapted for Swift/SQLite.
 import FluentKit
-import Foundation
 import SQLKit
 
 /// Entry listings: filters, pagination, counts and full-text search.
