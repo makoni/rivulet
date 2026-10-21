@@ -42,6 +42,8 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   repository with a chosen status/starred state, bulk-seeds entries for pagination limits, builds
   entry inputs, counts entries, tombstones and FTS matches, and backdates timestamps for the
   retention suites.
+- `DatabaseCorruption.swift` — damages a real SQLite page (page 2, the `users` root) so integrity
+  tests observe `PRAGMA quick_check` failures without shipping a corrupt database fixture.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
@@ -52,8 +54,8 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
   bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
   (swift-log traps on a second one).
-- Clock injection: long-running logic (scheduler, retention) takes a `Clock` abstraction; tests
-  use a manual clock and explicit `tick()` calls — no sleeping in tests.
+- Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)`
+  takes Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)

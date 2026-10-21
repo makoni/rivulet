@@ -51,16 +51,26 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
 ## Retention ("archiving")
 
-- `internal/cli/cleanup_tasks.go` runs daily: archive read entries older than
-  `CLEANUP_ARCHIVE_READ_DAYS` (default 60) and unread older than `CLEANUP_ARCHIVE_UNREAD_DAYS`
-  (default 180); batch size `CLEANUP_ARCHIVE_BATCH_SIZE` (default 10000).
+- `internal/cli/cleanup_tasks.go` runs on the reference's own scheduler every
+  `CLEANUP_FREQUENCY_HOURS` (default 24; validator requires ≥1) and once at startup. It archives
+  read entries older than `CLEANUP_ARCHIVE_READ_DAYS` (default 60) and unread older than
+  `CLEANUP_ARCHIVE_UNREAD_DAYS` (default 180); batch size `CLEANUP_ARCHIVE_BATCH_SIZE`
+  (default 10000).
+- The full task set also deletes web sessions older than `CLEANUP_REMOVE_SESSIONS_DAYS`
+  (default 30) and orphan icons. Both belong to the web UI, which Rivulet does not have, so only
+  the two `ArchiveEntries` calls are ported.
 - "Archiving" is a hard `DELETE` plus a tombstone (`internal/storage/entry.go` `ArchiveEntries`):
   skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
+- Guards in `ArchiveEntries`: `interval < 0 || limit <= 0` archives nothing; the interval is
+  truncated to whole days and clamped to at least one (`max(days, 1)`); `ORDER BY created_at ASC`
+  makes a limited batch archive the oldest entries first.
 - Tombstones: `entry_tombstones(feed_id, hash, deleted_at)`; a tombstoned `(feed_id, hash)` must
   never be re-inserted (`ErrEntryTombstoned`).
 - SQLite has no data-modifying CTEs: Rivulet deletes with an ordered, limited `DELETE … RETURNING`
   and inserts the tombstones in the same caller-provided transaction
-  (`SQLiteStorage.withTransaction`), where the reference uses one statement.
+  (`SQLiteStorage.withTransaction`), where the reference uses one statement. `Retention` runs the
+  read and unread passes in two transactions, mirroring the two reference calls, and takes `now`
+  as a parameter for deterministic tests.
 - Entry statuses in the application are only `unread` and `read` (`internal/model/entry.go`); the
   legacy `removed` enum value survives only in old migrations and is no longer used.
 

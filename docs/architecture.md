@@ -155,7 +155,17 @@ validated before the fallback (an empty value is an error, like upstream); boole
 - A feed refresh batches all its writes in one transaction; readers use separate connections.
 - The scheduler is an actor; long jobs (retention, vacuum) run off the request path.
 - WAL allows concurrent readers with a single writer; `busy_timeout` absorbs short lock
-  contention; checkpoint on shutdown; `journal_size_limit` bounds WAL growth.
+  contention; a truncating checkpoint runs on shutdown; `journal_size_limit` (64 MiB) bounds
+  WAL growth between checkpoints.
+- Maintenance lives on the wrapper: `backup(to:)` (`VACUUM INTO`), `vacuum()` (a rebuild followed
+  by a truncating checkpoint, so freed pages actually leave the file), `quickCheck()` at `serve`
+  startup — a corrupt database is reported as `StorageError.databaseCorrupt` and never served —
+  and `checkpoint()` on shutdown. The operator procedure is `docs/backup-restore.md`.
+- Retention is a driver (`Retention.run` over `RetentionPolicy`), not a timer: it mirrors the
+  reference's two `ArchiveEntries` passes, one transaction each, with the reference guards and
+  defaults. Stage 4 schedules it daily; per-feed policies are not MVP.
+- `Seeding` builds deterministic feed/entry corpora in one transaction (recursive CTE) for
+  benchmarks and the opt-in heavy suite.
 
 ## Porting rules
 

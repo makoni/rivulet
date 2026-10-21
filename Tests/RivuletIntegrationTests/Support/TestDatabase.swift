@@ -58,4 +58,10 @@ final class TestDatabase {
         try? FileManager.default.removeItem(at: directory)
     }
 
+    /// Registers a second SQLite driver for `path` under `id`, so a test can
+    /// open another database file (a backup copy) or a second handle on the
+    /// same file with the same wiring as the main driver.
+    func registerDriver(at path: String, as id: DatabaseID) {
+        app.databases.use(.sqlite(.file(path)), as: id)
+    }
 }

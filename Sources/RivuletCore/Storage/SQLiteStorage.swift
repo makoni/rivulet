@@ -83,6 +83,12 @@ public struct SQLiteStorage: Sendable {
         }
     }
 
+    /// Upper bound for the WAL file in bytes (64 MiB).
+    ///
+    /// Bounded WAL growth keeps disk usage predictable; the value is
+    /// per-connection, hence part of the session pragmas.
+    public static let journalSizeLimit = 64 * 1024 * 1024
+
     /// Pragmas that must hold on every pooled connection.
     ///
     /// sqlite-kit applies only `foreign_keys` itself, so the wrapper enforces the full
@@ -94,7 +100,76 @@ public struct SQLiteStorage: Sendable {
         "PRAGMA synchronous = NORMAL",
         /// Explicit for clarity; also enabled by the driver at connection creation.
         "PRAGMA foreign_keys = ON",
+        /// Keep the WAL file bounded; applied per connection, see `journalSizeLimit`.
+        "PRAGMA journal_size_limit = \(journalSizeLimit)",
     ]
+
+    /// Creates a point-in-time copy of the database at `destination`.
+    ///
+    /// The copy is a self-contained database file with the source's exact
+    /// content, produced by `VACUUM INTO` — a consistent snapshot even while
+    /// the source stays writable. The destination's directory must exist, and
+    /// SQLite refuses to overwrite an existing non-empty file (an empty file
+    /// is reused). The copy needs roughly the source size in free disk space
+    /// (see `docs/backup-restore.md`).
+    public func backup(to destination: String) async throws {
+        try await withConnection { connection in
+            try await RawSQL.sql(on: connection).raw("VACUUM INTO \(bind: destination)").run()
+        }
+    }
+
+    /// Rebuilds the database file, releasing free pages back to the filesystem.
+    ///
+    /// Run after large deletions (for example a retention pass) to reclaim
+    /// disk space: `DELETE` marks pages free but never shrinks the file.
+    /// The rebuild is followed by a truncating WAL checkpoint, so the
+    /// reclaimed space is visible in the main file when the call returns.
+    public func vacuum() async throws {
+        try await withConnection { connection in
+            try await RawSQL.run("VACUUM", on: connection)
+            try await RawSQL.run("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+        }
+    }
+
+    /// Checkpoints the WAL into the main database file and truncates the WAL
+    /// to zero length.
+    ///
+    /// Call on graceful shutdown so the main file is complete on disk when
+    /// the process exits.
+    public func checkpoint() async throws {
+        try await withConnection { connection in
+            try await RawSQL.run("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+        }
+    }
+
+    /// Runs `PRAGMA quick_check` and throws ``StorageError/databaseCorrupt(details:)``
+    /// when SQLite reports a problem.
+    ///
+    /// The fast startup integrity check: it verifies page structure, not full
+    /// content, so it stays cheap even on large databases.
+    public func quickCheck() async throws {
+        try await withConnection { connection in
+            do {
+                let rows = try await RawSQL.sql(on: connection).raw("PRAGMA quick_check").all()
+                var problems: [String] = []
+                for row in rows {
+                    let detail = try row.decode(column: "quick_check", as: String.self)
+                    if detail != "ok" {
+                        problems.append(detail)
+                    }
+                }
+                if !problems.isEmpty {
+                    throw StorageError.databaseCorrupt(details: problems)
+                }
+            } catch let error as StorageError {
+                throw error
+            } catch {
+                // A file SQLite cannot even open (torn write, header damage)
+                // surfaces as a statement error instead of a problem row.
+                throw StorageError.databaseCorrupt(details: [String(describing: error)])
+            }
+        }
+    }
 
     static func applySessionPragmas(on database: any Database) async throws {
         for statement in sessionPragmas {

@@ -31,7 +31,7 @@ is inside the MVP.
 | Stage | Title | Status | Effort |
 | --- | --- | --- | --- |
 | 0 | [Foundation](stage-0-foundation.md) | done | M |
-| 1 | [Storage layer](stage-1-storage.md) | in progress | M |
+| 1 | [Storage layer](stage-1-storage.md) | done | M |
 | 2 | [Feed fetching](stage-2-fetching.md) | not started | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | not started | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | not started | M |

@@ -14,6 +14,12 @@ public enum StorageError: Error, Sendable, Equatable {
 
     /// A user-state call referenced an entry that does not exist for the user.
     case entryNotFound(id: Int)
+
+    /// `PRAGMA quick_check` reported a structural problem with the database file.
+    ///
+    /// The database must not be served in this state; restore from a backup
+    /// (see `docs/backup-restore.md`) instead of trying to repair it.
+    case databaseCorrupt(details: [String])
 }
 
 extension StorageError: CustomStringConvertible {
@@ -29,6 +35,9 @@ extension StorageError: CustomStringConvertible {
             return "feed #\(id) does not exist"
         case .entryNotFound(let id):
             return "entry #\(id) does not exist"
+        case .databaseCorrupt(let details):
+            return "the database failed the integrity check: "
+                + details.joined(separator: " | ")
         }
     }
 }
