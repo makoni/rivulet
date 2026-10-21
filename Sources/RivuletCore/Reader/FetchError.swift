@@ -18,11 +18,17 @@ public enum FetchError: Error, Sendable, Equatable {
     /// A status the reference treats as a fetch failure.
     case status(Int)
 
+    /// A Cloudflare bot challenge, recognised from the response headers.
+    case cloudflareChallenge(Int)
+
     /// The request timed out.
     case timeout
 
     /// The connection failed or was closed early.
     case network(String)
+
+    /// The connection was closed by the peer before a response arrived.
+    case emptyResponse
 
     /// Too many redirects.
     case redirectLimit(Int)
@@ -39,14 +45,34 @@ extension FetchError: CustomStringConvertible {
             return "fetcher: response body too large: \(limit) bytes"
         case .emptyBody:
             return "fetcher: empty response body"
-        case .status(let code):
-            return "fetcher: unexpected status code (\(code) status code)"
+        case .emptyResponse:
+            return "fetcher: empty response"
+        case .cloudflareChallenge(let status):
+            return "fetcher: blocked by Cloudflare challenge (\(status) status code)"
+        case .status(let status):
+            return "fetcher: \(statusMessage(status)) (\(status) status code)"
         case .timeout:
-            return "fetcher: request timed out"
+            return "fetcher: network timeout"
         case .network(let detail):
             return "fetcher: network operation failed: \(detail)"
         case .redirectLimit(let limit):
             return "fetcher: redirect limit reached (\(limit) redirects)"
+        }
+    }
+
+    /// The wording the reference uses for each status it names; everything else falls back to
+    /// the generic one.
+    private func statusMessage(_ status: Int) -> String {
+        switch status {
+        case 401: return "access unauthorized"
+        case 403: return "access forbidden"
+        case 429: return "too many requests"
+        case 404, 410: return "resource not found"
+        case 500: return "remote server error"
+        case 502: return "bad gateway"
+        case 503: return "service unavailable"
+        case 504: return "gateway timeout"
+        default: return "unexpected status code"
         }
     }
 }
