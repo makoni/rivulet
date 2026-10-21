@@ -64,8 +64,10 @@ App-level tests build the real Vapor app with a temp database and speak real HTT
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
 and use Vapor's client. The same socket-level approach backs the client-API journey tests.
 
-Determinism rules: no fixed ports, no real-time waits, `TZ=UTC` for date tests, per-test temp
-directories, no network access except to the local stub server.
+Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests,
+per-test temp directories, no network access except to the local stub server). A bounded timeout
+that proves a failure is fast rather than hanging is allowed — the pool-timeout test asserts one —
+and a test whose pass condition is a timeout says so in its comment.
 
 ## Fixtures
 

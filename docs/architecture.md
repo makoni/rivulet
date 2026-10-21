@@ -36,7 +36,7 @@ Sources/
 │   ├── Config/             # environment → Config, validation
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher, parser, dates, charset, sanitizer, OPML
-│   └── Scheduler/          # refresh loop, retention jobs
+│   └── Scheduler/          # refresh loop; retention runs as a storage-layer job
 ├── RivuletApp/             # application layer — the only target that knows Vapor
 │   ├── Commands/           # serve, migrate, version + registered stubs for the final CLI
 │   ├── Logging/            # text/JSON swift-log bootstrap

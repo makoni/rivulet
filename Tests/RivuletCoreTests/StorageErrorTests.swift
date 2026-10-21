@@ -1,7 +1,8 @@
+import Foundation
 import Testing
 @testable import RivuletCore
 
-/// The messages the CLI shows for storage failures.
+/// The messages the CLI shows for storage failures, and the mapping the startup check uses.
 @Suite struct StorageErrorTests {
     @Test func integrityMessageReportsWhatSQLiteSaw() {
         #expect(
@@ -29,5 +30,21 @@ import Testing
             StorageError.invalidSeeding(feeds: 0, entries: 5).description
                 == "invalid corpus size: 0 feed(s), 5 entry/entries"
         )
+    }
+
+    @Test func checkMappingKeepsCancellationAndMapsEverythingElse() {
+        #expect(StorageError.integrityFailure(for: CancellationError()) is CancellationError)
+
+        let mapped = StorageError.integrityFailure(for: CocoaError(.fileReadCorruptFile))
+            as? StorageError
+        #expect(
+            mapped == StorageError.databaseCorrupt(
+                details: [String(describing: CocoaError(.fileReadCorruptFile))]
+            )
+        )
+
+        // A problem row is already a storage error; mapping it again must not rename it.
+        let preserved = StorageError.integrityFailure(for: StorageError.checkpointBusy) as? StorageError
+        #expect(preserved == StorageError.checkpointBusy)
     }
 }

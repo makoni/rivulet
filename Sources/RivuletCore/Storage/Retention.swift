@@ -32,6 +32,8 @@ public struct Retention: Sendable {
     ///   - now: The current Unix seconds; the process clock applies when
     ///     omitted (tests pass a fixed value).
     /// - Returns: The number of archived entries per status.
+    /// - Throws: The error of a failed archive transaction; an earlier pass that
+    ///   committed keeps what it archived.
     public func run(
         on storage: SQLiteStorage,
         now: Int = Int(Date.now.timeIntervalSince1970)

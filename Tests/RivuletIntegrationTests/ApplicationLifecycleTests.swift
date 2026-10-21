@@ -79,20 +79,31 @@ import RivuletApp
         let observerApp = try await Application.make(.testing)
         observerApp.databases.use(.sqlite(.file(path)), as: .sqlite)
         let observer = SQLiteStorage(database: observerApp.db(.sqlite), path: path)
+        var shutDown = false
         do {
+            // The transaction stays open after the checkout is released, so the snapshot is
+            // still held while the application shuts down.
             try await observer.withConnection { connection in
                 try await RawSQL.run("BEGIN", on: connection)
                 _ = try await RawSQL.first("SELECT count(*) AS n FROM users", on: connection)
-                try await rivulet.shutdown()
             }
 
+            try await rivulet.shutdown()
+            shutDown = true
+
+            // The checkpoint was blocked, so the frames it could not move are still in the WAL:
+            // that is what shows the teardown continued past the failing checkpoint.
             let frames = try fileSize(path + "-wal")
             #expect(frames > 0)
 
+            // Closing the observer rolls the snapshot back; the assertion above must happen
+            // before that, because the last connection to close deletes the WAL file.
             try await observerApp.asyncShutdown()
         } catch {
+            if !shutDown {
+                try? await rivulet.shutdown()
+            }
             try? await observerApp.asyncShutdown()
-            try? await rivulet.shutdown()
             throw error
         }
     }

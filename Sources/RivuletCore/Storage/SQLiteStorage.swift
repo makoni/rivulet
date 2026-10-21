@@ -162,7 +162,8 @@ public struct SQLiteStorage: Sendable {
     /// without waiting. It reports a genuinely blocked WAL instead of claiming success. The
     /// tests pin the two outcomes the loop can produce (a checkpoint that succeeds, and one
     /// blocked by a reader); the number of attempts is a heuristic. The connection returns to
-    /// the pool with the documented session timeout restored, also after a failed attempt.
+    /// the pool with the documented session timeout restored, and when both an attempt and the
+    /// restore fail the attempt is what the caller sees.
     private static func truncateWAL(on connection: any Database) async throws {
         try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
         var busy = 1
@@ -181,7 +182,13 @@ public struct SQLiteStorage: Sendable {
                 break
             }
         }
-        try await RawSQL.run("PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection)
+        // The session timeout is restored before the connection goes back to the pool. When
+        // both an attempt and the restore fail, the attempt is the cause worth reporting.
+        do {
+            try await RawSQL.run("PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection)
+        } catch {
+            failure = failure ?? error
+        }
         if let failure {
             throw failure
         }
@@ -195,14 +202,16 @@ public struct SQLiteStorage: Sendable {
     ///
     /// The fast startup integrity check: it verifies page structure, not full
     /// content, so it stays cheap even on large databases. A file whose header is
-    /// not a database fails as a statement rather than returning problem rows.
-    /// A failure that prevents the check from running at all — a lock held by
-    /// another connection, a full disk — is reported through the same case with the
-    /// underlying error as the detail, so the message does not claim damage that
-    /// SQLite did not see; either outcome means the database must not be served.
-    /// A `CancellationError` from the caller is rethrown unchanged; a cancellation
-    /// raised inside the check cannot be told apart from a SQLite failure and is
-    /// reported like one.
+    /// not a database fails as a statement rather than returning problem rows, and a
+    /// check that returns no rows cannot be read as success.
+    /// Problem rows, an unreadable file and a failure that prevented the check from
+    /// running — a lock held by another connection, a full disk, a connection that
+    /// could not be checked out — are reported through the same case with what was
+    /// observed as the detail, so the message says the check failed rather than
+    /// claiming damage SQLite did not see. A database whose check fails must not be
+    /// served; a failure that only prevented the check says nothing about the file.
+    /// A `CancellationError` escaping the check is rethrown unchanged: a cancelled task
+    /// is not a damaged database.
     public func quickCheck() async throws {
         do {
             try await withConnection { connection in
@@ -214,6 +223,11 @@ public struct SQLiteStorage: Sendable {
                         problems.append(detail)
                     }
                 }
+                if rows.isEmpty {
+                    // An empty result is not a clean check; `quick_check` reports "ok" on a
+                    // healthy database, so no row means nothing was observed.
+                    throw StorageError.databaseCorrupt(details: ["the check returned no result"])
+                }
                 if !problems.isEmpty {
                     throw StorageError.databaseCorrupt(details: problems)
                 }
@@ -221,13 +235,9 @@ public struct SQLiteStorage: Sendable {
         } catch let error as StorageError {
             throw error
         } catch {
-            if error is CancellationError {
-                throw error
-            }
             // A file SQLite cannot even open (torn write, header damage) fails while the
-            // session pragmas run or while the check statement runs; a cancelled task is
-            // not a damaged database and is rethrown unchanged.
-            throw StorageError.databaseCorrupt(details: [String(describing: error)])
+            // session pragmas run or while the check statement runs.
+            throw StorageError.integrityFailure(for: error)
         }
     }
 

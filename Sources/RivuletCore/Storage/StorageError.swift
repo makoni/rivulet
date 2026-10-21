@@ -35,6 +35,22 @@ public enum StorageError: Error, Sendable, Equatable {
 }
 
 extension StorageError: CustomStringConvertible {
+    /// The error a failed startup integrity check reports.
+    ///
+    /// Cancellation is kept as it is — a cancelled task is not a damaged database. Everything
+    /// else becomes `databaseCorrupt` with what was observed as the detail: problem rows, a file
+    /// SQLite cannot open, or a failure that prevented the check (a lock, a full disk, a
+    /// connection that could not be checked out). A `StorageError` is not wrapped again.
+    static func integrityFailure(for error: any Error) -> any Error {
+        if error is CancellationError {
+            return error
+        }
+        if let error = error as? StorageError {
+            return error
+        }
+        return StorageError.databaseCorrupt(details: [String(describing: error)])
+    }
+
     /// Human-readable message used by the CLI error path.
     public var description: String {
         switch self {

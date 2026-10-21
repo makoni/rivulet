@@ -69,9 +69,10 @@ tombstones.
   attempt retries a bounded number of times without waiting, which is a heuristic for a transient
   busy result: the tests pin the outcomes (success, and a reader that blocks the truncation), not
   the number of attempts.
-  `quickCheck()` runs `PRAGMA quick_check` and maps a problem row, an unreadable file or a failure
-  that prevents the check from running to `StorageError.databaseCorrupt(details:)`; startup serves
-  nothing until it passes.
+  `quickCheck()` runs `PRAGMA quick_check` and maps a problem row, a result set with no rows, an
+  unreadable file or a failure that prevents the check from running (a lock, a full disk, a
+  connection that cannot be checked out) to `StorageError.databaseCorrupt(details:)`, while a
+  `CancellationError` is rethrown unchanged; startup serves nothing until it passes.
   `journal_size_limit` (64 MiB) is part of the per-connection pragmas: SQLite truncates the WAL
   to that size when it resets it after a checkpoint, while between checkpoints the file can grow
   past it.
@@ -90,6 +91,9 @@ tombstones.
 
 - Plain-text extraction from HTML; search-text → FTS5 `MATCH` translation (terms, quoted
   phrases, FTS5 operators kept as text, input without terms).
+- Storage error messages and the startup check's mapping: cancellation stays a cancellation,
+  every other failure becomes the integrity case, and an already-classified storage error is not
+  wrapped again.
 
 ### Integration
 
