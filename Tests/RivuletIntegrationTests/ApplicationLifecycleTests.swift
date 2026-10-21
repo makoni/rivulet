@@ -45,9 +45,9 @@ import RivuletApp
             }
 
             let wal = path + "-wal"
-            #expect(Self.fileSize(wal) > 0)
+            #expect(try #require(Self.fileSize(wal)) > 0)
             try await rivulet.shutdown()
-            #expect(Self.fileSize(wal) == 0)
+            #expect(try #require(Self.fileSize(wal)) == 0)
 
             try await observerApp.asyncShutdown()
             observer = nil
@@ -58,10 +58,11 @@ import RivuletApp
         }
     }
 
-    /// `serve` must reject a damaged file before it binds a port or migrates it.
+    /// `serve` must reject a damaged file before it migrates it or binds a socket.
     ///
-    /// A correct run never reaches the listener, so `LISTEN_ADDR` is not bound; a
-    /// regression binds it and the test fails on the time limit instead of hanging.
+    /// `LISTEN_ADDR` is left at the configuration default and never bound by a correct
+    /// run; a regression would start listening and the test fails on the time limit
+    /// instead of hanging forever.
     @Test(.timeLimit(.minutes(1)))
     func serveRefusesACorruptDatabase() async throws {
         let directory = try TemporaryDirectory()
@@ -80,7 +81,7 @@ import RivuletApp
         do {
             try await RivuletCLI.run(
                 console: console,
-                environment: ["DATABASE_URL": path, "LISTEN_ADDR": "127.0.0.1:8080"],
+                environment: ["DATABASE_URL": path],
                 arguments: ["rivulet", "serve"]
             )
             Issue.record("serve must not start on a corrupt database")
@@ -92,7 +93,12 @@ import RivuletApp
         }
     }
 
-    private static func fileSize(_ path: String) -> Int {
+    /// Size of `path`, or nil when the file is missing: an assertion that the WAL is
+    /// empty must not be satisfied by a deleted WAL.
+    private static func fileSize(_ path: String) -> Int? {
+        guard FileManager.default.fileExists(atPath: path) else {
+            return nil
+        }
         let attributes = try? FileManager.default.attributesOfItem(atPath: path)
         return (attributes?[.size] as? NSNumber)?.intValue ?? 0
     }

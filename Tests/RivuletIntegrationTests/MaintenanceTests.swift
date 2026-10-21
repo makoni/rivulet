@@ -89,11 +89,11 @@ import Vapor
             }
             #expect(deleted == 20)
             try await storage.checkpoint()
-            let bloated = Self.fileSize(database.path)
+            let bloated = try #require(Self.fileSize(database.path))
             #expect(bloated > 5_000_000)
 
             try await storage.vacuum()
-            let shrunk = Self.fileSize(database.path)
+            let shrunk = try #require(Self.fileSize(database.path))
             #expect(shrunk < bloated / 2)
 
             try await storage.quickCheck()
@@ -114,7 +114,7 @@ import Vapor
                 )
             }
             let wal = database.path + "-wal"
-            #expect(Self.fileSize(wal) > 0)
+            #expect(try #require(Self.fileSize(wal)) > 0)
 
             try await storage.checkpoint()
             #expect(Self.fileSize(wal) == 0)
@@ -150,10 +150,12 @@ import Vapor
                 try await checker.quickCheck()
                 Issue.record("expected quickCheck to report the corrupted database")
             } catch {
-                guard case StorageError.databaseCorrupt = error else {
+                guard case StorageError.databaseCorrupt(let details) = error else {
                     Issue.record("expected databaseCorrupt, got: \(error)")
                     return
                 }
+                // The check must actually see the damaged page, not just fail.
+                #expect(details.joined(separator: " ").contains("page 2"))
             }
         }
     }
@@ -176,10 +178,12 @@ import Vapor
                 try await checker.quickCheck()
                 Issue.record("expected quickCheck to reject an unreadable file")
             } catch {
-                guard case StorageError.databaseCorrupt = error else {
+                guard case StorageError.databaseCorrupt(let details) = error else {
                     Issue.record("expected databaseCorrupt, got: \(error)")
                     return
                 }
+                // The detail is the underlying failure, not a quick_check row.
+                #expect(details.joined(separator: " ").contains("not a database"))
             }
         }
     }
@@ -293,7 +297,12 @@ import Vapor
         return try row?.decode(column: "page_count", as: Int.self) ?? 0
     }
 
-    private static func fileSize(_ path: String) -> Int {
+    /// Size of `path`, or nil when the file is missing: an assertion that the WAL is
+    /// empty must not be satisfied by a deleted WAL.
+    private static func fileSize(_ path: String) -> Int? {
+        guard FileManager.default.fileExists(atPath: path) else {
+            return nil
+        }
         let attributes = try? FileManager.default.attributesOfItem(atPath: path)
         return (attributes?[.size] as? NSNumber)?.intValue ?? 0
     }

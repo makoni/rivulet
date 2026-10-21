@@ -15,11 +15,12 @@ public enum StorageError: Error, Sendable, Equatable {
     /// A user-state call referenced an entry that does not exist for the user.
     case entryNotFound(id: Int)
 
-    /// The startup integrity check failed: `PRAGMA quick_check` reported a
-    /// structural problem or could not read the database file.
+    /// The startup integrity check failed: `PRAGMA quick_check` reported a problem,
+    /// or the check could not run because the file cannot be read.
     ///
-    /// The database must not be served in this state; restore from a backup
-    /// (see `docs/backup-restore.md`) instead of trying to repair it.
+    /// A database in this state must not be served. `details` carries what SQLite
+    /// reported, or the error that prevented the check, so page damage can be told
+    /// apart from a lock or disk failure before restoring from a backup.
     case databaseCorrupt(details: [String])
 
     /// A truncating WAL checkpoint was blocked by another connection.
@@ -27,6 +28,10 @@ public enum StorageError: Error, Sendable, Equatable {
     /// The WAL still holds committed transactions; the checkpoint can be
     /// retried once the reader is gone.
     case checkpointBusy
+
+    /// A seeding request cannot produce the requested corpus shape: `feeds`
+    /// must be positive and `entries` cannot be negative.
+    case invalidSeeding(feeds: Int, entries: Int)
 }
 
 extension StorageError: CustomStringConvertible {
@@ -47,6 +52,8 @@ extension StorageError: CustomStringConvertible {
                 + details.joined(separator: " | ")
         case .checkpointBusy:
             return "the WAL checkpoint is blocked by another connection; retry when it is idle"
+        case .invalidSeeding(let feeds, let entries):
+            return "invalid corpus size: \(feeds) feed(s), \(entries) entry/entries"
         }
     }
 }

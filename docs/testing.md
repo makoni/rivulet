@@ -42,9 +42,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   repository with a chosen status/starred state, bulk-seeds entries for pagination limits, builds
   entry inputs, counts entries, tombstones and FTS matches, and backdates timestamps for the
   retention suites.
-- `DatabaseCorruption.swift` — damages a real SQLite page (the cell count of page 2, the
-  `_fluent_migrations` root) so integrity tests observe `PRAGMA quick_check` failures without
-  shipping a corrupt database fixture.
+- `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page
+  2, the `_fluent_migrations` root, using the page size from the file header) so integrity
+  tests observe `PRAGMA quick_check` failures without shipping a corrupt database fixture.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.

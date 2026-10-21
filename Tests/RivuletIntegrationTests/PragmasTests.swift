@@ -89,7 +89,7 @@ import Vapor
 
         let busyTimeout = try await sql.raw("PRAGMA busy_timeout").first()
         let timeout = try busyTimeout?.decode(column: "timeout", as: Int.self)
-        #expect(timeout == 5000)
+        #expect(timeout == SQLiteStorage.busyTimeoutMilliseconds)
 
         let synchronous = try await sql.raw("PRAGMA synchronous").first()
         let synchronousValue = try synchronous?.decode(column: "synchronous", as: Int.self)

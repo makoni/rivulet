@@ -175,6 +175,40 @@ import Testing
                 }
                 #expect(kept.allSatisfy { $0 != nil })
                 #expect(archived.allSatisfy { $0 == nil })
+                let tombstones = try await tombstoneCount(connection)
+                #expect(tombstones == 10)
+            }
+        }
+    }
+
+    @Test func runArchivesEntriesOfEveryUser() async throws {
+        try await withMigratedStorage { _, storage in
+            let ids = try await storage.withConnection { connection -> [Int] in
+                var ids: [Int] = []
+                for username in ["alice", "bob"] {
+                    let feed = try await seedFeed(connection, username: username)
+                    let id = try await seedEntry(
+                        connection, userID: feed.userID, feedID: feed.feedID,
+                        hash: "old-\(username)", status: .read
+                    )
+                    try await backdateCreatedAt(connection, id: id, createdAt: now - 61 * 86_400)
+                    ids.append(id)
+                }
+                return ids
+            }
+
+            // Retention is global, like the reference: it is not scoped to one user.
+            let counts = try await Retention().run(on: storage, now: now)
+            #expect(counts.read == 2)
+
+            try await storage.withConnection { connection in
+                let entries = EntryRepository(connection)
+                for id in ids {
+                    let entry = try await entries.fetch(id: id)
+                    #expect(entry == nil)
+                }
+                let tombstones = try await tombstoneCount(connection)
+                #expect(tombstones == 2)
             }
         }
     }
@@ -326,7 +360,9 @@ import Testing
                 _ = try await Retention().run(on: storage, now: now)
                 Issue.record("expected the archive to fail without the tombstone table")
             } catch {
-                // The retention transaction rolled back.
+                // The failing statement must be the tombstone insert, not a
+                // coincidental error: the delete rolls back with it.
+                #expect(String(describing: error).contains("entry_tombstones"))
             }
 
             try await storage.withConnection { connection in

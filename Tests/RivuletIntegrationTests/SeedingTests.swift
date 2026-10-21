@@ -46,13 +46,27 @@ import Testing
                 _ = try await Seeding.seed(on: storage, feeds: 0, entries: 10)
                 Issue.record("expected feeds: 0 to be rejected")
             } catch {
-                #expect(error as? SeedingError == .invalidCounts(feeds: 0, entries: 10))
+                #expect(error as? StorageError == .invalidSeeding(feeds: 0, entries: 10))
             }
             do {
                 _ = try await Seeding.seed(on: storage, feeds: 1, entries: -1)
                 Issue.record("expected entries: -1 to be rejected")
             } catch {
-                #expect(error as? SeedingError == .invalidCounts(feeds: 1, entries: -1))
+                #expect(error as? StorageError == .invalidSeeding(feeds: 1, entries: -1))
+            }
+        }
+    }
+
+    @Test func seedAcceptsAnEmptyCorpus() async throws {
+        try await withMigratedStorage { _, storage in
+            let corpus = try await Seeding.seed(on: storage, feeds: 2, entries: 0)
+            #expect(corpus.feeds == 2)
+            #expect(corpus.entries == 0)
+            try await storage.withConnection { connection in
+                let feeds = try await Self.count("feeds", on: connection)
+                let entries = try await Self.count("entries", on: connection)
+                #expect(feeds == 2)
+                #expect(entries == 0)
             }
         }
     }

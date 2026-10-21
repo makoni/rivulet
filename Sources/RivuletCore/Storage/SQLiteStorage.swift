@@ -91,13 +91,16 @@ public struct SQLiteStorage: Sendable {
     /// session pragmas.
     static let journalSizeLimit = 64 * 1024 * 1024
 
+    /// Milliseconds a pooled connection waits for a held lock before failing.
+    static let busyTimeoutMilliseconds = 5000
+
     /// Pragmas that must hold on every pooled connection.
     ///
     /// sqlite-kit applies only `foreign_keys` itself, so the wrapper enforces the full
     /// set on each checkout.
     static let sessionPragmas = [
         /// Wait up to five seconds instead of failing immediately on a held lock.
-        "PRAGMA busy_timeout = 5000",
+        "PRAGMA busy_timeout = \(busyTimeoutMilliseconds)",
         /// Durable enough with WAL: no fsync per commit, safe against process crashes.
         "PRAGMA synchronous = NORMAL",
         /// Explicit for clarity; also enabled by the driver at connection creation.
@@ -112,8 +115,7 @@ public struct SQLiteStorage: Sendable {
     /// content, produced by `VACUUM INTO` — a consistent snapshot even while
     /// the source stays writable. The destination's directory must exist, and
     /// SQLite refuses to overwrite an existing non-empty file (an empty file
-    /// is reused). The copy needs roughly the source size in free disk space
-    /// (see `docs/backup-restore.md`).
+    /// is reused). The copy needs roughly the source size in free disk space.
     public func backup(to destination: String) async throws {
         try await withConnection { connection in
             try await RawSQL.sql(on: connection).raw("VACUUM INTO \(bind: destination)").run()
@@ -152,29 +154,40 @@ public struct SQLiteStorage: Sendable {
         }
     }
 
-    /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a
-    /// result row instead of failing, and can transiently report `busy` even
-    /// right after a burst of writes. Retry a couple of times without waiting,
-    /// then report a genuinely blocked WAL instead of claiming success.
+    /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a result row
+    /// instead of failing, and can report `busy` immediately after a burst of writes
+    /// even with no other reader — an immediate retry then succeeds. Retry a few times
+    /// without waiting, then report a genuinely blocked WAL instead of claiming
+    /// success, and restore the documented session timeout before the connection goes
+    /// back to the pool.
     private static func truncateWAL(on connection: any Database) async throws {
         try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
+        var busy = 1
         for _ in 0..<3 {
             let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
-            let busy = try row?.decode(column: "busy", as: Int.self) ?? 0
+            busy = try row?.decode(column: "busy", as: Int.self) ?? 0
             if busy == 0 {
-                return
+                break
             }
         }
-        throw StorageError.checkpointBusy
+        try await RawSQL.run(
+            "PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection
+        )
+        guard busy == 0 else {
+            throw StorageError.checkpointBusy
+        }
     }
 
     /// Runs `PRAGMA quick_check` and throws ``StorageError/databaseCorrupt(details:)``
     /// when SQLite reports a problem or the check cannot complete.
     ///
     /// The fast startup integrity check: it verifies page structure, not full
-    /// content, so it stays cheap even on large databases. A file whose header
-    /// is not a database fails as a statement rather than returning problem
-    /// rows; both outcomes mean the database must not be served.
+    /// content, so it stays cheap even on large databases. A file whose header is
+    /// not a database fails as a statement rather than returning problem rows.
+    /// A failure that prevents the check from running at all — a lock held by
+    /// another connection, a full disk — is reported through the same case with the
+    /// underlying error as the detail, so the message does not claim damage that
+    /// SQLite did not see; either outcome means the database must not be served.
     public func quickCheck() async throws {
         do {
             try await withConnection { connection in

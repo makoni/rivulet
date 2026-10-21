@@ -2,32 +2,6 @@
 // internal/storage/entry.go (ArchiveEntries) (Apache-2.0); adapted for Swift/SQLite.
 import Foundation
 
-/// Retention policy, ported from the reference `CLEANUP_ARCHIVE_*` options.
-public struct RetentionPolicy: Sendable, Equatable {
-    /// Days after which entries with status `read` are archived.
-    public var readEntryAgeDays: Int
-
-    /// Days after which entries with status `unread` are archived.
-    public var unreadEntryAgeDays: Int
-
-    /// Maximum number of entries archived per status per run.
-    public var batchSize: Int
-
-    public init(readEntryAgeDays: Int, unreadEntryAgeDays: Int, batchSize: Int) {
-        self.readEntryAgeDays = readEntryAgeDays
-        self.unreadEntryAgeDays = unreadEntryAgeDays
-        self.batchSize = batchSize
-    }
-
-    /// Reference defaults: 60 days for read entries, 180 days for unread,
-    /// batch of 10000.
-    public static let `default` = RetentionPolicy(
-        readEntryAgeDays: 60,
-        unreadEntryAgeDays: 180,
-        batchSize: 10_000
-    )
-}
-
 /// Daily cleanup of archived entries (reference `runCleanupTasks`).
 ///
 /// Archives all users' old entries in two passes — read first, then unread,

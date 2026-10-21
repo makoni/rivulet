@@ -8,7 +8,7 @@ self-contained file: there is nothing else to copy — no external cache and no 
 
 `SQLiteStorage.backup(to:)` wraps SQLite's `VACUUM INTO`: it writes a consistent, compacted
 snapshot of a live database (readers and the writer keep working) to a new file. The stage-6 CLI
-exposes the same helper as `rivulet backup <path>`.
+will expose the same helper as `rivulet backup <path>`.
 
 Rules SQLite enforces for the destination:
 
@@ -42,8 +42,10 @@ A backup is a plain SQLite file. Verify it by opening it and running `PRAGMA qui
    replayed into the restored one and corrupt it.
 4. Check ownership and permissions: the service user must be able to write the file and its
    directory.
-5. Start the service. Startup runs `PRAGMA quick_check`, refuses to serve a corrupt database and
-   reports the failing details; restore another backup instead of trying to repair the file.
+5. Start the service. Startup runs `PRAGMA quick_check` and refuses to serve a database that
+   fails the check or cannot be read at all; the reported details show what SQLite saw, so page
+   damage and an unreadable file are told apart. Restore another backup instead of trying to
+   repair the file.
 
 ## Why not copy the file directly?
 

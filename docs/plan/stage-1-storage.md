@@ -66,8 +66,9 @@ tombstones.
   `docs/backup-restore.md`). `vacuum()` is `VACUUM` followed by `PRAGMA wal_checkpoint(TRUNCATE)`:
   in WAL mode the rebuilt pages commit through the WAL, so without the checkpoint the main file
   keeps its old size; a checkpoint blocked by a reader throws `StorageError.checkpointBusy`.
-  `quickCheck()` runs `PRAGMA quick_check` and maps any problem row or an unreadable file to
-  `StorageError.databaseCorrupt(details:)`; startup serves nothing until it passes.
+  `quickCheck()` runs `PRAGMA quick_check` and maps a problem row, an unreadable file or a failure
+  that prevents the check from running to `StorageError.databaseCorrupt(details:)`; startup serves
+  nothing until it passes.
   `journal_size_limit` (64 MiB) is part of the per-connection pragmas: SQLite truncates the WAL
   to that size when it resets it after a checkpoint, while between checkpoints the file can grow
   past it.
@@ -106,17 +107,22 @@ tombstones.
   batches archive the oldest entries first, a zero batch archives nothing, a negative age skips
   that status, a zero age clamps to one day, and a failing tombstone insert rolls the whole delete
   back.
+- Retention is not scoped to one user: entries of two users are archived in the same run.
 - Disk-full behavior: force `SQLITE_FULL` (small `max_page_count`) — clean error, database intact.
 - `VACUUM INTO` backup produces an openable, equal database; a second backup over an existing copy
   is refused; `vacuum` shrinks a bloated database; `checkpoint` truncates the WAL and reports a
   reader that blocks the truncation; `journal_size_limit` is applied on every pooled connection;
   `quick_check` reports a corrupted page and a file that is not a database.
-- Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected;
-  timestamps stay in the past; two fresh databases seeded with the same parameters produce
-  identical entry data.
+- Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected and
+  an empty corpus is accepted; timestamps stay in the past; two fresh databases seeded with the
+  same parameters produce identical entry data.
+- Serving lifecycle: `serve` refuses a damaged database before it migrates it or binds a socket,
+  and shutdown truncates the WAL while a second connection keeps the file observable.
 - Heavy (opt-in, `RIVULET_HEAVY=1`): a 100 × 1000 corpus answers the hot unread-listing query.
 
 ## Exit criteria
 
 - [x] Storage suite green; stages 2–6 consumers never need raw SQL outside this layer.
-- [x] Backup/restore procedure documented and tested.
+- [x] Backup helper tested (the copy opens and matches the source, an existing destination is
+  refused); the restore procedure is documented — it is a manual file copy with no code path to
+  test.
