@@ -220,6 +220,14 @@ Semantics:
 - SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), active
   unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`).
 - Per-feed settings include: custom user agent, proxy, "ignore HTTP cache".
+- Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
+  (`HTTP_CLIENT_MAX_BODY_SIZE`), 10 followed redirects, `Connection: close`, and the `Accept`
+  value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
+- Rivulet's deviations, recorded here so they are not mistaken for upstream behavior: it
+  advertises `gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); it does not
+  send `Connection: close` because it keeps a connection pool; the advertised user agent is
+  Rivulet's own; brotli, per-feed proxy lists, TLS-error tolerance and HTTP/2 toggles are
+  deferred.
 - Relevant packages: `internal/reader/fetcher` (request building, response handling),
   `internal/urllib` (IP helpers) — not `internal/http`, which is the integrations/REST client.
 

@@ -38,6 +38,9 @@ public struct Config: Sendable, Equatable {
     /// Whether `serve` applies pending migrations at startup (`RUN_MIGRATIONS`).
     public let runMigrations: Bool
 
+    /// Fetcher options (`HTTP_CLIENT_*` and `FETCHER_*`).
+    public let fetcher: FetcherOptions
+
     /// Creates a configuration value.
     public init(
         listenAddress: ListenAddress,
@@ -45,7 +48,8 @@ public struct Config: Sendable, Equatable {
         databasePath: String,
         logLevel: LogLevel,
         logFormat: LogFormat,
-        runMigrations: Bool
+        runMigrations: Bool,
+        fetcher: FetcherOptions = FetcherOptions.defaults
     ) {
         self.listenAddress = listenAddress
         self.baseURL = baseURL
@@ -53,6 +57,7 @@ public struct Config: Sendable, Equatable {
         self.logLevel = logLevel
         self.logFormat = logFormat
         self.runMigrations = runMigrations
+        self.fetcher = fetcher
     }
 
     /// Loads the configuration from an environment dictionary.
@@ -85,11 +90,41 @@ public struct Config: Sendable, Equatable {
                 variable: "RUN_MIGRATIONS",
                 value: environment["RUN_MIGRATIONS"],
                 fallback: true
-            )
+            ),
+            fetcher: try FetcherOptions.load(environment: environment)
         )
     }
 
     // MARK: - Parsing helpers
+
+    /// Parses an integer option. An empty value falls back to the default; the value must be at
+    /// least `minimum`, like the upstream validators.
+    static func parseInteger(
+        variable: String,
+        rawValue: String?,
+        fallback: Int,
+        minimum: Int
+    ) throws -> Int {
+        let value = (rawValue ?? "").trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else {
+            return fallback
+        }
+        guard let parsed = Int(value) else {
+            throw ConfigError.invalidValue(
+                variable: variable,
+                value: value,
+                reason: "expected an integer"
+            )
+        }
+        guard parsed >= minimum else {
+            throw ConfigError.invalidValue(
+                variable: variable,
+                value: value,
+                reason: "must be at least \(minimum)"
+            )
+        }
+        return parsed
+    }
 
     /// `DATABASE_URL` is required, names a SQLite file and must not carry a URL scheme.
     private static func parseDatabasePath(_ rawValue: String?) throws -> String {
@@ -171,7 +206,7 @@ public struct Config: Sendable, Equatable {
     ///
     /// Ported from Miniflux `internal/config/parser.go` (`parseBoolValue`, Apache-2.0);
     /// adapted for Swift. Values are trimmed; empty values fall back to the default.
-    private static func parseBoolean(
+    static func parseBoolean(
         variable: String,
         value: String?,
         fallback: Bool

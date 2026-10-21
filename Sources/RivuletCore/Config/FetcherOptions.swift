@@ -1,0 +1,148 @@
+import Foundation
+
+/// Fetcher options read from the environment.
+///
+/// Variable names mirror Miniflux where a single value maps cleanly: `HTTP_CLIENT_TIMEOUT`,
+/// `HTTP_CLIENT_USER_AGENT`, `HTTP_CLIENT_MAX_BODY_SIZE`, `FETCHER_IGNORE_HTTP_CACHE`,
+/// `FETCHER_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`. Parsing follows the upstream semantics
+/// (`internal/config/options.go`): trimmed keys and values, an empty value falls back to the
+/// default, booleans accept the same words, and both numeric options must be at least 1.
+public struct FetcherOptions: Sendable, Equatable {
+    /// The `Accept` value the reference sends when nothing else is set
+    /// (`defaultAcceptHeader`, `internal/reader/fetcher/request_builder.go`).
+    public static let defaultAcceptHeader =
+        "application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9"
+
+    /// Rivulet's own user agent. The reference advertises Miniflux; advertising Rivulet is a
+    /// documented deviation.
+    public static var defaultUserAgent: String {
+        "Mozilla/5.0 (compatible; Rivulet/\(RivuletCore.version); +https://github.com/makoni/rivulet)"
+    }
+
+    /// Upstream `defaultHTTPClientTimeout` and the dialer timeout in
+    /// `internal/reader/fetcher/request_builder.go`.
+    public static let defaultTimeout: Duration = .seconds(20)
+    public static let defaultConnectTimeout: Duration = .seconds(10)
+
+    /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in megabytes.
+    public static let defaultMaxBodySize: Int = 15 * 1024 * 1024
+
+    /// Go's `http.Client` follows at most 10 redirects; Rivulet keeps that limit.
+    public static let defaultMaxRedirects: Int = 10
+
+    /// Total request timeout (`HTTP_CLIENT_TIMEOUT`).
+    public let timeout: Duration
+
+    /// Advertised user agent (`HTTP_CLIENT_USER_AGENT`).
+    public let userAgent: String
+
+    /// The `Accept` header value.
+    public let acceptHeader: String
+
+    /// Response body cap in bytes (`HTTP_CLIENT_MAX_BODY_SIZE`).
+    public let maxBodySize: Int
+
+    /// Maximum number of followed redirects.
+    public let maxRedirects: Int
+
+    /// Whether a compressed response is accepted. AsyncHTTPClient does not decompress by
+    /// default, so decompression is enabled explicitly when this is true.
+    public let decompression: Bool
+
+    /// Global "ignore HTTP cache" (`FETCHER_IGNORE_HTTP_CACHE`); a feed can override it.
+    public let ignoreHTTPCache: Bool
+
+    /// Application-wide proxy (`FETCHER_PROXY`), none by default.
+    public let proxyURL: String?
+
+    /// Escape hatch for private-network targets (`FETCHER_ALLOW_PRIVATE_NETWORKS`).
+    /// It is off by default and exists for tests.
+    public let allowPrivateNetworks: Bool
+
+    /// The options used when the environment says nothing.
+    public static let defaults = FetcherOptions(
+        timeout: defaultTimeout,
+        userAgent: defaultUserAgent,
+        acceptHeader: defaultAcceptHeader,
+        maxBodySize: defaultMaxBodySize,
+        maxRedirects: defaultMaxRedirects,
+        decompression: true,
+        ignoreHTTPCache: false,
+        proxyURL: nil,
+        allowPrivateNetworks: false
+    )
+
+    /// Creates fetcher options.
+    public init(
+        timeout: Duration,
+        userAgent: String,
+        acceptHeader: String,
+        maxBodySize: Int,
+        maxRedirects: Int,
+        decompression: Bool,
+        ignoreHTTPCache: Bool,
+        proxyURL: String?,
+        allowPrivateNetworks: Bool
+    ) {
+        self.timeout = timeout
+        self.userAgent = userAgent
+        self.acceptHeader = acceptHeader
+        self.maxBodySize = maxBodySize
+        self.maxRedirects = maxRedirects
+        self.decompression = decompression
+        self.ignoreHTTPCache = ignoreHTTPCache
+        self.proxyURL = proxyURL
+        self.allowPrivateNetworks = allowPrivateNetworks
+    }
+
+    /// Loads the fetcher options from an environment dictionary.
+    ///
+    /// - Throws: ``ConfigError`` when a numeric option is not a positive integer or a boolean
+    ///   is not one of the accepted words.
+    public static func load(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) throws -> FetcherOptions {
+        let seconds = try Config.parseInteger(
+            variable: "HTTP_CLIENT_TIMEOUT",
+            rawValue: environment["HTTP_CLIENT_TIMEOUT"],
+            fallback: Int(defaultTimeout.components.seconds),
+            minimum: 1
+        )
+        let megabytes = try Config.parseInteger(
+            variable: "HTTP_CLIENT_MAX_BODY_SIZE",
+            rawValue: environment["HTTP_CLIENT_MAX_BODY_SIZE"],
+            fallback: defaultMaxBodySize / (1024 * 1024),
+            minimum: 1
+        )
+
+        var userAgent = defaultUserAgent
+        if let value = environment["HTTP_CLIENT_USER_AGENT"], !value.trimmingCharacters(in: .whitespaces).isEmpty {
+            userAgent = value.trimmingCharacters(in: .whitespaces)
+        }
+
+        var proxyURL: String?
+        if let value = environment["FETCHER_PROXY"], !value.trimmingCharacters(in: .whitespaces).isEmpty {
+            proxyURL = value.trimmingCharacters(in: .whitespaces)
+        }
+
+        return FetcherOptions(
+            timeout: .seconds(seconds),
+            userAgent: userAgent,
+            acceptHeader: defaultAcceptHeader,
+            maxBodySize: megabytes * 1024 * 1024,
+            maxRedirects: defaultMaxRedirects,
+            decompression: true,
+            ignoreHTTPCache: try Config.parseBoolean(
+                variable: "FETCHER_IGNORE_HTTP_CACHE",
+                value: environment["FETCHER_IGNORE_HTTP_CACHE"],
+                fallback: defaults.ignoreHTTPCache
+            ),
+            proxyURL: proxyURL,
+            allowPrivateNetworks: try Config.parseBoolean(
+                variable: "FETCHER_ALLOW_PRIVATE_NETWORKS",
+                value: environment["FETCHER_ALLOW_PRIVATE_NETWORKS"],
+                fallback: defaults.allowPrivateNetworks
+            )
+        )
+    }
+}
