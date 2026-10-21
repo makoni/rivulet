@@ -156,12 +156,13 @@ public struct SQLiteStorage: Sendable {
     }
 
     /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a result row
-    /// instead of failing. Observed in testing: the first truncating checkpoint right
-    /// after a burst of writes reports `busy` even though every frame has been copied,
-    /// and an immediate retry succeeds. So the loop retries a few times without waiting
-    /// and then reports a genuinely blocked WAL instead of claiming success. The
-    /// connection goes back to the pool with the documented session timeout restored,
-    /// even when an attempt fails.
+    /// instead of failing. The bounded retry covers a case seen while this was being
+    /// developed — the first truncating checkpoint after a burst of writes reported busy
+    /// although every frame had been copied, and an immediate retry succeeded — and retries
+    /// without waiting. It reports a genuinely blocked WAL instead of claiming success. The
+    /// tests pin the two outcomes the loop can produce (a checkpoint that succeeds, and one
+    /// blocked by a reader); the number of attempts is a heuristic. The connection returns to
+    /// the pool with the documented session timeout restored, also after a failed attempt.
     private static func truncateWAL(on connection: any Database) async throws {
         try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
         var busy = 1

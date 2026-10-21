@@ -6,5 +6,8 @@ import Foundation
 /// WAL is empty must not be satisfied by a deleted file or by a failed stat.
 func fileSize(_ path: String) throws -> Int {
     let attributes = try FileManager.default.attributesOfItem(atPath: path)
-    return (attributes[.size] as? NSNumber)?.intValue ?? 0
+    guard let size = attributes[.size] as? NSNumber else {
+        throw CocoaError(.fileReadUnknown)
+    }
+    return size.intValue
 }

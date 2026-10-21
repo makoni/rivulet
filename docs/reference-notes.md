@@ -1,7 +1,7 @@
 # Miniflux reference notes
 
 Verified against the reference implementation: Miniflux **v2.3.3**, commit `c4d54f87`
-(the local clone used during planning). These notes are the condensed spec the stage plans rely
+(pinned reference clone). These notes are the condensed spec the stage plans rely
 on. When in doubt, re-check the cited files in the reference clone.
 
 ## Configuration parsing

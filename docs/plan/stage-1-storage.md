@@ -65,7 +65,10 @@ tombstones.
   database; the destination must not be an existing non-empty file — see
   `docs/backup-restore.md`). `vacuum()` is `VACUUM` followed by `PRAGMA wal_checkpoint(TRUNCATE)`:
   in WAL mode the rebuilt pages commit through the WAL, so without the checkpoint the main file
-  keeps its old size; a checkpoint blocked by a reader throws `StorageError.checkpointBusy`.
+  keeps its old size; a checkpoint blocked by a reader throws `StorageError.checkpointBusy`. The
+  attempt retries a bounded number of times without waiting, which is a heuristic for a transient
+  busy result: the tests pin the outcomes (success, and a reader that blocks the truncation), not
+  the number of attempts.
   `quickCheck()` runs `PRAGMA quick_check` and maps a problem row, an unreadable file or a failure
   that prevents the check from running to `StorageError.databaseCorrupt(details:)`; startup serves
   nothing until it passes.
@@ -105,7 +108,7 @@ tombstones.
   short lock wait instead of returning `SQLITE_BUSY`; the suite pins the value, not a timed
   contention scenario, because the determinism rules forbid real-time waits.
 - Retention boundary cases with the default numbers; a tombstone is written for every deleted
-  entry; starred entries are kept.
+  entry, whose hash the schema guarantees non-empty; starred entries are kept.
 - Retention driver guards: the cutoff is strict and keyed on `created_at` (not `published_at`),
   batches archive the oldest entries first, a zero batch archives nothing, a negative age skips
   that status, a zero age clamps to one day, a failing tombstone insert rolls the whole delete
@@ -126,7 +129,8 @@ tombstones.
   same parameters produce identical entry data.
 - Serving lifecycle: `serve` refuses a damaged database instead of serving it — the integrity
   error itself is asserted, and the test time limit catches a regression that starts listening —
-  and shutdown truncates the WAL while a second connection keeps the file observable.
+  shutdown truncates the WAL while a second connection keeps the file observable, and shutdown
+  completes when a reader blocks that checkpoint.
 - Heavy (opt-in, `RIVULET_HEAVY=1`): a 100 × 1000 corpus answers the hot unread-listing query.
 
 ## Exit criteria

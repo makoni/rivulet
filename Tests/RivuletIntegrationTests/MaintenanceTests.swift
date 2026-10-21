@@ -331,19 +331,12 @@ import Vapor
     private static func counts(on connection: any Database) async throws
         -> (users: Int, categories: Int, feeds: Int, entries: Int)
     {
-        let tables = ["users", "categories", "feeds", "entries"]
-        var counts: (users: Int, categories: Int, feeds: Int, entries: Int) = (0, 0, 0, 0)
-        for table in tables {
-            let row = try await RawSQL.first("SELECT count(*) AS n FROM \(table)", on: connection)
-            let value = try row?.decode(column: "n", as: Int.self) ?? 0
-            switch table {
-            case "users": counts.users = value
-            case "categories": counts.categories = value
-            case "feeds": counts.feeds = value
-            default: counts.entries = value
-            }
-        }
-        return counts
+        (
+            users: try await count("users", on: connection),
+            categories: try await count("categories", on: connection),
+            feeds: try await count("feeds", on: connection),
+            entries: try await count("entries", on: connection)
+        )
     }
 
     /// One digest line per entry, ordered by id: content equality, not just counts.

@@ -61,6 +61,42 @@ import RivuletApp
         }
     }
 
+    /// `shutdown()` treats the checkpoint as best effort: a blocked one does not stop the
+    /// teardown. The assertion is that shutdown completed while the WAL still holds the
+    /// frames the failed checkpoint could not move — without the blocked reader the WAL
+    /// would be empty, so the test cannot pass by accident.
+    @Test func shutdownCompletesWhenTheCheckpointIsBlocked() async throws {
+        let directory = try TemporaryDirectory()
+        defer { directory.remove() }
+        let path = directory.path("rivulet.db")
+        let config = try Config.load(environment: ["DATABASE_URL": path])
+
+        let rivulet = try await ApplicationFactory.make(config: config)
+        try await rivulet.storage.prepare()
+        try await rivulet.application.autoMigrate().get()
+
+        // A second driver holds a read snapshot, so the truncating checkpoint reports busy.
+        let observerApp = try await Application.make(.testing)
+        observerApp.databases.use(.sqlite(.file(path)), as: .sqlite)
+        let observer = SQLiteStorage(database: observerApp.db(.sqlite), path: path)
+        do {
+            try await observer.withConnection { connection in
+                try await RawSQL.run("BEGIN", on: connection)
+                _ = try await RawSQL.first("SELECT count(*) AS n FROM users", on: connection)
+                try await rivulet.shutdown()
+            }
+
+            let frames = try fileSize(path + "-wal")
+            #expect(frames > 0)
+
+            try await observerApp.asyncShutdown()
+        } catch {
+            try? await observerApp.asyncShutdown()
+            try? await rivulet.shutdown()
+            throw error
+        }
+    }
+
     /// `serve` must refuse a damaged file instead of serving it.
     ///
     /// The assertion is the integrity error itself. `serve` runs the check before it

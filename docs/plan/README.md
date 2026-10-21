@@ -72,7 +72,7 @@ work — stages 3 and 5 dominate). Stage 9 is opportunistic.
 | Risk | Where | Mitigation |
 | --- | --- | --- |
 | Feed parser fidelity: FeedKit covers RSS 2.0/0.90-0.92, RDF, Atom 1.0, JSON Feed — but **not Atom 0.3**, and older formats are untested | Stage 3 | Spike matrix (Atom 0.3, RSS 0.91/0.92, JSON Feed 1.1) with wrap/patch/manual-fallback decisions; deviations recorded in `docs/parity.md` |
-| Per-connection pragmas (`busy_timeout`, `synchronous`) are not managed by sqlite-kit — only `foreign_keys` is | Stages 0–1 | Storage wrapper applies pragmas on every pooled connection checkout; WAL contention test |
+| Per-connection pragmas (`busy_timeout`, `synchronous`) are not managed by sqlite-kit — only `foreign_keys` is | Stages 0–1 | Storage wrapper applies pragmas on every pooled connection checkout, and the contract values are pinned as literals; `busy_timeout` absorbs short lock contention, which the suite does not test with timed waits |
 | FTS5 ranking differs from PostgreSQL `tsvector` | Stage 1 | Rank sanity tests, not exact-score tests; tune `bm25()` weights |
 | Client dialects vary; upstream Fever has **no tests** — the code is the spec | Stages 5, 7 | Contract matrix derived from the reference handler (`docs/reference-notes.md`), golden tests, replay of captured client requests, manual checklist |
 | SQLite write contention under refresh load | Stages 1, 4 | WAL + `busy_timeout`; one write transaction per feed refresh; batch inserts |

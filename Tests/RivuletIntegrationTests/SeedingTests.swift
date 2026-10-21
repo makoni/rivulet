@@ -12,11 +12,11 @@ import Testing
             #expect(corpus.feeds == 3)
             #expect(corpus.entries == 37)
             try await storage.withConnection { connection in
-                let users = try await Self.count("users", on: connection)
+                let users = try await count("users", on: connection)
                 // The user's default "All" category plus the seeded one.
-                let categories = try await Self.count("categories", on: connection)
-                let feeds = try await Self.count("feeds", on: connection)
-                let entries = try await Self.count("entries", on: connection)
+                let categories = try await count("categories", on: connection)
+                let feeds = try await count("feeds", on: connection)
+                let entries = try await count("entries", on: connection)
                 #expect(users == 1)
                 #expect(categories == 2)
                 #expect(feeds == 3)
@@ -66,8 +66,8 @@ import Testing
             #expect(corpus.feeds == 2)
             #expect(corpus.entries == 0)
             try await storage.withConnection { connection in
-                let feeds = try await Self.count("feeds", on: connection)
-                let entries = try await Self.count("entries", on: connection)
+                let feeds = try await count("feeds", on: connection)
+                let entries = try await count("entries", on: connection)
                 #expect(feeds == 2)
                 #expect(entries == 0)
             }
@@ -89,10 +89,25 @@ import Testing
         #expect(first == second)
     }
 
-    /// Row count of `table`; the name is a literal from this file only.
-    private static func count(_ table: String, on connection: any Database) async throws -> Int {
-        let row = try await RawSQL.first("SELECT count(*) AS n FROM \(table)", on: connection)
-        return try row?.decode(column: "n", as: Int.self) ?? 0
+    @Test func aSecondSeedingIsRefusedOnTheSameDatabase() async throws {
+        try await withMigratedStorage { _, storage in
+            _ = try await Seeding.seed(on: storage, feeds: 1, entries: 2)
+
+            // The corpus is built once per database: the username is unique, so the second
+            // call is refused and its transaction rolls back, leaving the first corpus.
+            do {
+                _ = try await Seeding.seed(on: storage, feeds: 1, entries: 2)
+                Issue.record("expected the second call to be refused")
+            } catch {
+                #expect(String(describing: error).lowercased().contains("unique"))
+                try await storage.withConnection { connection in
+                    let users = try await count("users", on: connection)
+                    let entries = try await count("entries", on: connection)
+                    #expect(users == 1)
+                    #expect(entries == 2)
+                }
+            }
+        }
     }
 
     private static func entriesPerFeed(on connection: any Database) async throws -> [Int] {
