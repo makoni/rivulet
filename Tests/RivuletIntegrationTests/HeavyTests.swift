@@ -15,9 +15,11 @@ import Testing
                     .count(EntryQuery(userID: corpus.userID))
                 #expect(entries == 100_000)
 
-                // The seeded corpus answers the hot listing query used by clients.
+                // The seeded corpus answers the hot unread-listing query used by clients.
                 let page = try await EntryRepository(connection)
-                    .listIDs(EntryQuery(userID: corpus.userID, limit: 50))
+                    .listIDs(
+                        EntryQuery(userID: corpus.userID, statuses: [.unread], limit: 50)
+                    )
                 #expect(page.count == 50)
             }
         }

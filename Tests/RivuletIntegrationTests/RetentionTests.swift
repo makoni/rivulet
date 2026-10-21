@@ -306,4 +306,33 @@ import Testing
             }
         }
     }
+
+    @Test func archiveRollsBackWhenTheTombstoneInsertFails() async throws {
+        try await withMigratedStorage { _, storage in
+            let id = try await storage.withConnection { connection -> Int in
+                let feed = try await seedFeed(connection)
+                let id = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "atomic", status: .read
+                )
+                try await backdateCreatedAt(connection, id: id, createdAt: now - 61 * 86_400)
+                // The delete and the tombstone insert share the retention
+                // transaction: without the table the delete must roll back.
+                try await RawSQL.run("DROP TABLE entry_tombstones", on: connection)
+                return id
+            }
+
+            do {
+                _ = try await Retention().run(on: storage, now: now)
+                Issue.record("expected the archive to fail without the tombstone table")
+            } catch {
+                // The retention transaction rolled back.
+            }
+
+            try await storage.withConnection { connection in
+                let kept = try await EntryRepository(connection).fetch(id: id)
+                #expect(kept != nil)
+            }
+        }
+    }
 }

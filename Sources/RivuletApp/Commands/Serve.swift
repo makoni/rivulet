@@ -38,6 +38,9 @@ extension RivuletCLI {
                 try await rivulet.storage.prepare()
                 // Verify integrity before migrations or any client request: serving a
                 // damaged file can turn a recoverable backup into a lost database.
+                // The check runs after `prepare()`: a `quick_check` in rollback-journal
+                // mode leaves the pooled connection unable to run the later shutdown
+                // checkpoint.
                 try await rivulet.storage.quickCheck()
                 rivulet.application.logger.notice("Database integrity check passed")
                 if config.runMigrations {

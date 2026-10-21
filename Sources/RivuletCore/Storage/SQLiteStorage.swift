@@ -85,9 +85,11 @@ public struct SQLiteStorage: Sendable {
 
     /// Upper bound for the WAL file in bytes (64 MiB).
     ///
-    /// Bounded WAL growth keeps disk usage predictable; the value is
-    /// per-connection, hence part of the session pragmas.
-    public static let journalSizeLimit = 64 * 1024 * 1024
+    /// SQLite applies the limit when it resets the WAL after a checkpoint:
+    /// the file is truncated to this size, but between checkpoints it can
+    /// grow past the limit. The setting is per connection, hence part of the
+    /// session pragmas.
+    static let journalSizeLimit = 64 * 1024 * 1024
 
     /// Pragmas that must hold on every pooled connection.
     ///
@@ -124,10 +126,14 @@ public struct SQLiteStorage: Sendable {
     /// disk space: `DELETE` marks pages free but never shrinks the file.
     /// The rebuild is followed by a truncating WAL checkpoint, so the
     /// reclaimed space is visible in the main file when the call returns.
+    ///
+    /// - Throws: ``StorageError/checkpointBusy`` when another connection
+    ///   prevents the truncation. The rebuilt database is already committed
+    ///   in that case; retry the checkpoint once the reader is gone.
     public func vacuum() async throws {
         try await withConnection { connection in
             try await RawSQL.run("VACUUM", on: connection)
-            try await RawSQL.run("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+            try await Self.truncateWAL(on: connection)
         }
     }
 
@@ -136,20 +142,42 @@ public struct SQLiteStorage: Sendable {
     ///
     /// Call on graceful shutdown so the main file is complete on disk when
     /// the process exits.
+    ///
+    /// - Throws: ``StorageError/checkpointBusy`` when a reader holds a
+    ///   snapshot that prevents the truncation; the WAL keeps the committed
+    ///   transactions and nothing is lost.
     public func checkpoint() async throws {
         try await withConnection { connection in
-            try await RawSQL.run("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+            try await Self.truncateWAL(on: connection)
         }
     }
 
+    /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a
+    /// result row instead of failing, and can transiently report `busy` even
+    /// right after a burst of writes. Retry a couple of times without waiting,
+    /// then report a genuinely blocked WAL instead of claiming success.
+    private static func truncateWAL(on connection: any Database) async throws {
+        try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
+        for _ in 0..<3 {
+            let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+            let busy = try row?.decode(column: "busy", as: Int.self) ?? 0
+            if busy == 0 {
+                return
+            }
+        }
+        throw StorageError.checkpointBusy
+    }
+
     /// Runs `PRAGMA quick_check` and throws ``StorageError/databaseCorrupt(details:)``
-    /// when SQLite reports a problem.
+    /// when SQLite reports a problem or the check cannot complete.
     ///
     /// The fast startup integrity check: it verifies page structure, not full
-    /// content, so it stays cheap even on large databases.
+    /// content, so it stays cheap even on large databases. A file whose header
+    /// is not a database fails as a statement rather than returning problem
+    /// rows; both outcomes mean the database must not be served.
     public func quickCheck() async throws {
-        try await withConnection { connection in
-            do {
+        do {
+            try await withConnection { connection in
                 let rows = try await RawSQL.sql(on: connection).raw("PRAGMA quick_check").all()
                 var problems: [String] = []
                 for row in rows {
@@ -161,13 +189,13 @@ public struct SQLiteStorage: Sendable {
                 if !problems.isEmpty {
                     throw StorageError.databaseCorrupt(details: problems)
                 }
-            } catch let error as StorageError {
-                throw error
-            } catch {
-                // A file SQLite cannot even open (torn write, header damage)
-                // surfaces as a statement error instead of a problem row.
-                throw StorageError.databaseCorrupt(details: [String(describing: error)])
             }
+        } catch let error as StorageError {
+            throw error
+        } catch {
+            // A file SQLite cannot even open (torn write, header damage) fails
+            // while the session pragmas run or while the check statement runs.
+            throw StorageError.databaseCorrupt(details: [String(describing: error)])
         }
     }
 

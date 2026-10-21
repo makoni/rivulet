@@ -15,11 +15,18 @@ public enum StorageError: Error, Sendable, Equatable {
     /// A user-state call referenced an entry that does not exist for the user.
     case entryNotFound(id: Int)
 
-    /// `PRAGMA quick_check` reported a structural problem with the database file.
+    /// The startup integrity check failed: `PRAGMA quick_check` reported a
+    /// structural problem or could not read the database file.
     ///
     /// The database must not be served in this state; restore from a backup
     /// (see `docs/backup-restore.md`) instead of trying to repair it.
     case databaseCorrupt(details: [String])
+
+    /// A truncating WAL checkpoint was blocked by another connection.
+    ///
+    /// The WAL still holds committed transactions; the checkpoint can be
+    /// retried once the reader is gone.
+    case checkpointBusy
 }
 
 extension StorageError: CustomStringConvertible {
@@ -38,6 +45,8 @@ extension StorageError: CustomStringConvertible {
         case .databaseCorrupt(let details):
             return "the database failed the integrity check: "
                 + details.joined(separator: " | ")
+        case .checkpointBusy:
+            return "the WAL checkpoint is blocked by another connection; retry when it is idle"
         }
     }
 }

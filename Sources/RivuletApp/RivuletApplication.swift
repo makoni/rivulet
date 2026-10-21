@@ -17,10 +17,14 @@ public struct RivuletApplication: Sendable {
     ///
     /// Runs a best-effort truncating WAL checkpoint before teardown so the main
     /// database file holds every committed transaction and the `-wal` file does not
-    /// linger; a failing checkpoint (a busy or damaged database) never prevents the
-    /// teardown itself.
+    /// linger. A failing checkpoint — a busy reader or a damaged database — is
+    /// logged and never prevents the teardown itself.
     public func shutdown() async throws {
-        try? await storage.checkpoint()
+        do {
+            try await storage.checkpoint()
+        } catch {
+            application.logger.warning("WAL checkpoint on shutdown failed: \(error)")
+        }
         try await application.asyncShutdown()
     }
 }

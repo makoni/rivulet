@@ -52,13 +52,15 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 ## Retention ("archiving")
 
 - `internal/cli/cleanup_tasks.go` runs on the reference's own scheduler every
-  `CLEANUP_FREQUENCY_HOURS` (default 24; validator requires ≥1) and once at startup. It archives
-  read entries older than `CLEANUP_ARCHIVE_READ_DAYS` (default 60) and unread older than
+  `CLEANUP_FREQUENCY_HOURS` (default 24; validator requires ≥1); `miniflux -run-cleanup-tasks`
+  runs it once immediately and exits. It archives read entries older than
+  `CLEANUP_ARCHIVE_READ_DAYS` (default 60) and unread older than
   `CLEANUP_ARCHIVE_UNREAD_DAYS` (default 180); batch size `CLEANUP_ARCHIVE_BATCH_SIZE`
   (default 10000).
 - The full task set also deletes web sessions older than `CLEANUP_REMOVE_SESSIONS_DAYS`
-  (default 30) and orphan icons. Both belong to the web UI, which Rivulet does not have, so only
-  the two `ArchiveEntries` calls are ported.
+  (default 30) and orphan icons. Web sessions belong to the web UI, which Rivulet does not have;
+  orphan-icon cleanup waits for icon fetching (stage 4). Stage 1 ports only the two
+  `ArchiveEntries` calls.
 - "Archiving" is a hard `DELETE` plus a tombstone (`internal/storage/entry.go` `ArchiveEntries`):
   skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
 - Guards in `ArchiveEntries`: `interval < 0 || limit <= 0` archives nothing; the interval is

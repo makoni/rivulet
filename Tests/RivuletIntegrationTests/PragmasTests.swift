@@ -98,6 +98,10 @@ import Vapor
         let foreignKeys = try await sql.raw("PRAGMA foreign_keys").first()
         let foreignKeysValue = try foreignKeys?.decode(column: "foreign_keys", as: Int.self)
         #expect(foreignKeysValue == 1)
+
+        let journalSizeLimit = try await sql.raw("PRAGMA journal_size_limit").first()
+        let limit = try journalSizeLimit?.decode(column: "journal_size_limit", as: Int.self)
+        #expect(limit == SQLiteStorage.journalSizeLimit)
     }
 
     private static func sqlDatabase(from connection: any Database) throws -> any SQLDatabase {

@@ -30,11 +30,13 @@ public struct RetentionPolicy: Sendable, Equatable {
 
 /// Daily cleanup of archived entries (reference `runCleanupTasks`).
 ///
-/// Archives the caller's old entries in two passes — read first, then unread,
+/// Archives all users' old entries in two passes — read first, then unread,
 /// each in its own write transaction — mirroring the reference, which runs the
-/// two `ArchiveEntries` calls back to back. Age is keyed on `created_at`, not
-/// `published_at`; starred entries are always kept.
+/// two `ArchiveEntries` calls back to back (retention is not scoped to one
+/// user). Age is keyed on `created_at`, not `published_at`; starred entries
+/// are always kept.
 public struct Retention: Sendable {
+    /// The ages and batch size applied by ``run(on:now:)``.
     public let policy: RetentionPolicy
 
     /// Creates a retention driver.
@@ -53,7 +55,7 @@ public struct Retention: Sendable {
     ///
     /// - Parameters:
     ///   - on: The storage to clean.
-    ///   - now: The current Unix seconds; the storage clock applies when
+    ///   - now: The current Unix seconds; the process clock applies when
     ///     omitted (tests pass a fixed value).
     /// - Returns: The number of archived entries per status.
     public func run(

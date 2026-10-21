@@ -29,6 +29,30 @@ import Testing
                 let unread = try await EntryRepository(connection)
                     .count(EntryQuery(userID: corpus.userID))
                 #expect(unread == 37)
+
+                // The corpus is dated in the past, hourly back from the seed epoch.
+                let newest = try await RawSQL.first(
+                    "SELECT max(published_at) AS newest FROM entries", on: connection
+                )
+                let newestValue = try newest?.decode(column: "newest", as: Int.self) ?? 0
+                #expect(newestValue <= Seeding.seedEpoch)
+            }
+        }
+    }
+
+    @Test func seedRejectsInvalidCounts() async throws {
+        try await withMigratedStorage { _, storage in
+            do {
+                _ = try await Seeding.seed(on: storage, feeds: 0, entries: 10)
+                Issue.record("expected feeds: 0 to be rejected")
+            } catch {
+                #expect(error as? SeedingError == .invalidCounts(feeds: 0, entries: 10))
+            }
+            do {
+                _ = try await Seeding.seed(on: storage, feeds: 1, entries: -1)
+                Issue.record("expected entries: -1 to be rejected")
+            } catch {
+                #expect(error as? SeedingError == .invalidCounts(feeds: 1, entries: -1))
             }
         }
     }

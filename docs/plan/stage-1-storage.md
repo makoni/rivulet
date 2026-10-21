@@ -55,23 +55,29 @@ tombstones.
   caller's unread entries published before the cutoff, stamping `updated_at`.
 - Retention (`Retention`, ported from `internal/cli/cleanup_tasks.go`): two archive passes — read
   entries, then unread — each in its own write transaction, exactly like the reference's two
-  `ArchiveEntries` calls. Defaults 60/180 days and a batch of 10000; the age is keyed on
-  `created_at`, starred entries are skipped. Reference guards are kept: `batchSize <= 0` is a
-  no-op, a negative age skips that status, and a zero age clamps to one day. `now` is injectable
-  for deterministic tests. The reference's web-session and orphan-icon cleanup tasks are out of
-  scope (no web UI).
+  `ArchiveEntries` calls. Retention is not user-scoped; the reference archives every user's
+  entries. Defaults 60/180 days and a batch of 10000; the age is keyed on `created_at`, starred
+  entries are skipped. Reference guards are kept: `batchSize <= 0` is a no-op, a negative age
+  skips that status, and a zero age clamps to one day. `now` is injectable for deterministic
+  tests. Web-session cleanup is web-UI-only, and orphan-icon cleanup belongs with icon storage
+  (stage 4); neither is part of this retention driver.
 - Maintenance (`SQLiteStorage`): `backup(to:)` is `VACUUM INTO` (a consistent snapshot of a live
   database; the destination must not be an existing non-empty file — see
   `docs/backup-restore.md`). `vacuum()` is `VACUUM` followed by `PRAGMA wal_checkpoint(TRUNCATE)`:
   in WAL mode the rebuilt pages commit through the WAL, so without the checkpoint the main file
-  keeps its old size. `quickCheck()` runs `PRAGMA quick_check` and maps any problem row or
-  statement failure to `StorageError.databaseCorrupt(details:)`; startup serves nothing until it
-  passes. `journal_size_limit` (64 MiB) is part of the per-connection pragmas.
-- Seeding (`Seeding`) builds a benchmark corpus — one user, one category, N feeds and M entries in
-  round-robin order — in one transaction. Entries are inserted by one recursive CTE joined to
-  `row_number()` over the feeds, so the seeder does not rely on consecutive feed ids; titles,
-  URLs, content and timestamps derive only from the entry index, which makes two fresh databases
-  byte-for-byte comparable. 100k entries seed in under two seconds.
+  keeps its old size; a checkpoint blocked by a reader throws `StorageError.checkpointBusy`.
+  `quickCheck()` runs `PRAGMA quick_check` and maps any problem row or an unreadable file to
+  `StorageError.databaseCorrupt(details:)`; startup serves nothing until it passes.
+  `journal_size_limit` (64 MiB) is part of the per-connection pragmas: SQLite truncates the WAL
+  to that size when it resets it after a checkpoint, while between checkpoints the file can grow
+  past it.
+- Seeding (`Seeding`) builds a benchmark corpus — one user (whose creation adds the default
+  category), one explicit category, N feeds and M entries in round-robin order — in one
+  transaction. Entries are inserted by one recursive CTE joined to `row_number()` over the feeds,
+  so the seeder does not rely on consecutive feed ids; titles, URLs, content and timestamps
+  derive only from the entry index, and entries are dated hourly backwards from a fixed epoch, so
+  two fresh databases seeded with the same parameters hold identical entry data. 100k entries
+  seed in under two seconds.
 
 ## Tests
 
@@ -98,13 +104,16 @@ tombstones.
   entry; starred entries are kept.
 - Retention driver guards: the cutoff is strict and keyed on `created_at` (not `published_at`),
   batches archive the oldest entries first, a zero batch archives nothing, a negative age skips
-  that status and a zero age clamps to one day.
+  that status, a zero age clamps to one day, and a failing tombstone insert rolls the whole delete
+  back.
 - Disk-full behavior: force `SQLITE_FULL` (small `max_page_count`) — clean error, database intact.
 - `VACUUM INTO` backup produces an openable, equal database; a second backup over an existing copy
-  is refused; `vacuum` shrinks a bloated database; `checkpoint` truncates the WAL;
-  `journal_size_limit` is applied on every connection; `quick_check` reports a corrupted page.
-- Seeding: the requested corpus shape and round-robin distribution; two fresh databases seeded
-  with the same parameters produce identical entry data.
+  is refused; `vacuum` shrinks a bloated database; `checkpoint` truncates the WAL and reports a
+  reader that blocks the truncation; `journal_size_limit` is applied on every pooled connection;
+  `quick_check` reports a corrupted page and a file that is not a database.
+- Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected;
+  timestamps stay in the past; two fresh databases seeded with the same parameters produce
+  identical entry data.
 - Heavy (opt-in, `RIVULET_HEAVY=1`): a 100 × 1000 corpus answers the hot unread-listing query.
 
 ## Exit criteria

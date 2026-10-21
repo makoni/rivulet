@@ -121,16 +121,6 @@ import Vapor
         }
     }
 
-    @Test func journalSizeLimitIsAppliedOnEveryConnection() async throws {
-        try await withMigratedStorage { _, storage in
-            try await storage.withConnection { connection in
-                let row = try await RawSQL.first("PRAGMA journal_size_limit", on: connection)
-                let limit = try row?.decode(column: "journal_size_limit", as: Int.self)
-                #expect(limit == SQLiteStorage.journalSizeLimit)
-            }
-        }
-    }
-
     @Test func quickCheckPassesOnAHealthyDatabase() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
@@ -145,12 +135,9 @@ import Vapor
 
     @Test func quickCheckReportsCorruption() async throws {
         try await withMigratedStorage { database, storage in
-            try await storage.withConnection { connection in
-                // One user: page 2 (the `users` root) carries a real cell.
-                _ = try await seedUser(connection)
-            }
+            // Page 2 (the `_fluent_migrations` root) already carries the SchemaV1 row.
             try await storage.checkpoint()
-            DatabaseCorruption.page2CellCount(at: database.path)
+            try DatabaseCorruption.page2CellCount(at: database.path)
 
             // A second driver on the same file models the startup path; the
             // pooled connection above still has the uncorrupted page cached.
@@ -167,6 +154,62 @@ import Vapor
                     Issue.record("expected databaseCorrupt, got: \(error)")
                     return
                 }
+            }
+        }
+    }
+
+    @Test func quickCheckMapsAnUnreadableFileToCorruption() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.checkpoint()
+            // A zeroed file header is not a database at all: `PRAGMA quick_check`
+            // fails as a statement instead of returning problem rows.
+            var data = try Data(contentsOf: URL(fileURLWithPath: database.path))
+            data.replaceSubrange(0..<16, with: Data(repeating: 0, count: 16))
+            try data.write(to: URL(fileURLWithPath: database.path))
+
+            database.registerDriver(at: database.path, as: DatabaseID(string: "check"))
+            let checker = SQLiteStorage(
+                database: database.app.db(DatabaseID(string: "check")),
+                path: database.path
+            )
+            do {
+                try await checker.quickCheck()
+                Issue.record("expected quickCheck to reject an unreadable file")
+            } catch {
+                guard case StorageError.databaseCorrupt = error else {
+                    Issue.record("expected databaseCorrupt, got: \(error)")
+                    return
+                }
+            }
+        }
+    }
+
+    @Test func checkpointReportsAReaderThatBlocksTruncation() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID, hash: "busy"
+                )
+            }
+
+            // A second driver holds a read snapshot, so the truncating checkpoint
+            // cannot reset the WAL and must report that instead of claiming success.
+            database.registerDriver(at: database.path, as: DatabaseID(string: "reader"))
+            let reader = SQLiteStorage(
+                database: database.app.db(DatabaseID(string: "reader")),
+                path: database.path
+            )
+            try await reader.withConnection { connection in
+                try await RawSQL.run("BEGIN", on: connection)
+                _ = try await RawSQL.first("SELECT count(*) AS n FROM entries", on: connection)
+                do {
+                    try await storage.checkpoint()
+                    Issue.record("expected the checkpoint to report the busy reader")
+                } catch {
+                    #expect(error as? StorageError == .checkpointBusy)
+                }
+                try await RawSQL.run("ROLLBACK", on: connection)
             }
         }
     }

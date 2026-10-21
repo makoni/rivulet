@@ -58,8 +58,10 @@ stop-the-world copy of all three files works (stop the service, copy `rivulet.db
   `SQLiteStorage.vacuum()` rebuilds the database and finishes with a truncating WAL checkpoint, so
   the reclaimed space is released to the filesystem when the call returns.
 - `SQLiteStorage.checkpoint()` runs `PRAGMA wal_checkpoint(TRUNCATE)`; the server calls it on
-  shutdown.
-- `journal_size_limit` (64 MiB) bounds WAL growth between checkpoints.
+  shutdown. A checkpoint blocked by a reader reports `StorageError.checkpointBusy` instead of
+  pretending to succeed — retry once the reader is gone.
+- `journal_size_limit` (64 MiB) is the size to which the WAL is truncated when SQLite resets it
+  after a checkpoint; between checkpoints the file can grow past the limit.
 
 ## Durability
 

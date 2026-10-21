@@ -13,16 +13,34 @@ public struct SeededCorpus: Sendable, Equatable {
     public let entries: Int
 }
 
+/// Invalid arguments for ``Seeding/seed(on:feeds:entries:)``.
+public enum SeedingError: Error, Sendable, Equatable, CustomStringConvertible {
+    /// The requested corpus shape is impossible: `feeds` must be positive and
+    /// `entries` cannot be negative.
+    case invalidCounts(feeds: Int, entries: Int)
+
+    /// Human-readable message used by the CLI error path.
+    public var description: String {
+        switch self {
+        case .invalidCounts(let feeds, let entries):
+            return "invalid corpus size: \(feeds) feed(s), \(entries) entry/entries"
+        }
+    }
+}
+
 /// Builds a deterministic corpus of feeds and entries for benchmarks and heavy tests.
 ///
-/// The corpus has one user, one category, `feeds` feeds and `entries` entries
-/// distributed round-robin over the feeds. Titles, URLs, content and timestamps
-/// depend only on the feed and entry positions, so two fresh databases seeded
-/// with the same parameters hold identical entry data. There is no Miniflux
-/// counterpart: the reference benchmarks use its PostgreSQL fixtures.
+/// The corpus has one user (whose creation adds the default category), one
+/// explicit `Seeded` category, `feeds` feeds and `entries` entries distributed
+/// round-robin over the feeds. Titles, URLs, content and timestamps depend only
+/// on the feed and entry positions, so two fresh databases seeded with the same
+/// parameters hold identical entry data. There is no Miniflux counterpart: the
+/// reference benchmarks use its PostgreSQL fixtures.
 public enum Seeding {
-    /// Entry `n` is published `n` hours after this Unix timestamp, in the past.
-    static let firstPublishedAt = 1_700_000_000
+    /// Entry `n` is published `entries - n + 1` hours before this Unix
+    /// timestamp, so the whole corpus — including the newest entry — lies in
+    /// the past.
+    static let seedEpoch = 1_700_000_000
 
     /// Creates the corpus in one write transaction.
     ///
@@ -31,13 +49,16 @@ public enum Seeding {
     ///   - feeds: The number of feeds to create; must be positive.
     ///   - entries: The number of entries to create; may be zero.
     /// - Returns: What was created, including the owning user's id.
+    /// - Throws: ``SeedingError/invalidCounts(feeds:entries:)`` when the
+    ///   requested shape is impossible.
     public static func seed(
         on storage: SQLiteStorage,
         feeds: Int,
         entries: Int
     ) async throws -> SeededCorpus {
-        precondition(feeds > 0, "a benchmark corpus needs at least one feed")
-        precondition(entries >= 0, "the entry count cannot be negative")
+        guard feeds > 0, entries >= 0 else {
+            throw SeedingError.invalidCounts(feeds: feeds, entries: entries)
+        }
 
         return try await storage.withTransaction { connection in
             let user = try await UserRepository(connection)
@@ -90,9 +111,9 @@ public enum Seeding {
                 '',
                 '<p>Seeded entry ' || n || '</p>',
                 'seeded entry ' || n,
-                \(bind: firstPublishedAt) + n * 3600,
-                \(bind: firstPublishedAt) + n * 3600,
-                \(bind: firstPublishedAt) + n * 3600
+                \(bind: seedEpoch) - (\(bind: count) - n + 1) * 3600,
+                \(bind: seedEpoch) - (\(bind: count) - n + 1) * 3600,
+                \(bind: seedEpoch) - (\(bind: count) - n + 1) * 3600
             FROM seq
             JOIN (
                 SELECT id, row_number() OVER (ORDER BY id) AS position
