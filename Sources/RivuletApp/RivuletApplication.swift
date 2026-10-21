@@ -14,7 +14,17 @@ public struct RivuletApplication: Sendable {
     public let storage: SQLiteStorage
 
     /// Shuts down the server, the database pools and the lifecycle handlers.
+    ///
+    /// Runs a best-effort truncating WAL checkpoint before teardown so the main
+    /// database file holds every committed transaction and the `-wal` file does not
+    /// linger. A failing checkpoint — a busy reader or a damaged database — is
+    /// logged and never prevents the teardown itself.
     public func shutdown() async throws {
+        do {
+            try await storage.checkpoint()
+        } catch {
+            application.logger.warning("WAL checkpoint on shutdown failed: \(error)")
+        }
         try await application.asyncShutdown()
     }
 }

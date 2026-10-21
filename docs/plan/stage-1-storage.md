@@ -2,7 +2,7 @@
 
 **Goal:** the single source of truth for all data: models, repositories, search, retention,
 tombstones.
-**Status:** in progress. **Effort:** M. **Depends on:** Stage 0.
+**Status:** done. **Effort:** M. **Depends on:** Stage 0.
 
 ## Scope
 
@@ -20,13 +20,13 @@ tombstones.
       `MarkFeedAsRead` / `MarkCategoryAsRead`).
 - [x] Feed state bookkeeping: `etag`, `last_modified`, `next_check_at`, `parsing_error_count`,
       `parsing_error_message`, `fetched_at`.
-- [ ] Retention (port the reference defaults): daily cleanup — delete read entries older than
+- [x] Retention (port the reference defaults): daily cleanup — delete read entries older than
       60 days and unread older than 180 days, batch 10000, skip starred; per-feed policies are a
       possible extension, not MVP.
 - [x] Storage wrapper: per-connection pragmas + single-writer discipline (see stage 0).
-- [ ] Maintenance: `VACUUM INTO` backup helper (needs ~2× free space — documented), `vacuum`,
+- [x] Maintenance: `VACUUM INTO` backup helper (needs ~2× free space — documented), `vacuum`,
       `journal_size_limit`, checkpoint on shutdown, startup `PRAGMA quick_check`.
-- [ ] Seeding helper for benchmarks and tests (N feeds, 100k entries).
+- [x] Seeding helper for benchmarks and tests (N feeds, 100k entries).
 
 ## Implementation notes
 
@@ -53,6 +53,37 @@ tombstones.
   follows `WithLimit` (non-positive or oversized → 1000) while `nil` is unbounded for Fever's id
   lists. Scoped mark-as-read is one `UPDATE` (a `feeds` subquery for categories) over the
   caller's unread entries published before the cutoff, stamping `updated_at`.
+- Retention (`Retention`, ported from `internal/cli/cleanup_tasks.go`): two archive passes — read
+  entries, then unread — each in its own write transaction, exactly like the reference's two
+  `ArchiveEntries` calls. Retention is not user-scoped; the reference archives every user's
+  entries. Defaults 60/180 days and a batch of 10000; the age is keyed on `created_at`, starred
+  entries are skipped. Reference guards are kept: `batchSize <= 0` is a no-op, a negative age
+  skips that status, and a zero age clamps to one day. `now` is injectable for deterministic
+  tests. Web-session cleanup is web-UI-only, and orphan-icon cleanup belongs with icon storage
+  (stage 4); neither is part of this retention driver.
+- Maintenance (`SQLiteStorage`): `backup(to:)` is `VACUUM INTO` (a consistent snapshot of a live
+  database; the destination must not be an existing non-empty file — see
+  `docs/backup-restore.md`). `vacuum()` is `VACUUM` followed by `PRAGMA wal_checkpoint(TRUNCATE)`:
+  in WAL mode the rebuilt pages commit through the WAL, so without the checkpoint the main file
+  keeps its old size; a checkpoint blocked by a reader throws `StorageError.checkpointBusy`. The
+  attempt retries a bounded number of times without waiting, which is a heuristic for a transient
+  busy result: the tests pin the outcomes (success, and a reader that blocks the truncation), not
+  the number of attempts.
+  `quickCheck()` runs `PRAGMA quick_check` and maps a problem row, a result set with no rows, an
+  unreadable file or a failure that prevents the check from running (a lock, a full disk, a
+  connection that cannot be checked out) to `StorageError.databaseCorrupt(details:)`, while a
+  `CancellationError` is rethrown unchanged; startup serves nothing until it passes.
+  `journal_size_limit` (64 MiB) is part of the per-connection pragmas: SQLite truncates the WAL
+  to that size when it resets it after a checkpoint, while between checkpoints the file can grow
+  past it.
+- Seeding (`Seeding`) builds a benchmark corpus — one user (whose creation adds the default
+  category), one explicit category, N feeds and M entries in round-robin order — in one
+  transaction. Entries are inserted by one recursive CTE joined to `row_number()` over the feeds,
+  so the round-robin mapping follows the creation order of the feeds the call inserts; titles,
+  URLs, content and timestamps
+  derive only from the entry index, and entries are dated hourly backwards from a fixed epoch, so
+  two fresh databases seeded with the same parameters hold identical entry data. The corpus is
+  built once per database, because usernames are unique.
 
 ## Tests
 
@@ -60,6 +91,9 @@ tombstones.
 
 - Plain-text extraction from HTML; search-text → FTS5 `MATCH` translation (terms, quoted
   phrases, FTS5 operators kept as text, input without terms).
+- Storage error messages and the startup check's mapping: cancellation stays a cancellation,
+  every other failure becomes the integrity case, and an already-classified storage error is not
+  wrapped again.
 
 ### Integration
 
@@ -73,14 +107,40 @@ tombstones.
 - Entry upsert: re-importing the same GUID creates no duplicate; status/starred survive updates;
   a tombstoned entry is refused.
 - Unread counts with mixed read/starred states.
-- Concurrency: one writer + several readers in parallel under WAL; `busy_timeout` absorbs
-  contention instead of returning `SQLITE_BUSY` immediately (verifies the stage-0 wrapper).
+- Concurrency: one pooled connection per event loop with the session pragmas applied on every
+  checkout (pinned by `PragmasTests`). `busy_timeout` (5000 ms) is the contract value that lets a
+  short lock wait instead of returning `SQLITE_BUSY`; the suite pins the value, not a timed
+  contention scenario, because the determinism rules forbid real-time waits.
 - Retention boundary cases with the default numbers; a tombstone is written for every deleted
-  entry; starred entries are kept.
+  entry, whose hash the schema guarantees non-empty; starred entries are kept.
+- Retention driver guards: the cutoff is strict and keyed on `created_at` (not `published_at`),
+  batches archive the oldest entries first, a zero batch archives nothing, a negative age skips
+  that status, a zero age clamps to one day, a failing tombstone insert rolls the whole delete
+  back, and the two passes commit independently: a failure in the second leaves the first
+  committed.
+- Retention is not scoped to one user: entries of two users are archived in the same run.
 - Disk-full behavior: force `SQLITE_FULL` (small `max_page_count`) — clean error, database intact.
-- `VACUUM INTO` backup produces an openable, equal database; `vacuum` shrinks a bloated database.
+- `VACUUM INTO` backup produces an openable, equal database; a second backup over an existing copy
+  is refused, an existing empty destination is reused, a non-database destination and a missing
+  parent directory are reported; `vacuum` shrinks a bloated database; `checkpoint` truncates the
+  WAL, reports a reader that blocks the truncation and leaves the session busy timeout restored
+  after a failed attempt; `journal_size_limit` is applied on every pooled connection (the contract
+  values 5000 ms and 64 MiB are pinned as literals); `quick_check` reports a corrupted page and a
+  file that is not a database — the paths observable without a timed wait, while a lock or a full
+  disk reaches the same error case through the code's mapping.
+- Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected and
+  an empty corpus is accepted; timestamps stay in the past; two fresh databases seeded with the
+  same parameters produce identical entry data.
+- Serving lifecycle: `serve` refuses a damaged database instead of serving it — the integrity
+  error itself is asserted, and the test time limit catches a regression that starts listening —
+  shutdown truncates the WAL while a second connection keeps the file observable, and shutdown
+  completes when a reader blocks that checkpoint.
+- Heavy (opt-in, `RIVULET_HEAVY=1`): a 100 × 1000 corpus answers the hot unread-listing query.
 
 ## Exit criteria
 
-- [ ] Storage suite green; stages 2–6 consumers never need raw SQL outside this layer.
-- [ ] Backup/restore procedure documented and tested.
+- [x] Storage suite green; raw SQL stays inside this layer — the wrapper and its repositories are
+  the only access path, which is what stages 2–6 will use.
+- [x] Backup helper tested (the copy opens and matches the source, an existing destination is
+  refused); the restore procedure is documented — it is a manual file copy with no code path to
+  test.

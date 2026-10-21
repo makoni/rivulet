@@ -36,6 +36,13 @@ extension RivuletCLI {
             let rivulet = try await ApplicationFactory.make(config: config)
             do {
                 try await rivulet.storage.prepare()
+                // Verify integrity before migrations or any client request: serving a
+                // damaged file can turn a recoverable backup into a lost database.
+                // The check stays after `prepare()`: observed in testing, running it
+                // before the journal-mode change left the pooled connection locked, so
+                // the shutdown checkpoint failed.
+                try await rivulet.storage.quickCheck()
+                rivulet.application.logger.notice("Database integrity check passed")
                 if config.runMigrations {
                     try await rivulet.application.autoMigrate().get()
                 } else {

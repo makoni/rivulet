@@ -36,7 +36,7 @@ Sources/
 │   ├── Config/             # environment → Config, validation
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher, parser, dates, charset, sanitizer, OPML
-│   └── Scheduler/          # refresh loop, retention jobs
+│   └── Scheduler/          # refresh loop; retention runs as a storage-layer job
 ├── RivuletApp/             # application layer — the only target that knows Vapor
 │   ├── Commands/           # serve, migrate, version + registered stubs for the final CLI
 │   ├── Logging/            # text/JSON swift-log bootstrap
@@ -61,9 +61,11 @@ Categories own their feeds: deleting a category cascades to its feeds, and delet
 cascades to its entries, enclosures and tombstones (upstream parity).
 
 Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, published_at)`,
-`(user_id, status, created_at)` (retention) and `(user_id, status, starred)`; feeds by
-`next_check_at` and `(user_id, category_id)`; enclosures by `entry_id`; tombstones by
-`(feed_id, hash)` and `deleted_at`; FTS5 handles search.
+`(user_id, status, created_at)` and `(user_id, status, starred)` — the last three serve the
+user-scoped listings and counts; the retention archive is not user-scoped, so it runs as a
+scan bounded by its batch, as in the reference. Feeds by `next_check_at` and
+`(user_id, category_id)`; enclosures by `entry_id`; tombstones by `(feed_id, hash)` and
+`deleted_at`; FTS5 handles search.
 
 Entry listings use `EntryQuery` (status/starred/feed/category/id filters, date and id cursors,
 pagination and optional FTS5 search) through `EntryRepository`, which also owns feed- and
@@ -78,11 +80,12 @@ with the first release.
 ConsoleKit; the executable is a thin entry point that runs `RivuletCLI.run` and maps errors to a
 non-zero exit status — everything else lives in `RivuletApp`.
 
-- `serve` — builds the app via `ApplicationFactory`, applies WAL, migrates when
-  `RUN_MIGRATIONS=true`, boots, then delegates to Vapor's built-in `ServeCommand` (so
-  `--hostname`/`--port`/`--bind` keep working) and waits for the shutdown signal, like
-  `Application.execute()` does. Unsupported arguments are rejected before the database is
-  touched. The default server address comes from `LISTEN_ADDR`.
+- `serve` — builds the app via `ApplicationFactory`, applies WAL, runs the startup integrity
+  check (`PRAGMA quick_check`) before migrations, migrates when `RUN_MIGRATIONS=true`, boots,
+  then delegates to Vapor's built-in `ServeCommand` (so `--hostname`/`--port`/`--bind` keep
+  working) and waits for the shutdown signal, like `Application.execute()` does. Unsupported
+  arguments are rejected before the database is touched, and a damaged database is refused
+  instead of served. The default server address comes from `LISTEN_ADDR`.
 - `migrate` — creates or updates the SQLite schema; it always migrates (`RUN_MIGRATIONS` only
   gates what `serve` does on start).
 - `version` — prints the version.
@@ -155,7 +158,20 @@ validated before the fallback (an empty value is an error, like upstream); boole
 - A feed refresh batches all its writes in one transaction; readers use separate connections.
 - The scheduler is an actor; long jobs (retention, vacuum) run off the request path.
 - WAL allows concurrent readers with a single writer; `busy_timeout` absorbs short lock
-  contention; checkpoint on shutdown; `journal_size_limit` bounds WAL growth.
+  contention; a truncating checkpoint runs on shutdown (a blocked checkpoint is logged and the
+  teardown continues); `journal_size_limit` (64 MiB) is the size the WAL is truncated to when it
+  is reset after a checkpoint.
+- Maintenance lives on the wrapper: `backup(to:)` (`VACUUM INTO`), `vacuum()` (a rebuild followed
+  by a truncating checkpoint, so freed pages actually leave the file), `quickCheck()` at `serve`
+  startup — a corrupt database is reported as `StorageError.databaseCorrupt` and never served —
+  and `checkpoint()` on shutdown. `checkpoint()`/`vacuum()` report a reader that prevents the WAL
+  truncation as `StorageError.checkpointBusy` instead of claiming success. The operator procedure
+  is `docs/backup-restore.md`.
+- Retention is a driver (`Retention.run` over `RetentionPolicy`), not a timer: it mirrors the
+  reference's two `ArchiveEntries` passes, one transaction each, with the reference guards and
+  defaults. Stage 4 schedules it daily; per-feed policies are not MVP.
+- `Seeding` builds deterministic feed/entry corpora in one transaction (recursive CTE) for
+  benchmarks and the opt-in heavy suite.
 
 ## Porting rules
 

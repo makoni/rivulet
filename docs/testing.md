@@ -42,6 +42,11 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   repository with a chosen status/starred state, bulk-seeds entries for pagination limits, builds
   entry inputs, counts entries, tombstones and FTS matches, and backdates timestamps for the
   retention suites.
+- `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page
+  2, the `_fluent_migrations` root, using the page size from the file header) so integrity
+  tests observe `PRAGMA quick_check` failures without shipping a corrupt database fixture.
+- `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot
+  be read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
@@ -52,15 +57,17 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
   bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
   (swift-log traps on a second one).
-- Clock injection: long-running logic (scheduler, retention) takes a `Clock` abstraction; tests
-  use a manual clock and explicit `tick()` calls — no sleeping in tests.
+- Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)`
+  takes Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
 and use Vapor's client. The same socket-level approach backs the client-API journey tests.
 
-Determinism rules: no fixed ports, no real-time waits, `TZ=UTC` for date tests, per-test temp
-directories, no network access except to the local stub server.
+Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests,
+per-test temp directories, no network access except to the local stub server). A bounded timeout
+that proves a failure is fast rather than hanging is allowed — the pool-timeout test asserts one —
+and a test whose pass condition is a timeout says so in its comment.
 
 ## Fixtures
 

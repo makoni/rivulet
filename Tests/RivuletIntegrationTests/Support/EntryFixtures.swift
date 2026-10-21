@@ -185,7 +185,13 @@ func backdateUpdatedAt(_ connection: any Database, id: Int, updatedAt: Int) asyn
         .run()
 }
 
-private func count(_ table: String, on connection: any Database) async throws -> Int {
+/// Row count of `table`. A missing count row is recorded as an issue rather than folded into a
+/// number, so two failed reads cannot compare equal and a comparison against 0 stays meaningful.
+func count(_ table: String, on connection: any Database) async throws -> Int {
     let row = try await sqlDatabase(connection).raw("SELECT COUNT(*) AS count FROM \(ident: table)").first()
-    return try row?.decode(column: "count", as: Int.self) ?? -1
+    guard let row else {
+        Issue.record("count(*) for \(table) returned no row")
+        return -1
+    }
+    return try row.decode(column: "count", as: Int.self)
 }

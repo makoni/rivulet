@@ -89,6 +89,8 @@ import Vapor
 
         let busyTimeout = try await sql.raw("PRAGMA busy_timeout").first()
         let timeout = try busyTimeout?.decode(column: "timeout", as: Int.self)
+        // The documented contract values, pinned as literals so a change of the
+        // constant cannot keep this test green.
         #expect(timeout == 5000)
 
         let synchronous = try await sql.raw("PRAGMA synchronous").first()
@@ -98,6 +100,10 @@ import Vapor
         let foreignKeys = try await sql.raw("PRAGMA foreign_keys").first()
         let foreignKeysValue = try foreignKeys?.decode(column: "foreign_keys", as: Int.self)
         #expect(foreignKeysValue == 1)
+
+        let journalSizeLimit = try await sql.raw("PRAGMA journal_size_limit").first()
+        let limit = try journalSizeLimit?.decode(column: "journal_size_limit", as: Int.self)
+        #expect(limit == 64 * 1024 * 1024)
     }
 
     private static func sqlDatabase(from connection: any Database) throws -> any SQLDatabase {

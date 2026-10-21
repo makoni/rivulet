@@ -83,18 +83,163 @@ public struct SQLiteStorage: Sendable {
         }
     }
 
+    /// Upper bound for the WAL file in bytes (64 MiB).
+    ///
+    /// SQLite applies the limit when it resets the WAL after a checkpoint:
+    /// the file is truncated to this size, but between checkpoints it can
+    /// grow past the limit. The setting is per connection, hence part of the
+    /// session pragmas.
+    static let journalSizeLimit = 64 * 1024 * 1024
+
+    /// Milliseconds a pooled connection waits for a held lock before failing.
+    static let busyTimeoutMilliseconds = 5000
+
     /// Pragmas that must hold on every pooled connection.
     ///
     /// sqlite-kit applies only `foreign_keys` itself, so the wrapper enforces the full
     /// set on each checkout.
     static let sessionPragmas = [
         /// Wait up to five seconds instead of failing immediately on a held lock.
-        "PRAGMA busy_timeout = 5000",
+        "PRAGMA busy_timeout = \(busyTimeoutMilliseconds)",
         /// Durable enough with WAL: no fsync per commit, safe against process crashes.
         "PRAGMA synchronous = NORMAL",
         /// Explicit for clarity; also enabled by the driver at connection creation.
         "PRAGMA foreign_keys = ON",
+        /// Keep the WAL file bounded; applied per connection, see `journalSizeLimit`.
+        "PRAGMA journal_size_limit = \(journalSizeLimit)",
     ]
+
+    /// Creates a point-in-time copy of the database at `destination`.
+    ///
+    /// The copy is a self-contained database file with the source's exact
+    /// content, produced by `VACUUM INTO` — a consistent snapshot even while
+    /// the source stays writable. The destination's directory must exist, and
+    /// SQLite refuses to overwrite an existing non-empty file (an empty file
+    /// is reused). The copy needs free disk space of about the database size,
+    /// and about twice that when a previous backup is kept on the same volume.
+    public func backup(to destination: String) async throws {
+        try await withConnection { connection in
+            try await RawSQL.sql(on: connection).raw("VACUUM INTO \(bind: destination)").run()
+        }
+    }
+
+    /// Rebuilds the database file, releasing free pages back to the filesystem.
+    ///
+    /// Run after large deletions (for example a retention pass) to reclaim
+    /// disk space: `DELETE` marks pages free but never shrinks the file.
+    /// The rebuild is followed by a truncating WAL checkpoint, so the
+    /// reclaimed space is visible in the main file when the call returns.
+    ///
+    /// - Throws: ``StorageError/checkpointBusy`` when another connection
+    ///   prevents the truncation. The rebuilt database is already committed
+    ///   in that case; retry the checkpoint once the reader is gone.
+    public func vacuum() async throws {
+        try await withConnection { connection in
+            try await RawSQL.run("VACUUM", on: connection)
+            try await Self.truncateWAL(on: connection)
+        }
+    }
+
+    /// Checkpoints the WAL into the main database file and truncates the WAL
+    /// to zero length.
+    ///
+    /// Call on graceful shutdown so the main file is complete on disk when
+    /// the process exits.
+    ///
+    /// - Throws: ``StorageError/checkpointBusy`` when a reader holds a
+    ///   snapshot that prevents the truncation; the WAL keeps the committed
+    ///   transactions and nothing is lost.
+    public func checkpoint() async throws {
+        try await withConnection { connection in
+            try await Self.truncateWAL(on: connection)
+        }
+    }
+
+    /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a result row
+    /// instead of failing. The bounded retry covers a case seen while this was being
+    /// developed — the first truncating checkpoint after a burst of writes reported busy
+    /// although every frame had been copied, and an immediate retry succeeded — and retries
+    /// without waiting. It reports a genuinely blocked WAL instead of claiming success. The
+    /// tests pin the two outcomes the loop can produce (a checkpoint that succeeds, and one
+    /// blocked by a reader); the number of attempts is a heuristic. The connection returns to
+    /// the pool with the documented session timeout restored, and when both an attempt and the
+    /// restore fail the attempt is what the caller sees.
+    private static func truncateWAL(on connection: any Database) async throws {
+        try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
+        var busy = 1
+        var failure: (any Error)?
+        for _ in 0..<3 {
+            do {
+                let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+                // A missing row is not read as success: the loop keeps treating the WAL
+                // as blocked and reports it instead of claiming the checkpoint ran.
+                busy = try row?.decode(column: "busy", as: Int.self) ?? 1
+                if busy == 0 {
+                    break
+                }
+            } catch {
+                failure = error
+                break
+            }
+        }
+        // The session timeout is restored before the connection goes back to the pool. When
+        // both an attempt and the restore fail, the attempt is the cause worth reporting.
+        do {
+            try await RawSQL.run("PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection)
+        } catch {
+            failure = failure ?? error
+        }
+        if let failure {
+            throw failure
+        }
+        guard busy == 0 else {
+            throw StorageError.checkpointBusy
+        }
+    }
+
+    /// Runs `PRAGMA quick_check` and throws ``StorageError/databaseCorrupt(details:)``
+    /// when SQLite reports a problem or the check cannot complete.
+    ///
+    /// The fast startup integrity check: it verifies page structure, not full
+    /// content, so it stays cheap even on large databases. A file whose header is
+    /// not a database fails as a statement rather than returning problem rows, and a
+    /// check that returns no rows cannot be read as success.
+    /// Problem rows, an unreadable file and a failure that prevented the check from
+    /// running — a lock held by another connection, a full disk, a connection that
+    /// could not be checked out — are reported through the same case with what was
+    /// observed as the detail, so the message says the check failed rather than
+    /// claiming damage SQLite did not see. A database whose check fails must not be
+    /// served; a failure that only prevented the check says nothing about the file.
+    /// A `CancellationError` escaping the check is rethrown unchanged: a cancelled task
+    /// is not a damaged database.
+    public func quickCheck() async throws {
+        do {
+            try await withConnection { connection in
+                let rows = try await RawSQL.sql(on: connection).raw("PRAGMA quick_check").all()
+                var problems: [String] = []
+                for row in rows {
+                    let detail = try row.decode(column: "quick_check", as: String.self)
+                    if detail != "ok" {
+                        problems.append(detail)
+                    }
+                }
+                if rows.isEmpty {
+                    // An empty result is not a clean check; `quick_check` reports "ok" on a
+                    // healthy database, so no row means nothing was observed.
+                    throw StorageError.databaseCorrupt(details: ["the check returned no result"])
+                }
+                if !problems.isEmpty {
+                    throw StorageError.databaseCorrupt(details: problems)
+                }
+            }
+        } catch let error as StorageError {
+            throw error
+        } catch {
+            // A file SQLite cannot even open (torn write, header damage) fails while the
+            // session pragmas run or while the check statement runs.
+            throw StorageError.integrityFailure(for: error)
+        }
+    }
 
     static func applySessionPragmas(on database: any Database) async throws {
         for statement in sessionPragmas {
