@@ -64,6 +64,61 @@ import Vapor
         }
     }
 
+    @Test func backupReusesAnEmptyDestinationFile() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID, hash: "empty-destination"
+                )
+            }
+
+            // SQLite reuses an existing empty file instead of refusing it.
+            let destination = database.directory.appendingPathComponent("empty.db").path
+            try "".write(to: URL(fileURLWithPath: destination), atomically: true, encoding: .utf8)
+            try await storage.backup(to: destination)
+
+            database.registerDriver(at: destination, as: DatabaseID(string: "empty"))
+            let copy = SQLiteStorage(
+                database: database.app.db(DatabaseID(string: "empty")), path: destination
+            )
+            try await copy.withConnection { connection in
+                let counts = try await Self.counts(on: connection)
+                #expect(counts.entries == 1)
+            }
+        }
+    }
+
+    @Test func backupRejectsANonDatabaseDestination() async throws {
+        try await withMigratedStorage { database, storage in
+            let destination = database.directory.appendingPathComponent("text.db").path
+            try "not a database".write(
+                to: URL(fileURLWithPath: destination), atomically: true, encoding: .utf8
+            )
+            do {
+                try await storage.backup(to: destination)
+                Issue.record("expected a non-database destination to be refused")
+            } catch {
+                #expect(String(describing: error).contains("not a database"))
+            }
+            // The source is untouched.
+            try await storage.quickCheck()
+        }
+    }
+
+    @Test func backupNeedsAnExistingParentDirectory() async throws {
+        try await withMigratedStorage { database, storage in
+            let destination = database.directory.appendingPathComponent("missing/copy.db").path
+            do {
+                try await storage.backup(to: destination)
+                Issue.record("expected a missing parent directory to be reported")
+            } catch {
+                #expect(String(describing: error).contains("unable to open database"))
+            }
+            try await storage.quickCheck()
+        }
+    }
+
     @Test func vacuumReclaimsPagesFromDeletedRows() async throws {
         try await withMigratedStorage { database, storage in
             let feed = try await storage.withConnection { connection -> (userID: Int, feedID: Int) in
@@ -89,11 +144,11 @@ import Vapor
             }
             #expect(deleted == 20)
             try await storage.checkpoint()
-            let bloated = try #require(Self.fileSize(database.path))
+            let bloated = try fileSize(database.path)
             #expect(bloated > 5_000_000)
 
             try await storage.vacuum()
-            let shrunk = try #require(Self.fileSize(database.path))
+            let shrunk = try fileSize(database.path)
             #expect(shrunk < bloated / 2)
 
             try await storage.quickCheck()
@@ -114,10 +169,12 @@ import Vapor
                 )
             }
             let wal = database.path + "-wal"
-            #expect(try #require(Self.fileSize(wal)) > 0)
+            let before = try fileSize(wal)
+            #expect(before > 0)
 
             try await storage.checkpoint()
-            #expect(Self.fileSize(wal) == 0)
+            let after = try fileSize(wal)
+            #expect(after == 0)
         }
     }
 
@@ -295,15 +352,5 @@ import Vapor
     private static func pageCount(on connection: any Database) async throws -> Int {
         let row = try await RawSQL.first("PRAGMA page_count", on: connection)
         return try row?.decode(column: "page_count", as: Int.self) ?? 0
-    }
-
-    /// Size of `path`, or nil when the file is missing: an assertion that the WAL is
-    /// empty must not be satisfied by a deleted WAL.
-    private static func fileSize(_ path: String) -> Int? {
-        guard FileManager.default.fileExists(atPath: path) else {
-            return nil
-        }
-        let attributes = try? FileManager.default.attributesOfItem(atPath: path)
-        return (attributes?[.size] as? NSNumber)?.intValue ?? 0
     }
 }

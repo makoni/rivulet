@@ -78,11 +78,12 @@ with the first release.
 ConsoleKit; the executable is a thin entry point that runs `RivuletCLI.run` and maps errors to a
 non-zero exit status — everything else lives in `RivuletApp`.
 
-- `serve` — builds the app via `ApplicationFactory`, applies WAL, migrates when
-  `RUN_MIGRATIONS=true`, boots, then delegates to Vapor's built-in `ServeCommand` (so
-  `--hostname`/`--port`/`--bind` keep working) and waits for the shutdown signal, like
-  `Application.execute()` does. Unsupported arguments are rejected before the database is
-  touched. The default server address comes from `LISTEN_ADDR`.
+- `serve` — builds the app via `ApplicationFactory`, applies WAL, runs the startup integrity
+  check (`PRAGMA quick_check`) before migrations, migrates when `RUN_MIGRATIONS=true`, boots,
+  then delegates to Vapor's built-in `ServeCommand` (so `--hostname`/`--port`/`--bind` keep
+  working) and waits for the shutdown signal, like `Application.execute()` does. Unsupported
+  arguments are rejected before the database is touched, and a damaged database is refused
+  instead of served. The default server address comes from `LISTEN_ADDR`.
 - `migrate` — creates or updates the SQLite schema; it always migrates (`RUN_MIGRATIONS` only
   gates what `serve` does on start).
 - `version` — prints the version.

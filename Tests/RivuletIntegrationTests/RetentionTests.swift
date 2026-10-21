@@ -371,4 +371,51 @@ import Testing
             }
         }
     }
+
+    @Test func archivePassesRunInSeparateTransactions() async throws {
+        try await withMigratedStorage { _, storage in
+            let ids = try await storage.withConnection { connection -> (read: Int, unread: Int) in
+                let feed = try await seedFeed(connection)
+                let read = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "read-pass", status: .read
+                )
+                let unread = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID, hash: "unread-pass"
+                )
+                for id in [read, unread] {
+                    try await backdateCreatedAt(connection, id: id, createdAt: now - 61 * 86_400)
+                }
+                // The second pass must fail; the first must already be committed.
+                try await RawSQL.run("""
+                    CREATE TRIGGER block_unread_archive BEFORE DELETE ON entries
+                    FOR EACH ROW WHEN OLD.status = 'unread'
+                    BEGIN SELECT RAISE(ABORT, 'unread archive blocked'); END;
+                    """, on: connection)
+                return (read, unread)
+            }
+
+            let policy = RetentionPolicy(
+                readEntryAgeDays: 60, unreadEntryAgeDays: 60, batchSize: 10_000
+            )
+            do {
+                _ = try await Retention(policy: policy).run(on: storage, now: now)
+                Issue.record("expected the unread pass to fail")
+            } catch {
+                #expect(String(describing: error).contains("unread archive blocked"))
+            }
+
+            try await storage.withConnection { connection in
+                let entries = EntryRepository(connection)
+                // Two transactions means the read pass is not rolled back with the
+                // failed pass: it committed on its own.
+                let readEntry = try await entries.fetch(id: ids.read)
+                let unreadEntry = try await entries.fetch(id: ids.unread)
+                #expect(readEntry == nil)
+                #expect(unreadEntry != nil)
+                let tombstones = try await tombstoneCount(connection)
+                #expect(tombstones == 1)
+            }
+        }
+    }
 }

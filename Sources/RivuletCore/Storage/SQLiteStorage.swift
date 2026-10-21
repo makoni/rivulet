@@ -155,24 +155,32 @@ public struct SQLiteStorage: Sendable {
     }
 
     /// `PRAGMA wal_checkpoint(TRUNCATE)` reports a blocked checkpoint in a result row
-    /// instead of failing, and can report `busy` immediately after a burst of writes
-    /// even with no other reader — an immediate retry then succeeds. Retry a few times
-    /// without waiting, then report a genuinely blocked WAL instead of claiming
-    /// success, and restore the documented session timeout before the connection goes
-    /// back to the pool.
+    /// instead of failing. Observed in testing: the first truncating checkpoint right
+    /// after a burst of writes reports `busy` even though every frame has been copied,
+    /// and an immediate retry succeeds. So the loop retries a few times without waiting
+    /// and then reports a genuinely blocked WAL instead of claiming success. The
+    /// connection goes back to the pool with the documented session timeout restored,
+    /// even when an attempt fails.
     private static func truncateWAL(on connection: any Database) async throws {
         try await RawSQL.run("PRAGMA busy_timeout = 0", on: connection)
         var busy = 1
+        var failure: (any Error)?
         for _ in 0..<3 {
-            let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
-            busy = try row?.decode(column: "busy", as: Int.self) ?? 0
-            if busy == 0 {
+            do {
+                let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
+                busy = try row?.decode(column: "busy", as: Int.self) ?? 0
+                if busy == 0 {
+                    break
+                }
+            } catch {
+                failure = error
                 break
             }
         }
-        try await RawSQL.run(
-            "PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection
-        )
+        try await RawSQL.run("PRAGMA busy_timeout = \(busyTimeoutMilliseconds)", on: connection)
+        if let failure {
+            throw failure
+        }
         guard busy == 0 else {
             throw StorageError.checkpointBusy
         }
@@ -188,6 +196,7 @@ public struct SQLiteStorage: Sendable {
     /// another connection, a full disk — is reported through the same case with the
     /// underlying error as the detail, so the message does not claim damage that
     /// SQLite did not see; either outcome means the database must not be served.
+    /// A cancelled task is rethrown unchanged.
     public func quickCheck() async throws {
         do {
             try await withConnection { connection in
@@ -206,8 +215,12 @@ public struct SQLiteStorage: Sendable {
         } catch let error as StorageError {
             throw error
         } catch {
-            // A file SQLite cannot even open (torn write, header damage) fails
-            // while the session pragmas run or while the check statement runs.
+            if error is CancellationError {
+                throw error
+            }
+            // A file SQLite cannot even open (torn write, header damage) fails while the
+            // session pragmas run or while the check statement runs; a cancelled task is
+            // not a damaged database and is rethrown unchanged.
             throw StorageError.databaseCorrupt(details: [String(describing: error)])
         }
     }

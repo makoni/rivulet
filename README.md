@@ -2,8 +2,11 @@
 
 A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3).
 
-> **Status:** early development. The foundation (configuration, SQLite storage, CLI skeleton,
-> `/healthz`) is in place; feed subscriptions land with the next stages.
+> **Status:** early development. The foundation and the storage layer are in place:
+> configuration, the SQLite storage wrapper with its pragmas, the CLI skeleton, `/healthz`,
+> entry queries and FTS5 search, retention and maintenance (backup, vacuum, checkpoint on
+> shutdown, startup integrity check). Feed fetching and the client APIs land with the next
+> stages.
 
 ## What it will be
 

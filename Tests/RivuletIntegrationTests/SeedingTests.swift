@@ -30,12 +30,15 @@ import Testing
                     .count(EntryQuery(userID: corpus.userID))
                 #expect(unread == 37)
 
-                // The corpus is dated in the past, hourly back from the seed epoch.
-                let newest = try await RawSQL.first(
+                // The documented formula: the newest entry is one hour before the
+                // seed epoch, which itself lies in the past.
+                let newestRow = try await RawSQL.first(
                     "SELECT max(published_at) AS newest FROM entries", on: connection
                 )
-                let newestValue = try newest?.decode(column: "newest", as: Int.self) ?? 0
-                #expect(newestValue <= Seeding.seedEpoch)
+                let decoded = try newestRow?.decode(column: "newest", as: Int.self)
+                let newest = try #require(decoded)
+                #expect(newest == Seeding.seedEpoch - 3600)
+                #expect(newest < Int(Date.now.timeIntervalSince1970))
             }
         }
     }

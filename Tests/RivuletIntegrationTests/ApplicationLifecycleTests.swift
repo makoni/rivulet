@@ -45,9 +45,12 @@ import RivuletApp
             }
 
             let wal = path + "-wal"
-            #expect(try #require(Self.fileSize(wal)) > 0)
+            let framesBefore = try fileSize(wal)
+            #expect(framesBefore > 0)
+
             try await rivulet.shutdown()
-            #expect(try #require(Self.fileSize(wal)) == 0)
+            let truncated = try fileSize(wal)
+            #expect(truncated == 0)
 
             try await observerApp.asyncShutdown()
             observer = nil
@@ -58,11 +61,12 @@ import RivuletApp
         }
     }
 
-    /// `serve` must reject a damaged file before it migrates it or binds a socket.
+    /// `serve` must refuse a damaged file instead of serving it.
     ///
-    /// `LISTEN_ADDR` is left at the configuration default and never bound by a correct
-    /// run; a regression would start listening and the test fails on the time limit
-    /// instead of hanging forever.
+    /// The assertion is the integrity error itself. `serve` runs the check before it
+    /// migrates or listens, so no socket is created and `LISTEN_ADDR` stays at the
+    /// configuration default; a regression would start listening and this test fails on
+    /// the time limit instead of hanging forever.
     @Test(.timeLimit(.minutes(1)))
     func serveRefusesACorruptDatabase() async throws {
         let directory = try TemporaryDirectory()
@@ -86,20 +90,12 @@ import RivuletApp
             )
             Issue.record("serve must not start on a corrupt database")
         } catch {
-            guard case StorageError.databaseCorrupt = error else {
+            guard case StorageError.databaseCorrupt(let details) = error else {
                 Issue.record("expected databaseCorrupt, got: \(error)")
                 return
             }
+            // The integrity check must actually see the damaged page.
+            #expect(details.joined(separator: " ").contains("page 2"))
         }
-    }
-
-    /// Size of `path`, or nil when the file is missing: an assertion that the WAL is
-    /// empty must not be satisfied by a deleted WAL.
-    private static func fileSize(_ path: String) -> Int? {
-        guard FileManager.default.fileExists(atPath: path) else {
-            return nil
-        }
-        let attributes = try? FileManager.default.attributesOfItem(atPath: path)
-        return (attributes?[.size] as? NSNumber)?.intValue ?? 0
     }
 }

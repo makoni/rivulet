@@ -48,7 +48,7 @@ extension StorageError: CustomStringConvertible {
         case .entryNotFound(let id):
             return "entry #\(id) does not exist"
         case .databaseCorrupt(let details):
-            return "the database failed the integrity check: "
+            return "the startup integrity check failed: "
                 + details.joined(separator: " | ")
         case .checkpointBusy:
             return "the WAL checkpoint is blocked by another connection; retry when it is idle"

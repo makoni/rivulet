@@ -75,10 +75,11 @@ tombstones.
 - Seeding (`Seeding`) builds a benchmark corpus — one user (whose creation adds the default
   category), one explicit category, N feeds and M entries in round-robin order — in one
   transaction. Entries are inserted by one recursive CTE joined to `row_number()` over the feeds,
-  so the seeder does not rely on consecutive feed ids; titles, URLs, content and timestamps
+  so the round-robin mapping follows the creation order of the feeds the call inserts; titles,
+  URLs, content and timestamps
   derive only from the entry index, and entries are dated hourly backwards from a fixed epoch, so
-  two fresh databases seeded with the same parameters hold identical entry data. 100k entries
-  seed in under two seconds.
+  two fresh databases seeded with the same parameters hold identical entry data. The corpus is
+  built once per database, because usernames are unique.
 
 ## Tests
 
@@ -105,24 +106,29 @@ tombstones.
   entry; starred entries are kept.
 - Retention driver guards: the cutoff is strict and keyed on `created_at` (not `published_at`),
   batches archive the oldest entries first, a zero batch archives nothing, a negative age skips
-  that status, a zero age clamps to one day, and a failing tombstone insert rolls the whole delete
-  back.
+  that status, a zero age clamps to one day, a failing tombstone insert rolls the whole delete
+  back, and the two passes commit independently: a failure in the second leaves the first
+  committed.
 - Retention is not scoped to one user: entries of two users are archived in the same run.
 - Disk-full behavior: force `SQLITE_FULL` (small `max_page_count`) — clean error, database intact.
 - `VACUUM INTO` backup produces an openable, equal database; a second backup over an existing copy
-  is refused; `vacuum` shrinks a bloated database; `checkpoint` truncates the WAL and reports a
-  reader that blocks the truncation; `journal_size_limit` is applied on every pooled connection;
+  is refused, an existing empty destination is reused, a non-database destination and a missing
+  parent directory are reported; `vacuum` shrinks a bloated database; `checkpoint` truncates the
+  WAL and reports a reader that blocks the truncation; `journal_size_limit` is applied on every
+  pooled connection (the contract values 5000 ms and 64 MiB are pinned as literals);
   `quick_check` reports a corrupted page and a file that is not a database.
 - Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected and
   an empty corpus is accepted; timestamps stay in the past; two fresh databases seeded with the
   same parameters produce identical entry data.
-- Serving lifecycle: `serve` refuses a damaged database before it migrates it or binds a socket,
+- Serving lifecycle: `serve` refuses a damaged database instead of serving it — the integrity
+  error itself is asserted, and the test time limit catches a regression that starts listening —
   and shutdown truncates the WAL while a second connection keeps the file observable.
 - Heavy (opt-in, `RIVULET_HEAVY=1`): a 100 × 1000 corpus answers the hot unread-listing query.
 
 ## Exit criteria
 
-- [x] Storage suite green; stages 2–6 consumers never need raw SQL outside this layer.
+- [x] Storage suite green; raw SQL stays inside this layer — the wrapper and its repositories are
+  the only access path, which is what stages 2–6 will use.
 - [x] Backup helper tested (the copy opens and matches the source, an existing destination is
   refused); the restore procedure is documented — it is a manual file copy with no code path to
   test.

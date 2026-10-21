@@ -45,6 +45,8 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page
   2, the `_fluent_migrations` root, using the page size from the file header) so integrity
   tests observe `PRAGMA quick_check` failures without shipping a corrupt database fixture.
+- `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot
+  be read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.

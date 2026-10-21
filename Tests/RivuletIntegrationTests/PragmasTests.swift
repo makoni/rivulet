@@ -89,7 +89,9 @@ import Vapor
 
         let busyTimeout = try await sql.raw("PRAGMA busy_timeout").first()
         let timeout = try busyTimeout?.decode(column: "timeout", as: Int.self)
-        #expect(timeout == SQLiteStorage.busyTimeoutMilliseconds)
+        // The documented contract values, pinned as literals so a change of the
+        // constant cannot keep this test green.
+        #expect(timeout == 5000)
 
         let synchronous = try await sql.raw("PRAGMA synchronous").first()
         let synchronousValue = try synchronous?.decode(column: "synchronous", as: Int.self)
@@ -101,7 +103,7 @@ import Vapor
 
         let journalSizeLimit = try await sql.raw("PRAGMA journal_size_limit").first()
         let limit = try journalSizeLimit?.decode(column: "journal_size_limit", as: Int.self)
-        #expect(limit == SQLiteStorage.journalSizeLimit)
+        #expect(limit == 64 * 1024 * 1024)
     }
 
     private static func sqlDatabase(from connection: any Database) throws -> any SQLDatabase {

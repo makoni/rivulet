@@ -7,8 +7,9 @@ import Foundation
 /// `Seeded` category, `feeds` feeds and `entries` entries distributed round-robin over
 /// the feeds. Titles, URLs, content and timestamps depend only on the feed and entry
 /// positions, so two fresh databases seeded with the same parameters hold identical
-/// entry data. There is no Miniflux counterpart: the reference benchmarks use its
-/// PostgreSQL fixtures.
+/// entry data. The corpus is built once per database — usernames are unique, so a second
+/// call on the same database fails on that constraint. There is no Miniflux counterpart:
+/// the reference benchmarks use its PostgreSQL fixtures.
 public enum Seeding {
     /// Entry `n` is published `entries - n + 1` hours before this Unix timestamp, so
     /// the whole corpus — including the newest entry — lies in the past.
@@ -53,9 +54,8 @@ public enum Seeding {
         }
     }
 
-    /// Inserts all entries with one recursive statement. Feeds are matched by
-    /// `row_number()` over their creation order rather than by id, so the mapping
-    /// does not assume ids are consecutive.
+    /// Inserts all entries with one recursive statement; feeds are matched by
+    /// `row_number()` over the seeded user's feeds in creation order.
     private static func insertEntries(
         on connection: any Database,
         userID: Int,
