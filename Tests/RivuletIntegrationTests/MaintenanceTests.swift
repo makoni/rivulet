@@ -272,6 +272,14 @@ import Vapor
                 }
                 try await RawSQL.run("ROLLBACK", on: connection)
             }
+
+            // The fast retries run with `busy_timeout = 0`; the connection returns to the
+            // pool with the documented session timeout, also after a failed attempt.
+            try await storage.withConnection { connection in
+                let row = try await RawSQL.first("PRAGMA busy_timeout", on: connection)
+                let timeout = try row?.decode(column: "timeout", as: Int.self)
+                #expect(timeout == 5000)
+            }
         }
     }
 

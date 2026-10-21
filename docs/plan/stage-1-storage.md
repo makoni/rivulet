@@ -100,8 +100,10 @@ tombstones.
 - Entry upsert: re-importing the same GUID creates no duplicate; status/starred survive updates;
   a tombstoned entry is refused.
 - Unread counts with mixed read/starred states.
-- Concurrency: one writer + several readers in parallel under WAL; `busy_timeout` absorbs
-  contention instead of returning `SQLITE_BUSY` immediately (verifies the stage-0 wrapper).
+- Concurrency: one pooled connection per event loop with the session pragmas applied on every
+  checkout (pinned by `PragmasTests`). `busy_timeout` (5000 ms) is the contract value that lets a
+  short lock wait instead of returning `SQLITE_BUSY`; the suite pins the value, not a timed
+  contention scenario, because the determinism rules forbid real-time waits.
 - Retention boundary cases with the default numbers; a tombstone is written for every deleted
   entry; starred entries are kept.
 - Retention driver guards: the cutoff is strict and keyed on `created_at` (not `published_at`),
@@ -114,9 +116,11 @@ tombstones.
 - `VACUUM INTO` backup produces an openable, equal database; a second backup over an existing copy
   is refused, an existing empty destination is reused, a non-database destination and a missing
   parent directory are reported; `vacuum` shrinks a bloated database; `checkpoint` truncates the
-  WAL and reports a reader that blocks the truncation; `journal_size_limit` is applied on every
-  pooled connection (the contract values 5000 ms and 64 MiB are pinned as literals);
-  `quick_check` reports a corrupted page and a file that is not a database.
+  WAL, reports a reader that blocks the truncation and leaves the session busy timeout restored
+  after a failed attempt; `journal_size_limit` is applied on every pooled connection (the contract
+  values 5000 ms and 64 MiB are pinned as literals); `quick_check` reports a corrupted page and a
+  file that is not a database — the paths observable without a timed wait, while a lock or a full
+  disk reaches the same error case through the code's mapping.
 - Seeding: the requested corpus shape and round-robin distribution; invalid sizes are rejected and
   an empty corpus is accepted; timestamps stay in the past; two fresh databases seeded with the
   same parameters produce identical entry data.

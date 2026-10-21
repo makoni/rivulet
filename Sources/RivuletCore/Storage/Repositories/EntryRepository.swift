@@ -173,9 +173,10 @@ public struct EntryRepository {
     /// delete and the tombstone insert are one atomic step only inside
     /// ``SQLiteStorage/withTransaction(_:)``, which callers must provide.
     ///
-    /// - Returns: the number of deleted entries. The reference returns the
-    ///   number of inserted tombstones instead; the two differ only for the
-    ///   empty hashes the parser never produces.
+    /// - Returns: the number of deleted entries. The reference returns the number of
+    ///   rows it inserted into `entry_tombstones`, which changes with skipped empty
+    ///   hashes and with `(feed_id, hash)` conflicts; a live entry can never have a
+    ///   tombstone, so in practice the two counts agree.
     @discardableResult
     public func archive(status: EntryStatus, createdBefore: Int, limit: Int) async throws -> Int {
         guard limit > 0 else { return 0 }

@@ -115,7 +115,8 @@ public struct SQLiteStorage: Sendable {
     /// content, produced by `VACUUM INTO` — a consistent snapshot even while
     /// the source stays writable. The destination's directory must exist, and
     /// SQLite refuses to overwrite an existing non-empty file (an empty file
-    /// is reused). The copy needs roughly the source size in free disk space.
+    /// is reused). The copy needs free disk space of about the database size,
+    /// and about twice that when a previous backup is kept on the same volume.
     public func backup(to destination: String) async throws {
         try await withConnection { connection in
             try await RawSQL.sql(on: connection).raw("VACUUM INTO \(bind: destination)").run()
@@ -168,7 +169,9 @@ public struct SQLiteStorage: Sendable {
         for _ in 0..<3 {
             do {
                 let row = try await RawSQL.first("PRAGMA wal_checkpoint(TRUNCATE)", on: connection)
-                busy = try row?.decode(column: "busy", as: Int.self) ?? 0
+                // A missing row is not read as success: the loop keeps treating the WAL
+                // as blocked and reports it instead of claiming the checkpoint ran.
+                busy = try row?.decode(column: "busy", as: Int.self) ?? 1
                 if busy == 0 {
                     break
                 }
@@ -196,7 +199,9 @@ public struct SQLiteStorage: Sendable {
     /// another connection, a full disk — is reported through the same case with the
     /// underlying error as the detail, so the message does not claim damage that
     /// SQLite did not see; either outcome means the database must not be served.
-    /// A cancelled task is rethrown unchanged.
+    /// A `CancellationError` from the caller is rethrown unchanged; a cancellation
+    /// raised inside the check cannot be told apart from a SQLite failure and is
+    /// reported like one.
     public func quickCheck() async throws {
         do {
             try await withConnection { connection in

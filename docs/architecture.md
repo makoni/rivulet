@@ -61,9 +61,11 @@ Categories own their feeds: deleting a category cascades to its feeds, and delet
 cascades to its entries, enclosures and tombstones (upstream parity).
 
 Indexes target hot paths: entries by `(feed_id, status)`, `(user_id, status, published_at)`,
-`(user_id, status, created_at)` (retention) and `(user_id, status, starred)`; feeds by
-`next_check_at` and `(user_id, category_id)`; enclosures by `entry_id`; tombstones by
-`(feed_id, hash)` and `deleted_at`; FTS5 handles search.
+`(user_id, status, created_at)` and `(user_id, status, starred)` — the last three serve the
+user-scoped listings and counts; the retention archive is not user-scoped, so it runs as a
+scan bounded by its batch, as in the reference. Feeds by `next_check_at` and
+`(user_id, category_id)`; enclosures by `entry_id`; tombstones by `(feed_id, hash)` and
+`deleted_at`; FTS5 handles search.
 
 Entry listings use `EntryQuery` (status/starred/feed/category/id filters, date and id cursors,
 pagination and optional FTS5 search) through `EntryRepository`, which also owns feed- and
