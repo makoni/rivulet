@@ -255,12 +255,14 @@ Semantics:
   - A failure the client reports is mapped to the fetcher's categories. An error with no category is
     reported as a network failure with the client's wording, which is the same category the reference
     uses for it: `isNetworkError` is true for `*url.Error`, the way Go wraps a client failure. Only the
-    wording differs — Go prints its `Get "url":` wrapper, Rivulet prints what the client said, and for an
-    unparseable `Location` it prints Go's phrase without the parse error Go adds after the colon, since
-    Rivulet has no parse error to print. Two categories are reachable on one side only: the reference's
-    `error.http_client_error` is reached only for a client error that is not a `*url.Error`, and its
-    `error.network_timeout` sits behind `isNetworkError`, so a timeout Go's client wraps is a network error
-    there while Rivulet reports it as a timeout.
+    wording differs on that path — Go prints its `Get "url":` wrapper, Rivulet prints what the client
+    said — and for an unparseable `Location` Rivulet prints Go's phrase without the parse error Go adds
+    after the colon, since it has no parse error to print. Rivulet's phrases for its own categories (a
+    deadline, a connection closed by the peer) are Rivulet's, not the reference's. Two categories are
+    one-sided: `error.network_timeout` sits behind `isNetworkError`, so a timeout Go's client wraps is a
+    network error there while Rivulet reports it as a timeout; and `error.http_client_error` needs an
+    error that is not a `*url.Error`, which the fetch path does not produce, so it is effectively
+    unreachable upstream.
   - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
     `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
     Rivulet does neither — no effect today, because the request builder sets none of those headers.
@@ -283,6 +285,11 @@ Semantics:
     as well. Leftover text that is not spaces is rejected by Rivulet too. Rivulet is stricter at the offset
     boundary: Go's numeric path compares with `>`, so `+2400` and `+0360` parse under `RFC1123Z`, while
     Rivulet reads only an hour of 0...23 and a minute of 0...59.
+  - `Expires` becomes a delay in whole minutes: `Until(now).Truncate(minute) + minute`, so a value inside
+    the current minute yields a minute even when it is already past, while a past value sitting on a minute
+    boundary yields nothing because the truncation and the added minute cancel. Rivulet divides whole
+    seconds the same way — truncating toward zero, which is what Go's `Truncate` does — so a negative value
+    behaves the same here.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a
