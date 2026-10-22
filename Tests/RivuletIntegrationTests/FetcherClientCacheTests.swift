@@ -3,8 +3,9 @@ import Testing
 @testable import RivuletCore
 
 /// The client cache. A client is never pruned while a request is using it — only `shutdown()` closes
-/// everything — because closing one cancels the request it is serving, which is the failure this suite
-/// pins.
+/// everything — because closing one cancels the request it is serving, which is the failure the first test
+/// pins. The second pins what `shutdown()` leaves observable: a second call has nothing to close, and the
+/// next fetch builds a client again.
 @Suite struct FetcherClientCacheTests {
     /// Answers every name with the loopback address, so one stub can serve several host names.
     private struct LoopbackResolver: AddressResolver {
@@ -49,6 +50,32 @@ import Testing
                 let response = try await slow.value
                 #expect(response.status == 200)
                 #expect(response.body == Data("slow".utf8))
+            }
+        }
+    }
+
+    @Test func aSecondShutdownDoesNothingAndTheFetcherWorksAgain() async throws {
+        // `shutdown()` takes the entries out of the cache before closing them, so the second call finds
+        // nothing to close. Only the observable half of that is asserted here: no error on a second call,
+        // and a fetch after it builds a client again. That a call overlapping the first cannot close the
+        // same client twice is a property of taking the entries out before the first await; it cannot be
+        // reproduced without a client-creation seam the plan does not have, and a test that depended on the
+        // two calls interleaving would pass by luck, which `docs/testing.md` forbids.
+        try await FetchTestSupport.withServer(behaviors: [
+            "/one": StubFeedServer.Behavior(body: Data("one".utf8)),
+        ]) { server in
+            try await FetchTestSupport.withFetcher(
+                options: FetchTestSupport.options(),
+                resolver: LoopbackResolver()
+            ) { fetcher in
+                let url = URL(string: "http://example:\(server.port)/one")!
+                _ = try await fetcher.fetch(FetchRequest(url: url, headers: [:]))
+
+                try await fetcher.shutdown()
+                try await fetcher.shutdown()
+
+                let response = try await fetcher.fetch(FetchRequest(url: url, headers: [:]))
+                #expect(response.body == Data("one".utf8))
             }
         }
     }

@@ -289,7 +289,7 @@ import RivuletCore
         }
     }
 
-    @Test func anUnparsableRedirectLocationIsAFetchErrorWithRivuletsOwnPhraseAndNoParseError() async throws {
+    @Test func anUnparsableRedirectLocationIsAFetchErrorWithGoPhraseAndNoParseError() async throws {
         try await FetchTestSupport.withServer(behaviors: [
             "/bad": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://[bad"]),
         ]) { server in
@@ -299,9 +299,9 @@ import RivuletCore
                     Issue.record("expected the unparseable redirect location to fail")
                 } catch let error as FetchError {
                     #expect(error == .redirectTargetUnparseable("http://[bad"))
-                    // The phrase is Rivulet's own: the reference has no wording for an unparseable
-                    // `Location`, it prints Go's `Get "url":` wrapper with the parse error, and Rivulet has
-                    // no parse error to print.
+                    // Go's phrase — `net/http`'s `Client.do` writes it and wraps it in `Get "url":`, which is
+                    // what the reference prints. Rivulet has no parse error to print, so the phrase stands
+                    // alone, and the wrapper is dropped: that is what is asserted here.
                     #expect(String(describing: error) == "fetcher: failed to parse Location header \"http://[bad\"")
                 }
             }

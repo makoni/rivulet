@@ -85,11 +85,16 @@ the only place the byte order of the raw `addrinfo` layout is pinned. Everything
 lookup per hop, the answer handed to the policy, and the client pinned to the answer it was built from —
 is tested through the resolver seam with a seeded resolver.
 
-The cache has one behaviour test, for the one effect that can be observed from outside: an eviction
-while a request is in flight must not close the client that request is using, or the client cancels it —
-that is the failure the test reproduces. The request head reaches the stub only after the client was
-taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a known point
-without a sleep; the body is held by the server long enough for the fillers to run, and the test says so.
+The cache has two behaviour tests. The first pins the one effect that can be observed from outside an
+eviction: while a request is in flight the client serving it must not be closed, or that request is
+cancelled — that is the failure the test reproduces. The request head reaches the stub only after the
+client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a
+known point without a sleep, and the body is held long enough for the fillers to run, which the test
+states. The second asserts what `shutdown()` can be observed to do: a second call finds nothing to close
+and the next fetch builds a client again. That a call
+overlapping the first cannot close the same client twice follows from taking the entries out before the
+first await; it cannot be reproduced without a client-creation seam the plan does not have, and a test that
+depended on the two calls interleaving would pass by luck, so it is documented rather than tested.
 Everything else about the cache is not observable from outside when two hosts are answered by the same
 address: what is asserted is the key, because the guarantee that a pin is never reused for another host
 or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,

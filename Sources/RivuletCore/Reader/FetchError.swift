@@ -2,9 +2,10 @@ import Foundation
 
 /// Fetch failures. The wording follows the reference (`internal/reader/fetcher`) where the reference
 /// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
-/// phrase the reference would print with it; an invalid URL, the redirect cap, a deadline, a connection
-/// closed by the peer, an unclassifiable client failure and an unparseable `Location` are Rivulet's own
-/// phrases.
+/// phrase the reference would print with it, without Go's `Get "url":` wrapper. The phrases for an invalid
+/// URL, the redirect cap, a deadline, a connection closed by the peer and an unclassifiable client failure
+/// are Rivulet's own: the reference has no error string for those, only locale keys whose strings Rivulet
+/// does not reproduce.
 ///
 /// A failure reaches the caller two ways, and the categories are the same either way: ``Fetcher/fetch(_:)``
 /// throws for a transport or limit failure, while an HTTP status is a response the caller can inspect, so
@@ -17,15 +18,22 @@ public enum FetchError: Error, Sendable, Equatable {
     case invalidURL(String)
 
     /// The resolved address is private, loopback or link-local, and private targets are not
-    /// allowed (`FETCHER_ALLOW_PRIVATE_NETWORKS`).
+    /// allowed (`FETCHER_ALLOW_PRIVATE_NETWORKS`). The message is the reference's sentinel, with the host
+    /// printed bare rather than quoted as the reference does with `%q`.
     case privateNetworkHost(String)
 
-    /// The host did not resolve, like upstream `ErrHostnameResolution`.
+    /// The host did not resolve. The phrase is upstream's sentinel `ErrHostnameResolution`
+    /// (`internal/reader/fetcher/request_builder.go:32`), which the reference never produces on the fetch
+    /// path: a DNS failure there comes from Go's resolver inside `Get "url":` and is shown as a network
+    /// failure, so this category is Rivulet's own, on the resolver seam upstream does not have. Recorded in
+    /// `docs/reference-notes.md`.
     case hostnameResolution(String)
 
-    /// A `Location` that cannot be parsed. The phrase is Rivulet's own: the reference has no wording of its
-    /// own for this failure, it prints Go's `Get "url":` wrapper with the parse error, and Rivulet has no
-    /// parse error to print because its URL parsing gives none. Recorded in `docs/reference-notes.md`.
+    /// A `Location` that cannot be parsed. The phrase is Go's — `net/http`'s `Client.do` writes
+    /// `failed to parse Location header %q: %v` and wraps it in its `Get "url":` error, which is what the
+    /// reference prints (`fetcher: %w`, `internal/reader/fetcher/response_handler.go:177`). Rivulet prints
+    /// the phrase without that wrapper and without the parse error Go puts after the colon, because its URL
+    /// parsing gives none. Recorded in `docs/reference-notes.md`.
     case redirectTargetUnparseable(String)
 
     /// A configured proxy URL that cannot be read, like upstream
@@ -56,13 +64,13 @@ public enum FetchError: Error, Sendable, Equatable {
 }
 
 extension FetchError: CustomStringConvertible {
-    /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it
-    /// wraps the failure. Where the reference has no message of its own — an invalid URL, the redirect cap,
-    /// a deadline, a connection closed by the peer, an unclassifiable client failure, an unparseable
-    /// `Location` — the phrase is Rivulet's, printed with that prefix, with the client's own wording after
-    /// it for the network case. The two parse messages also drop the parse error the reference prints after
-    /// the colon — Go's for the proxy URL, Go's wrapper for a `Location` — because Rivulet's URL parsing
-    /// gives none; the cases say so.
+    /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it wraps
+    /// the failure, without Go's `Get "url":` wrapper. Where the reference has no error string of its own —
+    /// an invalid URL, the redirect cap, a deadline, a connection closed by the peer, an unclassifiable
+    /// client failure — the phrase is Rivulet's, with the client's own wording after it for the network
+    /// case; the strings Miniflux shows for those come from locale keys, which Rivulet does not reproduce.
+    /// The two parse messages drop the parse error the reference prints after the colon, because Rivulet's
+    /// URL parsing gives none; the cases say so.
     public var description: String {
         switch self {
         case .invalidURL(let url):

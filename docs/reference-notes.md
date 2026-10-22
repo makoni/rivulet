@@ -260,9 +260,15 @@ Semantics:
     reported as a network failure with the client's wording, which is the same category the reference
     uses for it: `isNetworkError` is true for `*url.Error` — which `net/http`'s `Client.do` wraps every
     failure in — so only the wording differs on that path: Go prints its `Get "url":` wrapper, Rivulet
-    prints its own phrase with the client's wording after it. For an unparseable `Location` the phrase is
-    Rivulet's own: the reference has no wording for that failure, it prints Go's `Get "url":` wrapper with
-    the parse error, and Rivulet has no parse error to print.
+    prints its own phrase with the client's wording after it; the strings Miniflux shows for these come from
+    locale keys (`internal/locale/translations/en_US.json`), which Rivulet does not reproduce. For an
+    unparseable `Location` Rivulet prints Go's phrase (`failed to parse Location header`,
+    `net/http/client.go:650`) without the `Get "url":` wrapper and without the parse error Go adds after the
+    colon, since it has no parse error to print. Two more wording details: the reference quotes the host in
+    the private-network message with `%q` and Rivulet prints it bare, and `ErrHostnameResolution` is only
+    ever compared (`internal/ui/proxy.go:106`) — the fetch path reports a DNS failure as Go's resolver error
+    inside `Get "url":`, so Rivulet's category for it is its own, reached through the resolver seam upstream
+    does not have.
     Three of the reference's categories are one-sided: `error.network_timeout` sits behind
     `isNetworkError`, so a timeout Go's client wraps is a network error there while Rivulet reports it as a
     timeout; `error.http_empty_response` sits behind it too, for the same reason; and
