@@ -118,6 +118,10 @@ import Testing
         // look the bracketed text up rather than classify it. Go's parser rejects brackets too, so the
         // address itself is the value either way.
         #expect(URL(string: "http://[::1]:8080/feed")?.host == "::1")
+
+        // A bracket is not part of the address text, which Go's `netip.ParseAddr` rejects too, so the
+        // value that reaches `parse` has to be the host without them.
+        #expect(NetworkAddress.parse("[::1]") == nil)
     }
 
     @Test func anAddressHostIsCheckedWithoutALookup() async throws {

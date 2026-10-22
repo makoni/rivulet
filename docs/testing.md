@@ -76,12 +76,12 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)`
   takes Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
-The one public API with no test is `SystemAddressResolver`, and it cannot have a hermetic one against a
-network: it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test uses a
-numeric host, which the resolver answers from the string itself without contacting anything, and that is
-also the only place the byte order of the raw `addrinfo` layout is pinned. Everything else that matters —
-one lookup per hop, the answer handed to the policy, the client pinned to that answer — is tested through
-the resolver seam with a seeded resolver.
+`SystemAddressResolver` is the only public API that cannot have a hermetic test against a network: it
+calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow case that
+works without one — a numeric host, which the resolver answers from the string itself — and that is also
+the only place the byte order of the raw `addrinfo` layout is pinned. Everything else that matters — one
+lookup per hop, the answer handed to the policy, the client pinned to that answer — is tested through the
+resolver seam with a seeded resolver.
 
 The client cache is not unit-tested either: its key and its TTL decide which client a request gets, and
 the choice between two clients that would be answered by the same address is not observable from outside.
