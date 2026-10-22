@@ -182,7 +182,7 @@ import RivuletCore
         }
     }
 
-    @Test func everyRedirectHopGoesThroughTheResolverSeamBeforeConnecting() async throws {
+    @Test func everyRedirectHopGoesThroughTheResolverSeam() async throws {
         // Upstream checks the address on every dial, so a hop to another host goes through the policy
         // rather than a lookup inside the client. This proves the seam is consulted for the hop and that
         // a hop the seam cannot answer stops the fetch: the escape hatch is on so the first hop can be
@@ -308,6 +308,8 @@ import RivuletCore
                     Issue.record("expected the unparseable redirect location to fail")
                 } catch let error as FetchError {
                     #expect(error == .redirectTargetUnparseable("http://[bad"))
+                    // The message the reference prints is Go's phrase wrapped as `fetcher: %w`.
+                    #expect(String(describing: error) == "fetcher: failed to parse Location header \"http://[bad\"")
                 }
             }
         }

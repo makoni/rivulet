@@ -12,8 +12,15 @@ enum HTTPDate {
     static func parse(_ value: String) -> Int? {
         let parts = value.split(separator: " ", omittingEmptySubsequences: true)
         // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone. The
-        // reference's layout reads the day as two digits, so "2" is not a day here either.
-        guard parts.count == 6, parts[0].hasSuffix(","), parts[1].count == 2 else {
+        // reference's layout looks the weekday up in its day-name table, reads the day as two digits and
+        // the year as four, and range-checks the fields — so a made-up weekday or an out-of-range clock
+        // is not an HTTP-date either.
+        guard parts.count == 6,
+            parts[0].hasSuffix(","),
+            dayNames.contains(String(parts[0].dropLast().lowercased().prefix(3))),
+            parts[1].count == 2,
+            parts[3].count == 4
+        else {
             return nil
         }
 
@@ -23,8 +30,11 @@ enum HTTPDate {
         let clock = parts[4].split(separator: ":")
         guard
             let month, let day, let year,
+            (1...31).contains(day),
             clock.count == 3,
-            let hour = Int(clock[0]), let minute = Int(clock[1]), let second = Int(clock[2])
+            let hour = Int(clock[0]), (0...23).contains(hour),
+            let minute = Int(clock[1]), (0...59).contains(minute),
+            let second = Int(clock[2]), (0...59).contains(second)
         else {
             return nil
         }
@@ -44,6 +54,10 @@ enum HTTPDate {
         "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
         "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
     ]
+
+    /// Go's `shortDayNames`. Its parser matches the weekday as a case-insensitive prefix, so "Monday"
+    /// is read as "Mon".
+    private static let dayNames: Set<String> = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
     /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
     private static func parseZoneOffset(_ value: String) -> Int? {

@@ -23,9 +23,13 @@ public enum NetworkAddress: Sendable, Equatable {
             }
             var bytes: [UInt8] = []
             for part in parts {
-                // Go reads digits only here, so a signed group is not a group even though the range
-                // check alone would accept "+2". Leading zeros are accepted, as `net.ParseIP` does.
-                guard part.allSatisfy(\.isNumber), let number = Int(part), (0...255).contains(number) else {
+                // Go reads digits only here, so a signed group is not a group even though the numeric
+                // range check alone would accept "+2", and an octet with a leading zero is rejected.
+                guard part.allSatisfy(\.isNumber),
+                    part.first != "0" || part.count == 1,
+                    let number = Int(part),
+                    (0...255).contains(number)
+                else {
                     return nil
                 }
                 bytes.append(UInt8(number))

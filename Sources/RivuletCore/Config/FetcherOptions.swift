@@ -30,7 +30,9 @@ public struct FetcherOptions: Sendable, Equatable {
     /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in megabytes.
     public static let defaultMaxBodySize: Int = 15 * 1024 * 1024
 
-    /// Go's `http.Client` follows at most 10 redirects; Rivulet keeps that limit.
+    /// The redirect cap. Go's default `CheckRedirect` stops after 10 requests, so it follows at most 9
+    /// redirects; Rivulet counts the hops it follows, which is one hop more at the boundary — recorded
+    /// in `docs/reference-notes.md`.
     public static let defaultMaxRedirects: Int = 10
 
     /// Total request timeout (`HTTP_CLIENT_TIMEOUT`).

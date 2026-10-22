@@ -5,12 +5,12 @@ import NIOHTTP1
 
 /// Fetches feed documents.
 ///
-/// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift. The differences
-/// from the reference are deliberate and recorded in `docs/reference-notes.md`: the body cap is
-/// enforced through the response accumulator, because AsyncHTTPClient has no `MaxBytesReader`
-/// equivalent; the private-network check runs on the address we resolved and pinned rather than in a
-/// dialer callback, which removes the time-of-check window; and redirects are followed hop by hop so
-/// the check runs on every hop, as the reference's dialer does.
+/// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift, with the
+/// differences recorded in `docs/reference-notes.md`: the body cap goes through the response
+/// accumulator, which counts the same bytes the reference's `MaxBytesReader` counts; the
+/// private-network check runs on the address resolved through the resolver seam and pinned, which
+/// closes the time-of-check window the reference's dialer leaves; and redirects are followed hop by
+/// hop so the check runs on every hop, as the reference's dialer does.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, so a client is never
     /// shared between hosts, and a stale pin cannot outlive the cache.

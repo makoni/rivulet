@@ -129,6 +129,13 @@ import Testing
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 EST") == nil)
         // The layout reads the day as two digits, so a single digit is not an HTTP-date either.
         #expect(HTTPDate.parse("Sun, 2 Jan 2025 15:07:22 GMT") == nil)
+        // Go looks the weekday up in its day-name table and range-checks the fields, so a made-up
+        // weekday or an out-of-range clock is not an HTTP-date either, and the year is four digits.
+        #expect(HTTPDate.parse("Xyz, 15 Jun 2025 07:28:00 GMT") == nil)
+        #expect(HTTPDate.parse("Sun, 32 Jun 2025 07:28:00 GMT") == nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 25:70:80 GMT") == nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 20156 07:28:00 GMT") == nil)
+        #expect(HTTPDate.parse("Monday, 15 Jun 2025 07:28:00 GMT") != nil)
 
         let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
         #expect(withoutComma.retryAfter(now: now) == .zero)

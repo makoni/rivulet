@@ -231,6 +231,12 @@ Semantics:
   most 9 are followed — see the deviation below), `Connection: close`, and the `Accept`
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
+  - Rivulet has no connect-time hook, so the private-network check runs on the address it resolved
+    through an injectable seam and pinned with `dnsOverride`: the address checked is the address
+    connected to, which closes the time-of-check window the reference's dialer leaves.
+  - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the decompressed
+    body — the same thing the reference's `MaxBytesReader` counts when it wraps the decompression
+    reader, so only the mechanism differs.
   - `Accept-Encoding: gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); no
     `Connection: close` because Rivulet keeps a connection pool; the advertised user agent is
     Rivulet's own. Brotli, TLS-error tolerance and HTTP/2 toggles are deferred. The pool runs on
@@ -255,12 +261,14 @@ Semantics:
   - Rivulet refuses the whole request when **any** resolved answer is non-public. Upstream checks the
     address it dials one attempt at a time, so a private answer later in the list is never reached
     when a public answer connects first; Rivulet is stricter here on purpose.
-  - `HTTPDate` requires the weekday, the comma after it and a two-digit day (Go's `time.RFC1123`
-    layout). A zone name other than `GMT`/`UTC` is not read: Go applies its zone table, so `EST` would
-    shift the time by its offset.
-  - Address text is read strictly, as Go's parser does: a group is hex digits only, so a sign is not a
-    group, and a lone colon is not the `::` compression. Leading zeros in a dotted quad are accepted,
-    because `net.ParseIP` — the parser the reference uses — accepts them.
+  - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: the weekday must be a day name, the
+    comma after it is required, the day is two digits and the year four, and the fields are
+    range-checked. A zone name other than `GMT`/`UTC` is the divergence: Go applies its zone table, so
+    `EST` would shift the time by its offset.
+  - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
+    hex digits only for a group, so a sign is not a group; a lone colon is not the `::` compression; an
+    octet with a leading zero is rejected; a zone is not accepted. The mixed form `::ffff:1.2.3.4` is
+    the one case Rivulet's parser does not read — the unmapped form comes from resolver bytes.
   - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
   - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
     `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).

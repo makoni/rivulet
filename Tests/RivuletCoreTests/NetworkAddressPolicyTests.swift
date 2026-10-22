@@ -57,6 +57,14 @@ import Testing
         #expect(allow.allows(nil))
     }
 
+    @Test func anOctetWithALeadingZeroIsNotAnAddressLikeGoRejectsIt() throws {
+        // `netip.ParseAddr` — what `net.ParseIP` uses — rejects an octet with a leading zero, so the
+        // reference never treats `010.1.1.1` as an address. Rivulet must not be more lenient.
+        #expect(NetworkAddress.parse("010.1.1.1") == nil)
+        #expect(NetworkAddress.parse("1.2.3.04") == nil)
+        #expect(NetworkAddress.parse("10.1.1.1") == NetworkAddress.ipv4([10, 1, 1, 1]))
+    }
+
     @Test func addressesRoundTripToTheirCanonicalText() throws {
         #expect(NetworkAddress.parse("2001:0db8:0000::0001")?.text == "2001:db8:0:0:0:0:0:1")
         #expect(NetworkAddress.parse("127.0.0.1")?.text == "127.0.0.1")
