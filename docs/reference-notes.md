@@ -232,8 +232,9 @@ Semantics:
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
   - Rivulet has no connect-time hook, so the private-network check runs on the address it resolved
-    through an injectable seam and pinned with `dnsOverride`: the address checked is the address
-    connected to, which closes the time-of-check window the reference's dialer leaves.
+    through an injectable seam and pinned with `dnsOverride`: the address checked is the address connected
+    to. That is the same TOCTOU guarantee the reference gets from its dialer's `Control` callback — the
+    difference is the mechanism, not the property.
   - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the decompressed
     body — the same thing the reference's `MaxBytesReader` counts when it wraps the decompression
     reader, so only the mechanism differs.
@@ -277,20 +278,20 @@ Semantics:
     when a public answer connects first; Rivulet is stricter here on purpose.
   - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: three letters of a day name for the
     weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
-    minute and second fixed at two digits while the hour is not. The divergences: Go applies its zone
-    table, so `EST` would shift the time by its offset; Go reads the zone as a name or a signed hour
-    (`+03`, `GMT+3`), but a bare `+03` is taken as a zone name with no shift — only `GMT+3` moves the
-    time — while Rivulet shifts for every numeric offset it reads, including the four-digit `+hhmm` form
-    that servers actually send and that `RFC1123Z` is what accepts upstream; Rivulet does not read a
-    fractional second, which Go accepts after the seconds field; and Rivulet splits the value on spaces, so
-    it reads a padded value — Go rejects a leading space before the weekday and any leftover after the
-    zone, though a run of spaces in the middle counts as one separator, so a doubled space parses upstream
-    as well. Leftover text that is not spaces is rejected by Rivulet too. Rivulet is stricter at the offset
-    boundary: Go's numeric path (`RFC1123Z`) reads fixed-width two-digit fields and allows an hour of 24
-    and a minute or second of 60 (`hr > 24`, `mm > 60`, `ss > 60`), so `+2400` and `+0360` parse there,
-    while Rivulet reads only an hour of 0...23 and a minute of 0...59. Go's `> 23` check is in
-    `parseSignedOffset`, which reads the signed hour of a zone name (`+03`, `GMT+3`), not the numeric
-    field.
+    minute and second fixed at two digits while the hour is not. The divergences: Go looks a zone name up
+    in the local zone table, so `EST` shifts the time when that table defines it (otherwise the name is
+    kept with no offset); Go reads the zone as a name or a signed hour (`+03`, `GMT+3`), but a bare `+03`
+    is taken as a zone name with no shift — only `GMT+3` moves the time — while Rivulet reads only the
+    four-digit `+hhmm` form, which is what servers actually send and what `RFC1123Z` accepts upstream, and
+    shifts for it; Rivulet does not read a fractional second, which Go accepts after the seconds field;
+    and Rivulet splits the value on spaces, so it reads a padded value — Go rejects a leading space before
+    the weekday and any leftover after the zone, though a run of spaces in the middle counts as one
+    separator, so a doubled space parses upstream as well. Leftover text that is not spaces is rejected by
+    Rivulet too. Rivulet is stricter at the offset boundary: Go's numeric path (`RFC1123Z`) reads
+    fixed-width two-digit fields and allows an hour of 24 and a minute of 60 (`hr > 24`, `mm > 60`), so
+    `+2400` and `+0360` parse there, while Rivulet reads only an hour of 0...23 and a minute of 0...59.
+    Go's `> 23` check is in `parseSignedOffset`, which reads the signed hour of a zone name (`+03`,
+    `GMT+3`), not the numeric field.
   - `Expires` becomes a delay in whole minutes: `Until(now).Truncate(minute) + minute`, so a value inside
     the current minute yields a minute even when it is already past, a past value that truncates to exactly
     the previous minute yields nothing, and one further past yields a negative delay. Rivulet divides whole

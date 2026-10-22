@@ -8,13 +8,14 @@ import NIOHTTP1
 /// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift, with the
 /// differences recorded in `docs/reference-notes.md`: the body cap goes through the response
 /// accumulator, which counts the same bytes the reference's `MaxBytesReader` counts; the
-/// private-network check runs on the address resolved through the resolver seam and pinned, which
-/// closes the time-of-check window the reference's dialer leaves; and redirects are followed hop by
-/// hop so the check runs on every hop, as the reference's dialer does.
+/// private-network check runs on the address resolved through the resolver seam and pinned with
+/// `dnsOverride`, so the address checked is the one connected to — the guarantee the reference's
+/// dialer `Control` callback gives it, by another mechanism; and redirects are followed hop by hop so
+/// the check runs on every hop, as the reference's dialer does.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, and the cache key is
     /// `host|proxyURL`, so a pin is never used for another host or for a proxied request; an expired entry
-    /// is not reused, and it is closed as soon as no request is using it.
+    /// is not reused, and the next prune closes it once no request is using it.
     static let clientTTL: Duration = .seconds(60)
 
     /// How many idle clients are kept at once. A client a request is using is not closed to stay under
