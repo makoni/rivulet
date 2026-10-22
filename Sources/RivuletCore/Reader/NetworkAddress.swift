@@ -8,8 +8,10 @@ public enum NetworkAddress: Sendable, Equatable {
     /// Sixteen bytes for IPv6.
     case ipv6([UInt8])
 
-    /// Parses a dotted-quad or a colon-separated address (with the `::` compression), or nil when
-    /// the text is not an address — a hostname is not an address. Zone scopes are not accepted.
+    /// Parses a dotted-quad or a colon-separated address (with the `::` compression) the way Go's
+    /// parser reads one: every field must have a digit, a group is at most four hex digits, and `::`
+    /// stands for at least one zero group. Returns nil when the text is not an address — a hostname is
+    /// not an address — and zone scopes are not accepted.
     public static func parse(_ text: String) -> NetworkAddress? {
         let value = text.trimmingCharacters(in: .whitespaces)
         guard !value.isEmpty, !value.contains("%") else {
@@ -17,7 +19,10 @@ public enum NetworkAddress: Sendable, Equatable {
         }
 
         if value.contains(".") {
-            let parts = value.split(separator: ".")
+            // Go requires a digit in every field, so an empty octet is not an address; a split that
+            // drops empty parts would accept `1..2.3.4` or `1.2.3.` and the policy would then read a
+            // host as an address instead of handing it to the resolver.
+            let parts = value.split(separator: ".", omittingEmptySubsequences: false)
             guard parts.count == 4 else {
                 return nil
             }
@@ -25,7 +30,8 @@ public enum NetworkAddress: Sendable, Equatable {
             for part in parts {
                 // Go reads digits only here, so a signed group is not a group even though the numeric
                 // range check alone would accept "+2", and an octet with a leading zero is rejected.
-                guard part.allSatisfy(\.isNumber),
+                guard !part.isEmpty,
+                    part.allSatisfy(\.isNumber),
                     part.first != "0" || part.count == 1,
                     let number = Int(part),
                     (0...255).contains(number)
@@ -53,8 +59,10 @@ public enum NetworkAddress: Sendable, Equatable {
 
         var groups = head
         if halves.count == 2 {
+            // Go requires `::` to stand for at least one zero group, so a form that leaves nothing to
+            // expand is not an address.
             let missing = 8 - groups.count - tail.count
-            guard missing >= 0 else {
+            guard missing >= 1 else {
                 return nil
             }
             groups.append(contentsOf: repeatElement(0, count: missing))
@@ -81,9 +89,10 @@ public enum NetworkAddress: Sendable, Equatable {
         }
         var groups: [Int] = []
         for part in text.split(separator: ":", omittingEmptySubsequences: false) {
-            // Go's address parser reads groups as hex digits only, so a sign is not a group even
-            // though the numeric range check alone would accept "+1".
+            // Go's address parser reads groups as hex digits only — at most four of them, so "+1" and
+            // "0abcd" are not groups even though the numeric range check alone would accept them.
             guard !part.isEmpty,
+                part.count <= 4,
                 part.allSatisfy(\.isHexDigit),
                 let number = Int(part, radix: 16),
                 (0...65_535).contains(number)

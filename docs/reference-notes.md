@@ -261,14 +261,16 @@ Semantics:
   - Rivulet refuses the whole request when **any** resolved answer is non-public. Upstream checks the
     address it dials one attempt at a time, so a private answer later in the list is never reached
     when a public answer connects first; Rivulet is stricter here on purpose.
-  - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: the weekday must be a day name, the
-    comma after it is required, the day is two digits and the year four, and the fields are
-    range-checked. A zone name other than `GMT`/`UTC` is the divergence: Go applies its zone table, so
-    `EST` would shift the time by its offset.
+  - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: three letters of a day name for the
+    weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
+    minute and second fixed at two digits while the hour is not. The divergences are the zone table —
+    `EST` would shift the time by its offset — and the offset forms Go also accepts (`+03`, `GMT+3`).
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
-    hex digits only for a group, so a sign is not a group; a lone colon is not the `::` compression; an
-    octet with a leading zero is rejected; a zone is not accepted. The mixed form `::ffff:1.2.3.4` is
-    the one case Rivulet's parser does not read — the unmapped form comes from resolver bytes.
+    every field must have a digit, so an empty octet is not an address; a group is at most four hex
+    digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a
+    leading zero is rejected; and a zone is not accepted — `netip.ParseAddr` would accept a zone, but
+    `net.ParseIP`, which the reference uses, rejects it. The mixed form `::ffff:1.2.3.4` is the one case
+    Rivulet's parser does not read — the unmapped form comes from resolver bytes.
   - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
   - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
     `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).

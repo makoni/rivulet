@@ -25,10 +25,13 @@
       the request if **any** resolved address is private/loopback/link-local/multicast/unspecified or
       in the RFC 6598 range, then connect through a client pinned to the validated address
       (`dnsOverride`, one short-TTL client per host). The fetcher follows redirects itself so the
-      policy runs on every hop, as the reference's dialer does. A DNS-rebinding test proves a second
-      lookup cannot swap in a private address. Escape hatch: `FETCHER_ALLOW_PRIVATE_NETWORKS=true`
-      (tests only). A proxied request is not pinned — the proxy resolves the target — so the policy
-      is skipped for that hop, which is what upstream does with an explicitly configured proxy.
+      policy runs on every hop, as the reference's dialer does. A host is resolved once through the
+      seam and the client connects to that validated address, so a later lookup cannot change the
+      target — the DNS-rebinding case the reference closes with its dialer; the tests show one lookup
+      through the seam and that the connection goes to the validated address. Escape hatch:
+      `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (tests only). A proxied request is not pinned — the proxy
+      resolves the target — so the policy is skipped for that hop, which is what upstream does with an
+      explicitly configured proxy.
 
 ## Implementation notes
 

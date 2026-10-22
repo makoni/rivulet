@@ -135,7 +135,14 @@ import Testing
         #expect(HTTPDate.parse("Sun, 32 Jun 2025 07:28:00 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 25:70:80 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 20156 07:28:00 GMT") == nil)
-        #expect(HTTPDate.parse("Monday, 15 Jun 2025 07:28:00 GMT") != nil)
+        // Go consumes exactly three characters for the weekday, so a long name is not this layout, and
+        // the minute and second are fixed at two digits while the hour is not.
+        #expect(HTTPDate.parse("Monday, 15 Jun 2025 07:28:00 GMT") == nil)
+        #expect(HTTPDate.parse("Wed, 15 Jun 2025 7:28:00 GMT") != nil)
+        #expect(HTTPDate.parse("Wed, 15 Jun 2025 7:28:0 GMT") == nil)
+        #expect(HTTPDate.parse("Wed, 15 Jun 2025 07:2:00 GMT") == nil)
+        // Go validates the day against the month after parsing, so 31 February is not a date.
+        #expect(HTTPDate.parse("Sun, 31 Feb 2025 07:28:00 GMT") == nil)
 
         let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
         #expect(withoutComma.retryAfter(now: now) == .zero)

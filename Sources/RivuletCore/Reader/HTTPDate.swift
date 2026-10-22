@@ -2,22 +2,26 @@ import Foundation
 
 /// Parses an HTTP-date (RFC 1123, the format `Expires` and `Retry-After` use) into Unix seconds.
 ///
-/// The weekday is part of the format, as in the reference's `time.RFC1123` layout, so the comma
-/// after it is required. The zone must be GMT/UTC or a numeric offset; Go reads any zone name and
-/// applies its zone table, so a named zone other than GMT/UTC is not read here — a recorded
-/// deviation in `docs/reference-notes.md`. A value that does not parse yields nil, which the
+/// The value is read the way Go's `time.Parse` reads `time.RFC1123`: the three-letter weekday with its
+/// comma, a two-digit day, the month name, a four-digit year, a clock whose minute and second are two
+/// digits while the hour is not, and the zone. A value that does not parse yields nil, which the
 /// reference also treats as "no delay".
+///
+/// Deviation: Go reads any zone name and applies its zone table, so `EST` would shift the time by its
+/// offset, and it also accepts `+03` and `GMT+3` as offsets; here the zone must be GMT/UTC or a
+/// four-digit offset — recorded in `docs/reference-notes.md`.
 enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {
         let parts = value.split(separator: " ", omittingEmptySubsequences: true)
-        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone. The
-        // reference's layout looks the weekday up in its day-name table, reads the day as two digits and
-        // the year as four, and range-checks the fields — so a made-up weekday or an out-of-range clock
-        // is not an HTTP-date either.
+        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone. Go
+        // consumes exactly three characters for the weekday, reads the day as two digits and the year as
+        // four, fixes the minute and second at two digits while leaving the hour unfixed, and
+        // range-checks the fields.
         guard parts.count == 6,
             parts[0].hasSuffix(","),
-            dayNames.contains(String(parts[0].dropLast().lowercased().prefix(3))),
+            parts[0].count == 4,
+            dayNames.contains(String(parts[0].dropLast().lowercased())),
             parts[1].count == 2,
             parts[3].count == 4
         else {
@@ -30,8 +34,11 @@ enum HTTPDate {
         let clock = parts[4].split(separator: ":")
         guard
             let month, let day, let year,
-            (1...31).contains(day),
+            (1...31).contains(day), day <= daysIn(month: month, year: year),
             clock.count == 3,
+            clock[0].count <= 2,
+            clock[1].count == 2,
+            clock[2].count == 2,
             let hour = Int(clock[0]), (0...23).contains(hour),
             let minute = Int(clock[1]), (0...59).contains(minute),
             let second = Int(clock[2]), (0...59).contains(second)
@@ -55,9 +62,18 @@ enum HTTPDate {
         "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
     ]
 
-    /// Go's `shortDayNames`. Its parser matches the weekday as a case-insensitive prefix, so "Monday"
-    /// is read as "Mon".
+    /// Go's `shortDayNames`. Its parser consumes exactly three characters for the weekday, so the
+    /// three-letter form is what this layout reads and `Monday` does not parse.
     private static let dayNames: Set<String> = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+    /// Go validates the day against the month after parsing, so `31 Feb` is not a date.
+    private static func daysIn(month: Int, year: Int) -> Int {
+        let lengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        if month == 2, (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+            return 29
+        }
+        return lengths[month - 1]
+    }
 
     /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
     private static func parseZoneOffset(_ value: String) -> Int? {

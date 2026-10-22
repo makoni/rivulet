@@ -65,6 +65,26 @@ import Testing
         #expect(NetworkAddress.parse("10.1.1.1") == NetworkAddress.ipv4([10, 1, 1, 1]))
     }
 
+    @Test func anEmptyOctetIsNotAnAddressLikeGoRejectsIt() throws {
+        // Go rejects an IPv4 field with no digit, so `1..2.3.4`, `1.2.3.` and `.1.2.3.4` are not
+        // addresses. A split that drops empty parts would accept them, and the policy would then read a
+        // host as an address it should hand to the resolver instead.
+        #expect(NetworkAddress.parse("1..2.3.4") == nil)
+        #expect(NetworkAddress.parse("1.2.3.") == nil)
+        #expect(NetworkAddress.parse(".1.2.3.4") == nil)
+        #expect(NetworkAddress.parse("1.2.3.4") == NetworkAddress.ipv4([1, 2, 3, 4]))
+    }
+
+    @Test func aGroupIsNotLongerThanFourDigitsAndTheCompressionExpandsToAtLeastOneGroupLikeGo() throws {
+        // Go reads at most four hex digits per group and requires `::` to stand for at least one zero
+        // group, so `0abcd::1` and `1:2:3:4:5:6:7:8::` are not addresses even though the numeric value
+        // still fits 16 bits.
+        #expect(NetworkAddress.parse("0abcd::1") == nil)
+        #expect(NetworkAddress.parse("1:2:3:4:5:6:7:8::") == nil)
+        #expect(NetworkAddress.parse("abcd::1") != nil)
+        #expect(NetworkAddress.parse("::") != nil)
+    }
+
     @Test func addressesRoundTripToTheirCanonicalText() throws {
         #expect(NetworkAddress.parse("2001:0db8:0000::0001")?.text == "2001:db8:0:0:0:0:0:1")
         #expect(NetworkAddress.parse("127.0.0.1")?.text == "127.0.0.1")
