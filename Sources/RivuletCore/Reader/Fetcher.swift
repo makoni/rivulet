@@ -45,9 +45,10 @@ public actor Fetcher {
 
     /// Fetches one document and returns the response as the reference handler would see it.
     ///
-    /// A conditional hit comes back as a response with status 304 and no body. A transport or limit
-    /// failure throws ``FetchError`` with the reference wording; an HTTP status does not throw, it is a
-    /// response whose ``FetchResponse/error()`` reports the failure, so the status stays visible.
+    /// A conditional hit comes back as a response with status 304 and no body. A transport or limit failure
+    /// throws ``FetchError`` — the reference's wording where the reference writes one, the client's wording
+    /// for a failure the mapping does not classify; an HTTP status does not throw, it is a response whose
+    /// ``FetchResponse/error()`` reports the failure, so the status stays visible.
     ///
     /// Redirects are followed hop by hop instead of by the client, because the address policy has to
     /// run on every hop: upstream checks the address on each dial, and a client that follows
@@ -136,9 +137,10 @@ public actor Fetcher {
     /// Closes the cached clients.
     ///
     /// Call it when no `fetch` is in flight: the fetcher has no record of in-flight requests, so closing a
-    /// client another task is using fails that request — the client reports a connection it is still
-    /// holding as closed, which Rivulet maps to ``FetchError/network(_:)``, and a request that reaches a
-    /// client already shut down is refused with the client's own wording. A second call does nothing.
+    /// client another task is using fails that request — the client cancels a connection it is holding,
+    /// which arrives as `HTTPClientError.cancelled` and Rivulet reports it as ``FetchError/network(_:)``;
+    /// a request that reaches a client already shut down is refused with the client's own wording. A second
+    /// call does nothing.
     /// After this the fetcher still works, it is simply empty: the next fetch builds a client again.
     public func shutdown() async throws {
         for entry in clients.values {
@@ -276,6 +278,11 @@ public actor Fetcher {
     /// The reference puts the same failure in its network category as well — `isNetworkError` is true for
     /// `*url.Error`, which is how Go wraps a client failure — so the difference is the wording only: Go
     /// prints its `url.Error` wrapper, Rivulet prints what the client said.
+    ///
+    /// Two categories are reachable on one side only. The reference's `error.http_client_error` is reached
+    /// only when the error is not a `*url.Error`; and `isNetworkError` is tested before `os.IsTimeout`, so
+    /// a timeout Go's client wraps comes out as a network error there — its timeout category is
+    /// effectively unreachable, while Rivulet's reports a deadline.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {

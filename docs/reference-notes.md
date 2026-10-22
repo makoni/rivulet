@@ -257,7 +257,10 @@ Semantics:
     uses for it: `isNetworkError` is true for `*url.Error`, the way Go wraps a client failure. Only the
     wording differs — Go prints its `Get "url":` wrapper, Rivulet prints what the client said, and for an
     unparseable `Location` it prints Go's phrase without the parse error Go adds after the colon, since
-    Rivulet has no parse error to print.
+    Rivulet has no parse error to print. Two categories are reachable on one side only: the reference's
+    `error.http_client_error` is reached only for a client error that is not a `*url.Error`, and its
+    `error.network_timeout` sits behind `isNetworkError`, so a timeout Go's client wraps is a network error
+    there while Rivulet reports it as a timeout.
   - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
     `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
     Rivulet does neither — no effect today, because the request builder sets none of those headers.

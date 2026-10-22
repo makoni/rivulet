@@ -159,7 +159,8 @@ import RivuletCore
     @Test func aFailureBeforeAnythingConnectsIsStillAFetchError() async throws {
         // `fetch` promises a FetchError, and the client can fail before a connection: the URL is refused
         // when it is turned into a client request. Nothing is dialled here, so this is a test of the
-        // mapping. The address host is answered by the escape hatch, which keeps the resolver out of it.
+        // mapping. The host here is an address, so it is classified without a lookup and the resolver is
+        // never touched; the policy flag is what admits an address already known to be private.
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in
             try await FetchTestSupport.withFetcher(
                 options: FetchTestSupport.options(allowPrivateNetworks: true)
@@ -288,7 +289,7 @@ import RivuletCore
         }
     }
 
-    @Test func anUnparsableRedirectLocationIsAFetchErrorLikeTheReferencesParseError() async throws {
+    @Test func anUnparsableRedirectLocationIsAFetchErrorWithTheReferencePhraseButNotItsReason() async throws {
         try await FetchTestSupport.withServer(behaviors: [
             "/bad": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://[bad"]),
         ]) { server in
@@ -298,7 +299,9 @@ import RivuletCore
                     Issue.record("expected the unparseable redirect location to fail")
                 } catch let error as FetchError {
                     #expect(error == .redirectTargetUnparseable("http://[bad"))
-                    // The message the reference prints is Go's phrase wrapped as `fetcher: %w`.
+                    // The reference prints Go's phrase wrapped as `fetcher: %w`, and then the parse error
+                    // after the colon. Rivulet has no parse error to print, so the phrase stands alone: the
+                    // message asserted here is Rivulet's own, not the reference's.
                     #expect(String(describing: error) == "fetcher: failed to parse Location header \"http://[bad\"")
                 }
             }

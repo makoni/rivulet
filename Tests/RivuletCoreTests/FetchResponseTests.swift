@@ -156,11 +156,11 @@ import Testing
         // Go validates the day against the month after parsing, so 31 February is not a date.
         #expect(HTTPDate.parse("Sun, 31 Feb 2025 07:28:00 GMT") == nil)
 
-        // Rivulet splits the value on whitespace, so it reads the padded ends. Go rejects a leading
-        // space before the weekday and any leftover after the zone, though a run of spaces in the middle
-        // is treated as one, so the doubled space parses upstream as well. Leftover text that is not
-        // whitespace is rejected here too, as it is upstream. Rivulet does not read a fractional second,
-        // which Go accepts after the seconds field.
+        // Rivulet splits the value on spaces, so it reads the padded ends. Go rejects a leading space
+        // before the weekday and any leftover after the zone, though a run of spaces in the middle counts as
+        // one separator, so the doubled space parses upstream as well. Leftover text that is not spaces is
+        // rejected here too, as it is upstream. Rivulet does not read a fractional second, which Go accepts
+        // after the seconds field.
         #expect(HTTPDate.parse("Sun,  15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse(" Sun, 15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT x") == nil)
