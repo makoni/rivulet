@@ -11,8 +11,9 @@ enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {
         let parts = value.split(separator: " ", omittingEmptySubsequences: true)
-        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone.
-        guard parts.count == 6, parts[0].hasSuffix(",") else {
+        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone. The
+        // reference's layout reads the day as two digits, so "2" is not a day here either.
+        guard parts.count == 6, parts[0].hasSuffix(","), parts[1].count == 2 else {
             return nil
         }
 

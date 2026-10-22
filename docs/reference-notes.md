@@ -227,7 +227,8 @@ Semantics:
   list. Proxy URLs use the ports `80`, `443` and `1080` when the URL gives none.
 - Per-feed settings include: custom user agent, proxy, "ignore HTTP cache".
 - Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
-  (`HTTP_CLIENT_MAX_BODY_SIZE`), 10 followed redirects, `Connection: close`, and the `Accept`
+  (`HTTP_CLIENT_MAX_BODY_SIZE`), a redirect cap of 10 requests (`CheckRedirect` refuses the 10th, so at
+  most 9 are followed — see the deviation below), `Connection: close`, and the `Accept`
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
   - `Accept-Encoding: gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); no
@@ -242,15 +243,24 @@ Semantics:
     `CheckRedirect` counts requests and does not refuse a repeated URL. The boundary differs by one
     hop: upstream refuses the redirect that would make the count reach the limit, Rivulet refuses the
     one after the limit is reached.
+  - The timeout is one deadline shared by all hops, as the reference's `Client.Timeout` is computed once
+    and covers connection, redirects and body reading together; Rivulet sets no per-hop read timeout. A
+    redirect status with an empty `Location` is returned as the response, as Go's `do` does.
+  - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
+    `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
+    Rivulet does neither — no effect today, because the request builder sets none of those headers.
   - A 4-in-6 address is classified through its IPv4 form, as Go's `netip.Addr.Unmap()` does, and the
     canonical text prints that form. Rivulet's text parser does not accept the mixed
     `::ffff:a.b.c.d` spelling — the unmapped form comes from resolver bytes.
   - Rivulet refuses the whole request when **any** resolved answer is non-public. Upstream checks the
     address it dials one attempt at a time, so a private answer later in the list is never reached
     when a public answer connects first; Rivulet is stricter here on purpose.
-  - `HTTPDate` requires the weekday and the comma after it (Go's `time.RFC1123` layout). A zone name
-    other than `GMT`/`UTC` is not read: Go applies its zone table, so `EST` would shift the time by
-    its offset. Go's address parser reads hex digits only, so a group with a sign is not an address.
+  - `HTTPDate` requires the weekday, the comma after it and a two-digit day (Go's `time.RFC1123`
+    layout). A zone name other than `GMT`/`UTC` is not read: Go applies its zone table, so `EST` would
+    shift the time by its offset.
+  - Address text is read strictly, as Go's parser does: a group is hex digits only, so a sign is not a
+    group, and a lone colon is not the `::` compression. Leading zeros in a dotted quad are accepted,
+    because `net.ParseIP` — the parser the reference uses — accepts them.
   - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
   - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
     `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).

@@ -127,6 +127,8 @@ import Testing
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 GMT") != nil)
         #expect(HTTPDate.parse("Sun 15 Jun 2025 15:07:22 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 EST") == nil)
+        // The layout reads the day as two digits, so a single digit is not an HTTP-date either.
+        #expect(HTTPDate.parse("Sun, 2 Jan 2025 15:07:22 GMT") == nil)
 
         let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
         #expect(withoutComma.retryAfter(now: now) == .zero)

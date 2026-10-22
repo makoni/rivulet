@@ -134,7 +134,9 @@ final class StubFeedServer: Sendable {
                 return
             }
             if behavior.delay > .zero {
-                let amount = TimeAmount.nanoseconds(Int64(behavior.delay.components.seconds) * 1_000_000_000)
+                // `components.seconds` alone drops a sub-second delay, so the duration is converted
+                // through attoseconds; the timing tests depend on a fraction of a second being real.
+                let amount = TimeAmount.nanoseconds(Int64(behavior.delay.attoseconds / 1_000_000_000))
                 channel.eventLoop.scheduleTask(in: amount) { self.write(channel, behavior) }
                 return
             }

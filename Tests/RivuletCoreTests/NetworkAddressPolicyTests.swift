@@ -82,9 +82,18 @@ import Testing
 
     @Test func aGroupIsNotAcceptedWithASignLikeGoParsesHexGroups() throws {
         // Go's parser reads groups as hex digits only, so "+1" is not a group; the numeric range
-        // check alone would have accepted it.
+        // check alone would have accepted it. The dotted-quad path reads digits only as well.
         #expect(NetworkAddress.parse("::+1") == nil)
+        #expect(NetworkAddress.parse("1.+2.3.4") == nil)
         #expect(NetworkAddress.parse("::1") == NetworkAddress.ipv6([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]))
+    }
+
+    @Test func aLoneColonIsNotTheCompressionLikeGoParsesAddresses() throws {
+        // Go reads the omitted groups as `::` — two colons — so a lone leading colon is not an empty
+        // group, and the form `:1:2:...` must not be accepted as an address.
+        #expect(NetworkAddress.parse(":1:2:3:4:5:6:7:8") == nil)
+        #expect(NetworkAddress.parse("1:2:3:4:5:6:7:8") != nil)
+        #expect(NetworkAddress.parse("::1") != nil)
     }
 
     @Test func anAddressWithoutCompressionDoesNotReadPastItsGroups() {

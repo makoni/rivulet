@@ -49,13 +49,17 @@ public actor Fetcher {
     public func fetch(_ request: FetchRequest) async throws -> FetchResponse {
         var hop = request
         var followed = 0
+        // The reference computes one deadline for the whole call — connection, redirects and body
+        // reading together — so the hops share it rather than each starting a fresh timeout.
+        let deadline = NIODeadline.now() + amount(options.timeout)
 
         while true {
-            let response = try await send(hop)
+            let response = try await send(hop, deadline: deadline)
 
             // Upstream follows 301, 302, 303, 307 and 308, and it counts requests, so it refuses the
-            // hop that would make the count reach the limit; here the limit is the hops followed.
-            guard isRedirect(response.status), let location = response.header("Location") else {
+            // hop that would make the count reach the limit; here the limit is the hops followed. A
+            // redirect status with no usable `Location` is the response, as Go's `do` returns it.
+            guard isRedirect(response.status), let location = response.header("Location"), !location.isEmpty else {
                 return response
             }
             guard followed < options.maxRedirects else {
@@ -70,8 +74,9 @@ public actor Fetcher {
         }
     }
 
-    /// Sends one hop: the address for that hop is validated and pinned, then the request goes out.
-    private func send(_ request: FetchRequest) async throws -> FetchResponse {
+    /// Sends one hop: the address for that hop is validated and pinned, then the request goes out with
+    /// the deadline the whole fetch shares.
+    private func send(_ request: FetchRequest, deadline: NIODeadline) async throws -> FetchResponse {
         guard let host = request.url.host else {
             throw FetchError.invalidURL(request.url.absoluteString)
         }
@@ -87,7 +92,6 @@ public actor Fetcher {
             ahcRequest.headers.add(name: name, value: value)
         }
         let accumulator = ResponseAccumulator(request: ahcRequest, maxBodySize: options.maxBodySize)
-        let deadline = NIODeadline.now() + TimeAmount.seconds(Int64(options.timeout.components.seconds))
 
         let response: HTTPClient.Response
         do {
@@ -173,10 +177,10 @@ public actor Fetcher {
         // repeated URL.
         configuration.redirectConfiguration = .disallow
         configuration.decompression = options.decompression ? .enabled(limit: .ratio(25)) : .disabled
-        configuration.timeout = .init(
-            connect: TimeAmount.seconds(Int64(FetcherOptions.defaultConnectTimeout.components.seconds)),
-            read: TimeAmount.seconds(Int64(options.timeout.components.seconds))
-        )
+        // Only the connect timeout is a separate limit: the request deadline is the one the whole fetch
+        // shares, passed to `execute` per hop, the way the reference's client timeout covers the whole
+        // call including redirects.
+        configuration.timeout = .init(connect: amount(FetcherOptions.defaultConnectTimeout))
         if let proxyURL = request.proxyURL {
             configuration.proxy = proxyTarget(from: proxyURL)
         }
@@ -259,5 +263,11 @@ public actor Fetcher {
 
     private func now() -> Int {
         Int(Date.now.timeIntervalSince1970)
+    }
+
+    /// A `TimeAmount` from a Duration. `components.seconds` alone would drop a sub-second duration,
+    /// which the timeout tests depend on.
+    private func amount(_ duration: Duration) -> TimeAmount {
+        TimeAmount.nanoseconds(Int64(duration.attoseconds / 1_000_000_000))
     }
 }

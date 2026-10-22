@@ -182,11 +182,13 @@ import RivuletCore
         }
     }
 
-    @Test func everyRedirectHopIsResolvedAndValidatedThroughTheSeam() async throws {
-        // Upstream checks the address on every dial, so a hop to another host goes through the
-        // policy too, not through a lookup inside the client. The escape hatch is on so the first hop
-        // can be answered with the stub's address; the second name is answered with nothing, which
-        // stops the fetch — proof the hop is validated by the seam before anything connects to it.
+    @Test func everyRedirectHopGoesThroughTheResolverSeamBeforeConnecting() async throws {
+        // Upstream checks the address on every dial, so a hop to another host goes through the policy
+        // rather than a lookup inside the client. This proves the seam is consulted for the hop and that
+        // a hop the seam cannot answer stops the fetch: the escape hatch is on so the first hop can be
+        // answered with the stub's address, and the second name is answered with nothing. A refusal at a
+        // hop is not observable here — the only address the first hop could reach is the stub, which a
+        // denying policy would itself refuse.
         let stub = NetworkAddress.parse("127.0.0.1")!
         let resolver = SeededResolver(answers: ["first.example": [stub]])
 
@@ -208,10 +210,12 @@ import RivuletCore
         }
     }
 
-    @Test func theHopConnectsToTheAddressValidatedForThatHop() async throws {
-        // Both names are answered with the same stub address and nothing else could answer them, so
-        // a response from the second hop proves the client used the address the policy validated.
-        // The redirect has to name the second server's port, so that server starts first.
+    @Test func theHopConnectsToTheAddressValidatedForItsHost() async throws {
+        // Both names are answered with the same stub address and nothing else could answer them, so a
+        // response from the second hop proves the client used the address the policy validated. The
+        // redirect has to name the second server's port, so that server starts first. On a cache hit the
+        // client keeps the address validated when it was created for that host, so the address it
+        // connects to is always one the policy admitted.
         let stub = NetworkAddress.parse("127.0.0.1")!
         let resolver = SeededResolver(answers: ["first.example": [stub], "second.example": [stub]])
         let body = Data("hop".utf8)
@@ -237,6 +241,41 @@ import RivuletCore
             throw error
         }
         try await second.stop()
+    }
+
+    @Test func aRedirectWithAnEmptyLocationIsTheResponseLikeUpstreamsDo() async throws {
+        // Go returns the response when a redirect status carries an empty `Location`; a 3xx without a
+        // usable location is not followed. Rivulet must not resolve an empty value against the base and
+        // loop on it.
+        try await withServer(behaviors: [
+            "/empty": StubFeedServer.Behavior(status: 302, headers: ["Location": ""], body: Data("kept".utf8)),
+        ]) { server in
+            try await withFetcher(options: options()) { fetcher in
+                let response = try await fetcher.fetch(FetchRequest(url: server.url("/empty"), headers: [:]))
+                #expect(response.status == 302)
+                #expect(response.body == Data("kept".utf8))
+            }
+        }
+    }
+
+    @Test func theTimeoutIsOneDeadlineForAllHopsTogetherLikeTheReferencesClientTimeout() async throws {
+        // Go computes its deadline once, and it covers connection, redirects and body reading. Here the
+        // first hop uses most of it, so the second hop cannot start a fresh timeout of its own: the
+        // delay of the second hop is shorter than the configured timeout but longer than what the first
+        // hop left, which is the only way this is observable without sleeping.
+        try await withServer(behaviors: [
+            "/first": StubFeedServer.Behavior(status: 302, headers: ["Location": "/second"], delay: .milliseconds(300)),
+            "/second": StubFeedServer.Behavior(body: Data("late".utf8), delay: .milliseconds(900)),
+        ]) { server in
+            try await withFetcher(options: options(timeout: .seconds(1))) { fetcher in
+                do {
+                    _ = try await fetcher.fetch(FetchRequest(url: server.url("/first"), headers: [:]))
+                    Issue.record("expected the shared deadline to stop the second hop")
+                } catch let error as FetchError {
+                    #expect(error == .timeout)
+                }
+            }
+        }
     }
 
     @Test func onlyTheStatusesTheReferenceFollowsAreFollowed() async throws {

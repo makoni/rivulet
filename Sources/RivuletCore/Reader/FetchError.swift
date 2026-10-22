@@ -1,6 +1,8 @@
 import Foundation
 
-/// Fetch failures. The wording follows the reference (`internal/reader/fetcher`).
+/// Fetch failures. The wording follows the reference (`internal/reader/fetcher`) where the reference
+/// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
+/// phrase the reference would print with it.
 public enum FetchError: Error, Sendable, Equatable {
     /// The URL is not an `http` or `https` URL with a host.
     case invalidURL(String)
@@ -12,7 +14,8 @@ public enum FetchError: Error, Sendable, Equatable {
     /// The host did not resolve, like upstream `ErrHostnameResolution`.
     case hostnameResolution(String)
 
-    /// A `Location` that cannot be read, like upstream `cannot parse redirect location`.
+    /// A `Location` that cannot be parsed. Go's client reports `failed to parse Location header`, which
+    /// is the message the reference prints for it.
     case redirectTargetUnparseable(String)
 
     /// A configured proxy URL that cannot be read, like upstream
@@ -51,7 +54,7 @@ extension FetchError: CustomStringConvertible {
         case .hostnameResolution(let host):
             return "fetcher: unable to resolve request hostname \(host)"
         case .redirectTargetUnparseable(let location):
-            return "fetcher: cannot parse redirect location \"\(location)\""
+            return "fetcher: failed to parse Location header \"\(location)\""
         case .invalidProxyURL(let value):
             return "fetcher: invalid feed proxy URL \"\(value)\""
         case .bodyTooLarge(let limit):

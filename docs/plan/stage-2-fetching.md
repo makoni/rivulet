@@ -55,8 +55,10 @@
 - 4xx/5xx and connection reset classified as fetch errors; the counter and the message are recorded
   through `FeedRepository.recordParsingError` (the refresh path wires them together).
 - SSRF guard: private targets refused unless explicitly allowed; the pinned address is used without a
-  second lookup; every redirect hop goes through the resolver seam, so a hop that fails validation
-  stops the fetch before anything connects to it.
+  second lookup; every redirect hop goes through the resolver seam before connecting — the test proves
+  the seam is consulted for the hop and that a hop the seam cannot answer stops the fetch. A refusal at
+  a hop is not observable in a hermetic test, because the only address the first hop could reach is the
+  stub, which a denying policy would itself refuse.
 - A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is
   skipped for that hop; the same private target without the flag is refused.
 

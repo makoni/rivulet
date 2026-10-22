@@ -23,7 +23,9 @@ public enum NetworkAddress: Sendable, Equatable {
             }
             var bytes: [UInt8] = []
             for part in parts {
-                guard let number = Int(part), (0...255).contains(number) else {
+                // Go reads digits only here, so a signed group is not a group even though the range
+                // check alone would accept "+2". Leading zeros are accepted, as `net.ParseIP` does.
+                guard part.allSatisfy(\.isNumber), let number = Int(part), (0...255).contains(number) else {
                     return nil
                 }
                 bytes.append(UInt8(number))
@@ -67,16 +69,18 @@ public enum NetworkAddress: Sendable, Equatable {
     }
 
     /// The colon-separated 16-bit groups of one half of the address, or nil when a group is not a
-    /// number in range. An empty half is an empty list, which is what `::` at either end means.
+    /// number in range. An empty half is an empty list, which is what `::` at either end means; a lone
+    /// colon inside a half is not a group, as Go reads the omitted groups as `::`.
     private static func groups(in text: String) -> [Int]? {
         guard !text.isEmpty else {
             return []
         }
         var groups: [Int] = []
-        for part in text.split(separator: ":") {
+        for part in text.split(separator: ":", omittingEmptySubsequences: false) {
             // Go's address parser reads groups as hex digits only, so a sign is not a group even
             // though the numeric range check alone would accept "+1".
-            guard part.allSatisfy(\.isHexDigit),
+            guard !part.isEmpty,
+                part.allSatisfy(\.isHexDigit),
                 let number = Int(part, radix: 16),
                 (0...65_535).contains(number)
             else {
