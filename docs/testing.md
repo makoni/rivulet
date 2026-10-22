@@ -105,7 +105,11 @@ and use Vapor's client. The same socket-level approach backs the client-API jour
 Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests,
 per-test temp directories, no network access except to the local stub server). A bounded timeout
 that proves a failure is fast rather than hanging is allowed — the pool-timeout test asserts one —
-and a test whose pass condition is a timeout says so in its comment. The fetch timing tests keep
+and a test whose pass condition is a timeout says so in its comment. A stub-side hold is the one
+real-time margin: the cache test keeps a request in flight under a one-second body delay while eight
+local round trips fill the cache, which a slow machine can only make a false pass, never a false
+failure. A test that waits on something without a bound carries a `timeLimit` so a regression fails
+instead of hanging. The fetch timing tests keep
 their margin: the first hop's delay is small against the deadline, so CI overhead can only make the
 deadline fire earlier, never let a hop that should be cut finish.
 

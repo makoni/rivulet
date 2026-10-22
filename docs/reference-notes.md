@@ -296,9 +296,11 @@ Semantics:
     the current minute yields a minute even when it is already past, a past value that truncates to exactly
     the previous minute yields nothing, and one further past yields a negative delay. Rivulet divides whole
     seconds the same way — truncating toward zero, which is what Go's `Truncate` does — so it returns the
-    same negative value. What keeps a negative delay out upstream is the handler's
-    `refreshDelay = max(feed TTL, cacheControlMaxAge, expires)` in `internal/reader/handler/handler.go`;
-    the refresh path has to do the same here.
+    same negative value. Upstream the handler takes
+    `refreshDelay = max(feed TTL, cacheControlMaxAge, expires)` (`internal/reader/handler/handler.go`),
+    which can itself be negative, and `Feed.ScheduleNextCheck` clamps it with
+    `interval = max(interval, refreshDelay)` against the configured minimum (`internal/model/feed.go`);
+    the refresh path has to do both here.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a

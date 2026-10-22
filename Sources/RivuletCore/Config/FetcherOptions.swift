@@ -29,7 +29,7 @@ public struct FetcherOptions: Sendable, Equatable {
     /// (`internal/reader/fetcher/request_builder.go`), which is also AsyncHTTPClient's default.
     public static let defaultConnectTimeout: Duration = .seconds(10)
 
-    /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in megabytes.
+    /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in bytes (15 MiB).
     public static let defaultMaxBodySize: Int = 15 * 1024 * 1024
 
     /// The redirect cap. Go's default `CheckRedirect` stops after 10 requests, so it follows at most 9

@@ -13,7 +13,8 @@ import Testing
         }
     }
 
-    @Test func aClientInFlightIsNotClosedToMakeRoomInTheCache() async throws {
+    @Test(.timeLimit(.minutes(1)))
+    func aClientInFlightIsNotClosedToMakeRoomInTheCache() async throws {
         // The regression: a second fetch could prune the cache while the first was waiting for its body,
         // close the client the first was using, and fail that request with a cancellation. The stub holds
         // the body for a second so that request is still in flight while the eight fillers run; if they

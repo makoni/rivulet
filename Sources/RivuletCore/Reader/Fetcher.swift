@@ -8,18 +8,20 @@ import NIOHTTP1
 /// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift, with the
 /// differences recorded in `docs/reference-notes.md`: the body cap goes through the response
 /// accumulator, which counts the same bytes the reference's `MaxBytesReader` counts; the
-/// private-network check runs on the address resolved through the resolver seam and pinned with
-/// `dnsOverride`, so the address checked is the one connected to — the guarantee the reference's
-/// dialer `Control` callback gives it, by another mechanism; and redirects are followed hop by hop so
-/// the check runs on every hop, as the reference's dialer does.
+/// private-network check runs on the answers the resolver seam returns for a hop, and the client is
+/// pinned with `dnsOverride` to an address validated when it was built, so a later lookup cannot steer
+/// the connection — the guarantee the reference's dialer `Control` callback gives it, by another
+/// mechanism; and redirects are followed hop by hop so the check runs on every hop, as the reference's
+/// dialer does.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, and the cache key is
     /// `host|proxyURL`, so a pin is never used for another host or for a proxied request; an expired entry
     /// is not reused, and the next prune closes it once no request is using it.
     static let clientTTL: Duration = .seconds(60)
 
-    /// How many idle clients are kept at once. A client a request is using is not closed to stay under
-    /// the cap, so the cache can hold more while requests overlap.
+    /// The soft cap on idle clients: a checkout closes one idle entry while the cache holds this many, and
+    /// a client a request is using is never closed to stay under it. A burst of new hosts can therefore
+    /// leave the cache slightly above the cap until later checkouts trim it.
     static let maxCachedClients = 8
 
     /// The clock the TTL is measured on. A monotonic clock, so a step in the wall clock — an NTP
@@ -152,22 +154,35 @@ public actor Fetcher {
     /// Call it when no `fetch` is in flight. Pruning and eviction leave a client that a request is using
     /// alone, but `shutdown` closes every client regardless of use — it is the caller's way to stop the
     /// fetcher, so knowing that nothing is running is the caller's part. Closing a client a request is
-    /// using fails that request
-    /// — the client cancels the connection it is holding, which arrives as `HTTPClientError.cancelled` and
-    /// Rivulet reports it as ``FetchError/network(_:)``; a request that reaches a client already shut down
-    /// is refused with the client's own wording. A second call does nothing. After this the fetcher still
-    /// works, it is simply empty: the next fetch builds a client again.
+    /// using fails that request — the client cancels the connection it is holding, which arrives as
+    /// `HTTPClientError.cancelled` and Rivulet reports it as ``FetchError/network(_:)``; a request that
+    /// reaches a client already shut down is refused with the client's own wording.
+    ///
+    /// A second call does nothing, whether it follows the first or overlaps it: the entries are taken out
+    /// of the cache before any of them is closed. If one client fails to close, the rest are still closed
+    /// and the first failure is rethrown, so the fetcher is empty either way. After this it still works:
+    /// the next fetch builds a client again.
     public func shutdown() async throws {
-        for entry in clients.values {
-            try await entry.client.shutdown()
-        }
+        let closing = Array(clients.values)
         clients.removeAll()
+        var failure: (any Error)?
+        for entry in closing {
+            do {
+                try await entry.client.shutdown()
+            } catch {
+                failure = failure ?? error
+            }
+        }
+        if let failure {
+            throw failure
+        }
     }
 
-    /// Resolves `host` once, refuses any non-public address, and returns the address the client is
-    /// pointed at. Because the client is configured with this address, no second lookup happens:
-    /// a resolver that would answer with a private address later cannot change the target — the
-    /// DNS-rebinding case upstream guards with its dialer.
+    /// Resolves `host`, refuses any non-public answer, and returns the address a new client is pinned to.
+    /// The client connects to that address through `dnsOverride`, so a lookup that answers differently
+    /// later cannot change the target — the DNS-rebinding case upstream guards with its dialer. A cached
+    /// client keeps the address it was built with; the answers found here are what the policy checks on
+    /// this hop either way.
     ///
     /// `host` here is what `URL.host` gives, which is the address without its brackets for an IPv6 URL,
     /// and that is also the key AsyncHTTPClient looks up in `dnsOverride`, so the pin and the key agree.
@@ -325,7 +340,7 @@ public actor Fetcher {
     /// `isNetworkError` is true for `*url.Error`, which is what `net/http`'s `Client.do` wraps every
     /// failure in — so only the wording differs on that path: Go prints its `url.Error` wrapper.
     ///
-    /// Three of the reference's categories are effectively unreachable, all for the same reason.
+    /// Three of the reference's categories are effectively unreachable, though not for one reason.
     /// `error.network_timeout` and `error.http_empty_response` sit behind `isNetworkError`, so what Rivulet
     /// reports as a timeout or as a connection closed by the peer is a network failure upstream; and
     /// `error.http_client_error` needs an error that is not a `*url.Error`, which the fetch path does not
@@ -357,13 +372,15 @@ public actor Fetcher {
     }
 
     /// A `TimeAmount` from a Duration. `components.seconds` alone would drop a sub-second duration,
-    /// which the timeout tests depend on. The value is clamped because `attoseconds` is Int128 and the
-    /// conversion to Int64 traps above it — an environment value can be that large — and half of
-    /// `Int64.max` leaves room for `NIODeadline.now()` to add the amount without overflowing either.
+    /// which the timeout tests depend on. The value is clamped at both ends because `attoseconds` is
+    /// Int128 and the conversion to Int64 traps outside it — a public ``FetcherOptions`` takes any
+    /// `Duration`, and an environment value can be that large. Half of `Int64.max` either way leaves room
+    /// for `NIODeadline.now()` to add the amount without overflowing; a clamped-negative amount is simply
+    /// a deadline in the past, so the fetch times out at once instead of trapping.
     /// Internal so the guard can be tested.
     static func amount(for duration: Duration) -> TimeAmount {
         let nanoseconds = duration.attoseconds / 1_000_000_000
-        let cap = Int64.max / 2
-        return TimeAmount.nanoseconds(nanoseconds > Int128(cap) ? cap : Int64(nanoseconds))
+        let cap = Int128(Int64.max / 2)
+        return TimeAmount.nanoseconds(Int64(min(max(nanoseconds, -cap), cap)))
     }
 }

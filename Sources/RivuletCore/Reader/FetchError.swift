@@ -28,7 +28,8 @@ public enum FetchError: Error, Sendable, Equatable {
     case redirectTargetUnparseable(String)
 
     /// A configured proxy URL that cannot be read, like upstream
-    /// `fetcher: invalid feed proxy URL`.
+    /// `fetcher: invalid feed proxy URL`. The parse error the reference appends after the colon is not
+    /// part of the message, because Rivulet has no parse error to print.
     case invalidProxyURL(String)
 
     /// The response body exceeded the configured cap.
@@ -57,7 +58,8 @@ extension FetchError: CustomStringConvertible {
     /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it
     /// wraps the failure. Where the reference has no wording of its own — a deadline, a connection closed
     /// by the peer, an unclassifiable client failure — the phrase and the prefix are Rivulet's, with the
-    /// client's own wording after it in the last case.
+    /// client's own wording after it in the last case. The two parse messages omit the Go parse error the
+    /// reference appends after the colon, because Rivulet has none to print; the cases say so.
     public var description: String {
         switch self {
         case .invalidURL(let url):
