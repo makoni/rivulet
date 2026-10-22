@@ -63,7 +63,7 @@ public actor Fetcher {
     /// ``FetchResponse/error()`` reports the failure, so the status stays visible.
     ///
     /// Redirects are followed hop by hop instead of by the client, because the address policy has to
-    /// run on every hop: upstream checks the address on each dial, and a client that follows
+    /// run on every direct hop: upstream checks the address on each direct dial, and a client that follows
     /// redirects resolves the next host itself, outside the policy.
     public func fetch(_ request: FetchRequest) async throws -> FetchResponse {
         var hop = request

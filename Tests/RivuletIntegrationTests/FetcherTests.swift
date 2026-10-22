@@ -54,6 +54,7 @@ import RivuletCore
                 #expect(!second.isModified(against: FeedFetchState(feedID: 1, url: server.url("/second"), etag: first.etag)))
 
                 let sent = try #require(server.received(for: "/second").first)
+                #expect(sent.target == "/second")
                 #expect(sent.headers["If-None-Match"] == "\"abc\"")
                 #expect(sent.headers["If-Modified-Since"] == "Mon, 22 Oct 2026 10:00:00 GMT")
             }
