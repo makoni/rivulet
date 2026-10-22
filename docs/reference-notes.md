@@ -231,10 +231,12 @@ Semantics:
   most 9 are followed — see the deviation below), `Connection: close`, and the `Accept`
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
-  - Rivulet has no connect-time hook, so the private-network check runs on the address it resolved
-    through an injectable seam and pinned with `dnsOverride`: the address checked is the address connected
-    to. That is the same TOCTOU guarantee the reference gets from its dialer's `Control` callback — the
-    difference is the mechanism, not the property.
+  - Rivulet has no connect-time hook, so the private-network check runs on the answers the resolver seam
+    returns for a hop, and the client is pinned with `dnsOverride` to one address it validated at build
+    time. That pin cannot be changed by a later lookup; a cached client keeps it, so on a cached hop the
+    policy checks the current answers while the connection uses the address pinned at build time. This is
+    the same TOCTOU guarantee the reference gets from its dialer's `Control` callback — the difference is
+    the mechanism, not the property.
   - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the decompressed
     body — the same thing the reference's `MaxBytesReader` counts when it wraps the decompression
     reader, so only the mechanism differs.
@@ -258,8 +260,9 @@ Semantics:
     reported as a network failure with the client's wording, which is the same category the reference
     uses for it: `isNetworkError` is true for `*url.Error` — which `net/http`'s `Client.do` wraps every
     failure in — so only the wording differs on that path: Go prints its `Get "url":` wrapper, Rivulet
-    prints its own phrase with the client's wording after it. For an unparseable `Location` Rivulet prints
-    Go's phrase without the parse error Go adds after the colon, since it has no parse error to print.
+    prints its own phrase with the client's wording after it. For an unparseable `Location` the phrase is
+    Rivulet's own: the reference has no wording for that failure, it prints Go's `Get "url":` wrapper with
+    the parse error, and Rivulet has no parse error to print.
     Three of the reference's categories are one-sided: `error.network_timeout` sits behind
     `isNetworkError`, so a timeout Go's client wraps is a network error there while Rivulet reports it as a
     timeout; `error.http_empty_response` sits behind it too, for the same reason; and

@@ -19,9 +19,10 @@ public actor Fetcher {
     /// is not reused, and the next prune closes it once no request is using it.
     static let clientTTL: Duration = .seconds(60)
 
-    /// The soft cap on idle clients: a checkout closes one idle entry while the cache holds this many, and
-    /// a client a request is using is never closed to stay under it. A burst of new hosts can therefore
-    /// leave the cache slightly above the cap until later checkouts trim it.
+    /// The soft cap on idle clients: a checkout closes one idle entry while the cache holds this many and
+    /// never closes a client a request is using, so a burst of new hosts can leave the cache a few entries
+    /// over the cap until a later checkout trims it. The expired sweep runs on every checkout whatever the
+    /// count is.
     static let maxCachedClients = 8
 
     /// The clock the TTL is measured on. A monotonic clock, so a step in the wall clock — an NTP
@@ -160,8 +161,9 @@ public actor Fetcher {
     ///
     /// A second call does nothing, whether it follows the first or overlaps it: the entries are taken out
     /// of the cache before any of them is closed. If one client fails to close, the rest are still closed
-    /// and the first failure is rethrown, so the fetcher is empty either way. After this it still works:
-    /// the next fetch builds a client again.
+    /// and the first failure is rethrown, so the cache is empty either way. A client a fetch creates while
+    /// the loop is running is not closed, which is what the contract above rules out. After this the
+    /// fetcher still works: the next fetch builds a client again.
     public func shutdown() async throws {
         let closing = Array(clients.values)
         clients.removeAll()
@@ -375,8 +377,9 @@ public actor Fetcher {
     /// which the timeout tests depend on. The value is clamped at both ends because `attoseconds` is
     /// Int128 and the conversion to Int64 traps outside it — a public ``FetcherOptions`` takes any
     /// `Duration`, and an environment value can be that large. Half of `Int64.max` either way leaves room
-    /// for `NIODeadline.now()` to add the amount without overflowing; a clamped-negative amount is simply
-    /// a deadline in the past, so the fetch times out at once instead of trapping.
+    /// for `NIODeadline.now()` to add the amount without overflowing. A clamped-negative amount is a
+    /// deadline already in the past — NIO clamps the deadline it computes to the start of its uptime — so
+    /// the fetch times out at once instead of trapping.
     /// Internal so the guard can be tested.
     static func amount(for duration: Duration) -> TimeAmount {
         let nanoseconds = duration.attoseconds / 1_000_000_000

@@ -7,8 +7,10 @@ import Foundation
 /// address space. An address that is not an address counts as non-public, like Go's `nil`. A 4-in-6
 /// address is classified through its IPv4 form, as Go unmaps it before checking.
 ///
-/// The check runs on the address resolved and pinned for the hop, not on a name resolved again
-/// later, so a second lookup cannot swap in a private target.
+/// The check runs on the addresses a hop resolves through the seam. The client is then pinned to one of
+/// them, so the connection cannot be steered by a lookup that answers differently later. A cached client
+/// keeps the address it was built with: on that hop the policy checks the current answers while the
+/// connection uses the address pinned when the client was created.
 ///
 /// Internal: the fetcher is the only caller, and the address policy is not something a stage later
 /// builds a feed from. The tests reach it through `@testable import`.

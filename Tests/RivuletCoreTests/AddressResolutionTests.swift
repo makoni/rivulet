@@ -3,8 +3,9 @@ import Testing
 @testable import RivuletCore
 
 /// Resolution, pinning and the client cache. The policy decides which addresses a fetch may connect
-/// to; the fetcher resolves a host once and connects to that validated address, so a later lookup — the
-/// classic DNS-rebinding trick — cannot change the target. What the cache guarantees is the key it is
+/// to; the fetcher resolves every hop through the seam and pins the client it builds to a validated
+/// address, so a later lookup — the classic DNS-rebinding trick — cannot change the target, and a cached
+/// client keeps the address it was built with. What the cache guarantees is the key it is
 /// built from, and that is what is asserted here.
 @Suite struct AddressResolutionTests {
     /// Answers the first lookup with `first`, every later lookup with `later`, and counts calls.

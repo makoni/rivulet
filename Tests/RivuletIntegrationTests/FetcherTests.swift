@@ -299,9 +299,9 @@ import RivuletCore
                     Issue.record("expected the unparseable redirect location to fail")
                 } catch let error as FetchError {
                     #expect(error == .redirectTargetUnparseable("http://[bad"))
-                    // The reference prints Go's phrase wrapped as `fetcher: %w`, and then the parse error
-                    // after the colon. Rivulet has no parse error to print, so the phrase stands alone: the
-                    // message asserted here is Rivulet's own, not the reference's.
+                    // The phrase is Rivulet's own: the reference has no wording for an unparseable
+                    // `Location`, it prints Go's `Get "url":` wrapper with the parse error, and Rivulet has
+                    // no parse error to print.
                     #expect(String(describing: error) == "fetcher: failed to parse Location header \"http://[bad\"")
                 }
             }
