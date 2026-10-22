@@ -69,6 +69,8 @@
   address the first hop could reach is the stub, which a denying policy would itself refuse.
 - A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is
   skipped for that hop; the same private target without the flag is refused.
+- The cache keeps a client per host and proxy decision, and one that a request is using is not pruned:
+  a fetch whose body the stub is holding survives the evictions that other fetches trigger meanwhile.
 
 ## Exit criteria
 

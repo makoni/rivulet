@@ -51,7 +51,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays (before the answer, or
   after the head so a body can arrive later than a deadline), cut connections, chunked responses,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records
-  every request it receives (target and headers) so a test can check what the client actually sent.
+  every request it receives (target and headers) so a test can check what the client actually sent,
+  and `waitForRequest(for:)` waits for one to arrive — the check and the wait are one step under the
+  lock — so a test can act while a request is in flight without polling or sleeping.
   The proxy tests use `StubProxy`, not this server.
 - `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
   serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
@@ -83,12 +85,17 @@ the only place the byte order of the raw `addrinfo` layout is pinned. Everything
 lookup per hop, the answer handed to the policy, the client pinned to that answer — is tested through the
 resolver seam with a seeded resolver.
 
-The cache's behaviour is not tested, only the key it is built from: which client a request gets cannot be
-observed from outside when two hosts would be answered by the same address. What is asserted is the key,
-because the guarantee that a pin is never reused for another host or a proxied request rests on it; the TTL
-clock is monotonic so an NTP step cannot stretch or shrink it, and the eviction is by expiry, not by use,
-which the code states plainly. The rule that `shutdown()` must be called when no `fetch` is in flight is a
-contract, not a test: covering it would need a client-creation seam the plan does not have.
+The cache has one behaviour test, for the one effect that can be observed from outside: an eviction
+while a request is in flight must not close the client that request is using, or the client cancels it —
+that is the failure the test reproduces. The request head reaches the stub only after the client was
+taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a known point
+without a sleep; the body is held by the server long enough for the fillers to run, and the test says so.
+Everything else about the cache is not observable from outside when two hosts are answered by the same
+address: what is asserted is the key, because the guarantee that a pin is never reused for another host
+or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,
+and the eviction is by expiry, not by use, which the code states plainly. A client in use is never
+pruned; `shutdown()` closes everything, so calling it when no `fetch` is in flight is still a contract
+rather than a test, and covering that would need a client-creation seam the plan does not have.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)

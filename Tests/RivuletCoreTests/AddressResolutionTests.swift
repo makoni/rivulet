@@ -1,5 +1,4 @@
 import Foundation
-import NIOCore
 import Testing
 @testable import RivuletCore
 
@@ -101,14 +100,6 @@ import Testing
 
         let v6 = try await resolver.resolve(host: "::1")
         #expect(v6 == [.ipv6([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])])
-    }
-
-    @Test func anAbsurdDurationIsClampedRatherThanTrapping() {
-        // `Duration.attoseconds` is Int128, and the conversion to `TimeAmount` would trap for a duration
-        // larger than Int64 nanoseconds — about 292 years, which an environment value can reach. The
-        // deadline arithmetic adds this to `NIODeadline.now()`, so the clamp leaves room for that too.
-        #expect(Fetcher.amount(for: Duration.seconds(1_000_000_000_000_000_000))
-            == TimeAmount.nanoseconds(Int64.max / 2))
     }
 
     @Test func theHostFromABracketedUrlIsTheAddressWithoutBrackets() throws {

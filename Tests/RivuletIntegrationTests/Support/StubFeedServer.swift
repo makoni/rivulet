@@ -41,6 +41,7 @@ final class StubFeedServer: Sendable {
     private let group: MultiThreadedEventLoopGroup
     private let channel: Channel
     private let received: NIOLockedValueBox<[String: [Received]]>
+    private let arrivals: Arrivals
 
     /// The port the kernel assigned.
     let port: Int
@@ -48,11 +49,13 @@ final class StubFeedServer: Sendable {
     private init(
         group: MultiThreadedEventLoopGroup,
         channel: Channel,
-        received: NIOLockedValueBox<[String: [Received]]>
+        received: NIOLockedValueBox<[String: [Received]]>,
+        arrivals: Arrivals
     ) {
         self.group = group
         self.channel = channel
         self.received = received
+        self.arrivals = arrivals
         self.port = channel.localAddress?.port ?? 0
     }
 
@@ -60,18 +63,21 @@ final class StubFeedServer: Sendable {
     static func start(behaviors: [String: Behavior]) async throws -> StubFeedServer {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let received = NIOLockedValueBox<[String: [Received]]>([:])
+        let arrivals = Arrivals()
         let address = try SocketAddress(ipAddress: "127.0.0.1", port: 0)
 
         let channel = try await ServerBootstrap(group: group)
             .childChannelInitializer { channel in
                 channel.pipeline.configureHTTPServerPipeline().flatMap {
-                    channel.pipeline.addHandler(StubHandler(behaviors: behaviors, received: received))
+                    channel.pipeline.addHandler(
+                        StubHandler(behaviors: behaviors, received: received, arrivals: arrivals)
+                    )
                 }
             }
             .bind(to: address)
             .get()
 
-        return StubFeedServer(group: group, channel: channel, received: received)
+        return StubFeedServer(group: group, channel: channel, received: received, arrivals: arrivals)
     }
 
     /// URL of `path` on this server.
@@ -87,10 +93,55 @@ final class StubFeedServer: Sendable {
         received.withLockedValue { $0[path] ?? [] }
     }
 
+    /// Waits until a request for `path` has arrived.
+    ///
+    /// The check and the wait are one step under the lock, so a request that arrives in between is not
+    /// missed. A test that has to act while a request is in flight waits here instead of sleeping.
+    func waitForRequest(for path: String) async {
+        await arrivals.wait(for: path)
+    }
+
     /// Stops the server.
     func stop() async throws {
         try await channel.close()
         try await group.shutdownGracefully()
+    }
+
+    /// Arrivals per path, with a way to wait for one without polling. The handler records a path as soon
+    /// as the request head is read, which is after the fetcher took its client from the cache, so a test
+    /// that waits here knows the client is in use.
+    private final class Arrivals: Sendable {
+        private struct State {
+            var paths: [String: Int] = [:]
+            var waiters: [String: [CheckedContinuation<Void, Never>]] = [:]
+        }
+
+        private let state = NIOLockedValueBox(State())
+
+        func record(_ path: String) {
+            let waiters: [CheckedContinuation<Void, Never>] = state.withLockedValue { state in
+                state.paths[path, default: 0] += 1
+                return state.waiters.removeValue(forKey: path) ?? []
+            }
+            for waiter in waiters {
+                waiter.resume()
+            }
+        }
+
+        func wait(for path: String) async {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                let arrived = state.withLockedValue { state -> Bool in
+                    guard state.paths[path] ?? 0 == 0 else {
+                        return true
+                    }
+                    state.waiters[path, default: []].append(continuation)
+                    return false
+                }
+                if arrived {
+                    continuation.resume()
+                }
+            }
+        }
     }
 
     // A NIO handler is used by its own event loop thread only, so its state is not shared;
@@ -101,11 +152,13 @@ final class StubFeedServer: Sendable {
 
         private let behaviors: [String: Behavior]
         private let received: NIOLockedValueBox<[String: [Received]]>
+        private let arrivals: Arrivals
         private var target = ""
 
-        init(behaviors: [String: Behavior], received: NIOLockedValueBox<[String: [Received]]>) {
+        init(behaviors: [String: Behavior], received: NIOLockedValueBox<[String: [Received]]>, arrivals: Arrivals) {
             self.behaviors = behaviors
             self.received = received
+            self.arrivals = arrivals
         }
 
         func channelRead(context: ChannelHandlerContext, data: NIOAny) {
@@ -118,6 +171,7 @@ final class StubFeedServer: Sendable {
                 }
                 let path = URL(string: request.uri)?.path ?? request.uri
                 received.withLockedValue { $0[path, default: []].append(Received(target: request.uri, headers: headers)) }
+                arrivals.record(path)
             case .end:
                 answer(context.channel, behaviors[pathKey] ?? Behavior())
             default:

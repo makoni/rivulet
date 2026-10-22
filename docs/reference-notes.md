@@ -286,8 +286,11 @@ Semantics:
     it reads a padded value — Go rejects a leading space before the weekday and any leftover after the
     zone, though a run of spaces in the middle counts as one separator, so a doubled space parses upstream
     as well. Leftover text that is not spaces is rejected by Rivulet too. Rivulet is stricter at the offset
-    boundary: Go's numeric path compares with `>`, so `+2400` and `+0360` parse under `RFC1123Z`, while
-    Rivulet reads only an hour of 0...23 and a minute of 0...59.
+    boundary: Go's numeric path (`RFC1123Z`) reads fixed-width two-digit fields and allows an hour of 24
+    and a minute or second of 60 (`hr > 24`, `mm > 60`, `ss > 60`), so `+2400` and `+0360` parse there,
+    while Rivulet reads only an hour of 0...23 and a minute of 0...59. Go's `> 23` check is in
+    `parseSignedOffset`, which reads the signed hour of a zone name (`+03`, `GMT+3`), not the numeric
+    field.
   - `Expires` becomes a delay in whole minutes: `Until(now).Truncate(minute) + minute`, so a value inside
     the current minute yields a minute even when it is already past, a past value that truncates to exactly
     the previous minute yields nothing, and one further past yields a negative delay. Rivulet divides whole

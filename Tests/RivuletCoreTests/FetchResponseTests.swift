@@ -172,10 +172,11 @@ import Testing
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT x") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00,500 GMT") == nil)
 
-        // Rivulet is stricter at the boundary than Go, which compares with `>` in its numeric-zone path:
-        // `+2400` and `+0360` parse under Go's RFC1123Z. The four-digit form itself is Rivulet's
-        // addition — Go's RFC1123 layout reads only a zone name or a signed hour, so `+0730` would not
-        // parse there.
+        // Rivulet is stricter at the boundary than Go's numeric path, which reads fixed-width two-digit
+        // fields and allows an hour of 24 and a minute of 60 (`hr > 24`, `mm > 60`): `+2400` and `+0360`
+        // parse under Go's RFC1123Z. The four-digit form itself is Rivulet's addition — Go's RFC1123
+        // layout reads a zone name, and a signed hour there goes through `parseSignedOffset`, which
+        // rejects `+0730`.
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2400") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0360") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2359") != nil)

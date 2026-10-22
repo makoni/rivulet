@@ -26,11 +26,18 @@ public actor Fetcher {
 
     private let options: FetcherOptions
     private let resolver: any AddressResolver
-    private var clients: [String: PinnedClient] = [:]
+    /// Entries are keyed by an id rather than by `host|proxy`, because two clients for the same key can
+    /// exist while one of them is in use and expired: the new one is created, the old one stays until its
+    /// request finishes, and a key-keyed dictionary would overwrite it and lose the count.
+    private var clients: [Int: PinnedClient] = [:]
+    private var nextClientID = 0
 
     private struct PinnedClient {
+        let id: Int
+        let key: String
         let client: HTTPClient
         let expiresAt: ContinuousClock.Instant
+        var inFlight: Int
     }
 
     /// Creates a fetcher.
@@ -92,7 +99,11 @@ public actor Fetcher {
         // nothing to pin: upstream treats an explicitly configured proxy as a trusted hop and keeps
         // the private-network check for direct connections.
         let pinned = request.proxyURL == nil ? try await resolveAndPin(host: host) : nil
-        let client = try await client(for: request, host: host, pinned: pinned)
+        let checkout = try await client(for: request, host: host, pinned: pinned)
+        // The entry stays marked in use until the body has been read or the send fails, so the pruner
+        // cannot close a client that is serving this request.
+        defer { release(checkout.id) }
+        let client = checkout.client
 
         // Everything the client can fail with is mapped here, including what fails before a connection:
         // turning the URL into a client request refuses a scheme it will not serve.
@@ -136,12 +147,13 @@ public actor Fetcher {
 
     /// Closes the cached clients.
     ///
-    /// Call it when no `fetch` is in flight: the fetcher has no record of in-flight requests, so closing a
-    /// client another task is using fails that request — the client cancels a connection it is holding,
-    /// which arrives as `HTTPClientError.cancelled` and Rivulet reports it as ``FetchError/network(_:)``;
-    /// a request that reaches a client already shut down is refused with the client's own wording. A second
-    /// call does nothing.
-    /// After this the fetcher still works, it is simply empty: the next fetch builds a client again.
+    /// Call it when no `fetch` is in flight. Pruning and eviction leave a client that a request is using
+    /// alone, but `shutdown` closes everything: it is the one operation that stops the fetcher, so knowing
+    /// that nothing is running is the caller's part. Closing a client a request is using fails that request
+    /// — the client cancels the connection it is holding, which arrives as `HTTPClientError.cancelled` and
+    /// Rivulet reports it as ``FetchError/network(_:)``; a request that reaches a client already shut down
+    /// is refused with the client's own wording. A second call does nothing. After this the fetcher still
+    /// works, it is simply empty: the next fetch builds a client again.
     public func shutdown() async throws {
         for entry in clients.values {
             try await entry.client.shutdown()
@@ -183,13 +195,21 @@ public actor Fetcher {
 
     // MARK: - Client
 
-    /// Client for one host and one proxy decision, reused for ``clientTTL``.
-    private func client(for request: FetchRequest, host: String, pinned: NetworkAddress?) async throws -> HTTPClient {
+    /// A client for one host and one proxy decision, reused for ``clientTTL``, with the cache entry it
+    /// came from. The caller releases the entry when the request is done; until then the entry is in use
+    /// and the pruner leaves it alone.
+    private func client(
+        for request: FetchRequest,
+        host: String,
+        pinned: NetworkAddress?
+    ) async throws -> (id: Int, client: HTTPClient) {
         let key = Self.cacheKey(host: host, proxyURL: request.proxyURL)
         try await pruneClients()
 
-        if let cached = clients[key], cached.expiresAt > Self.clock.now {
-            return cached.client
+        if var entry = clients.values.first(where: { $0.key == key && $0.expiresAt > Self.clock.now }) {
+            entry.inFlight += 1
+            clients[entry.id] = entry
+            return (entry.id, entry.client)
         }
 
         var configuration = HTTPClient.Configuration()
@@ -210,8 +230,26 @@ public actor Fetcher {
         }
 
         let client = HTTPClient(configuration: configuration)
-        clients[key] = PinnedClient(client: client, expiresAt: Self.clock.now + Self.clientTTL)
-        return client
+        let id = nextClientID
+        nextClientID += 1
+        clients[id] = PinnedClient(
+            id: id,
+            key: key,
+            client: client,
+            expiresAt: Self.clock.now + Self.clientTTL,
+            inFlight: 1
+        )
+        return (id, client)
+    }
+
+    /// Marks the entry idle again. It is still there: the pruner never closes an entry that is in use, so
+    /// nothing can remove it between the checkout and the release.
+    private func release(_ id: Int) {
+        guard var entry = clients[id] else {
+            return
+        }
+        entry.inFlight -= 1
+        clients[id] = entry
     }
 
     /// Clients are keyed by host and proxy, so a proxied request never reuses a direct client and
@@ -221,27 +259,32 @@ public actor Fetcher {
         "\(host)|\(proxyURL?.absoluteString ?? "direct")"
     }
 
-    /// Closes the expired clients, then one more when the cache is full: the entry whose expiry comes
-    /// first. This is an expiry-based cache, not an LRU — a client used often is not kept longer — and
-    /// when several entries expire at the same instant the first one found is closed.
+    /// Closes the expired clients that are idle, then one more idle one when the cache is full: the entry
+    /// whose expiry comes first. This is an expiry-based cache, not an LRU — a client used often is not
+    /// kept longer — and when several entries expire at the same instant the first one found is closed.
     ///
-    /// The keys are collected before anything is closed, because closing awaits: removing an entry while
-    /// the dictionary is being read would let a reentrant call act on a client that is already closed.
+    /// A client in use is never closed: closing one cancels the request it is serving. So an expired entry
+    /// stays until its request finishes and the cache can hold a few entries above ``maxCachedClients``
+    /// while that many requests overlap — the price of not failing a request to stay under the cap.
+    ///
+    /// The ids are collected before anything is closed, because closing awaits: removing an entry while the
+    /// dictionary is being read would let a reentrant call act on a client that is already closed.
     private func pruneClients() async throws {
-        let expired = clients.filter { $0.value.expiresAt <= Self.clock.now }.map(\.key)
-        for key in expired {
-            guard let entry = clients.removeValue(forKey: key) else {
+        let now = Self.clock.now
+        let expired = clients.values.filter { $0.expiresAt <= now && $0.inFlight == 0 }.map(\.id)
+        for id in expired {
+            guard let entry = clients.removeValue(forKey: id) else {
                 continue
             }
             try await entry.client.shutdown()
         }
 
         guard clients.count >= Self.maxCachedClients,
-            let oldest = clients.min(by: { $0.value.expiresAt < $1.value.expiresAt })
+            let oldest = clients.values.filter({ $0.inFlight == 0 }).min(by: { $0.expiresAt < $1.expiresAt })
         else {
             return
         }
-        if let entry = clients.removeValue(forKey: oldest.key) {
+        if let entry = clients.removeValue(forKey: oldest.id) {
             try await entry.client.shutdown()
         }
     }
