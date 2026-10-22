@@ -79,11 +79,12 @@ enum HTTPDate {
 
     /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
     ///
-    /// Rivulet is stricter than Go at the boundary: Go's `parseSignedOffset` rejects a number above 23,
-    /// and its numeric-zone path uses `>` rather than `>=`, so `+2400` and `+0360` do parse upstream
-    /// under `RFC1123Z`, while Rivulet reads only an hour of 0...23 and a minute of 0...59. Reading the
-    /// four-digit form at all is Rivulet's addition: Go's `RFC1123` layout takes a zone name or a signed
-    /// hour (`+03`), which Rivulet does not read. Recorded in `docs/reference-notes.md`.
+    /// Rivulet is stricter than Go at the boundary, and the two Go paths differ. Its numeric-zone path
+    /// (`RFC1123Z`) compares with `>`, so `+2400` and `+0360` parse there. Its name path
+    /// (`parseSignedOffset`, which is what `RFC1123` reaches) rejects any number above 23, so `+0730`
+    /// fails there while `+03` and `GMT+3` parse. Rivulet reads only an hour of 0...23 and a minute of
+    /// 0...59 either way, and it reads neither the short `+03` form nor a named zone other than GMT/UTC.
+    /// Recorded in `docs/reference-notes.md`.
     private static func parseZoneOffset(_ value: String) -> Int? {
         guard value.hasPrefix("+") || value.hasPrefix("-") else {
             return nil
