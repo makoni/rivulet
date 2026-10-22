@@ -56,12 +56,12 @@ import Testing
 
     @Test func aSecondShutdownDoesNothingAndTheFetcherWorksAgain() async throws {
         // `shutdown()` takes the entries out of the cache before closing them, so the second call finds
-        // nothing to close. Only the observable half is asserted here, and the recovery assertion is the
-        // one that carries weight: a second call on an empty cache passes whatever the code does, while a
-        // fetch after it would fail if a closed client were still in the cache. That a call overlapping the
-        // first cannot close the same client twice follows from the entries being taken out before the first
-        // await; it needs a client-creation seam the plan does not have, so the property is documented
-        // rather than tested.
+        // nothing to close. Only the observable half is asserted here, and it is the failure mode the change
+        // is about: an implementation that left closed entries in the cache would close the same client
+        // twice and fail this second call with AsyncHTTPClient's `alreadyShutdown`, and the fetch after it
+        // would fail if a closed client were still in the cache. That the entries are taken out before
+        // anything is awaited is not asserted — it needs a client-creation seam the plan does not have — so
+        // the ordering is documented rather than tested.
         try await FetchTestSupport.withServer(behaviors: [
             "/one": StubFeedServer.Behavior(body: Data("one".utf8)),
         ]) { server in

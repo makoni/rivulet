@@ -92,10 +92,11 @@ cancelled — that is the failure the test reproduces. The request head reaches 
 client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a
 known point without a sleep, and the body is held long enough for the fillers to run, which the test
 states. The second asserts what `shutdown()` can be observed to do: a second call finds nothing to close,
-and the next fetch builds a client again — the recovery assertion carries the weight, because a second call
-on an empty cache would pass whatever the code does. That a call overlapping the first cannot close the
-same client twice follows from taking the entries out before the first await; it cannot be reproduced
-without a client-creation seam the plan does not have, so it is documented rather than tested.
+and the next fetch builds a client again. The recovery assertion carries the weight, but the second call is
+not worthless either — an implementation that left closed entries in the cache would fail it with
+AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first cannot close the same client twice
+follows from taking the entries out before the first await; it cannot be reproduced without a
+client-creation seam the plan does not have, so it is documented rather than tested.
 Everything else about the cache is not observable from outside when two hosts are answered by the same
 address: what is asserted is the key, because the guarantee that a pin is never reused for another host
 or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,
@@ -111,8 +112,8 @@ and use Vapor's client. The same socket-level approach backs the client-API jour
 Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test temp
 directories, no network access except to the local stub server). A bounded timeout that proves a failure
 is fast rather than hanging is allowed — the pool-timeout test asserts one — and a test whose pass
-condition is a timeout says so in its comment. A stub-side hold is the one real-time margin: the cache
-test keeps a request in flight under a one-second body delay while eight local round trips fill the
+condition is a timeout says so in its comment. A stub-side hold is the one real-time margin: the first
+cache test keeps a request in flight under a one-second body delay while eight local round trips fill the
 cache, and a slow machine can only make that a false pass, never a false failure. A test that waits
 without a bound carries a `timeLimit` so a regression fails instead of hanging. The fetch timing tests
 keep their margin: the first hop's delay is small against the deadline, so CI overhead can only make the

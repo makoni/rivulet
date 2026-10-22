@@ -93,9 +93,10 @@ public actor Fetcher {
         }
     }
 
-    /// Sends one hop: the host is resolved and its answers are checked, and the request goes out on the
-    /// client for this host and proxy decision — one built from a validated address, or a cached one that
-    /// keeps the address it was built with — under the deadline the whole fetch shares.
+    /// Sends one hop: for a direct hop the host is resolved and its answers are checked — a proxied hop is
+    /// answered by the proxy, which resolves the target itself — and the request goes out on the client for
+    /// this host and proxy decision, one built from a validated address or a cached one that keeps the
+    /// address it was built with, under the deadline the whole fetch shares.
     private func send(_ request: FetchRequest, deadline: NIODeadline) async throws -> FetchResponse {
         guard let host = request.url.host else {
             throw FetchError.invalidURL(request.url.absoluteString)
