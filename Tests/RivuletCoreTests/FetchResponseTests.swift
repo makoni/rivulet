@@ -119,6 +119,19 @@ import Testing
         #expect(response(429, headers: ["Retry-After": "soon"]).retryAfter(now: now) == .zero)
     }
 
+    @Test func httpDateNeedsTheWeekdayAndTheCommaLikeTheReferenceLayout() {
+        // Go parses with `time.RFC1123` ("Mon, 02 Jan 2006 15:04:05 MST"), so the weekday with its
+        // comma is part of the format: the comma-less form is not an HTTP-date and yields no delay,
+        // and a zone name other than GMT/UTC is not read at all (recorded deviation — Go applies its
+        // zone table, so `EST` would shift the time).
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 GMT") != nil)
+        #expect(HTTPDate.parse("Sun 15 Jun 2025 15:07:22 GMT") == nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 EST") == nil)
+
+        let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
+        #expect(withoutComma.retryAfter(now: now) == .zero)
+    }
+
     @Test func rateLimitedStatusIsRecognised() {
         #expect(response(429).isRateLimited)
         #expect(!response(200).isRateLimited)

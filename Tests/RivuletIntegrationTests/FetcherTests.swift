@@ -166,6 +166,114 @@ import RivuletCore
         }
     }
 
+    /// Answers `host` from a table, records the hosts it was asked about, and answers with nothing
+    /// for a host the table does not cover.
+    actor SeededResolver: AddressResolver {
+        private let answers: [String: [NetworkAddress]]
+        private(set) var hosts: [String] = []
+
+        init(answers: [String: [NetworkAddress]]) {
+            self.answers = answers
+        }
+
+        func resolve(host: String) async throws -> [NetworkAddress] {
+            hosts.append(host)
+            return answers[host] ?? []
+        }
+    }
+
+    @Test func everyRedirectHopIsResolvedAndValidatedThroughTheSeam() async throws {
+        // Upstream checks the address on every dial, so a hop to another host goes through the
+        // policy too, not through a lookup inside the client. The escape hatch is on so the first hop
+        // can be answered with the stub's address; the second name is answered with nothing, which
+        // stops the fetch — proof the hop is validated by the seam before anything connects to it.
+        let stub = NetworkAddress.parse("127.0.0.1")!
+        let resolver = SeededResolver(answers: ["first.example": [stub]])
+
+        try await withServer(behaviors: [
+            "/first": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://second.example/final"]),
+        ]) { server in
+            try await withFetcher(options: options(allowPrivateNetworks: true), resolver: resolver) { fetcher in
+                let url = URL(string: "http://first.example:\(server.port)/first")!
+                do {
+                    _ = try await fetcher.fetch(FetchRequest(url: url, headers: [:]))
+                    Issue.record("expected the hop that does not resolve to stop the fetch")
+                } catch let error as FetchError {
+                    #expect(error == .hostnameResolution("second.example"))
+                }
+
+                let asked = await resolver.hosts
+                #expect(asked == ["first.example", "second.example"])
+            }
+        }
+    }
+
+    @Test func theHopConnectsToTheAddressValidatedForThatHop() async throws {
+        // Both names are answered with the same stub address and nothing else could answer them, so
+        // a response from the second hop proves the client used the address the policy validated.
+        // The redirect has to name the second server's port, so that server starts first.
+        let stub = NetworkAddress.parse("127.0.0.1")!
+        let resolver = SeededResolver(answers: ["first.example": [stub], "second.example": [stub]])
+        let body = Data("hop".utf8)
+
+        let second = try await StubFeedServer.start(behaviors: ["/final": StubFeedServer.Behavior(body: body)])
+        do {
+            try await withServer(behaviors: [
+                "/first": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://second.example:\(second.port)/final"]),
+            ]) { first in
+                try await withFetcher(options: options(allowPrivateNetworks: true), resolver: resolver) { fetcher in
+                    let response = try await fetcher.fetch(
+                        FetchRequest(url: URL(string: "http://first.example:\(first.port)/first")!, headers: [:])
+                    )
+                    #expect(response.body == body)
+                    #expect(response.effectiveURL == URL(string: "http://second.example:\(second.port)/final")!)
+
+                    let asked = await resolver.hosts
+                    #expect(asked == ["first.example", "second.example"])
+                }
+            }
+        } catch {
+            try await second.stop()
+            throw error
+        }
+        try await second.stop()
+    }
+
+    @Test func onlyTheStatusesTheReferenceFollowsAreFollowed() async throws {
+        // Go follows 301, 302, 303, 307 and 308 only. A 300 with a `Location` is an ordinary
+        // response; 303 is followed, and the client always uses GET here so the method cannot change.
+        try await withServer(behaviors: [
+            "/multiple": StubFeedServer.Behavior(status: 300, headers: ["Location": "/final"], body: Data("choice".utf8)),
+            "/moved": StubFeedServer.Behavior(status: 303, headers: ["Location": "/final"]),
+            "/final": StubFeedServer.Behavior(body: Data("final".utf8)),
+        ]) { server in
+            try await withFetcher(options: options()) { fetcher in
+                let choice = try await fetcher.fetch(FetchRequest(url: server.url("/multiple"), headers: [:]))
+                #expect(choice.status == 300)
+                #expect(choice.body == Data("choice".utf8))
+
+                let moved = try await fetcher.fetch(FetchRequest(url: server.url("/moved"), headers: [:]))
+                #expect(moved.status == 200)
+                #expect(moved.effectiveURL == server.url("/final"))
+            }
+        }
+    }
+
+    @Test func anUnparsableRedirectLocationIsAFetchErrorLikeTheReferencesParseError() async throws {
+        try await withServer(behaviors: [
+            "/bad": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://[bad"]),
+        ]) { server in
+            try await withFetcher(options: options()) { fetcher in
+                do {
+                    _ = try await fetcher.fetch(FetchRequest(url: server.url("/bad"), headers: [:]))
+                    Issue.record("expected the unparseable redirect location to fail")
+                } catch let error as FetchError {
+                    #expect(error == .redirectTargetUnparseable("http://[bad"))
+                }
+            }
+        }
+    }
+
     @Test func gzipBodyIsDecompressed() async throws {
         let body = Data("<feed><title>Gzip</title></feed>".utf8)
         try await withServer(behaviors: [

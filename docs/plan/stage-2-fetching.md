@@ -24,8 +24,9 @@
       resolve the host with the system resolver through an injectable `AddressResolver` seam, reject
       the request if **any** resolved address is private/loopback/link-local/multicast/unspecified or
       in the RFC 6598 range, then connect through a client pinned to the validated address
-      (`dnsOverride`, one short-TTL client per host). A DNS-rebinding test proves a second lookup
-      cannot swap in a private address. Escape hatch: `FETCHER_ALLOW_PRIVATE_NETWORKS=true`
+      (`dnsOverride`, one short-TTL client per host). The fetcher follows redirects itself so the
+      policy runs on every hop, as the reference's dialer does. A DNS-rebinding test proves a second
+      lookup cannot swap in a private address. Escape hatch: `FETCHER_ALLOW_PRIVATE_NETWORKS=true`
       (tests only). A proxied request is not pinned — the proxy resolves the target — so the policy
       is skipped for that hop, which is what upstream does with an explicitly configured proxy.
 
@@ -45,14 +46,17 @@
 
 ### Integration (stub server)
 
-- 200 with body; 304 revalidation; redirect chains (301 → 302 → 200); redirect loops capped.
+- 200 with body; 304 revalidation; redirect chains (301 → 302 → 200); redirect loops capped; only the
+  statuses the reference follows are followed (a 300 with `Location` is an ordinary response); an
+  unparseable `Location` is a fetch error.
 - gzip decoding works and is actually enabled; chunked responses decode correctly.
 - Oversized body rejected with a clear error; a slow response hits the timeout.
 - `ETag` and `Last-Modified` round-trip: the second request carries the validators.
 - 4xx/5xx and connection reset classified as fetch errors; the counter and the message are recorded
   through `FeedRepository.recordParsingError` (the refresh path wires them together).
 - SSRF guard: private targets refused unless explicitly allowed; the pinned address is used without a
-  second lookup.
+  second lookup; every redirect hop goes through the resolver seam, so a hop that fails validation
+  stops the fetch before anything connects to it.
 - A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is
   skipped for that hop; the same private target without the flag is refused.
 

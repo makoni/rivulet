@@ -74,7 +74,12 @@ public enum NetworkAddress: Sendable, Equatable {
         }
         var groups: [Int] = []
         for part in text.split(separator: ":") {
-            guard let number = Int(part, radix: 16), (0...65_535).contains(number) else {
+            // Go's address parser reads groups as hex digits only, so a sign is not a group even
+            // though the numeric range check alone would accept "+1".
+            guard part.allSatisfy(\.isHexDigit),
+                let number = Int(part, radix: 16),
+                (0...65_535).contains(number)
+            else {
                 return nil
             }
             groups.append(number)
@@ -82,13 +87,34 @@ public enum NetworkAddress: Sendable, Equatable {
         return groups
     }
 
+    /// The IPv4 form of a 4-in-6 address — what Go's `netip.Addr.Unmap()` gives — or nil when the
+    /// bytes are a plain IPv6 address. The policy classifies the unmapped form, like upstream does.
+    var unmapped: NetworkAddress? {
+        switch self {
+        case .ipv4:
+            return nil
+        case .ipv6(let bytes):
+            guard bytes.count == 16,
+                bytes[0...9].allSatisfy({ $0 == 0 }),
+                bytes[10] == 0xFF,
+                bytes[11] == 0xFF
+            else {
+                return nil
+            }
+            return .ipv4(Array(bytes[12...15]))
+        }
+    }
+
     /// Canonical text: lowercase, without leading zeros, no compression — the form handed to the
-    /// client as the pinned address.
+    /// client as the pinned address. A 4-in-6 address prints in its IPv4 form, as Go prints it.
     public var text: String {
         switch self {
         case .ipv4(let bytes):
             return bytes.map { String($0) }.joined(separator: ".")
         case .ipv6(let bytes):
+            if let v4 = unmapped {
+                return v4.text
+            }
             var groups: [String] = []
             for index in 0..<8 {
                 let group = Int(bytes[index * 2]) << 8 | Int(bytes[index * 2 + 1])

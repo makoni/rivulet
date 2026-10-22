@@ -12,6 +12,9 @@ public enum FetchError: Error, Sendable, Equatable {
     /// The host did not resolve, like upstream `ErrHostnameResolution`.
     case hostnameResolution(String)
 
+    /// A `Location` that cannot be read, like upstream `cannot parse redirect location`.
+    case redirectTargetUnparseable(String)
+
     /// A configured proxy URL that cannot be read, like upstream
     /// `fetcher: invalid feed proxy URL`.
     case invalidProxyURL(String)
@@ -47,6 +50,8 @@ extension FetchError: CustomStringConvertible {
             return "fetcher: refusing to access private network host \(host)"
         case .hostnameResolution(let host):
             return "fetcher: unable to resolve request hostname \(host)"
+        case .redirectTargetUnparseable(let location):
+            return "fetcher: cannot parse redirect location \"\(location)\""
         case .invalidProxyURL(let value):
             return "fetcher: invalid feed proxy URL \"\(value)\""
         case .bodyTooLarge(let limit):

@@ -2,14 +2,17 @@ import Foundation
 
 /// Parses an HTTP-date (RFC 1123, the format `Expires` and `Retry-After` use) into Unix seconds.
 ///
-/// The weekday is informational and ignored; the zone must be GMT/UTC or an offset. A value that
-/// does not parse yields nil, which the reference also treats as "no delay".
+/// The weekday is part of the format, as in the reference's `time.RFC1123` layout, so the comma
+/// after it is required. The zone must be GMT/UTC or a numeric offset; Go reads any zone name and
+/// applies its zone table, so a named zone other than GMT/UTC is not read here — a recorded
+/// deviation in `docs/reference-notes.md`. A value that does not parse yields nil, which the
+/// reference also treats as "no delay".
 enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {
         let parts = value.split(separator: " ", omittingEmptySubsequences: true)
-        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday, day, month, year, time, zone.
-        guard parts.count == 6 else {
+        // "Wed, 21 Oct 2015 07:28:00 GMT" → weekday with its comma, day, month, year, time, zone.
+        guard parts.count == 6, parts[0].hasSuffix(",") else {
             return nil
         }
 

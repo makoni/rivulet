@@ -4,9 +4,10 @@ import Foundation
 ///
 /// Ported from Miniflux `internal/urllib.IsNonPublicIP` (Apache-2.0): the same set upstream
 /// refuses — private, loopback, link-local, multicast, unspecified and the RFC 6598 shared
-/// address space. An address that is not an address counts as non-public, like Go's `nil`.
+/// address space. An address that is not an address counts as non-public, like Go's `nil`. A 4-in-6
+/// address is classified through its IPv4 form, as Go unmaps it before checking.
 ///
-/// The check runs on the address that was resolved and pinned, not on a name resolved again
+/// The check runs on the address resolved and pinned for the hop, not on a name resolved again
 /// later, so a second lookup cannot swap in a private target.
 public struct NetworkAddressPolicy: Sendable, Equatable {
     /// Escape hatch for private targets (`FETCHER_ALLOW_PRIVATE_NETWORKS`), off by default and
@@ -26,12 +27,20 @@ public struct NetworkAddressPolicy: Sendable, Equatable {
         guard let address else {
             return false
         }
+        return !isPrivate(address)
+    }
 
+    // Go unmaps a 4-in-6 address before classifying it (`netip.Addr.Unmap()` in `IsNonPublicIP`), so
+    // the IPv4 ranges apply to a mapped address too.
+    private func isPrivate(_ address: NetworkAddress) -> Bool {
+        if let mapped = address.unmapped {
+            return isPrivate(mapped)
+        }
         switch address {
         case .ipv4(let bytes):
-            return !isPrivateV4(bytes)
+            return isPrivateV4(bytes)
         case .ipv6(let bytes):
-            return !isPrivateV6(bytes)
+            return isPrivateV6(bytes)
         }
     }
 

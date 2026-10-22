@@ -5,11 +5,12 @@ import NIOHTTP1
 
 /// Fetches feed documents.
 ///
-/// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift. Two differences
+/// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift. The differences
 /// from the reference are deliberate and recorded in `docs/reference-notes.md`: the body cap is
 /// enforced through the response accumulator, because AsyncHTTPClient has no `MaxBytesReader`
-/// equivalent, and the private-network check runs on the address we resolved and pinned rather than
-/// in a dialer callback — the same protection without the time-of-check window.
+/// equivalent; the private-network check runs on the address we resolved and pinned rather than in a
+/// dialer callback, which removes the time-of-check window; and redirects are followed hop by hop so
+/// the check runs on every hop, as the reference's dialer does.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, so a client is never
     /// shared between hosts, and a stale pin cannot outlive the cache.
@@ -41,14 +42,43 @@ public actor Fetcher {
     ///
     /// A conditional hit comes back as a response with status 304 and no body. A failure throws
     /// ``FetchError`` with the reference wording.
+    ///
+    /// Redirects are followed hop by hop instead of by the client, because the address policy has to
+    /// run on every hop: upstream checks the address on each dial, and a client that follows
+    /// redirects resolves the next host itself, outside the policy.
     public func fetch(_ request: FetchRequest) async throws -> FetchResponse {
+        var hop = request
+        var followed = 0
+
+        while true {
+            let response = try await send(hop)
+
+            // Upstream follows 301, 302, 303, 307 and 308, and it counts requests, so it refuses the
+            // hop that would make the count reach the limit; here the limit is the hops followed.
+            guard isRedirect(response.status), let location = response.header("Location") else {
+                return response
+            }
+            guard followed < options.maxRedirects else {
+                throw FetchError.redirectLimit(options.maxRedirects)
+            }
+            guard let target = URL(string: location, relativeTo: hop.url) else {
+                throw FetchError.redirectTargetUnparseable(location)
+            }
+
+            followed += 1
+            hop = FetchRequest(url: target.absoluteURL, headers: request.headers, proxyURL: request.proxyURL)
+        }
+    }
+
+    /// Sends one hop: the address for that hop is validated and pinned, then the request goes out.
+    private func send(_ request: FetchRequest) async throws -> FetchResponse {
         guard let host = request.url.host else {
             throw FetchError.invalidURL(request.url.absoluteString)
         }
 
-        // A proxied request is answered by the proxy, which resolves the target itself, so there is
-        // nothing to pin. Upstream treats an explicitly configured proxy as a trusted hop and keeps
-        // the private-network check for direct connections only — the same here.
+        // A proxied hop is answered by the proxy, which resolves the target itself, so there is
+        // nothing to pin: upstream treats an explicitly configured proxy as a trusted hop and keeps
+        // the private-network check for direct connections.
         let pinned = request.proxyURL == nil ? try await resolveAndPin(host: host) : nil
         let client = try await client(for: request, host: host, pinned: pinned)
 
@@ -77,8 +107,13 @@ public actor Fetcher {
             status: Int(response.status.code),
             headers: headers,
             body: bytes(from: response.body),
-            effectiveURL: response.url ?? request.url
+            effectiveURL: request.url
         )
+    }
+
+    /// The redirect statuses upstream follows.
+    private func isRedirect(_ status: Int) -> Bool {
+        [301, 302, 303, 307, 308].contains(status)
     }
 
     /// Closes the cached clients. The fetcher cannot be used after this.
@@ -108,7 +143,10 @@ public actor Fetcher {
         guard !answers.isEmpty else {
             throw FetchError.hostnameResolution(host)
         }
-        // Upstream refuses the request when any answer is non-public, then connects to one of them.
+        // Rivulet is stricter than upstream here, and the difference is recorded in
+        // `docs/reference-notes.md`: upstream checks the address it dials one attempt at a time, so a
+        // private answer later in the list is never reached when a public answer connects first.
+        // Rivulet refuses the request when any answer is non-public.
         for answer in answers where !policy.allows(answer) {
             throw FetchError.privateNetworkHost(host)
         }
@@ -130,7 +168,10 @@ public actor Fetcher {
         if let pinned {
             configuration.dnsOverride = [host: pinned.text]
         }
-        configuration.redirectConfiguration = .follow(max: options.maxRedirects, allowCycles: false)
+        // Redirects are left to `fetch`, which validates the address for every hop. Cycles are allowed
+        // up to the limit, as upstream does: its CheckRedirect counts requests rather than refusing a
+        // repeated URL.
+        configuration.redirectConfiguration = .disallow
         configuration.decompression = options.decompression ? .enabled(limit: .ratio(25)) : .disabled
         configuration.timeout = .init(
             connect: TimeAmount.seconds(Int64(FetcherOptions.defaultConnectTimeout.components.seconds)),
@@ -187,6 +228,9 @@ public actor Fetcher {
     // MARK: - Errors and bytes
 
     /// Maps a client failure to the fetcher's error, using the categories the reference reports.
+    ///
+    /// The redirect limit is not part of this mapping: the client is configured not to follow
+    /// redirects, so the limit is reported by the hop loop in `fetch`.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {
@@ -194,8 +238,6 @@ public actor Fetcher {
                 HTTPClientError.readTimeout,
                 HTTPClientError.connectTimeout:
                 return .timeout
-            case HTTPClientError.redirectLimitReached, HTTPClientError.redirectCycleDetected:
-                return .redirectLimit(options.maxRedirects)
             case HTTPClientError.remoteConnectionClosed:
                 return .network("connection closed by the peer")
             default:

@@ -74,10 +74,12 @@ import Testing
     }
 
     @Test func proxyIsOptional() throws {
-        let empty = try FetcherOptions.load(environment: ["FETCHER_PROXY": "  "])
+        // The reference variable is `HTTP_CLIENT_PROXY` (`internal/config/options.go`), so this is
+        // the name Rivulet reads.
+        let empty = try FetcherOptions.load(environment: ["HTTP_CLIENT_PROXY": "  "])
         #expect(empty.proxyURL == nil)
 
-        let set = try FetcherOptions.load(environment: ["FETCHER_PROXY": " http://proxy.internal:3128 "])
+        let set = try FetcherOptions.load(environment: ["HTTP_CLIENT_PROXY": " http://proxy.internal:3128 "])
         #expect(set.proxyURL == "http://proxy.internal:3128")
     }
 

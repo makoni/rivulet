@@ -217,8 +217,9 @@ Semantics:
 
 - `Accept-Encoding: br,gzip` (or `identity` when compression is disabled); conditional GET with
   `If-None-Match` / `If-Modified-Since`.
-- SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), active
-  unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`). An
+- SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), which runs
+  on **every** dial, including the hop reached through a redirect; active unless
+  `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`). An
   explicitly configured proxy is a trusted hop: the check runs on direct connections only, and the
   connection to the proxy itself is allowed even when the proxy address is private.
 - Proxy precedence in `ExecuteRequest`: the per-feed proxy URL, then the application proxy when the
@@ -228,16 +229,38 @@ Semantics:
 - Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
   (`HTTP_CLIENT_MAX_BODY_SIZE`), 10 followed redirects, `Connection: close`, and the `Accept`
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
-- Rivulet's deviations, recorded here so they are not mistaken for upstream behavior: it
-  advertises `gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); it does not
-  send `Connection: close` because it keeps a connection pool; the advertised user agent is
-  Rivulet's own; brotli, per-feed proxy lists, TLS-error tolerance and HTTP/2 toggles are
-  deferred. The private-network check runs on the address Rivulet resolved and pinned, which
-  removes the time-of-check window the reference closes with its dialer. A per-feed proxy URL is
-  not stored yet, so only the application proxy can apply. AsyncHTTPClient tunnels through a proxy
-  with `CONNECT` even for plain `http` targets, and connects to the proxy in plain HTTP for `https`
-  proxy URLs, so a proxied target is resolved by the proxy and cannot be pinned — the policy is
-  skipped for proxied requests, as it is upstream.
+- Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
+  - `Accept-Encoding: gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); no
+    `Connection: close` because Rivulet keeps a connection pool; the advertised user agent is
+    Rivulet's own. Brotli, TLS-error tolerance and HTTP/2 toggles are deferred. The pool runs on
+    AsyncHTTPClient's defaults (60 s idle, 8 connections per host), not the reference's
+    `MaxIdleConns: 50` / `IdleConnTimeout: 90s`; the decompression-bomb guard (`limit: .ratio(25)`)
+    is a Rivulet addition, since upstream relies on the body cap alone.
+  - Every redirect hop is validated: the fetcher follows redirects itself, one request per hop, so the
+    address policy runs on each hop the way the reference's dialer `Control` does. The statuses
+    followed are 301, 302, 303, 307 and 308, and cycles are allowed up to the limit — upstream's
+    `CheckRedirect` counts requests and does not refuse a repeated URL. The boundary differs by one
+    hop: upstream refuses the redirect that would make the count reach the limit, Rivulet refuses the
+    one after the limit is reached.
+  - A 4-in-6 address is classified through its IPv4 form, as Go's `netip.Addr.Unmap()` does, and the
+    canonical text prints that form. Rivulet's text parser does not accept the mixed
+    `::ffff:a.b.c.d` spelling — the unmapped form comes from resolver bytes.
+  - Rivulet refuses the whole request when **any** resolved answer is non-public. Upstream checks the
+    address it dials one attempt at a time, so a private answer later in the list is never reached
+    when a public answer connects first; Rivulet is stricter here on purpose.
+  - `HTTPDate` requires the weekday and the comma after it (Go's `time.RFC1123` layout). A zone name
+    other than `GMT`/`UTC` is not read: Go applies its zone table, so `EST` would shift the time by
+    its offset. Go's address parser reads hex digits only, so a group with a sign is not an address.
+  - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
+  - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
+    `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).
+    `FETCHER_IGNORE_HTTP_CACHE` is a Rivulet addition: upstream has only the per-feed flag.
+    Upstream also proxies from the environment (`ProxyFromEnvironment`), and proxy URLs may carry
+    credentials; both are deferred. A per-feed proxy URL is not stored yet, so only the application
+    proxy can apply.
+  - AsyncHTTPClient tunnels through a proxy with `CONNECT` even for plain `http` targets, and reaches
+    an `https` proxy in plain HTTP, so a proxied target is resolved by the proxy and cannot be
+    pinned — the policy is skipped for that hop, as it is upstream.
 - Relevant packages: `internal/reader/fetcher` (request building, response handling),
   `internal/urllib` (IP helpers) — not `internal/http`, which is the integrations/REST client.
 

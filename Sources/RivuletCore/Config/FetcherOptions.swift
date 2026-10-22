@@ -3,8 +3,11 @@ import Foundation
 /// Fetcher options read from the environment.
 ///
 /// Variable names mirror Miniflux where a single value maps cleanly: `HTTP_CLIENT_TIMEOUT`,
-/// `HTTP_CLIENT_USER_AGENT`, `HTTP_CLIENT_MAX_BODY_SIZE`, `FETCHER_IGNORE_HTTP_CACHE`,
-/// `FETCHER_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`. Parsing follows the upstream semantics
+/// `HTTP_CLIENT_USER_AGENT`, `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY` and
+/// `FETCHER_ALLOW_PRIVATE_NETWORKS`. `FETCHER_IGNORE_HTTP_CACHE` is a Rivulet addition: the
+/// reference has only the per-feed flag, so this is the application-wide default a feed overrides.
+/// The reference also proxies from the environment (`ProxyFromEnvironment`), which Rivulet does not
+/// read — recorded in `docs/reference-notes.md`. Parsing follows the upstream semantics
 /// (`internal/config/options.go`): trimmed keys and values, an empty value falls back to the
 /// default, booleans accept the same words, and both numeric options must be at least 1.
 public struct FetcherOptions: Sendable, Equatable {
@@ -49,10 +52,11 @@ public struct FetcherOptions: Sendable, Equatable {
     /// default, so decompression is enabled explicitly when this is true.
     public let decompression: Bool
 
-    /// Global "ignore HTTP cache" (`FETCHER_IGNORE_HTTP_CACHE`); a feed can override it.
+    /// Application-wide "ignore HTTP cache" default (Rivulet's addition, `FETCHER_IGNORE_HTTP_CACHE`);
+    /// a feed overrides it.
     public let ignoreHTTPCache: Bool
 
-    /// Application-wide proxy (`FETCHER_PROXY`), none by default.
+    /// Application-wide proxy (`HTTP_CLIENT_PROXY`), none by default.
     public let proxyURL: String?
 
     /// Escape hatch for private-network targets (`FETCHER_ALLOW_PRIVATE_NETWORKS`).
@@ -121,7 +125,7 @@ public struct FetcherOptions: Sendable, Equatable {
         }
 
         var proxyURL: String?
-        if let value = environment["FETCHER_PROXY"], !value.trimmingCharacters(in: .whitespaces).isEmpty {
+        if let value = environment["HTTP_CLIENT_PROXY"], !value.trimmingCharacters(in: .whitespaces).isEmpty {
             proxyURL = value.trimmingCharacters(in: .whitespaces)
         }
 
