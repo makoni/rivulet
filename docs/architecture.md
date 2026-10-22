@@ -32,7 +32,7 @@ Rivulet is a single binary with two faces over one core:
 
 ```
 Sources/
-├── RivuletCore/            # framework-independent core (+ DocC catalog: RivuletCore.docc)
+├── RivuletCore/            # framework-independent core (DocC catalog added in stage 8)
 │   ├── Config/             # environment → Config, validation
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher (+ address resolver seam and address policy), parser, dates,

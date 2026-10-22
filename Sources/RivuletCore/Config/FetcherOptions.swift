@@ -22,9 +22,11 @@ public struct FetcherOptions: Sendable, Equatable {
         "Mozilla/5.0 (compatible; Rivulet/\(RivuletCore.version); +https://github.com/makoni/rivulet)"
     }
 
-    /// Upstream `defaultHTTPClientTimeout` and the dialer timeout in
-    /// `internal/reader/fetcher/request_builder.go`.
+    /// Upstream `defaultHTTPClientTimeout`, the deadline one `fetch` shares across its hops.
     public static let defaultTimeout: Duration = .seconds(20)
+
+    /// The time to establish a connection. Upstream's transport uses the same 10 seconds in its dialer
+    /// (`internal/reader/fetcher/request_builder.go`), which is also AsyncHTTPClient's default.
     public static let defaultConnectTimeout: Duration = .seconds(10)
 
     /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in megabytes.

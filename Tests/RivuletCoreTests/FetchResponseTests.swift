@@ -77,6 +77,11 @@ import Testing
     @Test func cachingHeadersAreReadOtherwise() {
         let response = response(200, headers: ["Expires": "Wed, 16 Sep 2026 12:00:00 GMT", "ETag": "abc123"])
         #expect(response.etag == "abc123")
+
+        // `header(_:)` reads a name in whatever case the server used, and nil for a name the response
+        // does not have.
+        #expect(response.header("ETag") == "abc123")
+        #expect(response.header("etag") == "abc123")
         #expect(response.header("last-modified") == nil)
     }
 
@@ -144,6 +149,20 @@ import Testing
         #expect(HTTPDate.parse("Wed, 15 Jun 2025 07:2:00 GMT") == nil)
         // Go validates the day against the month after parsing, so 31 February is not a date.
         #expect(HTTPDate.parse("Sun, 31 Feb 2025 07:28:00 GMT") == nil)
+
+        // Rivulet splits on whitespace, so it reads a padded or doubled-space form Go's layout would
+        // reject (Go treats runs of spaces as equivalent but rejects leading whitespace before the
+        // weekday and any extra text after the zone), and it does not read a fractional second.
+        #expect(HTTPDate.parse("Sun,  15 Jun 2025 07:28:00 GMT") != nil)
+        #expect(HTTPDate.parse(" Sun, 15 Jun 2025 07:28:00 GMT") != nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00,500 GMT") == nil)
+
+        // Go bounds an offset the same way here: an hour above 23 is not an offset, and neither is a
+        // minute above 59. The four-digit form is Rivulet's addition — Go's RFC1123 layout reads only
+        // a zone name or a signed hour, so `+0730` would not parse there.
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2400") == nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0360") == nil)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2359") != nil)
 
         let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
         #expect(withoutComma.retryAfter(now: now) == .zero)
@@ -219,7 +238,10 @@ import Testing
         #expect(response(200, body: Data("<rss></rss>".utf8)).error() == nil)
     }
 
-    @Test func effectiveURLIsTheOneAfterRedirects() throws {
+    @Test func effectiveURLIsStoredRatherThanDerivedFromTheRequest() throws {
+        // The fetcher builds a response with the URL it actually served, and the value is kept as
+        // given, not worked out from the request. The redirect path that makes it the last hop is
+        // proven in `Tests/RivuletIntegrationTests/FetcherTests.swift`.
         let target = URL(string: "https://cdn.example.com/feed.xml")!
         let response = FetchResponse(status: 200, headers: [:], body: Data("x".utf8), effectiveURL: target)
         #expect(response.effectiveURL == target)

@@ -3,6 +3,8 @@ Copyright 2026 Sergey Armodin
 
 This software is an independent Swift implementation inspired by Miniflux.
 It aims to be compatible with Miniflux's client APIs and overall behavior.
+Parts of it are derived from Miniflux under the Apache License, Version 2.0; each ported file
+carries a header comment naming the upstream path it was read from.
 
 Miniflux
 Copyright (c) Frédéric Guillot and contributors

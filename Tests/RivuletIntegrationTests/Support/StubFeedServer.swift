@@ -21,6 +21,9 @@ final class StubFeedServer: Sendable {
         var gzip = false
         /// Wait this long before answering.
         var delay: Duration = .zero
+        /// Send the head at once, then wait this long before the body. A test that passes on a timeout
+        /// can use this to show the deadline covers body reading, not only the response head.
+        var bodyDelay: Duration = .zero
         /// Close the connection without answering at all.
         var cutConnection = false
         /// Answer without `Content-Length`, which makes the transfer chunked.
@@ -161,12 +164,29 @@ final class StubFeedServer: Sendable {
             var buffer = channel.allocator.buffer(capacity: body.count)
             buffer.writeBytes(body)
 
-            channel.write(HTTPServerResponsePart.head(head), promise: nil)
-            if !body.isEmpty {
-                channel.write(HTTPServerResponsePart.body(.byteBuffer(buffer)), promise: nil)
+            channel.writeAndFlush(HTTPServerResponsePart.head(head), promise: nil)
+
+            if body.isEmpty {
+                channel.writeAndFlush(HTTPServerResponsePart.end(nil), promise: nil)
+                return
             }
-            channel.write(HTTPServerResponsePart.end(nil), promise: nil)
-            channel.flush()
+
+            if behavior.bodyDelay > .zero {
+                // The head is already on the wire, so the body arriving after the deadline is what the
+                // timing test asks for. `components.seconds` alone would drop a sub-second duration.
+                let amount = TimeAmount.nanoseconds(Int64(behavior.bodyDelay.attoseconds / 1_000_000_000))
+                channel.eventLoop.scheduleTask(in: amount) { self.writeBody(channel, body) }
+                return
+            }
+
+            writeBody(channel, body)
+        }
+
+        private func writeBody(_ channel: Channel, _ body: Data) {
+            var buffer = channel.allocator.buffer(capacity: body.count)
+            buffer.writeBytes(body)
+            channel.writeAndFlush(HTTPServerResponsePart.body(.byteBuffer(buffer)), promise: nil)
+            channel.writeAndFlush(HTTPServerResponsePart.end(nil), promise: nil)
         }
     }
 }

@@ -9,7 +9,8 @@ import Foundation
 ///
 /// Deviation: Go reads any zone name and applies its zone table, so `EST` would shift the time by its
 /// offset, and it also accepts `+03` and `GMT+3` as offsets; here the zone must be GMT/UTC or a
-/// four-digit offset — recorded in `docs/reference-notes.md`.
+/// four-digit offset. The value is split on whitespace, so leading or doubled spaces are read where
+/// Go's layout would reject them. Both are recorded in `docs/reference-notes.md`.
 enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {
@@ -76,13 +77,21 @@ enum HTTPDate {
     }
 
     /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
+    ///
+    /// Go bounds the offset hour at 23 in `parseSignedOffset` and the minute at 60 in its numeric
+    /// path, so `+2400` and `+0360` are not offsets. Reading the four-digit form at all is Rivulet's
+    /// addition: Go's `RFC1123` layout takes only a zone name or a signed hour (`+03`), which Rivulet
+    /// does not read — recorded in `docs/reference-notes.md`.
     private static func parseZoneOffset(_ value: String) -> Int? {
         guard value.hasPrefix("+") || value.hasPrefix("-") else {
             return nil
         }
         let sign = value.hasPrefix("-") ? -1 : 1
         let digits = value.dropFirst()
-        guard digits.count == 4, let hours = Int(digits.prefix(2)), let minutes = Int(digits.suffix(2)) else {
+        guard digits.count == 4,
+            let hours = Int(digits.prefix(2)), (0...23).contains(hours),
+            let minutes = Int(digits.suffix(2)), (0...59).contains(minutes)
+        else {
             return nil
         }
         return sign * (hours * 60 + minutes)

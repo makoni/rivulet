@@ -4,6 +4,7 @@ import Testing
 /// Which resolved addresses a fetch may connect to. Ported from Miniflux
 /// `internal/urllib.IsNonPublicIP` (Apache-2.0); the same set upstream refuses: private,
 /// loopback, link-local, multicast, unspecified and the RFC 6598 shared address space.
+/// (ported test: `TestIsNonPublicIP`, `internal/urllib/url_test.go`.)
 @Suite struct NetworkAddressPolicyTests {
     private let deny = NetworkAddressPolicy(allowPrivateNetworks: false)
     private let allow = NetworkAddressPolicy(allowPrivateNetworks: true)

@@ -263,10 +263,13 @@ Semantics:
     when a public answer connects first; Rivulet is stricter here on purpose.
   - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: three letters of a day name for the
     weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
-    minute and second fixed at two digits while the hour is not. The divergences are the zone table —
-    `EST` would shift the time by its offset — and the offset forms Go also accepts (`+03`, `GMT+3`).
-    Go also accepts a fractional second (`15:07:22,500`) and a value padded with spaces, which Rivulet
-    does not read.
+    minute and second fixed at two digits while the hour is not. The divergences: Go applies its zone
+    table, so `EST` would shift the time by its offset; Go reads the zone as a name or a signed hour
+    (`+03`, `GMT+3`), while Rivulet reads the four-digit `+hhmm` form that servers actually send —
+    `RFC1123Z` is what would accept it upstream; Rivulet does not read a fractional second, which Go
+    accepts after the seconds field; and Rivulet splits the value on whitespace, so it accepts leading
+    or doubled spaces that Go's layout would reject (Go treats a run of spaces in the middle as one and
+    rejects anything left over after the zone).
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a

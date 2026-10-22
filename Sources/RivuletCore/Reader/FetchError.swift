@@ -3,6 +3,8 @@ import Foundation
 /// Fetch failures. The wording follows the reference (`internal/reader/fetcher`) where the reference
 /// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
 /// phrase the reference would print with it; the rest is Rivulet's own wording.
+///
+/// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift.
 public enum FetchError: Error, Sendable, Equatable {
     /// The URL is not an `http` or `https` URL with a host.
     case invalidURL(String)
@@ -46,6 +48,8 @@ public enum FetchError: Error, Sendable, Equatable {
 }
 
 extension FetchError: CustomStringConvertible {
+    /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it
+    /// wraps the failure.
     public var description: String {
         switch self {
         case .invalidURL(let url):

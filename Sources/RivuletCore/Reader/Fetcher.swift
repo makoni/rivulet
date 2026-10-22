@@ -12,8 +12,9 @@ import NIOHTTP1
 /// closes the time-of-check window the reference's dialer leaves; and redirects are followed hop by
 /// hop so the check runs on every hop, as the reference's dialer does.
 public actor Fetcher {
-    /// A client is reused for this long. Its configuration carries the pin, so a client is never
-    /// shared between hosts, and a stale pin cannot outlive the cache.
+    /// A client is reused for this long. Its configuration carries the pin, and the cache key is
+    /// `host|proxyURL`, so a pin is never used for another host or for a proxied request, and a stale
+    /// pin cannot outlive the cache.
     static let clientTTL: Duration = .seconds(60)
 
     /// How many clients are kept at once.
@@ -182,7 +183,7 @@ public actor Fetcher {
         // call including redirects.
         configuration.timeout = .init(connect: amount(FetcherOptions.defaultConnectTimeout))
         if let proxyURL = request.proxyURL {
-            configuration.proxy = proxyTarget(from: proxyURL)
+            configuration.proxy = Self.proxyTarget(from: proxyURL)
         }
 
         let client = HTTPClient(configuration: configuration)
@@ -213,11 +214,15 @@ public actor Fetcher {
         }
     }
 
-    /// Proxy target, with the ports upstream assumes when the URL gives none.
+    /// The proxy target, with the ports upstream assumes when the URL gives none.
     ///
     /// Deviation: AsyncHTTPClient connects to the proxy in plain HTTP, so an `https` proxy URL does
     /// not reach the proxy over TLS the way the reference does.
-    private func proxyTarget(from url: URL) -> HTTPClient.Configuration.Proxy {
+    ///
+    /// Internal rather than private so the port defaults can be tested: a stub proxy on port 0 cannot
+    /// show them, because the proxy URL would have to name a fixed port, which `docs/testing.md`
+    /// forbids.
+    static func proxyTarget(from url: URL) -> HTTPClient.Configuration.Proxy {
         let host = url.host ?? ""
         switch url.scheme?.lowercased() {
         case "socks5", "socks5h":

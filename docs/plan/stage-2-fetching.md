@@ -45,23 +45,25 @@
 ### Unit
 
 - Request header construction; conditional headers derived from stored state; error classification
-  mapping (for status/logging only).
+  mapping (for status/logging only); `FetchResponse.header(_:)` reads a name in any case; the proxy
+  ports assumed when a proxy URL gives none.
 
 ### Integration (stub server)
 
 - 200 with body; 304 revalidation; redirect chains (301 → 302 → 200); redirect loops capped; only the
-  statuses the reference follows are followed (a 300 with `Location` is an ordinary response); an
-  unparseable `Location` is a fetch error.
+  statuses the reference follows are followed (301, 302, 303, 307, 308 — a 300 with `Location` is an
+  ordinary response); an unparseable `Location` is a fetch error.
 - gzip decoding works and is actually enabled; chunked responses decode correctly.
-- Oversized body rejected with a clear error; a slow response hits the timeout.
+- Oversized body rejected with a clear error; a slow response hits the timeout, and the timeout is one
+  deadline shared by the hops and covers body reading, not only the response head.
 - `ETag` and `Last-Modified` round-trip: the second request carries the validators.
 - 4xx/5xx and connection reset classified as fetch errors; the counter and the message are recorded
   through `FeedRepository.recordParsingError` (the refresh path wires them together).
-- SSRF guard: private targets refused unless explicitly allowed; the pinned address is used without a
-  second lookup; every redirect hop goes through the resolver seam before connecting — the test proves
-  the seam is consulted for the hop and that a hop the seam cannot answer stops the fetch. A refusal at
-  a hop is not observable in a hermetic test, because the only address the first hop could reach is the
-  stub, which a denying policy would itself refuse.
+- SSRF guard: private targets refused unless explicitly allowed — both halves of the switch are tested;
+  the pinned address is used without a second lookup; every redirect hop goes through the resolver seam
+  before connecting — the test proves the seam is consulted for the hop and that a hop the seam cannot
+  answer stops the fetch. A refusal at a hop is not observable in a hermetic test, because the only
+  address the first hop could reach is the stub, which a denying policy would itself refuse.
 - A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is
   skipped for that hop; the same private target without the flag is refused.
 
