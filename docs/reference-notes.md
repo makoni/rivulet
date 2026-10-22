@@ -265,12 +265,16 @@ Semantics:
     weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
     minute and second fixed at two digits while the hour is not. The divergences are the zone table —
     `EST` would shift the time by its offset — and the offset forms Go also accepts (`+03`, `GMT+3`).
+    Go also accepts a fractional second (`15:07:22,500`) and a value padded with spaces, which Rivulet
+    does not read.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a
     leading zero is rejected; and a zone is not accepted — `netip.ParseAddr` would accept a zone, but
-    `net.ParseIP`, which the reference uses, rejects it. The mixed form `::ffff:1.2.3.4` is the one case
-    Rivulet's parser does not read — the unmapped form comes from resolver bytes.
+    `net.ParseIP`, which the reference uses, rejects it. Two further differences: Rivulet trims the text
+    first, which Go does not, and it does not read the mixed form `::ffff:1.2.3.4` — the unmapped form
+    comes from resolver bytes. Its canonical text prints the eight groups in full, while Go's
+    `String()` applies RFC 5952 compression, so the two print the same address differently.
   - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
   - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
     `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).

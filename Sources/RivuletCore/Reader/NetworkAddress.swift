@@ -12,6 +12,9 @@ public enum NetworkAddress: Sendable, Equatable {
     /// parser reads one: every field must have a digit, a group is at most four hex digits, and `::`
     /// stands for at least one zero group. Returns nil when the text is not an address — a hostname is
     /// not an address — and zone scopes are not accepted.
+    ///
+    /// The text is trimmed first, which Go's parser does not do; recorded in
+    /// `docs/reference-notes.md`.
     public static func parse(_ text: String) -> NetworkAddress? {
         let value = text.trimmingCharacters(in: .whitespaces)
         guard !value.isEmpty, !value.contains("%") else {

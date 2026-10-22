@@ -120,10 +120,11 @@ import Testing
     }
 
     @Test func httpDateNeedsTheWeekdayAndTheCommaLikeTheReferenceLayout() {
-        // Go parses with `time.RFC1123` ("Mon, 02 Jan 2006 15:04:05 MST"), so the weekday with its
-        // comma is part of the format: the comma-less form is not an HTTP-date and yields no delay,
-        // and a zone name other than GMT/UTC is not read at all (recorded deviation — Go applies its
-        // zone table, so `EST` would shift the time).
+        // Rivulet's own test — the reference has no test for its date parser. It pins what Go's
+        // `time.Parse` accepts with `time.RFC1123` ("Mon, 02 Jan 2006 15:04:05 MST"): the weekday with
+        // its comma is part of the format, so the comma-less form is not an HTTP-date and yields no
+        // delay, and a zone name other than GMT/UTC is not read at all (recorded deviation — Go applies
+        // its zone table, so `EST` would shift the time).
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 GMT") != nil)
         #expect(HTTPDate.parse("Sun 15 Jun 2025 15:07:22 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 EST") == nil)
