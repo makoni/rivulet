@@ -247,8 +247,9 @@ Semantics:
     `MaxIdleConns: 50` / `IdleConnTimeout: 10s` (90 s is Go's default, not what Miniflux sets); the
     decompression-bomb guard (`limit: .ratio(25)`) is a Rivulet addition, since upstream relies on the body
     cap alone.
-  - Every redirect hop is validated: the fetcher follows redirects itself, one request per hop, so the
-    address policy runs on each hop the way the reference's dialer `Control` does. The statuses
+  - Every direct redirect hop is validated: the fetcher follows redirects itself, one request per hop, so
+    the address policy runs on each direct hop the way the reference's dialer `Control` does, and the
+    exception is the same — the dial to an explicitly configured proxy is not checked. The statuses
     followed are 301, 302, 303, 307 and 308, and cycles are allowed up to the limit — upstream's
     `CheckRedirect` counts requests and does not refuse a repeated URL. The boundary differs by one
     hop: upstream refuses the redirect that would make the count reach the limit, Rivulet refuses the

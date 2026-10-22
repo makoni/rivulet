@@ -65,8 +65,8 @@
   client error. The counter and the message are recorded through `FeedRepository.recordParsingError` (the
   refresh path wires them together).
 - SSRF guard: private targets refused unless explicitly allowed — both halves of the switch are tested;
-  the pinned address is used without a second lookup; every redirect hop goes through the resolver seam
-  before connecting — the test proves the seam is consulted for the hop and that a hop the seam cannot
+  the pinned address is used without a second lookup; every direct redirect hop goes through the resolver
+  seam before connecting — the test proves the seam is consulted for the hop and that a hop the seam cannot
   answer stops the fetch. A refusal at a hop is not observable in a hermetic test, because the only
   address the first hop could reach is the stub, which a denying policy would itself refuse.
 - A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is

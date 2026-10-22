@@ -11,8 +11,8 @@ import NIOHTTP1
 /// private-network check runs on the answers the resolver seam returns for a hop, and the client is
 /// pinned with `dnsOverride` to an address validated when it was built, so a later lookup cannot steer
 /// the connection — the guarantee the reference's dialer `Control` callback gives it, by another
-/// mechanism; and redirects are followed hop by hop so the check runs on every hop, as the reference's
-/// dialer does.
+/// mechanism; and redirects are followed hop by hop so the check runs on every direct hop, as the
+/// reference's dialer does — which also skips it for the dial to an explicitly configured proxy.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, and the cache key is
     /// `host|proxyURL`, so a pin is never used for another host or for a proxied request; an expired entry
@@ -238,9 +238,9 @@ public actor Fetcher {
         if let pinned {
             configuration.dnsOverride = [host: pinned.text]
         }
-        // Redirects are left to `fetch`, which validates the address for every hop. Cycles are allowed
-        // up to the limit, as upstream does: its CheckRedirect counts requests rather than refusing a
-        // repeated URL.
+        // Redirects are left to `fetch`, which validates the address for every direct hop. Cycles are
+        // allowed up to the limit, as upstream does: its CheckRedirect counts requests rather than
+        // refusing a repeated URL.
         configuration.redirectConfiguration = .disallow
         configuration.decompression = options.decompression ? .enabled(limit: .ratio(25)) : .disabled
         // Only the connect timeout is a separate limit: the request deadline is the one the whole fetch
