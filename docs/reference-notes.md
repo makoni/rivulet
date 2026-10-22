@@ -262,11 +262,11 @@ Semantics:
     failure in — so only the wording differs on that path: Go prints its `Get "url":` wrapper, Rivulet
     prints its own phrase with the client's wording after it; the strings Miniflux shows for these come from
     locale keys (`internal/locale/translations/en_US.json`), which Rivulet does not reproduce. For an
-    unparseable `Location` Rivulet prints Go's phrase (`failed to parse Location header`,
-    `net/http/client.go:650`) without the `Get "url":` wrapper and without the parse error Go adds after the
-    colon, since it has no parse error to print. Two more wording details: the reference quotes the host in
-    the private-network message with `%q` and Rivulet prints it bare, and `ErrHostnameResolution` is only
-    ever compared (`internal/ui/proxy.go:106`) — the fetch path reports a DNS failure as Go's resolver error
+    unparseable `Location` Rivulet prints Go's phrase (`failed to parse Location header`, which
+    `net/http`'s `Client.do` writes) without the `Get "url":` wrapper and without the parse error Go adds
+    after the colon, since it has no parse error to print. Two more wording details: the reference quotes the
+    host in the private-network message with `%q` and Rivulet prints it bare, and `ErrHostnameResolution` is
+    only compared (`internal/ui/proxy.go:106`) — the fetch path reports a DNS failure as Go's resolver error
     inside `Get "url":`, so Rivulet's category for it is its own, reached through the resolver seam upstream
     does not have.
     Three of the reference's categories are one-sided: `error.network_timeout` sits behind

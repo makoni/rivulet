@@ -4,8 +4,8 @@ import Foundation
 /// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
 /// phrase the reference would print with it, without Go's `Get "url":` wrapper. The phrases for an invalid
 /// URL, the redirect cap, a deadline, a connection closed by the peer and an unclassifiable client failure
-/// are Rivulet's own: the reference has no error string for those, only locale keys whose strings Rivulet
-/// does not reproduce.
+/// are Rivulet's own: the reference has no error string of its own for those, only locale keys into which
+/// Go's strings are interpolated, and whose strings Rivulet does not reproduce.
 ///
 /// A failure reaches the caller two ways, and the categories are the same either way: ``Fetcher/fetch(_:)``
 /// throws for a transport or limit failure, while an HTTP status is a response the caller can inspect, so

@@ -60,7 +60,8 @@ import Testing
         // and a fetch after it builds a client again. That a call overlapping the first cannot close the
         // same client twice is a property of taking the entries out before the first await; it cannot be
         // reproduced without a client-creation seam the plan does not have, and a test that depended on the
-        // two calls interleaving would pass by luck, which `docs/testing.md` forbids.
+        // two calls interleaving would pass by luck rather than prove anything, so the property is
+        // documented rather than tested.
         try await FetchTestSupport.withServer(behaviors: [
             "/one": StubFeedServer.Behavior(body: Data("one".utf8)),
         ]) { server in
