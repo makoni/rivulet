@@ -236,7 +236,7 @@ import RivuletCore
         }
     }
 
-    @Test func aRedirectWithAnEmptyLocationIsTheResponseLikeUpstreamsDo() async throws {
+    @Test func aRedirectWithAnEmptyLocationIsTheResponseLikeUpstreamDoes() async throws {
         // Go returns the response when a redirect status carries an empty `Location`; a 3xx without a
         // usable location is not followed. Rivulet must not resolve an empty value against the base and
         // loop on it.
@@ -289,7 +289,7 @@ import RivuletCore
         }
     }
 
-    @Test func anUnparsableRedirectLocationIsAFetchErrorWithGoPhraseAndNoParseError() async throws {
+    @Test func anUnparseableRedirectLocationIsAFetchErrorWithGoPhraseAndNoParseError() async throws {
         try await FetchTestSupport.withServer(behaviors: [
             "/bad": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://[bad"]),
         ]) { server in

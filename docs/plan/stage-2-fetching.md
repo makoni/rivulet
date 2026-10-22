@@ -25,7 +25,7 @@
       the request if **any** resolved address is private/loopback/link-local/multicast/unspecified or
       in the RFC 6598 range, then connect through a client pinned to the validated address
       (`dnsOverride`, one short-TTL client per host). The fetcher follows redirects itself so the
-      policy runs on every hop, as the reference's dialer does. Every hop resolves its host through the
+      policy runs on every hop, as the reference's dialer does. A direct hop resolves its host through the
       seam, and the client built from that answer connects to the address it validated, so a later lookup
       cannot change the target — the DNS-rebinding case the reference closes with its dialer. A cached
       client keeps the address it was built with, so a cached hop checks the current answers against the
@@ -73,6 +73,8 @@
   skipped for that hop; the same private target without the flag is refused.
 - The cache keeps a client per host and proxy decision, and one that a request is using is not pruned:
   a fetch whose body the stub is holding survives the evictions that other fetches trigger meanwhile.
+  `shutdown()` takes the entries out before closing them, so a second call has nothing to close and the
+  next fetch builds a client again.
 
 ## Exit criteria
 

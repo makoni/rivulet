@@ -83,8 +83,8 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow case that
 works without one — a numeric host, which the resolver answers from the string itself — and that is also
 the only place the byte order of the raw `addrinfo` layout is pinned. Everything else that matters — one
-lookup per hop, the answer handed to the policy, and the client pinned to the answer it was built from —
-is tested through the resolver seam with a seeded resolver.
+lookup for a direct hop, the answer handed to the policy, and the client pinned to the answer it was built
+from — is tested through the resolver seam with a seeded resolver.
 
 The cache has two behaviour tests. The first pins the one effect that can be observed from outside an
 eviction: while a request is in flight the client serving it must not be closed, or that request is
@@ -112,12 +112,12 @@ and use Vapor's client. The same socket-level approach backs the client-API jour
 Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test temp
 directories, no network access except to the local stub server). A bounded timeout that proves a failure
 is fast rather than hanging is allowed — the pool-timeout test asserts one — and a test whose pass
-condition is a timeout says so in its comment. A stub-side hold is the one real-time margin: the first
-cache test keeps a request in flight under a one-second body delay while eight local round trips fill the
-cache, and a slow machine can only make that a false pass, never a false failure. A test that waits
-without a bound carries a `timeLimit` so a regression fails instead of hanging. The fetch timing tests
-keep their margin: the first hop's delay is small against the deadline, so CI overhead can only make the
-deadline fire earlier, never let a hop that should be cut finish.
+condition is a timeout says so in its comment. A stub-side hold is the only margin that can turn a test
+into a false pass: the first cache test keeps a request in flight under a one-second body delay while
+eight local round trips fill the cache, and a slow machine can only make that a false pass, never a false
+failure; the fetch timing tests hold their margin the same way, with the first hop's delay small against
+the deadline so CI overhead can only make the deadline fire earlier, never let a hop that should be cut
+finish. A test that waits without a bound carries a `timeLimit` so a regression fails instead of hanging.
 
 ## Fixtures
 

@@ -20,9 +20,10 @@ import Testing
         // close the client the first was using, and fail that request with a cancellation. The stub holds
         // the body for a second so that request is still in flight while the eight fillers run; if they
         // took longer than that it would have finished and the test would pass without exercising the bug,
-        // which is the margin those eight local round trips have. The wait has no bound of its own — a fetch
-        // that never reached the stub would hang the job — and the fetch is local with a valid URL, so the
-        // head always arrives.
+        // which is the margin those eight local round trips have. The wait has no bound of its own, so the
+        // test carries a one-minute `timeLimit`: a fetch that never reached the stub fails at the limit
+        // instead of hanging the job. The fetch is local with a valid URL, so the head arrives well inside
+        // the margin.
         try await FetchTestSupport.withServer(behaviors: [
             "/slow": StubFeedServer.Behavior(body: Data("slow".utf8), bodyDelay: .seconds(1)),
             "/fast": StubFeedServer.Behavior(body: Data("fast".utf8)),

@@ -9,9 +9,7 @@ import NIOPosix
 /// Every test starts its own server bound to port 0 and reads the port the kernel assigned, so no
 /// test depends on a fixed port. What a path answers is declared by the test, and the server keeps
 /// no state beyond that table, the requests it received and the waiters a test registered on a path,
-/// which keeps behavior deterministic.
-/// A proxied request is recognized by its absolute request target, so the same server can play the
-/// proxy for the proxy test.
+/// which keeps behavior deterministic. The proxy tests use `StubProxy`, not this server.
 final class StubFeedServer: Sendable {
     /// What one path answers. Plain types keep the tests free of NIO imports.
     struct Behavior {
@@ -33,8 +31,8 @@ final class StubFeedServer: Sendable {
 
     /// A request the server received.
     struct Received {
-        /// Request target as it arrived: a path for a direct request, the absolute URL when the
-        /// request reached the server as a proxy.
+        /// Request target as it arrived, which for these tests is the path the behavior table is keyed
+        /// by.
         let target: String
         let headers: [String: String]
     }
@@ -85,9 +83,6 @@ final class StubFeedServer: Sendable {
     func url(_ path: String) -> URL {
         URL(string: "http://127.0.0.1:\(port)\(path.hasPrefix("/") ? path : "/\(path)")")!
     }
-
-    /// Server root, which is what a proxy URL for this server looks like.
-    var base: URL { URL(string: "http://127.0.0.1:\(port)")! }
 
     /// Requests received for `path`, in arrival order.
     func received(for path: String) -> [Received] {
@@ -156,7 +151,7 @@ final class StubFeedServer: Sendable {
         private let behaviors: [String: Behavior]
         private let received: NIOLockedValueBox<[String: [Received]]>
         private let arrivals: Arrivals
-        private var target = ""
+        private var path = ""
 
         init(behaviors: [String: Behavior], received: NIOLockedValueBox<[String: [Received]]>, arrivals: Arrivals) {
             self.behaviors = behaviors
@@ -167,25 +162,18 @@ final class StubFeedServer: Sendable {
         func channelRead(context: ChannelHandlerContext, data: NIOAny) {
             switch unwrapInboundIn(data) {
             case .head(let request):
-                target = request.uri
+                path = request.uri
                 var headers: [String: String] = [:]
                 for (name, value) in request.headers {
                     headers[name] = value
                 }
-                let path = URL(string: request.uri)?.path ?? request.uri
-                received.withLockedValue { $0[path, default: []].append(Received(target: request.uri, headers: headers)) }
+                received.withLockedValue { $0[path, default: []].append(Received(target: path, headers: headers)) }
                 arrivals.record(path)
             case .end:
-                answer(context.channel, behaviors[pathKey] ?? Behavior())
+                answer(context.channel, behaviors[path] ?? Behavior())
             default:
                 break
             }
-        }
-
-        // The lookup key is the path part of the target, so a proxied request answers like the
-        // same path served directly.
-        private var pathKey: String {
-            URL(string: target)?.path ?? target
         }
 
         private func answer(_ channel: Channel, _ behavior: Behavior) {
