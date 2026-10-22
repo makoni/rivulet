@@ -99,9 +99,9 @@ import Testing
         let past = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:06:10 GMT"])
         #expect(past.expires(now: now) == .seconds(60))
 
-        // Exactly a minute past truncates to itself, so the minute added on top cancels: nothing comes
-        // back. That is what Go's `Truncate` does too, and it is why the rule is "the current minute",
-        // not "any past value".
+        // A past value that sits on a minute boundary truncates to itself — 100 seconds past becomes -60 —
+        // so the minute added on top cancels it and nothing comes back. That is what Go's `Truncate` does
+        // too, and it is why the rule is "the current minute", not "any past value".
         let wholeMinutePast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:05:00 GMT"])
         #expect(wholeMinutePast.expires(now: now) == .zero)
     }

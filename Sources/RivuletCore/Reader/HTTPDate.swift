@@ -8,10 +8,11 @@ import Foundation
 /// reference also treats as "no delay".
 ///
 /// Deviation: Go reads any zone name and applies its zone table, so `EST` would shift the time by its
-/// offset, and it also accepts `+03` and `GMT+3` as offsets; here the zone must be GMT/UTC or a
-/// four-digit offset. The value is split on whitespace, so a padded value is read: Go rejects leading
-/// whitespace before the weekday and text left after the zone, though it treats a run of spaces in the
-/// middle as one. Both are recorded in `docs/reference-notes.md`.
+/// offset. Go also accepts a signed hour here (`+03`), but a bare `+03` is taken as a zone name with no
+/// offset — only `GMT+3` shifts the time — while Rivulet shifts for every numeric offset it reads. The
+/// value is split on spaces, so a padded value is read: Go rejects a leading space before the weekday and
+/// text left after the zone, though a run of spaces in the middle counts as one separator. Both are
+/// recorded in `docs/reference-notes.md`.
 enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {

@@ -82,6 +82,8 @@ let package = Package(
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
+                // The error-mapping test compares against the client's own error, so it names it.
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ]
         ),
     ]

@@ -93,17 +93,19 @@ public actor Fetcher {
         let pinned = request.proxyURL == nil ? try await resolveAndPin(host: host) : nil
         let client = try await client(for: request, host: host, pinned: pinned)
 
-        var ahcRequest = try HTTPClient.Request(url: request.url, method: .GET)
-        for (name, value) in request.headers {
-            ahcRequest.headers.add(name: name, value: value)
-        }
-        let accumulator = ResponseAccumulator(request: ahcRequest, maxBodySize: options.maxBodySize)
-
+        // Everything the client can fail with is mapped here, including what fails before a connection:
+        // turning the URL into a client request refuses a scheme it will not serve.
         let response: HTTPClient.Response
         do {
-            response = try await client.execute(request: ahcRequest, delegate: accumulator, deadline: deadline)
-                .futureResult
-                .get()
+            var ahcRequest = try HTTPClient.Request(url: request.url, method: .GET)
+            for (name, value) in request.headers {
+                ahcRequest.headers.add(name: name, value: value)
+            }
+            response = try await client.execute(
+                request: ahcRequest,
+                delegate: ResponseAccumulator(request: ahcRequest, maxBodySize: options.maxBodySize),
+                deadline: deadline
+            ).futureResult.get()
         } catch {
             throw mapError(error)
         }
@@ -133,10 +135,11 @@ public actor Fetcher {
 
     /// Closes the cached clients.
     ///
-    /// Call it when no `fetch` is in flight: closing a client another task is using fails that request,
-    /// and the fetcher cannot tell which clients are busy — it has no record of in-flight requests. A
-    /// second call does nothing. After this the fetcher still works, it is simply empty: the next fetch
-    /// builds a client again.
+    /// Call it when no `fetch` is in flight: the fetcher has no record of in-flight requests, so closing a
+    /// client another task is using fails that request — the client reports a connection it is still
+    /// holding as closed, which Rivulet maps to ``FetchError/network(_:)``, and a request that reaches a
+    /// client already shut down is refused with the client's own wording. A second call does nothing.
+    /// After this the fetcher still works, it is simply empty: the next fetch builds a client again.
     public func shutdown() async throws {
         for entry in clients.values {
             try await entry.client.shutdown()
@@ -266,12 +269,13 @@ public actor Fetcher {
     /// Maps a client failure to the fetcher's error, using the categories the reference reports.
     ///
     /// The redirect limit is not part of this mapping: the client is configured not to follow
-    /// redirects, so the limit is reported by the hop loop in `fetch`.
+    /// redirects, so the limit is reported by the hop loop in `fetch`. Everything the client can fail
+    /// with is mapped here, including what fails before a connection.
     ///
-    /// A client error with no category here — a bad URL the client refused on its own, an invalid
-    /// host — is reported as a network failure with the client's wording. The reference classifies
-    /// those as URL errors, and Rivulet does not guess between its categories from a library error,
-    /// so the wording is the client's rather than the reference's.
+    /// A client error with no category here is reported as a network failure with the client's wording.
+    /// The reference puts the same failure in its network category as well — `isNetworkError` is true for
+    /// `*url.Error`, which is how Go wraps a client failure — so the difference is the wording only: Go
+    /// prints its `url.Error` wrapper, Rivulet prints what the client said.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {

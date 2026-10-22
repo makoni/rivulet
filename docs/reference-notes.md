@@ -252,6 +252,12 @@ Semantics:
   - The timeout is one deadline shared by all hops, as the reference's `Client.Timeout` is computed once
     and covers connection, redirects and body reading together; Rivulet sets no per-hop read timeout. A
     redirect status with an empty `Location` is returned as the response, as Go's `do` does.
+  - A failure the client reports is mapped to the fetcher's categories. An error with no category is
+    reported as a network failure with the client's wording, which is the same category the reference
+    uses for it: `isNetworkError` is true for `*url.Error`, the way Go wraps a client failure. Only the
+    wording differs — Go prints its `Get "url":` wrapper, Rivulet prints what the client said, and for an
+    unparseable `Location` it prints Go's phrase without the parse error Go adds after the colon, since
+    Rivulet has no parse error to print.
   - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
     `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
     Rivulet does neither — no effect today, because the request builder sets none of those headers.
@@ -265,14 +271,15 @@ Semantics:
     weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
     minute and second fixed at two digits while the hour is not. The divergences: Go applies its zone
     table, so `EST` would shift the time by its offset; Go reads the zone as a name or a signed hour
-    (`+03`, `GMT+3`), while Rivulet reads the four-digit `+hhmm` form that servers actually send —
-    `RFC1123Z` is what would accept it upstream; Rivulet does not read a fractional second, which Go
-    accepts after the seconds field; and Rivulet splits the value on whitespace, so it reads a padded
-    value — Go rejects leading whitespace before the weekday and any leftover after the zone, though a
-    run of spaces in the middle is treated as one, so a doubled space parses upstream as well. Leftover
-    text that is not whitespace is rejected by Rivulet too. Rivulet is stricter at the offset boundary:
-    Go's numeric path compares with `>`, so `+2400` and `+0360` parse under `RFC1123Z`, while Rivulet
-    reads only an hour of 0...23 and a minute of 0...59.
+    (`+03`, `GMT+3`), but a bare `+03` is taken as a zone name with no shift — only `GMT+3` moves the
+    time — while Rivulet shifts for every numeric offset it reads, including the four-digit `+hhmm` form
+    that servers actually send and that `RFC1123Z` is what accepts upstream; Rivulet does not read a
+    fractional second, which Go accepts after the seconds field; and Rivulet splits the value on spaces, so
+    it reads a padded value — Go rejects a leading space before the weekday and any leftover after the
+    zone, though a run of spaces in the middle counts as one separator, so a doubled space parses upstream
+    as well. Leftover text that is not spaces is rejected by Rivulet too. Rivulet is stricter at the offset
+    boundary: Go's numeric path compares with `>`, so `+2400` and `+0360` parse under `RFC1123Z`, while
+    Rivulet reads only an hour of 0...23 and a minute of 0...59.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a

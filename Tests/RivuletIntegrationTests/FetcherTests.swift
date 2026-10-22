@@ -1,3 +1,4 @@
+import AsyncHTTPClient
 import Foundation
 import Testing
 import RivuletCore
@@ -150,6 +151,29 @@ import RivuletCore
                     Issue.record("expected the closed connection to fail the fetch")
                 } catch let error as FetchError {
                     #expect(error == .network("connection closed by the peer"))
+                }
+            }
+        }
+    }
+
+    @Test func aFailureBeforeAnythingConnectsIsStillAFetchError() async throws {
+        // `fetch` promises a FetchError, and the client can fail before a connection: the URL is refused
+        // when it is turned into a client request. Nothing is dialled here, so this is a test of the
+        // mapping. The address host is answered by the escape hatch, which keeps the resolver out of it.
+        try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in
+            try await FetchTestSupport.withFetcher(
+                options: FetchTestSupport.options(allowPrivateNetworks: true)
+            ) { fetcher in
+                let request = FetchRequest(url: URL(string: "ftp://127.0.0.1:\(server.port)/feed")!, headers: [:])
+                do {
+                    _ = try await fetcher.fetch(request)
+                    Issue.record("expected the client to refuse the scheme")
+                } catch let error as FetchError {
+                    // The wording is the client's, which is what the mapping keeps for an error it does
+                    // not classify. The comparison is against the client's own error, so it is not a guess.
+                    #expect(error == .network(String(describing: HTTPClientError.unsupportedScheme("ftp"))))
+                } catch {
+                    Issue.record("expected a FetchError, got \(String(describing: error))")
                 }
             }
         }

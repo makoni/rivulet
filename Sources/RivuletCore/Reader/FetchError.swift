@@ -23,7 +23,8 @@ public enum FetchError: Error, Sendable, Equatable {
 
     /// A `Location` that cannot be parsed. The reference prints Go's phrase for it — `failed to parse
     /// Location header`, wrapped as `fetcher: %w` — which is what this message is, without Go's
-    /// `Get "url":` prefix.
+    /// `Get "url":` prefix and without the parse error Go prints after the colon, because Rivulet has no
+    /// parse error to print. Recorded in `docs/reference-notes.md`.
     case redirectTargetUnparseable(String)
 
     /// A configured proxy URL that cannot be read, like upstream
