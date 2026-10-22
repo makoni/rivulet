@@ -21,6 +21,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.16.1"),
         .package(url: "https://github.com/nmdias/FeedKit.git", from: "10.9.4"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.14.3"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.36.2"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.104.0"),
     ],
     targets: [
         .target(
@@ -30,6 +32,11 @@ let package = Package(
                 .product(name: "SQLKit", package: "sql-kit"),
                 .product(name: "FeedKit", package: "FeedKit"),
                 .product(name: "SwiftSoup", package: "SwiftSoup"),
+                // The fetcher uses AsyncHTTPClient directly; it is already in the dependency graph
+                // through Vapor, and depending on it here keeps RivuletCore free of Vapor itself.
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
             ]
         ),
         .target(
@@ -72,6 +79,11 @@ let package = Package(
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "SQLKit", package: "sql-kit"),
                 .product(name: "Logging", package: "swift-log"),
+                // The stub feed server is a NIO HTTP server bound to port 0.
+                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOPosix", package: "swift-nio"),
             ]
         ),
     ]

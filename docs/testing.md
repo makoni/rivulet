@@ -49,7 +49,15 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   be read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
   behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays, cut connections,
-  charset headers. **Binds port 0** and exposes the assigned address; no fixed ports.
+  chunked responses, charset headers. **Binds port 0** and exposes the assigned address; no fixed
+  ports. It records every request it receives (target and headers) so a test can check what the
+  client actually sent; a request whose target is an absolute URL is recognized as proxied.
+- `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
+  serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
+  the targets it was asked to connect to.
+- `GzipStream.swift` — writes a gzip stream with stored DEFLATE blocks so the stub server can serve
+  a compressed body without a compression dependency. The encoder is checked against `gunzip`
+  separately, so the fetch test is not circular.
 - `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke
   tests run commands against a temp database through it.
 - `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the

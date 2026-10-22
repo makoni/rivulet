@@ -9,6 +9,13 @@ public enum FetchError: Error, Sendable, Equatable {
     /// allowed (`FETCHER_ALLOW_PRIVATE_NETWORKS`).
     case privateNetworkHost(String)
 
+    /// The host did not resolve, like upstream `ErrHostnameResolution`.
+    case hostnameResolution(String)
+
+    /// A configured proxy URL that cannot be read, like upstream
+    /// `fetcher: invalid feed proxy URL`.
+    case invalidProxyURL(String)
+
     /// The response body exceeded the configured cap.
     case bodyTooLarge(Int)
 
@@ -27,9 +34,6 @@ public enum FetchError: Error, Sendable, Equatable {
     /// The connection failed or was closed early.
     case network(String)
 
-    /// The connection was closed by the peer before a response arrived.
-    case emptyResponse
-
     /// Too many redirects.
     case redirectLimit(Int)
 }
@@ -41,12 +45,14 @@ extension FetchError: CustomStringConvertible {
             return "fetcher: \(url) is not an http(s) URL"
         case .privateNetworkHost(let host):
             return "fetcher: refusing to access private network host \(host)"
+        case .hostnameResolution(let host):
+            return "fetcher: unable to resolve request hostname \(host)"
+        case .invalidProxyURL(let value):
+            return "fetcher: invalid feed proxy URL \"\(value)\""
         case .bodyTooLarge(let limit):
             return "fetcher: response body too large: \(limit) bytes"
         case .emptyBody:
             return "fetcher: empty response body"
-        case .emptyResponse:
-            return "fetcher: empty response"
         case .cloudflareChallenge(let status):
             return "fetcher: blocked by Cloudflare challenge (\(status) status code)"
         case .status(let status):

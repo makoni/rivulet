@@ -24,6 +24,10 @@ public struct FeedFetchState: Sendable, Equatable {
     /// Per-feed "ignore HTTP cache"; the configured default applies when it is false.
     public let ignoreHTTPCache: Bool
 
+    /// Per-feed "fetch via proxy"; the configured proxy applies only when this is true, as in
+    /// upstream's `UseCustomApplicationProxyURL(feed.FetchViaProxy)`.
+    public let fetchViaProxy: Bool
+
     /// Creates the state from stored feed values.
     public init(
         feedID: Int,
@@ -31,7 +35,8 @@ public struct FeedFetchState: Sendable, Equatable {
         etag: String = "",
         lastModified: String = "",
         userAgent: String = "",
-        ignoreHTTPCache: Bool = false
+        ignoreHTTPCache: Bool = false,
+        fetchViaProxy: Bool = false
     ) {
         self.feedID = feedID
         self.url = url
@@ -39,5 +44,6 @@ public struct FeedFetchState: Sendable, Equatable {
         self.lastModified = lastModified
         self.userAgent = userAgent
         self.ignoreHTTPCache = ignoreHTTPCache
+        self.fetchViaProxy = fetchViaProxy
     }
 }

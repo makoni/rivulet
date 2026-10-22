@@ -42,6 +42,8 @@ public struct FeedRepository {
         feed.parsingErrorCount = 0
         feed.parsingErrorMessage = ""
         feed.userAgent = ""
+        feed.ignoreHTTPCache = false
+        feed.fetchViaProxy = false
         feed.disabled = false
         feed.fetchedAt = nil
         feed.createdAt = now

@@ -218,7 +218,12 @@ Semantics:
 - `Accept-Encoding: br,gzip` (or `identity` when compression is disabled); conditional GET with
   `If-None-Match` / `If-Modified-Since`.
 - SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), active
-  unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`).
+  unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`). An
+  explicitly configured proxy is a trusted hop: the check runs on direct connections only, and the
+  connection to the proxy itself is allowed even when the proxy address is private.
+- Proxy precedence in `ExecuteRequest`: the per-feed proxy URL, then the application proxy when the
+  feed has `fetch_via_proxy` (`UseCustomApplicationProxyURL(feed.FetchViaProxy)`), then the proxy
+  list. Proxy URLs use the ports `80`, `443` and `1080` when the URL gives none.
 - Per-feed settings include: custom user agent, proxy, "ignore HTTP cache".
 - Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
   (`HTTP_CLIENT_MAX_BODY_SIZE`), 10 followed redirects, `Connection: close`, and the `Accept`
@@ -227,7 +232,12 @@ Semantics:
   advertises `gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); it does not
   send `Connection: close` because it keeps a connection pool; the advertised user agent is
   Rivulet's own; brotli, per-feed proxy lists, TLS-error tolerance and HTTP/2 toggles are
-  deferred.
+  deferred. The private-network check runs on the address Rivulet resolved and pinned, which
+  removes the time-of-check window the reference closes with its dialer. A per-feed proxy URL is
+  not stored yet, so only the application proxy can apply. AsyncHTTPClient tunnels through a proxy
+  with `CONNECT` even for plain `http` targets, and connects to the proxy in plain HTTP for `https`
+  proxy URLs, so a proxied target is resolved by the proxy and cannot be pinned — the policy is
+  skipped for proxied requests, as it is upstream.
 - Relevant packages: `internal/reader/fetcher` (request building, response handling),
   `internal/urllib` (IP helpers) — not `internal/http`, which is the integrations/REST client.
 

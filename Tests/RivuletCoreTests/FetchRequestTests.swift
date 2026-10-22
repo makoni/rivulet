@@ -13,7 +13,8 @@ import Testing
         etag: String = "",
         lastModified: String = "",
         userAgent: String = "",
-        ignoreHTTPCache: Bool = false
+        ignoreHTTPCache: Bool = false,
+        fetchViaProxy: Bool = false
     ) -> FeedFetchState {
         FeedFetchState(
             feedID: 1,
@@ -21,7 +22,8 @@ import Testing
             etag: etag,
             lastModified: lastModified,
             userAgent: userAgent,
-            ignoreHTTPCache: ignoreHTTPCache
+            ignoreHTTPCache: ignoreHTTPCache,
+            fetchViaProxy: fetchViaProxy
         )
     }
 
@@ -90,5 +92,54 @@ import Testing
             feed: state("https://example.com/feed.xml", userAgent: "NetNewsWire/6")
         )
         #expect(request.headers["User-Agent"] == "NetNewsWire/6")
+    }
+
+    @Test func theApplicationProxyIsAttachedOnlyToFeedsThatAskForIt() throws {
+        let proxied = FetcherOptions(
+            timeout: FetcherOptions.defaultTimeout,
+            userAgent: FetcherOptions.defaultUserAgent,
+            acceptHeader: FetcherOptions.defaultAcceptHeader,
+            maxBodySize: FetcherOptions.defaultMaxBodySize,
+            maxRedirects: FetcherOptions.defaultMaxRedirects,
+            decompression: true,
+            ignoreHTTPCache: false,
+            proxyURL: "http://proxy.example.com:3128",
+            allowPrivateNetworks: false
+        )
+        let builder = FetchRequestBuilder(options: proxied)
+
+        // Upstream: `UseCustomApplicationProxyURL(feed.FetchViaProxy)` — the configured proxy is
+        // used for the feeds that ask for it, not for every feed.
+        let throughProxy = try builder.build(feed: state("https://example.com/feed.xml", fetchViaProxy: true))
+        #expect(throughProxy.proxyURL == URL(string: "http://proxy.example.com:3128"))
+
+        let direct = try builder.build(feed: state("https://example.com/feed.xml"))
+        #expect(direct.proxyURL == nil)
+
+        // Nothing configured, nothing to attach.
+        let withoutProxy = try FetchRequestBuilder(options: FetcherOptions.defaults).build(
+            feed: state("https://example.com/feed.xml", fetchViaProxy: true)
+        )
+        #expect(withoutProxy.proxyURL == nil)
+    }
+
+    @Test func anUnreadableProxyURLIsAFetchErrorLikeUpstream() {
+        let options = FetcherOptions(
+            timeout: FetcherOptions.defaultTimeout,
+            userAgent: FetcherOptions.defaultUserAgent,
+            acceptHeader: FetcherOptions.defaultAcceptHeader,
+            maxBodySize: FetcherOptions.defaultMaxBodySize,
+            maxRedirects: FetcherOptions.defaultMaxRedirects,
+            decompression: true,
+            ignoreHTTPCache: false,
+            proxyURL: "proxy without a scheme",
+            allowPrivateNetworks: false
+        )
+
+        #expect(throws: FetchError.invalidProxyURL("proxy without a scheme")) {
+            _ = try FetchRequestBuilder(options: options).build(
+                feed: state("https://example.com/feed.xml", fetchViaProxy: true)
+            )
+        }
     }
 }

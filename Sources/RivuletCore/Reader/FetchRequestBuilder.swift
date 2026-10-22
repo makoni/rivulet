@@ -52,6 +52,27 @@ public struct FetchRequestBuilder: Sendable {
             }
         }
 
-        return FetchRequest(url: feed.url, headers: headers)
+        // Upstream precedence in `ExecuteRequest`: the per-feed proxy URL first, then the
+        // application proxy when the feed asks for it (`UseCustomApplicationProxyURL(feed.FetchViaProxy)`),
+        // then the proxy list. Rivulet stores the flag and the application proxy, so the second case
+        // is the one that can apply — the per-feed proxy URL and the proxy list are documented as
+        // deferred in `docs/reference-notes.md`.
+        var proxyURL: URL?
+        if feed.fetchViaProxy, let configured = options.proxyURL {
+            proxyURL = try proxy(from: configured)
+        }
+
+        return FetchRequest(url: feed.url, headers: headers, proxyURL: proxyURL)
+    }
+
+    /// Reads a proxy URL the way upstream reads it: one of the schemes it dials, and a host.
+    ///
+    /// - Throws: ``FetchError/invalidProxyURL(_:)`` when the value cannot be read.
+    private func proxy(from value: String) throws -> URL {
+        let schemes = ["", "http", "https", "socks5", "socks5h"]
+        guard let url = URL(string: value), url.host != nil, schemes.contains(url.scheme?.lowercased() ?? "") else {
+            throw FetchError.invalidProxyURL(value)
+        }
+        return url
     }
 }
