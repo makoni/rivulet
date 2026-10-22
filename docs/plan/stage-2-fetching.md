@@ -57,11 +57,11 @@
 - Oversized body rejected with a clear error; a slow response hits the timeout, and the timeout is one
   deadline shared by the hops and covers body reading, not only the response head.
 - `ETag` and `Last-Modified` round-trip: the second request carries the validators.
-- 4xx and 5xx and connection reset classified as fetch errors: the stub covers 404, 429 and a reset, the
-  other status wordings are pinned by the unit test; what fails before anything connects (a scheme the
-  client refuses when the URL is turned into a request) is mapped like any other client error. The counter
-  and the message are recorded through `FeedRepository.recordParsingError` (the refresh path wires them
-  together).
+- 4xx and 5xx and a connection closed by the peer classified as fetch errors: the stub covers 404, 429 and
+  a connection it closes, the other status wordings are pinned by the unit test; what fails before anything
+  connects (a scheme the client refuses when the URL is turned into a request) is mapped like any other
+  client error. The counter and the message are recorded through `FeedRepository.recordParsingError` (the
+  refresh path wires them together).
 - SSRF guard: private targets refused unless explicitly allowed — both halves of the switch are tested;
   the pinned address is used without a second lookup; every redirect hop goes through the resolver seam
   before connecting — the test proves the seam is consulted for the hop and that a hop the seam cannot

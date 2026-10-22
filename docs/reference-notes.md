@@ -241,8 +241,9 @@ Semantics:
     `Connection: close` because Rivulet keeps a connection pool; the advertised user agent is
     Rivulet's own. Brotli, TLS-error tolerance and HTTP/2 toggles are deferred. The pool runs on
     AsyncHTTPClient's defaults (60 s idle, 8 connections per host), not the reference's
-    `MaxIdleConns: 50` / `IdleConnTimeout: 90s`; the decompression-bomb guard (`limit: .ratio(25)`)
-    is a Rivulet addition, since upstream relies on the body cap alone.
+    `MaxIdleConns: 50` / `IdleConnTimeout: 10s` (90 s is Go's default, not what Miniflux sets); the
+    decompression-bomb guard (`limit: .ratio(25)`) is a Rivulet addition, since upstream relies on the body
+    cap alone.
   - Every redirect hop is validated: the fetcher follows redirects itself, one request per hop, so the
     address policy runs on each hop the way the reference's dialer `Control` does. The statuses
     followed are 301, 302, 303, 307 and 308, and cycles are allowed up to the limit — upstream's
@@ -254,15 +255,17 @@ Semantics:
     redirect status with an empty `Location` is returned as the response, as Go's `do` does.
   - A failure the client reports is mapped to the fetcher's categories. An error with no category is
     reported as a network failure with the client's wording, which is the same category the reference
-    uses for it: `isNetworkError` is true for `*url.Error`, the way Go wraps a client failure. Only the
-    wording differs on that path — Go prints its `Get "url":` wrapper, Rivulet prints what the client
-    said — and for an unparseable `Location` Rivulet prints Go's phrase without the parse error Go adds
-    after the colon, since it has no parse error to print. Rivulet's phrases for its own categories (a
-    deadline, a connection closed by the peer) are Rivulet's, not the reference's. Two categories are
-    one-sided: `error.network_timeout` sits behind `isNetworkError`, so a timeout Go's client wraps is a
-    network error there while Rivulet reports it as a timeout; and `error.http_client_error` needs an
-    error that is not a `*url.Error`, which the fetch path does not produce, so it is effectively
-    unreachable upstream.
+    uses for it: `isNetworkError` is true for `*url.Error` — which `net/http`'s `Client.do` wraps every
+    failure in — so only the wording differs on that path: Go prints its `Get "url":` wrapper, Rivulet
+    prints its own phrase with the client's wording after it. For an unparseable `Location` Rivulet prints
+    Go's phrase without the parse error Go adds after the colon, since it has no parse error to print.
+    Three of the reference's categories are one-sided: `error.network_timeout` sits behind
+    `isNetworkError`, so a timeout Go's client wraps is a network error there while Rivulet reports it as a
+    timeout; `error.http_empty_response` sits behind it too, for the same reason; and
+    `error.http_client_error` needs an error that is not a `*url.Error`, which Miniflux's fetch path does
+    not produce — it builds the request with a literal `GET` and a background context, and a `url.Parse`
+    failure is a `*url.Error` — so it is effectively unreachable upstream. `error.tls_error` is reachable
+    upstream and Rivulet has no TLS category: a TLS failure arrives as a network error.
   - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
     `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
     Rivulet does neither — no effect today, because the request builder sets none of those headers.
@@ -286,10 +289,12 @@ Semantics:
     boundary: Go's numeric path compares with `>`, so `+2400` and `+0360` parse under `RFC1123Z`, while
     Rivulet reads only an hour of 0...23 and a minute of 0...59.
   - `Expires` becomes a delay in whole minutes: `Until(now).Truncate(minute) + minute`, so a value inside
-    the current minute yields a minute even when it is already past, while a past value sitting on a minute
-    boundary yields nothing because the truncation and the added minute cancel. Rivulet divides whole
-    seconds the same way — truncating toward zero, which is what Go's `Truncate` does — so a negative value
-    behaves the same here.
+    the current minute yields a minute even when it is already past, a past value that truncates to exactly
+    the previous minute yields nothing, and one further past yields a negative delay. Rivulet divides whole
+    seconds the same way — truncating toward zero, which is what Go's `Truncate` does — so it returns the
+    same negative value. What keeps a negative delay out upstream is the handler's
+    `refreshDelay = max(feed TTL, cacheControlMaxAge, expires)` in `internal/reader/handler/handler.go`;
+    the refresh path has to do the same here.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a

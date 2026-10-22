@@ -99,11 +99,17 @@ import Testing
         let past = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:06:10 GMT"])
         #expect(past.expires(now: now) == .seconds(60))
 
-        // A past value that sits on a minute boundary truncates to itself — 100 seconds past becomes -60 —
-        // so the minute added on top cancels it and nothing comes back. That is what Go's `Truncate` does
-        // too, and it is why the rule is "the current minute", not "any past value".
+        // A past value that truncates to exactly the previous minute yields nothing — 100 seconds past
+        // becomes -60, and the minute added on top cancels it. That is what Go's `Truncate` does too, and
+        // it is why the rule is "the minute the value falls in", not "any past value".
         let wholeMinutePast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:05:00 GMT"])
         #expect(wholeMinutePast.expires(now: now) == .zero)
+
+        // Further past, the truncation lands beyond the previous minute and the delay goes negative: 220
+        // seconds past becomes -180, and a minute on top leaves -120. Upstream returns the same negative
+        // value — its handler is what absorbs it, taking `max(feed TTL, max-age, expires)`.
+        let furtherPast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:03:00 GMT"])
+        #expect(furtherPast.expires(now: now) == .seconds(-120))
     }
 
     @Test func cacheControlMaxAgeIsTheFirstMatchingDirective() {

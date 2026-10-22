@@ -274,15 +274,16 @@ public actor Fetcher {
     /// redirects, so the limit is reported by the hop loop in `fetch`. Everything the client can fail
     /// with is mapped here, including what fails before a connection.
     ///
-    /// A client error with no category here is reported as a network failure with the client's wording.
-    /// The reference puts the same failure in its network category as well — `isNetworkError` is true for
-    /// `*url.Error`, which is how Go wraps a client failure — so the difference is the wording only: Go
-    /// prints its `url.Error` wrapper, Rivulet prints what the client said.
+    /// A client error with no category here is reported as a network failure: Rivulet's own phrase with
+    /// the client's wording after it. The reference puts the same failure in its network category as well —
+    /// `isNetworkError` is true for `*url.Error`, which is what `net/http`'s `Client.do` wraps every
+    /// failure in — so only the wording differs on that path: Go prints its `url.Error` wrapper.
     ///
-    /// Two categories are reachable on one side only. The reference's `error.http_client_error` is reached
-    /// only when the error is not a `*url.Error`; and `isNetworkError` is tested before `os.IsTimeout`, so
-    /// a timeout Go's client wraps comes out as a network error there — its timeout category is
-    /// effectively unreachable, while Rivulet's reports a deadline.
+    /// Three of the reference's categories are effectively unreachable, all for the same reason.
+    /// `error.network_timeout` and `error.http_empty_response` sit behind `isNetworkError`, so what Rivulet
+    /// reports as a timeout or as a connection closed by the peer is a network failure upstream; and
+    /// `error.http_client_error` needs an error that is not a `*url.Error`, which the fetch path does not
+    /// produce. Rivulet therefore reports a deadline itself instead of calling it a network failure.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {

@@ -56,8 +56,8 @@ public enum FetchError: Error, Sendable, Equatable {
 extension FetchError: CustomStringConvertible {
     /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it
     /// wraps the failure. Where the reference has no wording of its own — a deadline, a connection closed
-    /// by the peer — the phrase is Rivulet's, and a failure the mapping does not classify keeps the
-    /// client's own wording.
+    /// by the peer, an unclassifiable client failure — the phrase and the prefix are Rivulet's, with the
+    /// client's own wording after it in the last case.
     public var description: String {
         switch self {
         case .invalidURL(let url):
