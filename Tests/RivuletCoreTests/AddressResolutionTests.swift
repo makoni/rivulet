@@ -49,9 +49,11 @@ import Testing
 
         #expect(pinned == NetworkAddress.parse("93.184.216.34"))
         let calls = await resolver.calls
-        // The pinned address is the one the client connects to, so the second answer is never
-        // read: a resolver that would return loopback on a later lookup cannot swap in a target.
         #expect(calls == 1)
+        // One lookup, and the answer it gave is what the fetcher pins. That the client then connects to
+        // the pinned address rather than resolving again is proven in
+        // `Tests/RivuletIntegrationTests/FetcherSecurityTests.swift`; here only the single lookup is
+        // observable.
     }
 
     @Test func everyAnsweredAddressIsValidatedBeforeConnecting() async throws {

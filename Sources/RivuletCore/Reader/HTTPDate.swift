@@ -9,8 +9,9 @@ import Foundation
 ///
 /// Deviation: Go reads any zone name and applies its zone table, so `EST` would shift the time by its
 /// offset, and it also accepts `+03` and `GMT+3` as offsets; here the zone must be GMT/UTC or a
-/// four-digit offset. The value is split on whitespace, so leading or doubled spaces are read where
-/// Go's layout would reject them. Both are recorded in `docs/reference-notes.md`.
+/// four-digit offset. The value is split on whitespace, so a padded value is read: Go rejects leading
+/// whitespace before the weekday and text left after the zone, though it treats a run of spaces in the
+/// middle as one. Both are recorded in `docs/reference-notes.md`.
 enum HTTPDate {
     /// Returns Unix seconds, or nil when `value` is not an HTTP-date.
     static func parse(_ value: String) -> Int? {
@@ -78,10 +79,11 @@ enum HTTPDate {
 
     /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
     ///
-    /// Go bounds the offset hour at 23 in `parseSignedOffset` and the minute at 60 in its numeric
-    /// path, so `+2400` and `+0360` are not offsets. Reading the four-digit form at all is Rivulet's
-    /// addition: Go's `RFC1123` layout takes only a zone name or a signed hour (`+03`), which Rivulet
-    /// does not read — recorded in `docs/reference-notes.md`.
+    /// Rivulet is stricter than Go at the boundary: Go's `parseSignedOffset` rejects a number above 23,
+    /// and its numeric-zone path uses `>` rather than `>=`, so `+2400` and `+0360` do parse upstream
+    /// under `RFC1123Z`, while Rivulet reads only an hour of 0...23 and a minute of 0...59. Reading the
+    /// four-digit form at all is Rivulet's addition: Go's `RFC1123` layout takes a zone name or a signed
+    /// hour (`+03`), which Rivulet does not read. Recorded in `docs/reference-notes.md`.
     private static func parseZoneOffset(_ value: String) -> Int? {
         guard value.hasPrefix("+") || value.hasPrefix("-") else {
             return nil

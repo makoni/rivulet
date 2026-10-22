@@ -267,9 +267,11 @@ Semantics:
     table, so `EST` would shift the time by its offset; Go reads the zone as a name or a signed hour
     (`+03`, `GMT+3`), while Rivulet reads the four-digit `+hhmm` form that servers actually send —
     `RFC1123Z` is what would accept it upstream; Rivulet does not read a fractional second, which Go
-    accepts after the seconds field; and Rivulet splits the value on whitespace, so it accepts leading
-    or doubled spaces that Go's layout would reject (Go treats a run of spaces in the middle as one and
-    rejects anything left over after the zone).
+    accepts after the seconds field; and Rivulet splits the value on whitespace, so it accepts a padded
+    value — Go rejects leading whitespace before the weekday and anything left over after the zone,
+    though a run of spaces in the middle is treated as one, so a doubled space parses upstream as well.
+    Rivulet is stricter at the offset boundary: Go's numeric path compares with `>`, so `+2400` and
+    `+0360` parse under `RFC1123Z`, while Rivulet reads only an hour of 0...23 and a minute of 0...59.
   - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
     every field must have a digit, so an empty octet is not an address; a group is at most four hex
     digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a

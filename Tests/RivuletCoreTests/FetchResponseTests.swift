@@ -150,16 +150,18 @@ import Testing
         // Go validates the day against the month after parsing, so 31 February is not a date.
         #expect(HTTPDate.parse("Sun, 31 Feb 2025 07:28:00 GMT") == nil)
 
-        // Rivulet splits on whitespace, so it reads a padded or doubled-space form Go's layout would
-        // reject (Go treats runs of spaces as equivalent but rejects leading whitespace before the
-        // weekday and any extra text after the zone), and it does not read a fractional second.
+        // Rivulet splits the value on whitespace, so it reads padded forms. A doubled space in the
+        // middle is accepted upstream too, where Go treats a run of spaces as one; a leading space
+        // before the weekday and anything left over after the zone are rejected upstream, and Rivulet
+        // reads them. It also does not read a fractional second, which Go accepts after the seconds.
         #expect(HTTPDate.parse("Sun,  15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse(" Sun, 15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00,500 GMT") == nil)
 
-        // Go bounds an offset the same way here: an hour above 23 is not an offset, and neither is a
-        // minute above 59. The four-digit form is Rivulet's addition — Go's RFC1123 layout reads only
-        // a zone name or a signed hour, so `+0730` would not parse there.
+        // Rivulet is stricter at the boundary than Go, which compares with `>` in its numeric-zone path:
+        // `+2400` and `+0360` parse under Go's RFC1123Z. The four-digit form itself is Rivulet's
+        // addition — Go's RFC1123 layout reads only a zone name or a signed hour, so `+0730` would not
+        // parse there.
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2400") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0360") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2359") != nil)

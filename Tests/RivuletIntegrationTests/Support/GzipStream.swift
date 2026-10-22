@@ -4,8 +4,11 @@ import Foundation
 /// compressed body without adding a compression dependency.
 ///
 /// Stored DEFLATE blocks are used — gzip allows an uncompressed block — which keeps the encoder
-/// small. The output is a valid gzip stream, checked against `gunzip` so the fetch test is not
-/// circular: the client's decompression is verified against an encoder we did not write.
+/// small. The output is a valid gzip stream; it is checked against `gunzip` by hand when this encoder
+/// changes, because there is no decoder in the suite that could prove it. The fetch test therefore
+/// shows that the client decompresses a fixture built by this encoder, not that the encoder is
+/// correct — `docs/testing.md` says the same. A stored block cannot reach a compression ratio above 1,
+/// so the ratio guard the fetcher sets is not exercised here either.
 enum GzipStream {
     /// Writes the stream for `data`.
     static func compress(_ data: Data) -> Data {
