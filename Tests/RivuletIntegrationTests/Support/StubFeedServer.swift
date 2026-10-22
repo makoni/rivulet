@@ -8,7 +8,8 @@ import NIOPosix
 ///
 /// Every test starts its own server bound to port 0 and reads the port the kernel assigned, so no
 /// test depends on a fixed port. What a path answers is declared by the test, and the server keeps
-/// no state beyond that table and the requests it received, which keeps behavior deterministic.
+/// no state beyond that table, the requests it received and the waiters a test registered on a path,
+/// which keeps behavior deterministic.
 /// A proxied request is recognized by its absolute request target, so the same server can play the
 /// proxy for the proxy test.
 final class StubFeedServer: Sendable {
@@ -109,7 +110,9 @@ final class StubFeedServer: Sendable {
 
     /// Arrivals per path, with a way to wait for one without polling. The handler records a path as soon
     /// as the request head is read, which is after the fetcher took its client from the cache, so a test
-    /// that waits here knows the client is in use.
+    /// that waits here knows the client was in use when the head arrived. That holds only while the answer
+    /// is still pending — a quick response releases the client before the test can act — which is why the
+    /// cache test holds the body back.
     private final class Arrivals: Sendable {
         private struct State {
             var paths: [String: Int] = [:]

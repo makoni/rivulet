@@ -93,9 +93,10 @@ without a sleep; the body is held by the server long enough for the fillers to r
 Everything else about the cache is not observable from outside when two hosts are answered by the same
 address: what is asserted is the key, because the guarantee that a pin is never reused for another host
 or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,
-and the eviction is by expiry, not by use, which the code states plainly. A client in use is never
-pruned; `shutdown()` closes everything, so calling it when no `fetch` is in flight is still a contract
-rather than a test, and covering that would need a client-creation seam the plan does not have.
+and eviction is by expiry among idle entries, not by use, which the code states plainly. A client in use
+is never pruned; `shutdown()` closes every client regardless of use, so calling it when no `fetch` is in
+flight is a caller's contract and the suite does not assert the failure a shutdown during a fetch causes —
+that is a misuse, not a supported path.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)

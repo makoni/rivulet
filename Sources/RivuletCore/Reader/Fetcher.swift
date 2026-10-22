@@ -13,11 +13,12 @@ import NIOHTTP1
 /// hop so the check runs on every hop, as the reference's dialer does.
 public actor Fetcher {
     /// A client is reused for this long. Its configuration carries the pin, and the cache key is
-    /// `host|proxyURL`, so a pin is never used for another host or for a proxied request, and a stale
-    /// pin cannot outlive the cache.
+    /// `host|proxyURL`, so a pin is never used for another host or for a proxied request; an expired entry
+    /// is not reused, and it is closed as soon as no request is using it.
     static let clientTTL: Duration = .seconds(60)
 
-    /// How many clients are kept at once.
+    /// How many idle clients are kept at once. A client a request is using is not closed to stay under
+    /// the cap, so the cache can hold more while requests overlap.
     static let maxCachedClients = 8
 
     /// The clock the TTL is measured on. A monotonic clock, so a step in the wall clock — an NTP
@@ -148,8 +149,9 @@ public actor Fetcher {
     /// Closes the cached clients.
     ///
     /// Call it when no `fetch` is in flight. Pruning and eviction leave a client that a request is using
-    /// alone, but `shutdown` closes everything: it is the one operation that stops the fetcher, so knowing
-    /// that nothing is running is the caller's part. Closing a client a request is using fails that request
+    /// alone, but `shutdown` closes every client regardless of use — it is the caller's way to stop the
+    /// fetcher, so knowing that nothing is running is the caller's part. Closing a client a request is
+    /// using fails that request
     /// — the client cancels the connection it is holding, which arrives as `HTTPClientError.cancelled` and
     /// Rivulet reports it as ``FetchError/network(_:)``; a request that reaches a client already shut down
     /// is refused with the client's own wording. A second call does nothing. After this the fetcher still
@@ -242,8 +244,8 @@ public actor Fetcher {
         return (id, client)
     }
 
-    /// Marks the entry idle again. It is still there: the pruner never closes an entry that is in use, so
-    /// nothing can remove it between the checkout and the release.
+    /// Marks the entry idle again. The pruner leaves it alone between the checkout and the release, so it
+    /// is still here unless the fetcher was shut down meanwhile, which is why a missing entry is tolerated.
     private func release(_ id: Int) {
         guard var entry = clients[id] else {
             return
