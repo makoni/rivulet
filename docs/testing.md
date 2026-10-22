@@ -83,13 +83,12 @@ the only place the byte order of the raw `addrinfo` layout is pinned. Everything
 lookup per hop, the answer handed to the policy, the client pinned to that answer — is tested through the
 resolver seam with a seeded resolver.
 
-The client cache is not unit-tested either: its key and its TTL decide which client a request gets, and
-the choice between two clients that would be answered by the same address is not observable from outside.
-What is asserted is the key itself, because the guarantee that a pin is never reused for another host or
-a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it, and
-the eviction is by expiry, not by use, which the code states plainly. The rule that `shutdown()` must be
-called when no `fetch` is in flight is a contract, not a test: covering it would need a client-creation
-seam the plan does not have.
+The cache's behaviour is not tested, only the key it is built from: which client a request gets cannot be
+observed from outside when two hosts would be answered by the same address. What is asserted is the key,
+because the guarantee that a pin is never reused for another host or a proxied request rests on it; the TTL
+clock is monotonic so an NTP step cannot stretch or shrink it, and the eviction is by expiry, not by use,
+which the code states plainly. The rule that `shutdown()` must be called when no `fetch` is in flight is a
+contract, not a test: covering it would need a client-creation seam the plan does not have.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)

@@ -1,5 +1,3 @@
-import Foundation
-
 /// Resolves a host to addresses.
 ///
 /// The seam exists so the address policy can be tested without a network: production uses the
