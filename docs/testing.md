@@ -8,13 +8,14 @@ afterthought — they run in CI together with unit tests.
 | Level | Location | Scope |
 | --- | --- | --- |
 | Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
-| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer — input bytes → golden output |
+| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output |
 | Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
 | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests
 speak to a real socket through Vapor's client).
-Fixture files are target resources (`resources: [.copy("Fixtures")]`, read via `Bundle.module`).
+Fixture files will be target resources (`resources: [.copy("Fixtures")]`, read via `Bundle.module`)
+when stage 3 ports them.
 
 ## Workflow (TDD)
 
@@ -52,10 +53,10 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   after the head so a body can arrive later than a deadline), cut connections, chunked responses,
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records
   every request it receives (target and headers) so a test can check what the client actually sent,
-  and `waitForRequest(for:)` waits for one to arrive — the check and the wait are one step under the
-  lock — so a test can act while a request is in flight without polling or sleeping, which holds only
-  while the answer is still pending: a quick response releases the client before the test can act. The
-  cache test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
+  and `waitForRequest(for:)` waits for one to arrive — check and wait in one step under the lock —
+  so a test can act while a request is in flight without polling or sleeping, which holds only
+  while the answer is still pending: a quick response releases the client before the test can act.
+  The cache test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
 - `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
   serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
   the targets it was asked to connect to.
@@ -79,45 +80,48 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)`
   takes Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
-`SystemAddressResolver` is the only public API that cannot have a hermetic test against a network: it
-calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow case that
-works without one — a numeric host, which the resolver answers from the string itself — and that is also
-the only place the byte order of the raw `addrinfo` layout is pinned. Everything else that matters — one
-lookup for a direct hop, the answer handed to the policy, and the client pinned to the answer it was built
-from — is tested through the resolver seam with a seeded resolver.
+`SystemAddressResolver` is the only public API that cannot have a hermetic test against a
+network: it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is
+the narrow case that works without one — a numeric host, which the resolver answers from the
+string itself — and that is also the only place the byte order of the raw `addrinfo` layout
+is pinned. Everything else that matters — one lookup for a direct hop, the answer handed to
+the policy, and the client pinned to the answer it was built from — is tested through the
+resolver seam, with a seeded resolver for the pinning and a counting one for the single lookup.
 
-The cache has two behaviour tests. The first pins the one effect that can be observed from outside an
-eviction: while a request is in flight the client serving it must not be closed, or that request is
-cancelled — that is the failure the test reproduces. The request head reaches the stub only after the
-client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a
-known point without a sleep, and the body is held long enough for the fillers to run, which the test
-states. The second asserts what `shutdown()` can be observed to do: a second call finds nothing to close,
-and the next fetch builds a client again. The recovery assertion carries the weight, but the second call is
-not worthless either — an implementation that left closed entries in the cache would fail it with
-AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first cannot close the same client twice
-follows from taking the entries out before the first await; it cannot be reproduced without a
-client-creation seam the plan does not have, so it is documented rather than tested.
-Everything else about the cache is not observable from outside when two hosts are answered by the same
-address: what is asserted is the key, because the guarantee that a pin is never reused for another host
-or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,
-and eviction is by expiry among idle entries, not by use, which the code states plainly. A client in use
-is never pruned; `shutdown()` closes every client regardless of use, so calling it when no `fetch` is in
-flight is a caller's contract and the suite does not assert the failure a shutdown during a fetch causes —
-that is a misuse, not a supported path.
+The cache has two behaviour tests. The first pins the one effect that can be observed from
+outside an eviction: while a request is in flight the client serving it must not be closed,
+or that request is cancelled — that is the failure the test reproduces. The request head
+reaches the stub only after the client was taken from the cache, so waiting for the head
+with `waitForRequest(for:)` puts the test at a known point without a sleep, and the body
+is held long enough for the fillers to run, which the test states. The second asserts what
+`shutdown()` can be observed to do: a second call finds nothing to close, and the next fetch
+builds a client again. The recovery assertion carries the weight, but the second call is not
+worthless either — an implementation that left closed entries in the cache would fail it with
+AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first cannot close the same
+client twice follows from taking the entries out before the first await; it cannot be reproduced
+without a client-creation seam the plan does not have, so it is documented rather than tested.
+Everything else about the cache is not observable from outside when two hosts are answered by the
+same address: what is asserted is the key, because the guarantee that a pin is never reused for
+another host or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot
+stretch or shrink it, and eviction is by expiry among idle entries, not by use, which the code
+states plainly. A client in use is never pruned; `shutdown()` closes every client regardless
+of use, so calling it when no `fetch` is in flight is a caller's contract and the suite does
+not assert the failure a shutdown during a fetch causes — that is a misuse, not a supported path.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a
 socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
 and use Vapor's client. The same socket-level approach backs the client-API journey tests.
 
-Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test temp
-directories, no network access except to the local stub server). A bounded timeout that proves a failure
-is fast rather than hanging is allowed — the pool-timeout test asserts one — and a test whose pass
-condition is a timeout says so in its comment. A stub-side hold is the only margin that can turn a test
-into a false pass: the first cache test keeps a request in flight under a one-second body delay while
-eight local round trips fill the cache, and a slow machine can only make that a false pass, never a false
-failure; the fetch timing tests hold their margin the same way, with the first hop's delay small against
-the deadline so CI overhead can only make the deadline fire earlier, never let a hop that should be cut
-finish. A test that waits without a bound carries a `timeLimit` so a regression fails instead of hanging.
+Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test
+temp directories, no network access except to the local stub server or the stub proxy). A bounded
+timeout that proves a failure is fast rather than hanging is allowed — the pool-timeout test
+asserts one — and a test whose pass condition is a timeout says so in its comment. A stub-side
+hold is the only margin that can turn a test into a false pass: the first cache test keeps a
+request in flight under a one-second body delay while eight local round trips fill the cache,
+and a slow machine can only make that a false pass, never a false failure; the fetch timing
+tests hold their margin the same way, with the first hop's delay small against the deadline so
+CI overhead can only make the deadline fire earlier, never let a hop that should be cut finish. A
+test that waits without a bound carries a `timeLimit` so a regression fails instead of hanging.
 
 ## Fixtures
 

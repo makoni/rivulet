@@ -6,7 +6,8 @@ import RivuletCore
 /// The fetch matrix against a local stub server: the fetcher is the module boundary, so this is where
 /// its statuses, bodies, decompression, limits and timeouts are checked over a real socket. Every test
 /// starts its own server on port 0, as `docs/testing.md` requires. The address policy and the proxy hop
-/// are in `FetcherSecurityTests.swift`, because they need a resolver seam of their own.
+/// are in `FetcherSecurityTests.swift`, because they need a resolver seam: the policy tests answer names
+/// through a seeded resolver, and the proxy hop is an address host that needs no lookup at all.
 @Suite struct FetcherTests {
     @Test func twoHundredReturnsStatusHeadersAndBody() async throws {
         let body = Data("<feed><title>Stub</title></feed>".utf8)

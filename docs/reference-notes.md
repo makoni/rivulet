@@ -232,10 +232,10 @@ Semantics:
   value `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
   - Rivulet has no connect-time hook, so the private-network check runs on the answers the resolver seam
-    returns for a hop, and the client is pinned with `dnsOverride` to one address it validated at build
-    time. That pin cannot be changed by a later lookup; a cached client keeps it, so on a cached hop the
-    policy checks the current answers while the connection uses the address pinned at build time. This is
-    the same TOCTOU guarantee the reference gets from its dialer's `Control` callback — the difference is
+    returns for a direct hop, and the client is pinned with `dnsOverride` to one address it validated at
+    build time. That pin cannot be changed by a later lookup; a cached client keeps it, so on a cached hop
+    the policy checks the current answers while the connection uses the address pinned at build time. This
+    is the same TOCTOU guarantee the reference gets from its dialer's `Control` callback — the difference is
     the mechanism, not the property.
   - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the decompressed
     body — the same thing the reference's `MaxBytesReader` counts when it wraps the decompression
