@@ -53,8 +53,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   charset headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records
   every request it receives (target and headers) so a test can check what the client actually sent,
   and `waitForRequest(for:)` waits for one to arrive — the check and the wait are one step under the
-  lock — so a test can act while a request is in flight without polling or sleeping.
-  The proxy tests use `StubProxy`, not this server.
+  lock — so a test can act while a request is in flight without polling or sleeping, which holds only
+  while the answer is still pending: a quick response releases the client before the test can act. The
+  cache test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
 - `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
   serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
   the targets it was asked to connect to.
@@ -90,11 +91,11 @@ eviction: while a request is in flight the client serving it must not be closed,
 cancelled — that is the failure the test reproduces. The request head reaches the stub only after the
 client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the test at a
 known point without a sleep, and the body is held long enough for the fillers to run, which the test
-states. The second asserts what `shutdown()` can be observed to do: a second call finds nothing to close
-and the next fetch builds a client again. That a call
-overlapping the first cannot close the same client twice follows from taking the entries out before the
-first await; it cannot be reproduced without a client-creation seam the plan does not have, and a test that
-depended on the two calls interleaving would pass by luck, so it is documented rather than tested.
+states. The second asserts what `shutdown()` can be observed to do: a second call finds nothing to close,
+and the next fetch builds a client again — the recovery assertion carries the weight, because a second call
+on an empty cache would pass whatever the code does. That a call overlapping the first cannot close the
+same client twice follows from taking the entries out before the first await; it cannot be reproduced
+without a client-creation seam the plan does not have, so it is documented rather than tested.
 Everything else about the cache is not observable from outside when two hosts are answered by the same
 address: what is asserted is the key, because the guarantee that a pin is never reused for another host
 or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot stretch or shrink it,
