@@ -20,13 +20,17 @@ public actor Fetcher {
     /// How many clients are kept at once.
     static let maxCachedClients = 8
 
+    /// The clock the TTL is measured on. A monotonic clock, so a step in the wall clock — an NTP
+    /// adjustment — cannot make a client live for years or expire at once.
+    private static let clock = ContinuousClock()
+
     private let options: FetcherOptions
     private let resolver: any AddressResolver
     private var clients: [String: PinnedClient] = [:]
 
     private struct PinnedClient {
         let client: HTTPClient
-        let expiresAt: Int
+        let expiresAt: ContinuousClock.Instant
     }
 
     /// Creates a fetcher.
@@ -41,8 +45,9 @@ public actor Fetcher {
 
     /// Fetches one document and returns the response as the reference handler would see it.
     ///
-    /// A conditional hit comes back as a response with status 304 and no body. A failure throws
-    /// ``FetchError`` with the reference wording.
+    /// A conditional hit comes back as a response with status 304 and no body. A transport or limit
+    /// failure throws ``FetchError`` with the reference wording; an HTTP status does not throw, it is a
+    /// response whose ``FetchResponse/error()`` reports the failure, so the status stays visible.
     ///
     /// Redirects are followed hop by hop instead of by the client, because the address policy has to
     /// run on every hop: upstream checks the address on each dial, and a client that follows
@@ -52,7 +57,7 @@ public actor Fetcher {
         var followed = 0
         // The reference computes one deadline for the whole call — connection, redirects and body
         // reading together — so the hops share it rather than each starting a fresh timeout.
-        let deadline = NIODeadline.now() + amount(options.timeout)
+        let deadline = NIODeadline.now() + Self.amount(for: options.timeout)
 
         while true {
             let response = try await send(hop, deadline: deadline)
@@ -60,7 +65,7 @@ public actor Fetcher {
             // Upstream follows 301, 302, 303, 307 and 308, and it counts requests, so it refuses the
             // hop that would make the count reach the limit; here the limit is the hops followed. A
             // redirect status with no usable `Location` is the response, as Go's `do` returns it.
-            guard isRedirect(response.status), let location = response.header("Location"), !location.isEmpty else {
+            guard Self.isRedirect(response.status), let location = response.header("Location"), !location.isEmpty else {
                 return response
             }
             guard followed < options.maxRedirects else {
@@ -71,7 +76,7 @@ public actor Fetcher {
             }
 
             followed += 1
-            hop = FetchRequest(url: target.absoluteURL, headers: request.headers, proxyURL: request.proxyURL)
+            hop = FetchRequest(url: target.absoluteURL, headers: hop.headers, proxyURL: request.proxyURL)
         }
     }
 
@@ -117,11 +122,21 @@ public actor Fetcher {
     }
 
     /// The redirect statuses upstream follows.
-    private func isRedirect(_ status: Int) -> Bool {
-        [301, 302, 303, 307, 308].contains(status)
+    private static func isRedirect(_ status: Int) -> Bool {
+        switch status {
+        case 301, 302, 303, 307, 308:
+            return true
+        default:
+            return false
+        }
     }
 
-    /// Closes the cached clients. The fetcher cannot be used after this.
+    /// Closes the cached clients.
+    ///
+    /// Call it when no `fetch` is in flight: closing a client another task is using fails that request,
+    /// and the fetcher cannot tell which clients are busy — it has no record of in-flight requests. A
+    /// second call does nothing. After this the fetcher still works, it is simply empty: the next fetch
+    /// builds a client again.
     public func shutdown() async throws {
         for entry in clients.values {
             try await entry.client.shutdown()
@@ -133,6 +148,9 @@ public actor Fetcher {
     /// pointed at. Because the client is configured with this address, no second lookup happens:
     /// a resolver that would answer with a private address later cannot change the target — the
     /// DNS-rebinding case upstream guards with its dialer.
+    ///
+    /// `host` here is what `URL.host` gives, which is the address without its brackets for an IPv6 URL,
+    /// and that is also the key AsyncHTTPClient looks up in `dnsOverride`, so the pin and the key agree.
     func resolveAndPin(host: String) async throws -> NetworkAddress {
         let policy = NetworkAddressPolicy(allowPrivateNetworks: options.allowPrivateNetworks)
 
@@ -162,10 +180,10 @@ public actor Fetcher {
 
     /// Client for one host and one proxy decision, reused for ``clientTTL``.
     private func client(for request: FetchRequest, host: String, pinned: NetworkAddress?) async throws -> HTTPClient {
-        let key = cacheKey(host: host, proxyURL: request.proxyURL)
+        let key = Self.cacheKey(host: host, proxyURL: request.proxyURL)
         try await pruneClients()
 
-        if let cached = clients[key], cached.expiresAt > now() {
+        if let cached = clients[key], cached.expiresAt > Self.clock.now {
             return cached.client
         }
 
@@ -181,36 +199,45 @@ public actor Fetcher {
         // Only the connect timeout is a separate limit: the request deadline is the one the whole fetch
         // shares, passed to `execute` per hop, the way the reference's client timeout covers the whole
         // call including redirects.
-        configuration.timeout = .init(connect: amount(FetcherOptions.defaultConnectTimeout))
+        configuration.timeout = .init(connect: Self.amount(for: FetcherOptions.defaultConnectTimeout))
         if let proxyURL = request.proxyURL {
             configuration.proxy = Self.proxyTarget(from: proxyURL)
         }
 
         let client = HTTPClient(configuration: configuration)
-        clients[key] = PinnedClient(client: client, expiresAt: now() + Int(Self.clientTTL.components.seconds))
+        clients[key] = PinnedClient(client: client, expiresAt: Self.clock.now + Self.clientTTL)
         return client
     }
 
     /// Clients are keyed by host and proxy, so a proxied request never reuses a direct client and
-    /// the pin stored in a client's configuration is never applied to another host.
-    private func cacheKey(host: String, proxyURL: URL?) -> String {
+    /// the pin stored in a client's configuration is never applied to another host. Internal so the
+    /// key itself can be tested — the guarantee is a property of the key, not of a connection.
+    static func cacheKey(host: String, proxyURL: URL?) -> String {
         "\(host)|\(proxyURL?.absoluteString ?? "direct")"
     }
 
-    /// Closes expired clients, and the oldest one when the cache is full, so a long-lived fetcher
-    /// does not keep clients for every host it ever saw.
+    /// Closes the expired clients, then one more when the cache is full: the entry whose expiry comes
+    /// first. This is an expiry-based cache, not an LRU — a client used often is not kept longer — and
+    /// when several entries expire at the same instant the first one found is closed.
+    ///
+    /// The keys are collected before anything is closed, because closing awaits: removing an entry while
+    /// the dictionary is being read would let a reentrant call act on a client that is already closed.
     private func pruneClients() async throws {
-        for (key, entry) in clients where entry.expiresAt <= now() {
+        let expired = clients.filter { $0.value.expiresAt <= Self.clock.now }.map(\.key)
+        for key in expired {
+            guard let entry = clients.removeValue(forKey: key) else {
+                continue
+            }
             try await entry.client.shutdown()
-            clients.removeValue(forKey: key)
         }
-        guard clients.count >= Self.maxCachedClients else {
+
+        guard clients.count >= Self.maxCachedClients,
+            let oldest = clients.min(by: { $0.value.expiresAt < $1.value.expiresAt })
+        else {
             return
         }
-        let oldest = clients.values.map { $0.expiresAt }.min()
-        for (key, entry) in clients where entry.expiresAt == oldest {
+        if let entry = clients.removeValue(forKey: oldest.key) {
             try await entry.client.shutdown()
-            clients.removeValue(forKey: key)
         }
     }
 
@@ -240,6 +267,11 @@ public actor Fetcher {
     ///
     /// The redirect limit is not part of this mapping: the client is configured not to follow
     /// redirects, so the limit is reported by the hop loop in `fetch`.
+    ///
+    /// A client error with no category here — a bad URL the client refused on its own, an invalid
+    /// host — is reported as a network failure with the client's wording. The reference classifies
+    /// those as URL errors, and Rivulet does not guess between its categories from a library error,
+    /// so the wording is the client's rather than the reference's.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {
@@ -263,16 +295,17 @@ public actor Fetcher {
         guard let buffer else {
             return Data()
         }
-        return Data(buffer.getBytes(at: buffer.readerIndex, length: buffer.readableBytes) ?? [])
-    }
-
-    private func now() -> Int {
-        Int(Date.now.timeIntervalSince1970)
+        return Data(buffer.readableBytesView)
     }
 
     /// A `TimeAmount` from a Duration. `components.seconds` alone would drop a sub-second duration,
-    /// which the timeout tests depend on.
-    private func amount(_ duration: Duration) -> TimeAmount {
-        TimeAmount.nanoseconds(Int64(duration.attoseconds / 1_000_000_000))
+    /// which the timeout tests depend on. The value is clamped because `attoseconds` is Int128 and the
+    /// conversion to Int64 traps above it — an environment value can be that large — and half of
+    /// `Int64.max` leaves room for `NIODeadline.now()` to add the amount without overflowing either.
+    /// Internal so the guard can be tested.
+    static func amount(for duration: Duration) -> TimeAmount {
+        let nanoseconds = duration.attoseconds / 1_000_000_000
+        let cap = Int64.max / 2
+        return TimeAmount.nanoseconds(nanoseconds > Int128(cap) ? cap : Int64(nanoseconds))
     }
 }

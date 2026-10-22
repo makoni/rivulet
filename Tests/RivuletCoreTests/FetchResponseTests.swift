@@ -98,6 +98,12 @@ import Testing
         // A date already past still yields one minute, because the truncation rounds toward zero.
         let past = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:06:10 GMT"])
         #expect(past.expires(now: now) == .seconds(60))
+
+        // Exactly a minute past truncates to itself, so the minute added on top cancels: nothing comes
+        // back. That is what Go's `Truncate` does too, and it is why the rule is "the current minute",
+        // not "any past value".
+        let wholeMinutePast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:05:00 GMT"])
+        #expect(wholeMinutePast.expires(now: now) == .zero)
     }
 
     @Test func cacheControlMaxAgeIsTheFirstMatchingDirective() {
@@ -170,6 +176,16 @@ import Testing
 
         let withoutComma = response(429, headers: ["Retry-After": "Sun 15 Jun 2025 15:07:22 GMT"])
         #expect(withoutComma.retryAfter(now: now) == .zero)
+    }
+
+    @Test func anOffsetIsADifferenceInSecondsNotItsDigits() throws {
+        // The regression: 07:28 at +0200 is 05:28 UTC, so the instant is 7200 seconds earlier than the
+        // same clock time read at GMT. Reading the four-digit offset is Rivulet's own addition, so this
+        // is Rivulet's own contract — Go's `RFC1123` layout would not read the offset at all, and an
+        // offset applied in the units of its digits (120 instead of 7200) shifts the time by hours.
+        let utc = try #require(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT"))
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0200") == utc - 7_200)
+        #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 -0230") == utc + 9_000)
     }
 
     @Test func rateLimitedStatusIsRecognised() {

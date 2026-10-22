@@ -31,9 +31,14 @@ public protocol AddressResolver: Sendable {
 
 /// The system resolver (`getaddrinfo`).
 ///
-/// The libc call blocks, so it is used from a task on the concurrency executor rather than from an
-/// event loop thread. Its answer is validated once and pinned, which is what keeps the HTTP client
-/// from resolving the name again.
+/// The libc call blocks, so it is not run on an event loop thread. This toolchain (Swift 6.4.1) has no
+/// blocking-executor API — `withBlockingTaskExecutor` is not in scope — so the call runs on the
+/// cooperative pool thread it is called from, which is what keeps an event loop free but is still a
+/// blocking call; that is recorded here rather than worked around.
+///
+/// Its answer is validated once and pinned, which is what keeps the HTTP client from resolving the
+/// name again. The hermetic suite cannot call it against a network, so its test uses a numeric host,
+/// which `getaddrinfo` answers from the string itself without contacting anything.
 public struct SystemAddressResolver: AddressResolver, Sendable {
     /// Creates a resolver.
     public init() {}

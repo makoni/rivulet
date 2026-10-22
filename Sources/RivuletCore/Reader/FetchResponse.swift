@@ -11,6 +11,10 @@ public struct FetchResponse: Sendable, Equatable {
     public let status: Int
 
     /// Response headers, in the form the client delivered them.
+    ///
+    /// A name that appears twice keeps only the last value, because a dictionary cannot hold both; the
+    /// reference keeps a list per name. Nothing in stage 2 reads a repeated header — `Set-Cookie` is the
+    /// usual case — so the single value is recorded here rather than modelled.
     public let headers: [String: String]
 
     /// Body bytes, capped by the fetcher; empty for a conditional hit.
@@ -79,9 +83,12 @@ public struct FetchResponse: Sendable, Equatable {
         return true
     }
 
-    /// Time until the cached response expires, rounded up to the next minute, as upstream
-    /// (`time.Until(t).Truncated(Truncate(minute)) + minute`): a value already past still yields
-    /// one minute, and an unparsable value yields nothing.
+    /// Time until the cached response expires, in whole minutes, as upstream
+    /// (`time.Until(t).Truncate(minute) + minute`): the current minute plus one. A value inside the
+    /// current minute yields a minute even when it is already past; a value a whole minute past yields
+    /// nothing, because the truncation and the added minute cancel; an unparsable value yields nothing.
+    /// The division truncates toward zero, which is what Go's `Truncate` does, so a negative value
+    /// behaves the same here as upstream.
     public func expires(now: Int) -> Duration {
         guard let value = header("Expires"), let date = HTTPDate.parse(value) else {
             return .zero

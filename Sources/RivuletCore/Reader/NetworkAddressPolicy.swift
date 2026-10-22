@@ -9,18 +9,21 @@ import Foundation
 ///
 /// The check runs on the address resolved and pinned for the hop, not on a name resolved again
 /// later, so a second lookup cannot swap in a private target.
-public struct NetworkAddressPolicy: Sendable, Equatable {
+///
+/// Internal: the fetcher is the only caller, and the address policy is not something a stage later
+/// builds a feed from. The tests reach it through `@testable import`.
+struct NetworkAddressPolicy: Sendable, Equatable {
     /// Escape hatch for private targets (`FETCHER_ALLOW_PRIVATE_NETWORKS`), off by default and
     /// meant for tests: when it is on, every address is admitted.
-    public let allowPrivateNetworks: Bool
+    let allowPrivateNetworks: Bool
 
     /// Creates a policy.
-    public init(allowPrivateNetworks: Bool) {
+    init(allowPrivateNetworks: Bool) {
         self.allowPrivateNetworks = allowPrivateNetworks
     }
 
     /// Whether a connection to `address` is allowed.
-    public func allows(_ address: NetworkAddress?) -> Bool {
+    func allows(_ address: NetworkAddress?) -> Bool {
         if allowPrivateNetworks {
             return true
         }

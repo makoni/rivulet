@@ -4,6 +4,11 @@ import Foundation
 /// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
 /// phrase the reference would print with it; the rest is Rivulet's own wording.
 ///
+/// A failure reaches the caller two ways, and the categories are the same either way: ``Fetcher/fetch(_:)``
+/// throws for a transport or limit failure, while an HTTP status is a response the caller can inspect, so
+/// ``FetchResponse/error()`` returns ``FetchError/status(_:)`` rather than throwing — the reference keeps
+/// the response and the error together, and Rivulet does the same.
+///
 /// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift.
 public enum FetchError: Error, Sendable, Equatable {
     /// The URL is not an `http` or `https` URL with a host.

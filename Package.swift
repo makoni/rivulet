@@ -19,7 +19,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.9.0"),
         .package(url: "https://github.com/vapor/sql-kit.git", from: "3.36.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.16.1"),
-        .package(url: "https://github.com/nmdias/FeedKit.git", from: "10.9.4"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.14.3"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.36.2"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.104.0"),
@@ -30,7 +29,6 @@ let package = Package(
             dependencies: [
                 .product(name: "FluentKit", package: "fluent-kit"),
                 .product(name: "SQLKit", package: "sql-kit"),
-                .product(name: "FeedKit", package: "FeedKit"),
                 .product(name: "SwiftSoup", package: "SwiftSoup"),
                 // The fetcher uses AsyncHTTPClient directly; it is already in the dependency graph
                 // through Vapor, and depending on it here keeps RivuletCore free of Vapor itself.

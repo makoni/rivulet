@@ -65,6 +65,9 @@ enum FetchTestSupport {
         do {
             try await body(fetcher)
         } catch {
+            // Closing on the failure path cannot be asserted: a shutdown that itself fails would hide
+            // the failure the test is reporting, so the error here is deliberately dropped and the
+            // test's own failure is what propagates.
             try? await fetcher.shutdown()
             throw error
         }

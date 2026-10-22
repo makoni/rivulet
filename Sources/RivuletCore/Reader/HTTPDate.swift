@@ -77,7 +77,8 @@ enum HTTPDate {
         return lengths[month - 1]
     }
 
-    /// Zone name or numeric offset, in minutes; nil for a name that is not an offset.
+    /// Zone name or numeric offset, in seconds — the unit the instant is computed in; nil for a name
+    /// that is not an offset.
     ///
     /// Rivulet is stricter than Go at the boundary, and the two Go paths differ. Its numeric-zone path
     /// (`RFC1123Z`) compares with `>`, so `+2400` and `+0360` parse there. Its name path
@@ -97,7 +98,7 @@ enum HTTPDate {
         else {
             return nil
         }
-        return sign * (hours * 60 + minutes)
+        return sign * (hours * 3_600 + minutes * 60)
     }
 
     /// Days from the Unix epoch to a proleptic Gregorian date (Howard Hinnant's algorithm).

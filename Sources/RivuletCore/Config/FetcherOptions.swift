@@ -110,6 +110,8 @@ public struct FetcherOptions: Sendable, Equatable {
     public static func load(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> FetcherOptions {
+        // The default is a whole number of seconds, so `components.seconds` is exact here. A sub-second
+        // default would truncate, and the fetcher's own conversion is the one that keeps fractions.
         let seconds = try Config.parseInteger(
             variable: "HTTP_CLIENT_TIMEOUT",
             rawValue: environment["HTTP_CLIENT_TIMEOUT"],
