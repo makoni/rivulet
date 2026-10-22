@@ -2,8 +2,9 @@ import Foundation
 
 /// Fetch failures. The wording follows the reference (`internal/reader/fetcher`) where the reference
 /// writes a message of its own; where the message comes from Go's standard library, Rivulet uses the
-/// phrase the reference would print with it; the rest — a deadline, a connection closed by the peer, an
-/// unclassifiable client failure, an unparseable `Location` — is Rivulet's own wording.
+/// phrase the reference would print with it; an invalid URL, the redirect cap, a deadline, a connection
+/// closed by the peer, an unclassifiable client failure and an unparseable `Location` are Rivulet's own
+/// phrases.
 ///
 /// A failure reaches the caller two ways, and the categories are the same either way: ``Fetcher/fetch(_:)``
 /// throws for a transport or limit failure, while an HTTP status is a response the caller can inspect, so
@@ -56,10 +57,11 @@ public enum FetchError: Error, Sendable, Equatable {
 
 extension FetchError: CustomStringConvertible {
     /// The message as the reference would print it, with the `fetcher:` prefix Miniflux adds when it
-    /// wraps the failure. Where the reference has no wording of its own — a deadline, a connection closed
-    /// by the peer, an unclassifiable client failure, an unparseable `Location` — the phrase and the prefix
-    /// are Rivulet's, with the client's own wording after it for the network case. The two parse messages
-    /// also drop the Go parse error the reference appends after the colon, because Rivulet's URL parsing
+    /// wraps the failure. Where the reference has no message of its own — an invalid URL, the redirect cap,
+    /// a deadline, a connection closed by the peer, an unclassifiable client failure, an unparseable
+    /// `Location` — the phrase is Rivulet's, printed with that prefix, with the client's own wording after
+    /// it for the network case. The two parse messages also drop the parse error the reference prints after
+    /// the colon — Go's for the proxy URL, Go's wrapper for a `Location` — because Rivulet's URL parsing
     /// gives none; the cases say so.
     public var description: String {
         switch self {

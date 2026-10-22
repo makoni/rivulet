@@ -289,7 +289,7 @@ import RivuletCore
         }
     }
 
-    @Test func anUnparsableRedirectLocationIsAFetchErrorWithTheReferencePhraseButNotItsReason() async throws {
+    @Test func anUnparsableRedirectLocationIsAFetchErrorWithRivuletsOwnPhraseAndNoParseError() async throws {
         try await FetchTestSupport.withServer(behaviors: [
             "/bad": StubFeedServer.Behavior(status: 302, headers: ["Location": "http://[bad"]),
         ]) { server in

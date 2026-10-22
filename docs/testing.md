@@ -82,8 +82,8 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow case that
 works without one — a numeric host, which the resolver answers from the string itself — and that is also
 the only place the byte order of the raw `addrinfo` layout is pinned. Everything else that matters — one
-lookup per hop, the answer handed to the policy, the client pinned to that answer — is tested through the
-resolver seam with a seeded resolver.
+lookup per hop, the answer handed to the policy, and the client pinned to the answer it was built from —
+is tested through the resolver seam with a seeded resolver.
 
 The cache has one behaviour test, for the one effect that can be observed from outside: an eviction
 while a request is in flight must not close the client that request is using, or the client cancels it —
