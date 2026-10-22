@@ -8,7 +8,7 @@ import NIOHTTP1
 /// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift, with the
 /// differences recorded in `docs/reference-notes.md`: the body cap goes through the response
 /// accumulator, which counts the same bytes the reference's `MaxBytesReader` counts; the
-/// private-network check runs on the answers the resolver seam returns for a hop, and the client is
+/// private-network check runs on the answers the resolver seam returns for a direct hop, and the client is
 /// pinned with `dnsOverride` to an address validated when it was built, so a later lookup cannot steer
 /// the connection — the guarantee the reference's dialer `Control` callback gives it, by another
 /// mechanism; and redirects are followed hop by hop so the check runs on every direct hop, as the
