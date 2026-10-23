@@ -345,10 +345,16 @@ Semantics:
 - `internal/reader/encoding/encoding.go`: `CharsetReader` does not convert when the document is
   already valid UTF-8, so a prolog label that contradicts the bytes is ignored and a mislabeled
   UTF-8 document is not re-decoded. With a label, conversion follows the WHATWG label map; the
-  content-type path uses BOM → meta prescan in the first 1024 bytes → default `windows-1252`.
+  content-type path is BOM → content-type `charset` → meta prescan in the first 1024 bytes →
+  "looks like UTF-8" heuristic → default `windows-1252`, and an unknown label in the content type
+  is not an error there: it falls through to the next step.
 - `internal/reader/xml/decoder.go`: when the prolog declares UTF-8, invalid XML characters are
   filtered in place rather than converted; unknown entities come from the HTML entity table,
   `Strict = false` accepts junk before the prolog, and illegal characters are dropped.
+- `hasUTF8XMLDeclaration` scans the whole document (not just the prolog) for the first `encoding=`
+  and compares the quoted value with `utf-8` case-insensitively, so the valid alias `utf8` does
+  not count as a UTF-8 declaration — the document then takes the `CharsetReader` path, where its
+  valid UTF-8 bytes still win and nothing is converted.
 
 ## Test fixtures in the reference
 

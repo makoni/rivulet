@@ -1,7 +1,8 @@
 # Stage 3 — Parsing & sanitization
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
-**Status:** spike complete (2026-10-23), implementation not started. **Effort:** XL (the hardest
+**Status:** implementation in progress: the charset slice is merged (labels, detection and
+transcoding, fixture corpus); the parser is next. **Effort:** XL (the hardest
 stage). **Depends on:** Stage 2.
 
 ## Scope
@@ -16,10 +17,12 @@ stage). **Depends on:** Stage 2.
 - [ ] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
       interpreted as local time, ~70 layouts after normalization, PST/PDT workaround, UTC-offset
       clamping; adapters fall back to "now" when parsing fails completely.
-- [ ] Charset detection and transcoding: WHATWG label → `String.Encoding` map (BOM → meta prescan
-      → default). Foundation on Linux was **verified** to decode `windows-1251`, `windows-1252`,
-      ISO-8859-1, ISO-8859-15, KOI8-R, GB18030, Big5; some encodings need raw encoding values
-      (no named constants). Output is always UTF-8.
+- [x] Charset detection and transcoding: WHATWG label table transcribed from
+      `golang.org/x/text` v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths
+      (`CharsetReader`, `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan
+      (1024 bytes) → UTF-8 heuristic → `windows-1252` default; output is always UTF-8.
+      Platform decoder gaps (EUC-JP on Linux) go through a glibc `iconv` fallback; the
+      deviations are in `docs/parity.md`.
 - [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
 - [ ] Sanitizer (SwiftSoup): allowlist of tags/attributes ported from
       `internal/reader/sanitizer` (media: `img/video/audio/source`, `iframe` with a domain
@@ -27,7 +30,7 @@ stage). **Depends on:** Stage 2.
 - [ ] Normalization: relative URL resolution against feed/site URL, entity decoding, whitespace.
 - [ ] Feed metadata: title, site URL, description, icon link; typed errors ("not a feed",
       "feed not found", too large).
-- [ ] Fixtures ported to `Tests/RivuletCoreTests/Fixtures/<area>/` with a provenance `README.md`
+- [x] Fixtures ported to `Tests/RivuletCoreTests/Fixtures/<area>/` with a provenance `README.md`
       (upstream commit, license, copied vs regenerated); `NOTICE` updated when they land.
 
 ## Implementation notes
@@ -43,7 +46,9 @@ stage). **Depends on:** Stage 2.
 
 ### Unit (fixture/golden, ported from Miniflux)
 
-- Encoding: all 11 fixtures decode exactly as the reference decodes them.
+- Encoding: every fixture assertion the reference makes is reproduced; the 11 fixture files in
+  `Fixtures/encoding/` cover prolog labels, wrong labels over valid UTF-8, KOI8-R feeds, the
+  content-type path and the 1024-byte detection window.
 - Parser: 8 fixtures → normalized feed/entry golden outputs.
 - XML: 3 fixtures.
 - Dates: ported table-driven cases, including the "now" fallback.
