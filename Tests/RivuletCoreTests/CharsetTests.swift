@@ -42,8 +42,8 @@ import Testing
         ]
         for entry in cases {
             let decoded = try FeedCharset.decode(Data(entry.bytes), label: "utf-8")
-            #expect(Fixtures.isValidUTF8(decoded), "(entry.note)")
-            #expect(Fixtures.utf8(decoded) == entry.expected, "(entry.note)")
+            #expect(Fixtures.isValidUTF8(decoded), "\(entry.note)")
+            #expect(Fixtures.utf8(decoded) == entry.expected, "\(entry.note)")
         }
     }
 
@@ -70,7 +70,10 @@ import Testing
         #expect(CharsetEncoding.named("cp437") == nil)
     }
 
-    @Test func everyCanonicalEncodingHasAPlatformConverter() {
+    @Test func everyCanonicalEncodingResolvesToADecoderStrategy() {
+        // The reference resolves every canonical name through `htmlindex.Get`, so a strategy must
+        // exist for all of them; five cases (UTF-8, the two UTF-16s, x-user-defined, replacement)
+        // are built in code and do not depend on the platform converter.
         for encoding in CharsetEncoding.allCases {
             #expect(encoding.decoderStrategy != nil, "no decoder strategy for \(encoding.rawValue)")
         }
@@ -86,7 +89,9 @@ import Testing
     }
 
     @Test func undefinedWindows1252BytesBecomeReplacementCharacters() throws {
+        // Windows-1252 leaves 81, 8D, 8F, 90 and 9D undefined, so those positions become U+FFFD.
         let decoded = try FeedCharset.decode(Data([0x41, 0x81, 0x8D, 0x42]), label: "windows-1252")
+        #expect(Fixtures.isValidUTF8(decoded))
         #expect(Fixtures.utf8(decoded) == "A\u{FFFD}\u{FFFD}B")
     }
 
@@ -111,12 +116,16 @@ import Testing
 
     @Test func incompleteMultibyteSequenceBecomesAReplacementCharacter() throws {
         let decoded = try FeedCharset.decode(Data([0xA4]), label: "big5")
+        #expect(Fixtures.isValidUTF8(decoded))
         #expect(Fixtures.utf8(decoded) == "\u{FFFD}")
     }
 
     @Test func invalidMultibyteByteDoesNotLoseTheRestOfTheDocument() throws {
         // 0xFF is not a valid EUC-KR lead byte; the reference emits U+FFFD and keeps the "A".
+        // Validity is what makes this test pin the decoding, because a lenient raw read of these
+        // bytes produces the same string.
         let decoded = try FeedCharset.decode(Data([0xFF, 0x41]), label: "euc-kr")
+        #expect(Fixtures.isValidUTF8(decoded))
         #expect(Fixtures.utf8(decoded) == "\u{FFFD}A")
     }
 
@@ -172,10 +181,11 @@ import Testing
         #expect(Fixtures.utf8(decoded) == "A\u{F780}\u{F7FF}")
     }
 
-    @Test func replacementEncodingProducesOneReplacementCharacter() throws {
-        // 0xE9 alone is not valid UTF-8, so the label is honored; the reference's replacement
-        // decoder emits a single U+FFFD and discards the rest of the document.
-        let decoded = try FeedCharset.decode(Data([0xE9]), label: "hz-gb-2312")
+    @Test func replacementEncodingConsumesTheDocumentAndEmitsOneReplacementCharacter() throws {
+        // Not valid UTF-8, so the label is honored. The reference's replacement decoder emits a
+        // single U+FFFD at end of input and consumes the whole document, including the "A".
+        let decoded = try FeedCharset.decode(Data([0xE9, 0x41]), label: "hz-gb-2312")
+        #expect(Fixtures.isValidUTF8(decoded))
         #expect(Fixtures.utf8(decoded) == "\u{FFFD}")
     }
 
@@ -224,7 +234,8 @@ import Testing
         let bytes = koi8rGreeting
         let data = html("<html><!-- <meta charset=\"koi8-r\"> --><body>", bytes)
         let decoded = FeedCharset.decode(data, contentType: "text/html")
-        #expect(!Fixtures.utf8(decoded).contains("Привет"))
+        #expect(Fixtures.isValidUTF8(decoded))
+        #expect(Fixtures.utf8(decoded) == "<html><!-- <meta charset=\"koi8-r\"> --><body>ðÒÉ×ÅÔ")
     }
 
     @Test func unknownContentTypeCharsetFallsThroughToDetection() throws {
@@ -240,7 +251,8 @@ import Testing
         let bytes = koi8rGreeting
         let data = html("<html><head><meta charset=\"bogus\"></head><body>", bytes)
         let decoded = FeedCharset.decode(data, contentType: "text/html")
-        #expect(!Fixtures.utf8(decoded).contains("Привет"))
+        #expect(Fixtures.isValidUTF8(decoded))
+        #expect(Fixtures.utf8(decoded) == "<html><head><meta charset=\"bogus\"></head><body>ðÒÉ×ÅÔ")
     }
 
     @Test func metaDeclaringUTF16PassesTheDocumentThrough() throws {
@@ -275,7 +287,10 @@ import Testing
         #expect(Fixtures.utf8(FeedCharset.decode(data, contentType: nil)) == "\u{FEFF}A")
     }
 
-    @Test func utf8ByteOrderMarkPassesThrough() throws {
+    @Test func validUTF8BytesPassThroughEvenWithAUTF8ByteOrderMark() throws {
+        // The reference checks `utf8.Valid` before it looks at the mark, so this document is
+        // returned as it is. The byte-order-mark branch itself is pinned by
+        // `invalidUTF8WithAUTF8ByteOrderMarkKeepsTheMarkAndReplacesTheRest`.
         let data = Data([0xEF, 0xBB, 0xBF, 0x41])
         #expect(FeedCharset.decode(data, contentType: nil) == data)
     }

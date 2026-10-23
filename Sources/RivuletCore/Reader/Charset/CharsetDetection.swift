@@ -169,7 +169,7 @@ enum CharsetDetection {
         }
     }
 
-    /// Reads an attribute name, stopping at the delimitters the tokenizer recognizes.
+    /// Reads an attribute name, stopping at the delimiters the tokenizer recognizes.
     private static func nameUpToDelimiter(_ bytes: [UInt8], from index: inout Int) -> String {
         let start = index
         while index < bytes.count, !isHTMLWhitespace(bytes[index]),

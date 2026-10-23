@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Implements the lossy decoding Miniflux reaches through golang.org/x/text (BSD-3-Clause,
+// attributed in NOTICE), because the platform converter cannot decode some of those encodings.
 // Ported from Miniflux internal/reader/encoding/encoding.go (Apache-2.0); adapted for
-// Swift/SQLite, because the reference reaches these encodings through golang.org/x/text.
+// Swift/SQLite.
 
 #if canImport(Glibc)
 import Foundation
@@ -16,8 +18,8 @@ import Glibc
 enum IconvDecoder {
     /// Decodes `data` from the IANA name `name` to a string.
     ///
-    /// - Returns: `nil` when the platform has no converter for `name`. A converter that
-    ///   exists always produces a string, because every rejected byte is replaced.
+    /// - Returns: `nil` when the platform has no converter for `name`, or when the converter stops
+    ///   making progress; otherwise a string, because every rejected sequence is replaced.
     static func decode(_ data: Data, from name: String) -> String? {
         guard let handle = name.withCString({ iconv_open("UTF-8", $0) }),
               handle != UnsafeMutableRawPointer(bitPattern: -1) else {
