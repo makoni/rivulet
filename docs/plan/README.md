@@ -19,11 +19,14 @@ is inside the MVP.
 
 ## Principles
 
-1. **Miniflux compatibility is the spec.** When in doubt, read the reference implementation and mirror the observable behavior.
-2. **API-first.** Google Reader API and Fever API come before anything else, so existing clients work.
+1. **Miniflux compatibility is the spec.** When in doubt, read the reference implementation and
+   mirror the observable behavior.
+2. **API-first.** Google Reader API and Fever API come before anything else, so existing clients
+   work.
 3. **SQLite-first.** One file, WAL mode, FTS5. No PostgreSQL, no Redis, no external cron.
 4. **CLI-first, no web UI.** All management happens via commands and environment configuration.
-5. **TDD.** Every behavior lands test-first; integration tests are first-class and run in CI. See [testing strategy](../testing.md).
+5. **TDD.** Every behavior lands test-first; integration tests are first-class and run in CI. See
+   [testing strategy](../testing.md).
 6. **Small dependency surface.** Linux-first. New dependencies require explicit approval.
 
 ## Stages
@@ -32,7 +35,7 @@ is inside the MVP.
 | --- | --- | --- | --- |
 | 0 | [Foundation](stage-0-foundation.md) | done | M |
 | 1 | [Storage layer](stage-1-storage.md) | done | M |
-| 2 | [Feed fetching](stage-2-fetching.md) | not started | M |
+| 2 | [Feed fetching](stage-2-fetching.md) | in progress | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | not started | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | not started | M |
 | 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
@@ -52,7 +55,8 @@ work — stages 3 and 5 dominate). Stage 9 is opportunistic.
 ## Definition of done (every stage)
 
 - [ ] New behavior is covered by tests written first (TDD).
-- [ ] Integration tests cover anything that crosses a module boundary (HTTP, SQLite, scheduler, API).
+- [ ] Integration tests cover anything that crosses a module boundary (HTTP, SQLite, scheduler,
+  API).
 - [ ] `swift test` is green locally and in CI.
 - [ ] Docs updated (`README.md`, stage status, `docs/` as needed); public APIs carry DocC comments.
 - [ ] Ported code/fixtures carry provenance comments and `NOTICE` stays accurate.

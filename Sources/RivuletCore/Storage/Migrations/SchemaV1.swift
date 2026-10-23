@@ -86,6 +86,8 @@ public struct SchemaV1: AsyncMigration {
             parsing_error_message TEXT NOT NULL DEFAULT '',
             user_agent TEXT NOT NULL DEFAULT '',
             disabled INTEGER NOT NULL DEFAULT 0,
+            ignore_http_cache INTEGER NOT NULL DEFAULT 0,
+            fetch_via_proxy INTEGER NOT NULL DEFAULT 0,
             fetched_at INTEGER,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,

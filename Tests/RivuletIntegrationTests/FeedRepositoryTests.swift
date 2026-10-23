@@ -54,6 +54,29 @@ import Testing
         }
     }
 
+    @Test func thePerFeedFetchSettingsRoundTrip() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feeds = FeedRepository(connection)
+                let feed = try await seedFeed(connection).2
+                let feedID = try #require(feed.id)
+
+                // Upstream defaults for both flags: false.
+                let created = try await feeds.fetch(id: feedID)
+                #expect(created?.ignoreHTTPCache == false)
+                #expect(created?.fetchViaProxy == false)
+
+                feed.ignoreHTTPCache = true
+                feed.fetchViaProxy = true
+                try await feed.save(on: connection)
+
+                let stored = try await feeds.fetch(id: feedID)
+                #expect(stored?.ignoreHTTPCache == true)
+                #expect(stored?.fetchViaProxy == true)
+            }
+        }
+    }
+
     @Test func duplicateURLForTheSameUserIsRejected() async throws {
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in

@@ -34,15 +34,15 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
 - Batch selection: `internal/storage/batch.go` —
-  `next_check_at < now() AND parsing_error_count < limit AND disabled IS false
-  ORDER BY next_check_at ASC LIMIT BATCH_SIZE` (default 100); optional per-host limit
-  (`POLLING_LIMIT_PER_HOST`, default 0 = off).
+  `next_check_at < now() AND parsing_error_count < limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE`
+  (default 100); optional per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off).
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when
     `weekly_entries ≤ 0` the interval is the maximum (1440m);
   - `interval = max(interval, refreshDelay)`, where `refreshDelay` comes from the RSS `<ttl>`,
-    `Retry-After` (429), `Cache-Control: max-age` or `Expires` (`internal/reader/handler/handler.go`);
+    `Retry-After` (429), `Cache-Control: max-age` or `Expires`
+    (`internal/reader/handler/handler.go`);
   - `next_check_at = now + interval`.
 - Errors: **no backoff and no jitter** (verified — these concepts do not exist in the code).
   A failed refresh increments `parsing_error_count`; at `POLLING_PARSING_ERROR_LIMIT` (default 3)
@@ -62,7 +62,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   orphan-icon cleanup waits for icon fetching (stage 4). Stage 1 ports only the two
   `ArchiveEntries` calls.
 - "Archiving" is a hard `DELETE` plus a tombstone (`internal/storage/entry.go` `ArchiveEntries`):
-  skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
+  skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on
+  `created_at`.
 - Guards in `ArchiveEntries`: `interval < 0 || limit <= 0` archives nothing; the interval is
   truncated to whole days and clamped to at least one (`max(days, 1)`); `ORDER BY created_at ASC`
   makes a limited batch archive the oldest entries first.
@@ -217,9 +218,124 @@ Semantics:
 
 - `Accept-Encoding: br,gzip` (or `identity` when compression is disabled); conditional GET with
   `If-None-Match` / `If-Modified-Since`.
-- SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), active
-  unless `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`).
+- SSRF protection: private-network check in the dialer's `Control` callback (TOCTOU-safe), which
+  runs on **every** dial, including the hop reached through a redirect; active unless
+  `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (`internal/reader/fetcher/request_builder.go`). An
+  explicitly configured proxy is a trusted hop: the check runs on direct connections only, and the
+  connection to the proxy itself is allowed even when the proxy address is private.
+- Proxy precedence in `ExecuteRequest`: the per-feed proxy URL, then the application proxy when the
+  feed has `fetch_via_proxy` (`UseCustomApplicationProxyURL(feed.FetchViaProxy)`), then the proxy
+  list. Proxy URLs use the ports `80`, `443` and `1080` when the URL gives none.
 - Per-feed settings include: custom user agent, proxy, "ignore HTTP cache".
+- Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
+  (`HTTP_CLIENT_MAX_BODY_SIZE`), a redirect cap of 10 requests (`CheckRedirect` refuses the 10th, so
+  at most 9 are followed — see the deviation below), `Connection: close`, and the `Accept` value
+  `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
+- Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
+  - Rivulet has no connect-time hook, so the private-network check runs on the answers the resolver
+    seam returns for a named host, or on the address itself when the URL already carries one and no
+    lookup happens. The client is pinned with `dnsOverride` to one address it validated at build
+    time, and that pin cannot be changed by a later lookup; a cached client keeps it, so on a cached
+    hop the policy checks the current answers while the connection uses the address pinned at build
+    time. This is the same TOCTOU guarantee the reference gets from its dialer's `Control` callback
+    — the difference is the mechanism, not the property.
+  - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the
+    decompressed body — the same thing the reference's `MaxBytesReader` counts when it wraps the
+    decompression reader, so only the mechanism differs.
+  - `Accept-Encoding: gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); no
+    `Connection: close` because Rivulet keeps a connection pool; the advertised user agent is
+    Rivulet's own. Brotli, TLS-error tolerance and HTTP/2 toggles are deferred. The pool runs on
+    AsyncHTTPClient's defaults (60 s idle, 8 connections per host), not the reference's
+    `MaxIdleConns: 50` / `IdleConnTimeout: 10s` (90 s is Go's default, not what Miniflux sets); the
+    decompression-bomb guard (`limit: .ratio(25)`) is a Rivulet addition, since upstream relies on
+    the body cap alone.
+  - Every direct redirect hop is validated: the fetcher follows redirects itself, one request per
+    hop, so the address policy runs on each direct hop the way the reference's dialer `Control`
+    does, and the exception is the same — the dial to an explicitly configured proxy is not checked.
+    The statuses followed are 301, 302, 303, 307 and 308, and cycles are allowed up to the limit —
+    upstream's `CheckRedirect` counts requests and does not refuse a repeated URL. The boundary
+    differs by one hop: upstream refuses the redirect that would make the count reach the limit,
+    Rivulet refuses the one after the limit is reached.
+  - The timeout is one deadline shared by all hops, as the reference's `Client.Timeout` is computed
+    once and covers connection, redirects and body reading together; Rivulet sets no per-hop read
+    timeout. A redirect status with an empty `Location` is returned as the response, as Go's `do`
+    does.
+  - A failure the client reports is mapped to the fetcher's categories. An error with no category is
+    reported as a network failure with the client's wording, which is the same category the
+    reference uses for it: `isNetworkError` is true for `*url.Error` — which `net/http`'s
+    `Client.do` wraps every failure in — so only the wording differs on that path: Go prints its
+    `Get "url":` wrapper, Rivulet prints its own phrase with the client's wording after it; the
+    strings Miniflux shows for these come from locale keys
+    (`internal/locale/translations/en_US.json`), which Rivulet does not reproduce. For an
+    unparseable `Location` Rivulet prints Go's phrase (`failed to parse Location header`, which
+    `net/http`'s `Client.do` writes) without the `Get "url":` wrapper and without the parse error Go
+    adds after the colon, since it has no parse error to print. Two more wording details: the
+    reference quotes the host in the private-network message with `%q` and Rivulet prints it bare,
+    and `ErrHostnameResolution` is only compared (`internal/ui/proxy.go:106`) — the fetch path
+    reports a DNS failure as Go's resolver error inside `Get "url":`, so Rivulet's category for it
+    is its own, reached through the resolver seam upstream does not have. Three of the reference's
+    categories are one-sided: `error.network_timeout` sits behind `isNetworkError`, so a timeout
+    Go's client wraps is a network error there while Rivulet reports it as a timeout;
+    `error.http_empty_response` sits behind it too, for the same reason; and
+    `error.http_client_error` needs an error that is not a `*url.Error`, which Miniflux's fetch path
+    does not produce — it builds the request with a literal `GET` and a background context, and a
+    `url.Parse` failure is a `*url.Error` — so it is effectively unreachable upstream.
+    `error.tls_error` is reachable upstream and Rivulet has no TLS category: a TLS failure arrives
+    as a network error.
+  - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
+    `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
+    Rivulet does neither — no effect today, because the request builder sets none of those headers.
+  - A 4-in-6 address is classified through its IPv4 form, as Go's `netip.Addr.Unmap()` does, and the
+    canonical text prints that form. Rivulet's text parser does not accept the mixed
+    `::ffff:a.b.c.d` spelling — the unmapped form comes from resolver bytes.
+  - Rivulet refuses the whole request when **any** resolved answer is non-public. Upstream checks
+    the address it dials one attempt at a time, so a private answer later in the list is never
+    reached when a public answer connects first; Rivulet is stricter here on purpose.
+  - `HTTPDate` is read the way Go's parser reads `time.RFC1123`: three letters of a day name for the
+    weekday with its comma, a two-digit day validated against the month, a four-digit year, and the
+    minute and second fixed at two digits while the hour is not. The divergences: Go looks a zone
+    name up in the local zone table, so `EST` shifts the time when that table defines it (otherwise
+    the name is kept with no offset); Go reads the zone as a name or a signed hour (`+03`, `GMT+3`),
+    but a bare `+03` is taken as a zone name with no shift — only `GMT+3` moves the time — while
+    Rivulet reads only the four-digit `+hhmm` form, which is what servers actually send and what
+    `RFC1123Z` accepts upstream, and shifts for it; Rivulet does not read a fractional second, which
+    Go accepts after the seconds field; and Rivulet splits the value on spaces, so it reads a padded
+    value — Go rejects a leading space before the weekday and any leftover after the zone, though a
+    run of spaces in the middle counts as one separator, so a doubled space parses upstream as well.
+    Leftover text that is not spaces is rejected by Rivulet too. Rivulet is stricter at the offset
+    boundary: Go's numeric path (`RFC1123Z`) reads fixed-width two-digit fields and allows an hour
+    of 24 and a minute of 60 (`hr > 24`, `mm > 60`), so `+2400` and `+0360` parse there, while
+    Rivulet reads only an hour of 0...23 and a minute of 0...59. Go's `> 23` check is in
+    `parseSignedOffset`, which reads the signed hour of a zone name (`+03`, `GMT+3`), not the
+    numeric field.
+  - `Expires` becomes a delay in whole minutes: `Until(now).Truncate(minute) + minute`, so a value
+    inside the current minute yields a minute even when it is already past, a past value that
+    truncates to exactly the previous minute yields nothing, and one further past yields a negative
+    delay. Rivulet divides whole seconds the same way — truncating toward zero, which is what Go's
+    `Truncate` does — so it returns the same negative value. Upstream the handler takes
+    `refreshDelay = max(feed TTL, cacheControlMaxAge, expires)`
+    (`internal/reader/handler/handler.go`), which can itself be negative, and
+    `Feed.ScheduleNextCheck` clamps it with `interval = max(interval, refreshDelay)` against the
+    configured minimum (`internal/model/feed.go`); the refresh path has to do both here.
+  - Address text is read the way Go's parser reads it (`netip.ParseAddr`, which `net.ParseIP` uses):
+    every field must have a digit, so an empty octet is not an address; a group is at most four hex
+    digits and a sign is not a group; `::` must stand for at least one zero group; an octet with a
+    leading zero is rejected; and a zone is not accepted — `netip.ParseAddr` would accept a zone,
+    but `net.ParseIP`, which the reference uses, rejects it. Two further differences: Rivulet trims
+    the text first, which Go does not, and it does not read the mixed form `::ffff:1.2.3.4` — the
+    unmapped form comes from resolver bytes. Its canonical text prints the eight groups in full,
+    while Go's `String()` applies RFC 5952 compression, so the two print the same address
+    differently.
+  - The empty-body decision uses the bytes actually read; upstream uses `ContentLength`.
+  - Environment names mirror the reference (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_USER_AGENT`,
+    `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_PROXY`, `FETCHER_ALLOW_PRIVATE_NETWORKS`).
+    `FETCHER_IGNORE_HTTP_CACHE` is a Rivulet addition: upstream has only the per-feed flag. Upstream
+    also proxies from the environment (`ProxyFromEnvironment`), and proxy URLs may carry
+    credentials; both are deferred. A per-feed proxy URL is not stored yet, so only the application
+    proxy can apply.
+  - AsyncHTTPClient tunnels through a proxy with `CONNECT` even for plain `http` targets, and
+    reaches an `https` proxy in plain HTTP, so a proxied target is resolved by the proxy and cannot
+    be pinned — the policy is skipped for that hop, as it is upstream.
 - Relevant packages: `internal/reader/fetcher` (request building, response handling),
   `internal/urllib` (IP helpers) — not `internal/http`, which is the integrations/REST client.
 

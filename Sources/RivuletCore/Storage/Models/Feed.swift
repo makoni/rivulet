@@ -63,6 +63,12 @@ public final class Feed: Model, @unchecked Sendable {
     /// Disabled feeds are skipped by the scheduler until re-enabled.
     @Field(key: "disabled") public var disabled: Bool
 
+    /// Per-feed "ignore HTTP cache"; the application default applies when this is false.
+    @Field(key: "ignore_http_cache") public var ignoreHTTPCache: Bool
+
+    /// Fetch this feed through the configured proxy; upstream `fetch_via_proxy`.
+    @Field(key: "fetch_via_proxy") public var fetchViaProxy: Bool
+
     /// Unix seconds of the last check, successful or not; `nil` until the
     /// first check (upstream: `checked_at`).
     @OptionalField(key: "fetched_at") public var fetchedAt: Int?
