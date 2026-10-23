@@ -62,6 +62,11 @@ We work test-first: **red → green → refactor**.
   One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures
   go to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
+- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Two things are
+  exempt because neither can be broken without changing what it says: a Markdown table row, and an
+  inline code span longer than the width, which stays whole on its own line. Code lines are single
+  expressions and are not split to meet the width. A commit that only rewraps does not change
+  behavior, so it does not reopen a review that already approved the words.
 - Prefer the standard library and existing dependencies. `swift-collections`
   (`Deque`, `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are
   pre-approved when they make data structures, algorithms or hashing clearer or more efficient —
@@ -83,7 +88,8 @@ swift run rivulet --help
 
 - Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
-- Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
+- Ported code keeps a header comment:
+  `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
   Ported tests keep a comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
   wrapper; never fsync per row. Until the first release the schema is edited in place
