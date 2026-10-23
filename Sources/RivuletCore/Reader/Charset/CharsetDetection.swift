@@ -155,7 +155,7 @@ enum CharsetDetection {
                 }
                 return Tag(name: name, attributes: attributes, end: index + 1)
             }
-            let attributeName = nameUpToDelimitter(bytes, from: &index)
+            let attributeName = nameUpToDelimiter(bytes, from: &index)
             while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
             guard index < bytes.count, bytes[index] == UInt8(ascii: "=") else {
                 attributes.append((attributeName, ""))
@@ -164,13 +164,13 @@ enum CharsetDetection {
             index += 1
             while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
             guard index < bytes.count else { return nil }
-            let value = valueUpToDelimitter(bytes, from: &index)
+            let value = valueUpToDelimiter(bytes, from: &index)
             attributes.append((attributeName, value))
         }
     }
 
     /// Reads an attribute name, stopping at the delimitters the tokenizer recognizes.
-    private static func nameUpToDelimitter(_ bytes: [UInt8], from index: inout Int) -> String {
+    private static func nameUpToDelimiter(_ bytes: [UInt8], from index: inout Int) -> String {
         let start = index
         while index < bytes.count, !isHTMLWhitespace(bytes[index]),
               bytes[index] != UInt8(ascii: "="), bytes[index] != UInt8(ascii: ">"),
@@ -182,7 +182,7 @@ enum CharsetDetection {
 
     /// Reads an attribute value, quoted or unquoted, exactly as `Tokenizer.TagAttr` does,
     /// returning the lowercase form the reference compares against.
-    private static func valueUpToDelimitter(_ bytes: [UInt8], from index: inout Int) -> String {
+    private static func valueUpToDelimiter(_ bytes: [UInt8], from index: inout Int) -> String {
         let quote = bytes[index]
         if quote != UInt8(ascii: "\"") && quote != UInt8(ascii: "'") {
             let start = index

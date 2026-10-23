@@ -20,7 +20,7 @@ enum CharsetDecoder {
         case .singleByte(let encoding):
             return Data(decodeSingleByte(data, encoding: encoding).utf8)
         case .multiByte(let encoding):
-            return Data(decodeMultiByte(data, encoding: encoding, canonicalName: canonicalName).utf8)
+            return decodeMultiByte(data, encoding: encoding, canonicalName: canonicalName)
         case .utf16LittleEndian:
             return Data(decodeUTF16(data, littleEndian: true).utf8)
         case .utf16BigEndian:
@@ -115,47 +115,22 @@ enum CharsetDecoder {
         return result
     }
 
-    /// Decodes a multi-byte encoding, falling back to the platform `iconv` and finally to a
-    /// windowed rescan for encodings the platform cannot decode at all.
-    private static func decodeMultiByte(_ data: Data, encoding: String.Encoding, canonicalName: String) -> String {
+    /// Decodes a multi-byte encoding, falling back to the platform `iconv`.
+    ///
+    /// When neither the platform converter nor `iconv` can decode the name, the bytes are treated
+    /// as UTF-8 with the reference's replacement rule, which keeps the output valid UTF-8; the
+    /// reference decodes such a document with its own table instead, so the result for a legacy
+    /// encoding can differ. This is the documented platform gap recorded in `docs/parity.md`.
+    private static func decodeMultiByte(_ data: Data, encoding: String.Encoding, canonicalName: String) -> Data {
         if let text = String(data: data, encoding: encoding) {
-            return text
+            return Data(text.utf8)
         }
         #if canImport(Glibc)
         if let text = IconvDecoder.decode(data, from: canonicalName) {
-            return text
+            return Data(text.utf8)
         }
         #endif
-        return decodeLeniently(data, encoding: encoding)
-    }
-
-    /// Decodes as much of `data` as the platform converter accepts, replacing every byte it
-    /// rejects with U+FFFD.
-    ///
-    /// This is a last resort for platforms without `iconv`: it rescans the data in windows of
-    /// up to four bytes, so stateful encodings (ISO-2022-JP) can decode incorrectly after a
-    /// rejected escape. On Linux the `iconv` path handles these inputs instead.
-    private static func decodeLeniently(_ data: Data, encoding: String.Encoding) -> String {
-        var result = ""
-        var start = data.startIndex
-        while start < data.endIndex {
-            let remaining = data.count - data.distance(from: data.startIndex, to: start)
-            var matched = false
-            for length in stride(from: min(4, remaining), through: 1, by: -1) {
-                let end = data.index(start, offsetBy: length)
-                if let text = String(data: data[start ..< end], encoding: encoding) {
-                    result += text
-                    start = end
-                    matched = true
-                    break
-                }
-            }
-            if !matched {
-                result += "\u{FFFD}"
-                start = data.index(after: start)
-            }
-        }
-        return result
+        return decodeUTF8(data)
     }
 
     /// Decodes UTF-16 by hand, so that the platform can neither drop nor normalize a BOM.

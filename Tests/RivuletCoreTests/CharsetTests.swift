@@ -27,18 +27,24 @@ import Testing
     @Test func illFormedUTF8BecomesOneReplacementCharacterPerMaximalSubpart() throws {
         // Port of the reference's `utf8Decoder` (`golang.org/x/text/encoding/unicode`), which is
         // what `charset.Lookup("utf-8")` returns: every maximal subpart of an ill-formed
-        // subsequence becomes one U+FFFD, so the output is always valid UTF-8.
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0xA4]), label: "utf-8")) == "\u{FFFD}")
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xC0, 0xAF]), label: "utf-8")) == "\u{FFFD}\u{FFFD}")
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0xA4, 0x30]), label: "utf-8")) == "\u{FFFD}0")
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xED, 0xA0, 0x80]), label: "utf-8"))
-            == "\u{FFFD}\u{FFFD}\u{FFFD}")
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0x80, 0x80]), label: "utf-8"))
-            == "\u{FFFD}\u{FFFD}\u{FFFD}")   // overlong form excluded: only the lead is a subpart
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF4, 0x90, 0x80, 0x80]), label: "utf-8"))
-            == "\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}")   // above U+10FFFF excluded
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF0, 0x9F, 0x93]), label: "utf-8")) == "\u{FFFD}")
-        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF0, 0x9F, 0x98, 0x80]), label: "utf-8")) == "😀")
+        // subsequence becomes one U+FFFD, so the output is always valid UTF-8. Each case checks
+        // both the replacement count and that the result is valid UTF-8, because checking only
+        // the string would also pass for raw bytes read leniently.
+        let cases: [(bytes: [UInt8], expected: String, note: String)] = [
+            ([0xE0, 0xA4], "\u{FFFD}", "truncated sequence: one subpart"),
+            ([0xC0, 0xAF], "\u{FFFD}\u{FFFD}", "overlong form: two subparts"),
+            ([0xE0, 0xA4, 0x30], "\u{FFFD}0", "second byte outside the accept range"),
+            ([0xED, 0xA0, 0x80], "\u{FFFD}\u{FFFD}\u{FFFD}", "surrogate form excluded"),
+            ([0xE0, 0x80, 0x80], "\u{FFFD}\u{FFFD}\u{FFFD}", "overlong form excluded: only the lead"),
+            ([0xF4, 0x90, 0x80, 0x80], "\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}", "above U+10FFFF excluded"),
+            ([0xF0, 0x9F, 0x93], "\u{FFFD}", "sequence cut off by the end of the document"),
+            ([0xF0, 0x9F, 0x98, 0x80], "😀", "valid sequence"),
+        ]
+        for entry in cases {
+            let decoded = try FeedCharset.decode(Data(entry.bytes), label: "utf-8")
+            #expect(Fixtures.isValidUTF8(decoded), "(entry.note)")
+            #expect(Fixtures.utf8(decoded) == entry.expected, "(entry.note)")
+        }
     }
 
     // MARK: - Label resolution
@@ -171,6 +177,23 @@ import Testing
         // decoder emits a single U+FFFD and discards the rest of the document.
         let decoded = try FeedCharset.decode(Data([0xE9]), label: "hz-gb-2312")
         #expect(Fixtures.utf8(decoded) == "\u{FFFD}")
+    }
+
+    @Test func invalidUTF8WithAUTF8ByteOrderMarkKeepsTheMarkAndReplacesTheRest() throws {
+        // The byte-order-mark branch resolves to the reference's UTF-8 decoder, not to the
+        // pass-through, so the mark survives as U+FEFF and the ill-formed bytes become U+FFFD.
+        let data = Data([0xEF, 0xBB, 0xBF, 0xE0, 0x80, 0x80])
+        let decoded = FeedCharset.decode(data, contentType: "text/html")
+        #expect(Fixtures.isValidUTF8(decoded))
+        #expect(Fixtures.utf8(decoded) == "\u{FEFF}\u{FFFD}\u{FFFD}\u{FFFD}")
+    }
+
+    @Test func iconvPathReplacesTheRejectedSequenceAndKeepsTheRest() throws {
+        // Foundation cannot decode EUC-JP on Linux, so this pins the `iconv` path: the rejected
+        // sequence becomes U+FFFD and the ASCII byte after it survives.
+        let decoded = try FeedCharset.decode(Data([0xA4, 0x41]), label: "euc-jp")
+        #expect(Fixtures.isValidUTF8(decoded))
+        #expect(Fixtures.utf8(decoded) == "\u{FFFD}A")
     }
 
     // MARK: - HTML detection
