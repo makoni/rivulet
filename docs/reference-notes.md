@@ -349,6 +349,10 @@ Semantics:
 - `internal/reader/xml/decoder.go`: when the prolog declares UTF-8, invalid XML characters are
   filtered in place rather than converted; unknown entities come from the HTML entity table,
   `Strict = false` accepts junk before the prolog, and illegal characters are dropped.
+- `hasUTF8XMLDeclaration` scans the whole document (not just the prolog) for the first `encoding=`
+  and compares the quoted value with `utf-8` case-insensitively, so the valid alias `utf8` does
+  not count as a UTF-8 declaration — the document then takes the `CharsetReader` path, where its
+  valid UTF-8 bytes still win and nothing is converted.
 
 ## Test fixtures in the reference
 

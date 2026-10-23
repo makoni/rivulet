@@ -57,7 +57,8 @@ let package = Package(
         ),
         .testTarget(
             name: "RivuletCoreTests",
-            dependencies: ["RivuletCore"]
+            dependencies: ["RivuletCore"],
+            resources: [.copy("Fixtures")]
         ),
         .testTarget(
             name: "RivuletAppTests",

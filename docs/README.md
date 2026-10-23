@@ -13,11 +13,12 @@ a CLI-first interface and no web UI.
 | [Backup and restore](backup-restore.md) | Snapshots, restoring a database, disk-space housekeeping |
 | [Testing strategy](testing.md) | Unit, fixture, integration and acceptance testing; TDD workflow |
 | [Reference notes](reference-notes.md) | Verified Miniflux v2.3.3 behavior condensed for the plan |
+| [Parity notes](parity.md) | Where Rivulet knowingly differs from Miniflux, and why |
 | [AGENTS.md](../AGENTS.md) | Working agreement for AI agents and contributors (TDD-first) |
 
 Planned documents (created by the stages that need them): `clients.md` (stage 7),
-`parity.md` (stages 3+ / 7), `deploy.md` (stage 8). API documentation and tutorials are built
-with DocC and published later (stage 8).
+`deploy.md` (stage 8). `parity.md` was created in stage 3 and grows with the later stages. API
+documentation and tutorials are built with DocC and published later (stage 8).
 
 ## Plan at a glance
 

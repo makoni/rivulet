@@ -10,3 +10,10 @@ Miniflux
 Copyright (c) Frédéric Guillot and contributors
 Licensed under the Apache License, Version 2.0
 https://github.com/miniflux/v2
+Test fixtures under `Tests/RivuletCoreTests/Fixtures/` are copied verbatim from
+Miniflux v2.3.3 (commit c4d54f87); see that directory's README for provenance.
+
+The WHATWG character-encoding label table in `Sources/RivuletCore/Reader/Charset/`
+is transcribed from `golang.org/x/text` (encoding/htmlindex), which is distributed under
+the BSD 3-Clause License; the table itself is published by the WHATWG Encoding Standard.
+https://cs.opensource.google/go/x/text
