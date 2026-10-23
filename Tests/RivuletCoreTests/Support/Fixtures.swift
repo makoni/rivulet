@@ -13,7 +13,8 @@ enum Fixtures {
         return try Data(contentsOf: url)
     }
 
-    /// Interprets bytes as UTF-8 for assertions.
+    /// Reads the bytes as UTF-8 for an assertion, without checking that they are valid UTF-8;
+    /// the tests that mirror an upstream assertion also check validity, as upstream does.
     static func utf8(_ data: Data) -> String {
         String(decoding: data, as: UTF8.self)
     }

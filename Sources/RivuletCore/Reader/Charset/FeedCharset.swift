@@ -43,7 +43,9 @@ public enum FeedCharset {
     /// `contentType`, a `<meta>` prescan of the first 1024 bytes, the "looks like UTF-8"
     /// heuristic, or the `windows-1252` default, and the whole document is decoded with the
     /// result. A label that is not a WHATWG label is not an error on this path: the reference
-    /// falls through to the next detection step, which the tests pin.
+    /// falls through to the next detection step, which the tests pin. The "looks like UTF-8"
+    /// heuristic and a `utf-16` declaration leave the bytes as they are, because the reference
+    /// uses `encoding.Nop` there.
     ///
     /// The only case where the platform cannot do what the reference does is an encoding its
     /// converter registry does not know; the test that every canonical encoding resolves pins

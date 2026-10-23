@@ -204,6 +204,15 @@ import Testing
         #expect(!Fixtures.utf8(decoded).contains("Привет"))
     }
 
+    @Test func unknownContentTypeCharsetFallsThroughToDetection() throws {
+        // The reference's content-type step does not error on an unknown charset: `Lookup`
+        // returns nil and detection continues, so the `windows-1252` default decodes the bytes
+        // as mojibake instead of the KOI8-R label they would give.
+        let data = html("<html><body>", koi8rGreeting)
+        let decoded = FeedCharset.decode(data, contentType: "text/html; charset=bogus")
+        #expect(Fixtures.utf8(decoded) == "<html><body>ðÒÉ×ÅÔ")
+    }
+
     @Test func unknownMetaCharsetFallsBackToWindows1252() throws {
         let bytes = koi8rGreeting
         let data = html("<html><head><meta charset=\"bogus\"></head><body>", bytes)

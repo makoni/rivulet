@@ -21,8 +21,8 @@ where a Rivulet test mirrors an upstream assertion, it names the upstream test i
 The whole corpus is copied in one go so that later slices of stage 3 work on the same inputs;
 the parser fixtures are used upstream only as benchmark and fuzz inputs — no upstream test
 asserts their parsed output, so the parser tests will define their own expected values and
-record them as golden files next to the test. As of the charset slice only the `encoding/` and
-`xml/` groups are read by tests.
+record them as golden files next to the test. As of the charset slice only `encoding/` is read
+by tests; `parser/`, `xml/` and `sanitizer/` are staged for the later slices of this stage.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing
 them here; a local edit would silently invalidate the provenance above.

@@ -23,8 +23,8 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
   way `x/text`'s `utf8Decoder` does. This is what makes the output always valid UTF-8, and the
   tests pin the boundaries of the W3C error table (overlong forms, surrogates, forms above
   U+10FFFF, sequences cut off by the end of the document).
-- Undefined positions of single-byte encodings (for example windows-1252 `81`, ISO-8859-3 `A5`)
-  become U+FFFD, like the reference decoders.
+- Undefined positions of single-byte encodings become U+FFFD, like the reference decoders; the
+  test pins the windows-1252 positions (`81`, `8D`).
 - A UTF-16 byte-order mark is kept in the output as U+FEFF, matching the reference's
   `IgnoreBOM` decoder policy.
 - `x-user-defined` (high bytes → U+F780–U+F7FF) and the replacement encoding (one U+FFFD) are
@@ -41,7 +41,7 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
 | Invalid sequences in GBK/GB18030/Big5/Shift_JIS/EUC-KR/ISO-2022-JP | U+FFFD per maximal subpart, which can cover several bytes | platform decoder, then glibc `iconv` (which reports one error per stop), then a windowed rescan | Corrupt spans can differ in the number and placement of U+FFFD; valid text is unaffected |
 | EUC-JP on Linux | decoded by `x/text` | Foundation returns `nil` for every input, so the glibc `iconv` fallback decodes it | Same result for valid documents; pinned by a test |
 | Single-byte tables | `x/text` `charmap`, so `iso-8859-8-i` keeps its own visual table and `iso-8859-6` its own | CoreFoundation resolves the IANA name, which can map an alias to a different table (for example `iso-8859-8-i`) | Only exotic input differs; no fixture covers it |
-| `<meta>` prescan | full HTML tokenizer, with character references unescaped in attribute values | tag scanner (comments, quoting, attribute order, 1024-byte window) | Malformed markup the tokenizer recovers from can end the scan; a label written as an entity is not resolved |
+| `<meta>` prescan | full HTML tokenizer, with character references unescaped in attribute values and the vertical tab as whitespace | tag scanner (comments, quoting, attribute order, 1024-byte window) | Malformed markup the tokenizer recovers from can end the scan; a label written as an entity is not resolved |
 | Content-type `charset` parameter | `mime.ParseMediaType` | direct parameter scan | Some malformed headers yield a charset where the reference falls through to detection |
 
 None of these differences is observable on the ported fixture corpus: all fixture assertions the
