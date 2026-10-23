@@ -24,11 +24,30 @@ import Testing
         }
     }
 
+    @Test func illFormedUTF8BecomesOneReplacementCharacterPerMaximalSubpart() throws {
+        // Port of the reference's `utf8Decoder` (`golang.org/x/text/encoding/unicode`), which is
+        // what `charset.Lookup("utf-8")` returns: every maximal subpart of an ill-formed
+        // subsequence becomes one U+FFFD, so the output is always valid UTF-8.
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0xA4]), label: "utf-8")) == "\u{FFFD}")
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xC0, 0xAF]), label: "utf-8")) == "\u{FFFD}\u{FFFD}")
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0xA4, 0x30]), label: "utf-8")) == "\u{FFFD}0")
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xED, 0xA0, 0x80]), label: "utf-8"))
+            == "\u{FFFD}\u{FFFD}\u{FFFD}")
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xE0, 0x80, 0x80]), label: "utf-8"))
+            == "\u{FFFD}\u{FFFD}\u{FFFD}")   // overlong form excluded: only the lead is a subpart
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF4, 0x90, 0x80, 0x80]), label: "utf-8"))
+            == "\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}")   // above U+10FFFF excluded
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF0, 0x9F, 0x93]), label: "utf-8")) == "\u{FFFD}")
+        #expect(Fixtures.utf8(try FeedCharset.decode(Data([0xF0, 0x9F, 0x98, 0x80]), label: "utf-8")) == "😀")
+    }
+
     // MARK: - Label resolution
 
     @Test func labelsAreMatchedCaseInsensitivelyAndTrimmed() throws {
-        let data = Data([0xF0, 0xD2, 0xC9, 0xD7, 0xC5, 0xD4]) // "Привет" in KOI8-R
-        let expected = Data("Привет".utf8)
+        // Ported from `TestCharsetReaderWithKOI8RLabel` and
+        // `TestCharsetReaderWithUppercaseKOI8RLabel`, which compare the whole output.
+        let data = Data([0xF0, 0xD2, 0xC9, 0xD7, 0xC5, 0xD4, 0x20, 0xCD, 0xC9, 0xD2]) // "Привет мир"
+        let expected = Data("Привет мир".utf8)
         #expect(try FeedCharset.decode(data, label: "koi8-r") == expected)
         #expect(try FeedCharset.decode(data, label: "  KOI8-R  ") == expected)
     }
@@ -159,7 +178,7 @@ import Testing
     @Test func metaCharsetInsideTheDetectionWindowIsHonored() throws {
         let bytes = koi8rGreeting
         let data = html("<html><head><meta charset=\"koi8-r\"></head><body>", bytes)
-        #expect(Fixtures.utf8(try FeedCharset.decode(data, contentType: "text/html")).contains("Привет"))
+        #expect(Fixtures.utf8(FeedCharset.decode(data, contentType: "text/html")).contains("Привет"))
     }
 
     @Test func metaCharsetFromTheHttpEquivContentAttribute() throws {
@@ -168,46 +187,65 @@ import Testing
             "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-r\"></head>",
             bytes
         )
-        #expect(Fixtures.utf8(try FeedCharset.decode(data, contentType: "text/html")).contains("Привет"))
+        #expect(Fixtures.utf8(FeedCharset.decode(data, contentType: "text/html")).contains("Привет"))
     }
 
     @Test func quotedContentTypeCharsetIsHonored() throws {
         let bytes = koi8rGreeting
         let data = html("<html><body>", bytes)
-        let decoded = try FeedCharset.decode(data, contentType: "text/html; charset=\"KOI8-R\"")
+        let decoded = FeedCharset.decode(data, contentType: "text/html; charset=\"KOI8-R\"")
         #expect(Fixtures.utf8(decoded).contains("Привет"))
     }
 
     @Test func metaCharsetInsideACommentIsIgnored() throws {
         let bytes = koi8rGreeting
         let data = html("<html><!-- <meta charset=\"koi8-r\"> --><body>", bytes)
-        let decoded = try FeedCharset.decode(data, contentType: "text/html")
+        let decoded = FeedCharset.decode(data, contentType: "text/html")
         #expect(!Fixtures.utf8(decoded).contains("Привет"))
     }
 
     @Test func unknownMetaCharsetFallsBackToWindows1252() throws {
         let bytes = koi8rGreeting
         let data = html("<html><head><meta charset=\"bogus\"></head><body>", bytes)
-        let decoded = try FeedCharset.decode(data, contentType: "text/html")
+        let decoded = FeedCharset.decode(data, contentType: "text/html")
         #expect(!Fixtures.utf8(decoded).contains("Привет"))
     }
 
+    @Test func metaDeclaringUTF16PassesTheDocumentThrough() throws {
+        // Port of `prescan`, which maps a `utf-16` declaration to `encoding.Nop`: the bytes are
+        // returned as they are, even though they are not valid UTF-8.
+        let bytes = Data([0xE0, 0xA4])
+        let data = html("<html><head><meta charset=\"utf-16\"></head><body>", bytes)
+        #expect(FeedCharset.decode(data, contentType: "text/html") == data)
+    }
+
     @Test func contentTypeCharsetWinsOverTheMetaElement() throws {
-        let bytes = koi8rGreeting
-        let data = html("<html><head><meta charset=\"koi8-r\"></head><body>", bytes)
-        // UTF-8 wins the content-type step, so the KOI8-R bytes pass through unchanged.
-        let decoded = try FeedCharset.decode(data, contentType: "text/html; charset=UTF-8")
-        #expect(decoded == data)
+        let data = html("<html><head><meta charset=\"koi8-r\"></head><body>", koi8rGreeting)
+        // The bytes are not valid UTF-8, so the content-type charset is applied and the meta
+        // element is never consulted: the reference's UTF-8 decoder replaces each maximal
+        // subpart. If the meta element had won, these bytes would decode as KOI8-R.
+        let decoded = FeedCharset.decode(data, contentType: "text/html; charset=UTF-8")
+        #expect(Fixtures.isValidUTF8(decoded))
+        #expect(Fixtures.utf8(decoded)
+            == "<html><head><meta charset=\"koi8-r\"></head><body>"
+                + String(repeating: "\u{FFFD}", count: 6))
+    }
+
+    @Test func contentTypeCharsetDecodesTheDocumentWithTheResolvedEncoding() throws {
+        // Ported from `TestNewCharsetReaderWithKOI8RContentType`, which compares the whole
+        // output. The bytes are not valid UTF-8, so the content-type charset is used.
+        let data = Data([0xF0, 0xD2, 0xC9, 0xD7, 0xC5, 0xD4, 0x20, 0xCD, 0xC9, 0xD2]) // "Привет мир"
+        #expect(FeedCharset.decode(data, contentType: "text/xml; charset=koi8-r") == Data("Привет мир".utf8))
     }
 
     @Test func byteOrderMarkSelectsUTF16() throws {
         let data = Data([0xFF, 0xFE, 0x41, 0x00])
-        #expect(Fixtures.utf8(try FeedCharset.decode(data, contentType: nil)) == "\u{FEFF}A")
+        #expect(Fixtures.utf8(FeedCharset.decode(data, contentType: nil)) == "\u{FEFF}A")
     }
 
     @Test func utf8ByteOrderMarkPassesThrough() throws {
         let data = Data([0xEF, 0xBB, 0xBF, 0x41])
-        #expect(try FeedCharset.decode(data, contentType: nil) == data)
+        #expect(FeedCharset.decode(data, contentType: nil) == data)
     }
 
     // MARK: - XML declaration scan

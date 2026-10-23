@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Ported from Miniflux internal/reader/encoding/encoding.go (Apache-2.0); adapted for
+// Swift/SQLite. The label table is transcribed from golang.org/x/text encoding/htmlindex.
 
 import Foundation
 import CoreFoundation
@@ -62,7 +64,7 @@ enum CharsetEncoding: String, CaseIterable {
     /// a converter for a legacy encoding.
     var decoderStrategy: CharsetDecoderStrategy? {
         switch self {
-        case .utf8: return .identity
+        case .utf8: return .utf8
         case .ibm866: return String.Encoding.iana("ibm866").map(CharsetDecoderStrategy.singleByte)
         case .iso8859_2: return String.Encoding.iana("iso-8859-2").map(CharsetDecoderStrategy.singleByte)
         case .iso8859_3: return String.Encoding.iana("iso-8859-3").map(CharsetDecoderStrategy.singleByte)
@@ -192,8 +194,9 @@ enum CharsetEncoding: String, CaseIterable {
 
 /// The platform-independent description of how a ``CharsetEncoding`` is decoded.
 enum CharsetDecoderStrategy {
-    /// UTF-8: bytes pass through unchanged.
-    case identity
+    /// UTF-8: valid bytes pass through, and every maximal subpart of an ill-formed subsequence
+    /// becomes U+FFFD, like the reference's decoder.
+    case utf8
     /// A single-byte encoding decoded byte by byte; undefined bytes become U+FFFD.
     case singleByte(String.Encoding)
     /// A multi-byte encoding decoded through the platform converter, with a tolerance layer.

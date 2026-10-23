@@ -17,4 +17,9 @@ enum Fixtures {
     static func utf8(_ data: Data) -> String {
         String(decoding: data, as: UTF8.self)
     }
+
+    /// Strict UTF-8 check, the reference's `utf8.Valid`.
+    static func isValidUTF8(_ data: Data) -> Bool {
+        String(data: data, encoding: .utf8) != nil
+    }
 }

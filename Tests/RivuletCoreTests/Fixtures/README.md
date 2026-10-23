@@ -18,9 +18,11 @@ implementation under test, never in the input. Directories mirror the upstream
 
 Upstream tests for these files live next to them (`encoding_test.go`, `decoder_test.go`);
 where a Rivulet test mirrors an upstream assertion, it names the upstream test in a comment.
-The parser fixtures are used upstream only as benchmark and fuzz inputs — no upstream test
-asserts their parsed output, so the parser tests define their own expected values and
-record them as golden files next to the test.
+The whole corpus is copied in one go so that later slices of stage 3 work on the same inputs;
+the parser fixtures are used upstream only as benchmark and fuzz inputs — no upstream test
+asserts their parsed output, so the parser tests will define their own expected values and
+record them as golden files next to the test. As of the charset slice only the `encoding/` and
+`xml/` groups are read by tests.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing
 them here; a local edit would silently invalidate the provenance above.

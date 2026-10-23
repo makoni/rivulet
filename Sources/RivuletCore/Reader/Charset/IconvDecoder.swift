@@ -2,6 +2,9 @@
 import Foundation
 import Glibc
 
+// Ported from Miniflux internal/reader/encoding/encoding.go (Apache-2.0); adapted for
+// Swift/SQLite, because the reference reaches these encodings through golang.org/x/text.
+
 /// Lossy decoding through the platform `iconv`.
 ///
 /// Foundation on Linux cannot decode some legacy encodings at all — EUC-JP returns `nil` for
@@ -48,7 +51,8 @@ enum IconvDecoder {
             if result == -1 {
                 switch errno {
                 case EILSEQ:
-                    // An invalid sequence: drop one byte, exactly like a lossy decoder.
+                    // An invalid sequence: replace what `iconv` stopped at. The reference skips
+                    // the whole subpart, so the number of U+FFFD can differ.
                     output.append(contentsOf: replacement)
                     source = source?.advanced(by: 1)
                     sourceLeft -= 1

@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+// Ported from Miniflux internal/reader/encoding/encoding.go (Apache-2.0); adapted for
+// Swift/SQLite. The detection order follows golang.org/x/net/html/charset, and the tag scanner
+// follows the HTML tokenizer rules that its `prescan` relies on.
+
 import Foundation
 
 /// Detection of a document's encoding, ported from the reference's two paths through
@@ -9,7 +15,8 @@ enum CharsetDetection {
     /// parameter of the content type, then a `<meta>` prescan, then a "looks like UTF-8"
     /// heuristic, then the `windows-1252` default.
     ///
-    /// - Returns: The encoding to decode with, or `nil` to pass the document through as UTF-8.
+    /// - Returns: The encoding to decode with, or `nil` when the reference uses `encoding.Nop`
+    ///   and the document passes through unchanged.
     static func detectedEncoding(preview: Data, contentType: String?) -> CharsetEncoding? {
         if preview.starts(with: [0xFE, 0xFF]) { return .utf16be }
         if preview.starts(with: [0xFF, 0xFE]) { return .utf16le }
@@ -20,13 +27,14 @@ enum CharsetDetection {
         }
 
         if let encoding = metaPrescan(preview) {
-            // The reference maps a utf-16 declaration to UTF-8 and passes the bytes through
-            // instead of decoding them; no fixture depends on it, but neither does the
-            // reference decode such a document.
-            if encoding.rawValue.hasPrefix("utf-16") { return .utf8 }
+            // `prescan` maps a utf-16 declaration to `encoding.Nop`, so those bytes are not
+            // decoded; `nil` here means the same thing.
+            if encoding.rawValue.hasPrefix("utf-16") { return nil }
             return encoding
         }
 
+        // The reference returns `encoding.Nop` when the preview looks like UTF-8, so those bytes
+        // pass through unchanged even when the whole document is not valid UTF-8.
         if looksLikeUTF8(preview) { return nil }
         return .windows1252
     }
@@ -140,47 +148,55 @@ enum CharsetDetection {
         while true {
             while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
             guard index < bytes.count else { return nil }
-            if bytes[index] == UInt8(ascii: ">") {
+            if bytes[index] == UInt8(ascii: ">") || bytes[index] == UInt8(ascii: "/") {
+                if bytes[index] == UInt8(ascii: "/") {
+                    index += 1
+                    guard index < bytes.count, bytes[index] == UInt8(ascii: ">") else { continue }
+                }
                 return Tag(name: name, attributes: attributes, end: index + 1)
             }
-            if bytes[index] == UInt8(ascii: "/") {
-                index += 1
-                if index < bytes.count, bytes[index] == UInt8(ascii: ">") {
-                    return Tag(name: name, attributes: attributes, end: index + 1)
-                }
+            let attributeName = nameUpToDelimitter(bytes, from: &index)
+            while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
+            guard index < bytes.count, bytes[index] == UInt8(ascii: "=") else {
+                attributes.append((attributeName, ""))
                 continue
             }
-            let attributeStart = index
-            while index < bytes.count, !isHTMLWhitespace(bytes[index]),
-                  bytes[index] != UInt8(ascii: "="), bytes[index] != UInt8(ascii: ">"),
-                  bytes[index] != UInt8(ascii: "/") {
-                index += 1
-            }
-            let attributeName = lowercaseASCII(bytes[attributeStart..<index])
+            index += 1
             while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
-            var value = ""
-            if index < bytes.count, bytes[index] == UInt8(ascii: "=") {
-                index += 1
-                while index < bytes.count, isHTMLWhitespace(bytes[index]) { index += 1 }
-                guard index < bytes.count else { return nil }
-                if bytes[index] == UInt8(ascii: "\"") || bytes[index] == UInt8(ascii: "'") {
-                    let quote = bytes[index]
-                    index += 1
-                    let valueStart = index
-                    while index < bytes.count, bytes[index] != quote { index += 1 }
-                    guard index < bytes.count else { return nil }
-                    value = lowercaseASCII(bytes[valueStart..<index])
-                    index += 1
-                } else {
-                    let valueStart = index
-                    while index < bytes.count, !isHTMLWhitespace(bytes[index]), bytes[index] != UInt8(ascii: ">") {
-                        index += 1
-                    }
-                    value = lowercaseASCII(bytes[valueStart..<index])
-                }
-            }
+            guard index < bytes.count else { return nil }
+            let value = valueUpToDelimitter(bytes, from: &index)
             attributes.append((attributeName, value))
         }
+    }
+
+    /// Reads an attribute name, stopping at the delimitters the tokenizer recognizes.
+    private static func nameUpToDelimitter(_ bytes: [UInt8], from index: inout Int) -> String {
+        let start = index
+        while index < bytes.count, !isHTMLWhitespace(bytes[index]),
+              bytes[index] != UInt8(ascii: "="), bytes[index] != UInt8(ascii: ">"),
+              bytes[index] != UInt8(ascii: "/") {
+            index += 1
+        }
+        return lowercaseASCII(bytes[start..<index])
+    }
+
+    /// Reads an attribute value, quoted or unquoted, exactly as `Tokenizer.TagAttr` does,
+    /// returning the lowercase form the reference compares against.
+    private static func valueUpToDelimitter(_ bytes: [UInt8], from index: inout Int) -> String {
+        let quote = bytes[index]
+        if quote != UInt8(ascii: "\"") && quote != UInt8(ascii: "'") {
+            let start = index
+            while index < bytes.count, !isHTMLWhitespace(bytes[index]), bytes[index] != UInt8(ascii: ">") {
+                index += 1
+            }
+            return lowercaseASCII(bytes[start..<index])
+        }
+        index += 1
+        let start = index
+        while index < bytes.count, bytes[index] != quote { index += 1 }
+        let value = lowercaseASCII(bytes[start..<index])
+        index = min(index + 1, bytes.count)
+        return value
     }
 
     private enum PragmaNeed {
