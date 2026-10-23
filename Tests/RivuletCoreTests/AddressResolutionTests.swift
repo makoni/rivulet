@@ -3,10 +3,11 @@ import Testing
 @testable import RivuletCore
 
 /// Resolution, pinning and the client cache. The policy decides which addresses a fetch may connect
-/// to; the fetcher resolves a direct hop through the seam and pins the client it builds to a validated
-/// address, so a later lookup — the classic DNS-rebinding trick — cannot change the target, and a cached
-/// client keeps the address it was built with. What the cache guarantees is the key it is
-/// built from, and that is what is asserted here.
+/// to; the fetcher resolves a named hop through the seam — an address host is classified from
+/// the URL without a lookup — and pins the client it builds to a validated address, so a later
+/// lookup — the classic DNS-rebinding trick — cannot change the target, and a cached client keeps
+/// the address it was built with. What the cache guarantees is the key it is built from, and
+/// that is what is asserted here.
 @Suite struct AddressResolutionTests {
     /// Answers the first lookup with `first`, every later lookup with `later`, and counts calls.
     actor RecordingResolver: AddressResolver {

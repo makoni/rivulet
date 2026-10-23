@@ -236,8 +236,8 @@ Semantics:
     lookup happens. The client is pinned with `dnsOverride` to one address it validated at build
     time, and that pin cannot be changed by a later lookup; a cached client keeps it, so on a cached
     hop the policy checks the current answers while the connection uses the address pinned at build
-    time. This is the same TOCTOU guarantee the reference gets from its dialer's `Control` callback —
-    the difference is the mechanism, not the property.
+    time. This is the same TOCTOU guarantee the reference gets from its dialer's `Control`
+    callback — the difference is the mechanism, not the property.
   - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the decompressed
     body — the same thing the reference's `MaxBytesReader` counts when it wraps the decompression
     reader, so only the mechanism differs.

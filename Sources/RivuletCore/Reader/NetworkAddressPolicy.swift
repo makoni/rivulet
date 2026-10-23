@@ -11,8 +11,8 @@ import Foundation
 /// for a name, or the address itself when the URL already carries one. The client is then pinned to
 /// one of them, so the connection cannot be steered by a lookup that answers differently later. A
 /// cached client keeps the address it was built with: on that hop the policy checks the current
-/// answers while the connection uses the address pinned when the client was created. A proxied hop is
-/// not checked, because the proxy resolves the target.
+/// answers while the connection uses the address pinned when the client was created. A proxied hop
+/// is not checked, because the proxy resolves the target.
 ///
 /// Internal: the fetcher is the only caller, and the address policy is not something a stage later
 /// builds a feed from. The tests reach it through `@testable import`.
