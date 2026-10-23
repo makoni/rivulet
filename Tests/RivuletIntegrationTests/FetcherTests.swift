@@ -90,8 +90,8 @@ import RivuletCore
         ]) { server in
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let response = try await fetcher.fetch(FetchRequest(url: server.url("/chunked"), headers: [:]))
-                // The server chose chunked transfer encoding; the assertion that matters is that the
-                // body is reassembled, not that the header is echoed back.
+                // The server chose chunked transfer encoding; the assertion that matters is that
+                // the body is reassembled, not that the header is echoed back.
                 #expect(response.header("Transfer-Encoding") == "chunked")
                 #expect(response.body == body)
             }
@@ -130,10 +130,11 @@ import RivuletCore
     }
 
     @Test func theDeadlineCoversBodyReadingNotOnlyTheResponseHead() async throws {
-        // The head goes out at once and the body after the deadline, so a timeout here can only come
-        // from the deadline covering the whole transaction, as the reference's client timeout does. If
-        // the deadline bounded only the response head, this response would arrive and the test would
-        // fail. The pass condition is a timeout, so the delay is server-side and nothing sleeps.
+        // The head goes out at once and the body after the deadline, so a timeout here can only
+        // come from the deadline covering the whole transaction, as the reference's client timeout
+        // does. If the deadline bounded only the response head, this response would arrive and the
+        // test would fail. The pass condition is a timeout, so the delay is server-side and nothing
+        // sleeps.
         try await FetchTestSupport.withServer(behaviors: [
             "/slow-body": StubFeedServer.Behavior(body: Data("late bytes".utf8), bodyDelay: .seconds(2)),
         ]) { server in
@@ -162,10 +163,11 @@ import RivuletCore
     }
 
     @Test func aFailureBeforeAnythingConnectsIsStillAFetchError() async throws {
-        // `fetch` promises a FetchError, and the client can fail before a connection: the URL is refused
-        // when it is turned into a client request. Nothing is dialled here, so this is a test of the
-        // mapping. The host here is an address, so it is classified without a lookup and the resolver is
-        // never touched; the policy flag is what admits an address already known to be private.
+        // `fetch` promises a FetchError, and the client can fail before a connection: the URL is
+        // refused when it is turned into a client request. Nothing is dialled here, so this is a
+        // test of the mapping. The host here is an address, so it is classified without a lookup
+        // and the resolver is never touched; the policy flag is what admits an address already
+        // known to be private.
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in
             try await FetchTestSupport.withFetcher(
                 options: FetchTestSupport.options(allowPrivateNetworks: true)
@@ -175,8 +177,9 @@ import RivuletCore
                     _ = try await fetcher.fetch(request)
                     Issue.record("expected the client to refuse the scheme")
                 } catch let error as FetchError {
-                    // The wording is the client's, which is what the mapping keeps for an error it does
-                    // not classify. The comparison is against the client's own error, so it is not a guess.
+                    // The wording is the client's, which is what the mapping keeps for an error it
+                    // does not classify. The comparison is against the client's own error, so it is
+                    // not a guess.
                     #expect(error == .network(String(describing: HTTPClientError.unsupportedScheme("ftp"))))
                 } catch {
                     Issue.record("expected a FetchError, got \(String(describing: error))")
@@ -219,7 +222,8 @@ import RivuletCore
 
     @Test func onlyTheStatusesTheReferenceFollowsAreFollowed() async throws {
         // Go follows 301, 302, 303, 307 and 308 only. A 300 with a `Location` is an ordinary
-        // response; 303 is followed, and the client always uses GET here so the method cannot change.
+        // response; 303 is followed, and the client always uses GET here so the method cannot
+        // change.
         try await FetchTestSupport.withServer(behaviors: [
             "/multiple": StubFeedServer.Behavior(status: 300, headers: ["Location": "/final"], body: Data("choice".utf8)),
             "/moved": StubFeedServer.Behavior(status: 303, headers: ["Location": "/final"]),
@@ -274,11 +278,11 @@ import RivuletCore
     }
 
     @Test func theTimeoutIsOneDeadlineForAllHopsTogetherLikeTheReferencesClientTimeout() async throws {
-        // Go computes its deadline once, and it covers connection, redirects and body reading. Here the
-        // first hop uses most of it, so the second hop cannot start a fresh timeout of its own: the
-        // delay of the second hop is shorter than the configured timeout but longer than what the first
-        // hop left, which is the only way this is observable without sleeping. The pass condition is a
-        // timeout, and CI overhead only makes it fire earlier.
+        // Go computes its deadline once, and it covers connection, redirects and body reading. Here
+        // the first hop uses most of it, so the second hop cannot start a fresh timeout of its own:
+        // the delay of the second hop is shorter than the configured timeout but longer than what
+        // the first hop left, which is the only way this is observable without sleeping. The pass
+        // condition is a timeout, and CI overhead only makes it fire earlier.
         try await FetchTestSupport.withServer(behaviors: [
             "/first": StubFeedServer.Behavior(status: 302, headers: ["Location": "/second"], delay: .milliseconds(200)),
             "/second": StubFeedServer.Behavior(body: Data("late".utf8), delay: .milliseconds(900)),

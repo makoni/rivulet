@@ -92,8 +92,9 @@ final class StubFeedServer: Sendable {
 
     /// Waits until a request for `path` has arrived.
     ///
-    /// The check and the wait are one step under the lock, so a request that arrives in between is not
-    /// missed. A test that has to act while a request is in flight waits here instead of sleeping.
+    /// The check and the wait are one step under the lock, so a request that arrives in between is
+    /// not missed. A test that has to act while a request is in flight waits here instead of
+    /// sleeping.
     func waitForRequest(for path: String) async {
         await arrivals.wait(for: path)
     }
@@ -184,7 +185,8 @@ final class StubFeedServer: Sendable {
             }
             if behavior.delay > .zero {
                 // `components.seconds` alone drops a sub-second delay, so the duration is converted
-                // through attoseconds; the timing tests depend on a fraction of a second being real.
+                // through attoseconds; the timing tests depend on a fraction of a second being
+                // real.
                 let amount = TimeAmount.nanoseconds(Int64(behavior.delay.attoseconds / 1_000_000_000))
                 channel.eventLoop.scheduleTask(in: amount) { self.write(channel, behavior) }
                 return
@@ -218,8 +220,9 @@ final class StubFeedServer: Sendable {
             }
 
             if behavior.bodyDelay > .zero {
-                // The head is already on the wire, so the body arriving after the deadline is what the
-                // timing test asks for. `components.seconds` alone would drop a sub-second duration.
+                // The head is already on the wire, so the body arriving after the deadline is what
+                // the timing test asks for. `components.seconds` alone would drop a sub-second
+                // duration.
                 let amount = TimeAmount.nanoseconds(Int64(behavior.bodyDelay.attoseconds / 1_000_000_000))
                 channel.eventLoop.scheduleTask(in: amount) { self.writeBody(channel, body) }
                 return

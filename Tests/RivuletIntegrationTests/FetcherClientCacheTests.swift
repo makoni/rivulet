@@ -38,9 +38,10 @@ import Testing
                     )
                 }
 
-                // The request is on the wire only after the client was taken from the cache, so waiting for
-                // the head means the cache is holding that client while the fillers run. Waiting on the
-                // server is what keeps the ordering deterministic without a sleep.
+                // The request is on the wire only after the client was taken from the cache, so
+                // waiting for the head means the cache is holding that client while the fillers
+                // run. Waiting on the server is what keeps the ordering deterministic without a
+                // sleep.
                 await server.waitForRequest(for: "/slow")
 
                 for index in 0..<Fetcher.maxCachedClients {

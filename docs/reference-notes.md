@@ -42,7 +42,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when
     `weekly_entries ≤ 0` the interval is the maximum (1440m);
   - `interval = max(interval, refreshDelay)`, where `refreshDelay` comes from the RSS `<ttl>`,
-    `Retry-After` (429), `Cache-Control: max-age` or `Expires` (`internal/reader/handler/handler.go`);
+    `Retry-After` (429), `Cache-Control: max-age` or `Expires`
+    (`internal/reader/handler/handler.go`);
   - `next_check_at = now + interval`.
 - Errors: **no backoff and no jitter** (verified — these concepts do not exist in the code).
   A failed refresh increments `parsing_error_count`; at `POLLING_PARSING_ERROR_LIMIT` (default 3)
@@ -62,7 +63,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   orphan-icon cleanup waits for icon fetching (stage 4). Stage 1 ports only the two
   `ArchiveEntries` calls.
 - "Archiving" is a hard `DELETE` plus a tombstone (`internal/storage/entry.go` `ArchiveEntries`):
-  skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on `created_at`.
+  skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on
+  `created_at`.
 - Guards in `ArchiveEntries`: `interval < 0 || limit <= 0` archives nothing; the interval is
   truncated to whole days and clamped to at least one (`max(days, 1)`); `ORDER BY created_at ASC`
   makes a limited batch archive the oldest entries first.

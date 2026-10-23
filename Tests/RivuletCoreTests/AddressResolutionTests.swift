@@ -53,10 +53,10 @@ import Testing
         #expect(pinned == NetworkAddress.parse("93.184.216.34"))
         let calls = await resolver.calls
         #expect(calls == 1)
-        // One lookup, and the answer it gave is what the fetcher pins. That the client then connects to
-        // the pinned address rather than resolving again is proven in
-        // `Tests/RivuletIntegrationTests/FetcherSecurityTests.swift`; here only the single lookup is
-        // observable.
+        // One lookup, and the answer it gave is what the fetcher pins. That the client then
+        // connects to the pinned address rather than resolving again is proven in
+        // `Tests/RivuletIntegrationTests/FetcherSecurityTests.swift`; here only the single lookup
+        // is observable.
     }
 
     @Test func everyAnsweredAddressIsValidatedBeforeConnecting() async throws {
@@ -83,9 +83,9 @@ import Testing
 
     @Test func theCacheKeyKeepsHostsAndProxyDecisionsApart() throws {
         // What the cache guarantees is a mechanism, not something a connection can show: two hosts
-        // answered with the same stub address behave the same whichever client serves them. So the key
-        // itself is asserted — it is what makes "a pin is never reused for another host or a proxied
-        // request" true.
+        // answered with the same stub address behave the same whichever client serves them. So the
+        // key itself is asserted — it is what makes "a pin is never reused for another host or a
+        // proxied request" true.
         #expect(Fetcher.cacheKey(host: "a.example", proxyURL: nil)
             != Fetcher.cacheKey(host: "b.example", proxyURL: nil))
         #expect(Fetcher.cacheKey(host: "a.example", proxyURL: nil)
@@ -93,9 +93,10 @@ import Testing
     }
 
     @Test func theSystemResolverAnswersANumericHostWithoutContactingAnyone() async throws {
-        // The resolver is the public API that cannot be tested against a network. A numeric host is the
-        // part that can: `getaddrinfo` answers a numeric host from the string itself, so nothing is
-        // contacted. This is also the only place the byte order of the raw `addrinfo` layout is pinned.
+        // The resolver is the public API that cannot be tested against a network. A numeric host is
+        // the part that can: `getaddrinfo` answers a numeric host from the string itself, so
+        // nothing is contacted. This is also the only place the byte order of the raw `addrinfo`
+        // layout is pinned.
         let resolver = SystemAddressResolver()
         let v4 = try await resolver.resolve(host: "127.0.0.1")
         #expect(v4 == [.ipv4([127, 0, 0, 1])])
@@ -105,15 +106,15 @@ import Testing
     }
 
     @Test func theHostFromABracketedUrlIsTheAddressWithoutBrackets() throws {
-        // The pin and the `dnsOverride` key both come from `URL.host`, and they agree because Foundation
-        // gives the bracketed form back without brackets on Linux. If a future release kept the brackets,
-        // `NetworkAddress.parse` would read the host as a name instead of an address, and the policy would
-        // look the bracketed text up rather than classify it. Go's parser rejects brackets too, so the
-        // address itself is the value either way.
+        // The pin and the `dnsOverride` key both come from `URL.host`, and they agree because
+        // Foundation gives the bracketed form back without brackets on Linux. If a future release
+        // kept the brackets, `NetworkAddress.parse` would read the host as a name instead of an
+        // address, and the policy would look the bracketed text up rather than classify it. Go's
+        // parser rejects brackets too, so the address itself is the value either way.
         #expect(URL(string: "http://[::1]:8080/feed")?.host == "::1")
 
-        // A bracket is not part of the address text, which Go's `netip.ParseAddr` rejects too, so the
-        // value that reaches `parse` has to be the host without them.
+        // A bracket is not part of the address text, which Go's `netip.ParseAddr` rejects too, so
+        // the value that reaches `parse` has to be the host without them.
         #expect(NetworkAddress.parse("[::1]") == nil)
     }
 

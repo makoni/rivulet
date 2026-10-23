@@ -37,8 +37,8 @@ struct NetworkAddressPolicy: Sendable, Equatable {
         return !isPrivate(address)
     }
 
-    // Go unmaps a 4-in-6 address before classifying it (`netip.Addr.Unmap()` in `IsNonPublicIP`), so
-    // the IPv4 ranges apply to a mapped address too.
+    // Go unmaps a 4-in-6 address before classifying it (`netip.Addr.Unmap()` in `IsNonPublicIP`),
+    // so the IPv4 ranges apply to a mapped address too.
     private func isPrivate(_ address: NetworkAddress) -> Bool {
         if let mapped = address.unmapped {
             return isPrivate(mapped)

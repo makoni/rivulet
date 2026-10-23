@@ -25,16 +25,17 @@ public struct FetcherOptions: Sendable, Equatable {
     /// Upstream `defaultHTTPClientTimeout`, the deadline one `fetch` shares across its hops.
     public static let defaultTimeout: Duration = .seconds(20)
 
-    /// The time to establish a connection. Upstream's transport uses the same 10 seconds in its dialer
-    /// (`internal/reader/fetcher/request_builder.go`), which is also AsyncHTTPClient's default.
+    /// The time to establish a connection. Upstream's transport uses the same 10 seconds in its
+    /// dialer (`internal/reader/fetcher/request_builder.go`), which is also AsyncHTTPClient's
+    /// default.
     public static let defaultConnectTimeout: Duration = .seconds(10)
 
     /// Upstream `HTTP_CLIENT_MAX_BODY_SIZE` default, in bytes (15 MiB).
     public static let defaultMaxBodySize: Int = 15 * 1024 * 1024
 
-    /// The redirect cap. Go's default `CheckRedirect` stops after 10 requests, so it follows at most 9
-    /// redirects; Rivulet counts the hops it follows, which is one hop more at the boundary — recorded
-    /// in `docs/reference-notes.md`.
+    /// The redirect cap. Go's default `CheckRedirect` stops after 10 requests, so it follows at
+    /// most 9 redirects; Rivulet counts the hops it follows, which is one hop more at the boundary
+    /// — recorded in `docs/reference-notes.md`.
     public static let defaultMaxRedirects: Int = 10
 
     /// Total request timeout (`HTTP_CLIENT_TIMEOUT`).
@@ -56,8 +57,8 @@ public struct FetcherOptions: Sendable, Equatable {
     /// default, so decompression is enabled explicitly when this is true.
     public let decompression: Bool
 
-    /// Application-wide "ignore HTTP cache" default (Rivulet's addition, `FETCHER_IGNORE_HTTP_CACHE`);
-    /// a feed overrides it.
+    /// Application-wide "ignore HTTP cache" default (Rivulet's addition,
+    /// `FETCHER_IGNORE_HTTP_CACHE`); a feed overrides it.
     public let ignoreHTTPCache: Bool
 
     /// Application-wide proxy (`HTTP_CLIENT_PROXY`), none by default.
@@ -110,8 +111,9 @@ public struct FetcherOptions: Sendable, Equatable {
     public static func load(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> FetcherOptions {
-        // The default is a whole number of seconds, so `components.seconds` is exact here. A sub-second
-        // default would truncate, and the fetcher's own conversion is the one that keeps fractions.
+        // The default is a whole number of seconds, so `components.seconds` is exact here. A
+        // sub-second default would truncate, and the fetcher's own conversion is the one that keeps
+        // fractions.
         let seconds = try Config.parseInteger(
             variable: "HTTP_CLIENT_TIMEOUT",
             rawValue: environment["HTTP_CLIENT_TIMEOUT"],

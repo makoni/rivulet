@@ -78,8 +78,8 @@ import Testing
         let response = response(200, headers: ["Expires": "Wed, 16 Sep 2026 12:00:00 GMT", "ETag": "abc123"])
         #expect(response.etag == "abc123")
 
-        // `header(_:)` reads a name in whatever case the server used, and nil for a name the response
-        // does not have.
+        // `header(_:)` reads a name in whatever case the server used, and nil for a name the
+        // response does not have.
         #expect(response.header("ETag") == "abc123")
         #expect(response.header("etag") == "abc123")
         #expect(response.header("last-modified") == nil)
@@ -99,15 +99,17 @@ import Testing
         let past = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:06:10 GMT"])
         #expect(past.expires(now: now) == .seconds(60))
 
-        // A past value that truncates to exactly the previous minute yields nothing — 100 seconds past
-        // becomes -60, and the minute added on top cancels it. That is what Go's `Truncate` does too, and
-        // it is why the rule is "the minute the value falls in", not "any past value".
+        // A past value that truncates to exactly the previous minute yields nothing — 100 seconds
+        // past becomes -60, and the minute added on top cancels it. That is what Go's `Truncate`
+        // does too, and it is why the rule is "the minute the value falls in", not "any past
+        // value".
         let wholeMinutePast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:05:00 GMT"])
         #expect(wholeMinutePast.expires(now: now) == .zero)
 
-        // Further past, the truncation lands beyond the previous minute and the delay goes negative: 220
-        // seconds past becomes -180, and a minute on top leaves -120. Upstream returns the same negative
-        // value — its handler is what absorbs it, taking `max(feed TTL, max-age, expires)`.
+        // Further past, the truncation lands beyond the previous minute and the delay goes
+        // negative: 220 seconds past becomes -180, and a minute on top leaves -120. Upstream
+        // returns the same negative value — its handler is what absorbs it, taking `max(feed TTL,
+        // max-age, expires)`.
         let furtherPast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:03:00 GMT"])
         #expect(furtherPast.expires(now: now) == .seconds(-120))
     }
@@ -163,11 +165,11 @@ import Testing
         // Go validates the day against the month after parsing, so 31 February is not a date.
         #expect(HTTPDate.parse("Sun, 31 Feb 2025 07:28:00 GMT") == nil)
 
-        // Rivulet splits the value on spaces, so it reads the padded ends. Go rejects a leading space
-        // before the weekday and any leftover after the zone, though a run of spaces in the middle counts as
-        // one separator, so the doubled space parses upstream as well. Leftover text that is not spaces is
-        // rejected here too, as it is upstream. Rivulet does not read a fractional second, which Go accepts
-        // after the seconds field.
+        // Rivulet splits the value on spaces, so it reads the padded ends. Go rejects a leading
+        // space before the weekday and any leftover after the zone, though a run of spaces in the
+        // middle counts as one separator, so the doubled space parses upstream as well. Leftover
+        // text that is not spaces is rejected here too, as it is upstream. Rivulet does not read a
+        // fractional second, which Go accepts after the seconds field.
         #expect(HTTPDate.parse("Sun,  15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse(" Sun, 15 Jun 2025 07:28:00 GMT") != nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT x") == nil)
@@ -187,10 +189,11 @@ import Testing
     }
 
     @Test func anOffsetIsADifferenceInSecondsNotItsDigits() throws {
-        // The regression: 07:28 at +0200 is 05:28 UTC, so the instant is 7200 seconds earlier than the
-        // same clock time read at GMT. Reading the four-digit offset is Rivulet's own addition, so this
-        // is Rivulet's own contract — Go's `RFC1123` layout would not read the offset at all, and an
-        // offset applied in the units of its digits (120 instead of 7200) shifts the time by hours.
+        // The regression: 07:28 at +0200 is 05:28 UTC, so the instant is 7200 seconds earlier than
+        // the same clock time read at GMT. Reading the four-digit offset is Rivulet's own addition,
+        // so this is Rivulet's own contract — Go's `RFC1123` layout would not read the offset at
+        // all, and an offset applied in the units of its digits (120 instead of 7200) shifts the
+        // time by hours.
         let utc = try #require(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT"))
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0200") == utc - 7_200)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 -0230") == utc + 9_000)

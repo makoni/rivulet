@@ -32,9 +32,10 @@ public actor Fetcher {
 
     private let options: FetcherOptions
     private let resolver: any AddressResolver
-    /// Entries are keyed by an id rather than by `host|proxy`, because two clients for the same key can
-    /// exist while one of them is in use and expired: the new one is created, the old one stays until its
-    /// request finishes, and a key-keyed dictionary would overwrite it and lose the count.
+    /// Entries are keyed by an id rather than by `host|proxy`, because two clients for the same key
+    /// can exist while one of them is in use and expired: the new one is created, the old one stays
+    /// until its request finishes, and a key-keyed dictionary would overwrite it and lose the
+    /// count.
     private var clients: [Int: PinnedClient] = [:]
     private var nextClientID = 0
 
@@ -77,9 +78,10 @@ public actor Fetcher {
         while true {
             let response = try await send(hop, deadline: deadline)
 
-            // Upstream follows 301, 302, 303, 307 and 308, and it counts requests, so it refuses the
-            // hop that would make the count reach the limit; here the limit is the hops followed. A
-            // redirect status with no usable `Location` is the response, as Go's `do` returns it.
+            // Upstream follows 301, 302, 303, 307 and 308, and it counts requests, so it refuses
+            // the hop that would make the count reach the limit; here the limit is the hops
+            // followed. A redirect status with no usable `Location` is the response, as Go's `do`
+            // returns it.
             guard Self.isRedirect(response.status), let location = response.header("Location"), !location.isEmpty else {
                 return response
             }
@@ -110,13 +112,13 @@ public actor Fetcher {
         // the private-network check for direct connections.
         let pinned = request.proxyURL == nil ? try await resolveAndPin(host: host) : nil
         let checkout = try await client(for: request, host: host, pinned: pinned)
-        // The entry stays marked in use until the body has been read or the send fails, so the pruner
-        // cannot close a client that is serving this request.
+        // The entry stays marked in use until the body has been read or the send fails, so the
+        // pruner cannot close a client that is serving this request.
         defer { release(checkout.id) }
         let client = checkout.client
 
-        // Everything the client can fail with is mapped here, including what fails before a connection:
-        // turning the URL into a client request refuses a scheme it will not serve.
+        // Everything the client can fail with is mapped here, including what fails before a
+        // connection: turning the URL into a client request refuses a scheme it will not serve.
         let response: HTTPClient.Response
         do {
             var ahcRequest = try HTTPClient.Request(url: request.url, method: .GET)
@@ -212,8 +214,8 @@ public actor Fetcher {
             throw FetchError.hostnameResolution(host)
         }
         // Rivulet is stricter than upstream here, and the difference is recorded in
-        // `docs/reference-notes.md`: upstream checks the address it dials one attempt at a time, so a
-        // private answer later in the list is never reached when a public answer connects first.
+        // `docs/reference-notes.md`: upstream checks the address it dials one attempt at a time, so
+        // a private answer later in the list is never reached when a public answer connects first.
         // Rivulet refuses the request when any answer is non-public.
         for answer in answers where !policy.allows(answer) {
             throw FetchError.privateNetworkHost(host)
@@ -223,9 +225,9 @@ public actor Fetcher {
 
     // MARK: - Client
 
-    /// A client for one host and one proxy decision, reused for ``clientTTL``, with the cache entry it
-    /// came from. The caller releases the entry when the request is done; until then the entry is in use
-    /// and the pruner leaves it alone.
+    /// A client for one host and one proxy decision, reused for ``clientTTL``, with the cache entry
+    /// it came from. The caller releases the entry when the request is done; until then the entry
+    /// is in use and the pruner leaves it alone.
     private func client(
         for request: FetchRequest,
         host: String,
@@ -288,16 +290,19 @@ public actor Fetcher {
         "\(host)|\(proxyURL?.absoluteString ?? "direct")"
     }
 
-    /// Closes the expired clients that are idle, then one more idle one when the cache is full: the entry
-    /// whose expiry comes first. This is an expiry-based cache, not an LRU — a client used often is not
-    /// kept longer — and when several entries expire at the same instant the first one found is closed.
+    /// Closes the expired clients that are idle, then one more idle one when the cache is full: the
+    /// entry whose expiry comes first. This is an expiry-based cache, not an LRU — a client used
+    /// often is not kept longer — and when several entries expire at the same instant the first one
+    /// found is closed.
     ///
-    /// A client in use is never closed: closing one cancels the request it is serving. So an expired entry
-    /// stays until its request finishes and the cache can hold a few entries above ``maxCachedClients``
-    /// while that many requests overlap — the price of not failing a request to stay under the cap.
+    /// A client in use is never closed: closing one cancels the request it is serving. So an
+    /// expired entry stays until its request finishes and the cache can hold a few entries above
+    /// ``maxCachedClients`` while that many requests overlap — the price of not failing a request
+    /// to stay under the cap.
     ///
-    /// The ids are collected before anything is closed, because closing awaits: removing an entry while the
-    /// dictionary is being read would let a reentrant call act on a client that is already closed.
+    /// The ids are collected before anything is closed, because closing awaits: removing an entry
+    /// while the dictionary is being read would let a reentrant call act on a client that is
+    /// already closed.
     private func pruneClients() async throws {
         let now = Self.clock.now
         let expired = clients.values.filter { $0.expiresAt <= now && $0.inFlight == 0 }.map(\.id)
@@ -323,9 +328,9 @@ public actor Fetcher {
     /// Deviation: AsyncHTTPClient connects to the proxy in plain HTTP, so an `https` proxy URL does
     /// not reach the proxy over TLS the way the reference does.
     ///
-    /// Internal rather than private so the port defaults can be tested: a stub proxy on port 0 cannot
-    /// show them, because the proxy URL would have to name a fixed port, which `docs/testing.md`
-    /// forbids.
+    /// Internal rather than private so the port defaults can be tested: a stub proxy on port 0
+    /// cannot show them, because the proxy URL would have to name a fixed port, which
+    /// `docs/testing.md` forbids.
     static func proxyTarget(from url: URL) -> HTTPClient.Configuration.Proxy {
         let host = url.host ?? ""
         switch url.scheme?.lowercased() {

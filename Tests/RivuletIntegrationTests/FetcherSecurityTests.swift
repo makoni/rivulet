@@ -4,8 +4,8 @@ import Testing
 
 /// The address side of the fetcher: the resolver seam, the policy that decides what a fetch may
 /// connect to, the pin that keeps the client on the validated address, and the proxy hop, where the
-/// reference keeps the check for direct connections only. Every server here is started for one test on
-/// port 0, as `docs/testing.md` requires.
+/// reference keeps the check for direct connections only. Every server here is started for one test
+/// on port 0, as `docs/testing.md` requires.
 @Suite struct FetcherSecurityTests {
     @Test func privateTargetsAreRefusedWhenTheHatchIsOffAndAllowedWhenItIsOn() async throws {
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in
@@ -31,10 +31,11 @@ import Testing
     }
 
     @Test func thePinnedAddressIsUsedWithoutResolvingTheHostAgain() async throws {
-        // What this proves is one lookup through the seam — the fetcher is not asked to resolve the name
-        // a second time. It cannot prove which address the client dialed, because the stub answers on
-        // loopback and a system lookup of `localhost` would give the same answer. That claim belongs to
-        // `theHopConnectsToTheAddressValidatedForItsHost`, where nothing else could answer the names.
+        // What this proves is one lookup through the seam — the fetcher is not asked to resolve the
+        // name a second time. It cannot prove which address the client dialed, because the stub
+        // answers on loopback and a system lookup of `localhost` would give the same answer. That
+        // claim belongs to `theHopConnectsToTheAddressValidatedForItsHost`, where nothing else
+        // could answer the names.
         let resolver = CountingResolver(answer: NetworkAddress.parse("127.0.0.1")!)
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("pinned".utf8))]) { server in
             try await FetchTestSupport.withFetcher(
@@ -52,11 +53,11 @@ import Testing
     }
 
     @Test func theHopConnectsToTheAddressValidatedForItsHost() async throws {
-        // Both names are answered with the same stub address and nothing else could answer them, so a
-        // response from the second hop proves the client used the address the policy validated. The
-        // redirect has to name the second server's port, so that server starts first. On a cache hit the
-        // client keeps the address validated when it was created for that host, so the address it
-        // connects to is always one the policy admitted.
+        // Both names are answered with the same stub address and nothing else could answer them, so
+        // a response from the second hop proves the client used the address the policy validated.
+        // The redirect has to name the second server's port, so that server starts first. On a
+        // cache hit the client keeps the address validated when it was created for that host, so
+        // the address it connects to is always one the policy admitted.
         let stub = NetworkAddress.parse("127.0.0.1")!
         let resolver = SeededResolver(answers: ["first.example": [stub], "second.example": [stub]])
         let body = Data("hop".utf8)
@@ -119,10 +120,10 @@ import Testing
     }
 
     @Test func proxiedRequestIsRoutedToTheProxyAndThePrivateCheckIsSkippedForThatHop() async throws {
-        // Upstream treats an explicitly configured proxy as a trusted hop: the private-network check
-        // applies to direct connections, and a proxied target is resolved by the proxy, so there is
-        // nothing for Rivulet to pin. AsyncHTTPClient tunnels with CONNECT, which is how the stub
-        // proxy sees the request.
+        // Upstream treats an explicitly configured proxy as a trusted hop: the private-network
+        // check applies to direct connections, and a proxied target is resolved by the proxy, so
+        // there is nothing for Rivulet to pin. AsyncHTTPClient tunnels with CONNECT, which is how
+        // the stub proxy sees the request.
         let canned = Data("proxied".utf8)
         let target = URL(string: "http://10.0.0.1/feed")!
 
@@ -142,8 +143,8 @@ import Testing
                 // The proxy is the hop the client connected to, and the CONNECT carried the target.
                 #expect(proxy.connects() == ["10.0.0.1:80"])
 
-                // The same target, without the flag, is refused: the policy runs before the client is
-                // picked, so nothing connects to it.
+                // The same target, without the flag, is refused: the policy runs before the client
+                // is picked, so nothing connects to it.
                 let direct = try builder.build(feed: FeedFetchState(feedID: 1, url: target))
                 #expect(direct.proxyURL == nil)
                 do {

@@ -12,9 +12,9 @@ public struct FetchResponse: Sendable, Equatable {
 
     /// Response headers, in the form the client delivered them.
     ///
-    /// A name that appears twice keeps only the last value, because a dictionary cannot hold both; the
-    /// reference keeps a list per name. Nothing in stage 2 reads a repeated header — `Set-Cookie` is the
-    /// usual case — so the single value is recorded here rather than modelled.
+    /// A name that appears twice keeps only the last value, because a dictionary cannot hold both;
+    /// the reference keeps a list per name. Nothing in stage 2 reads a repeated header —
+    /// `Set-Cookie` is the usual case — so the single value is recorded here rather than modelled.
     public let headers: [String: String]
 
     /// Body bytes, capped by the fetcher; empty for a conditional hit.
