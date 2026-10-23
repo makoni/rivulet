@@ -6,8 +6,8 @@ import Darwin
 
 import Foundation
 
-// The C enum import differs between platforms — `SOCK_STREAM` is a struct on Linux and an integer on
-// Darwin — so the values are named once here.
+// The C enum import differs between platforms — `SOCK_STREAM` is a struct on Linux and an integer
+// on Darwin — so the values are named once here.
 private let streamSocketType: Int32 = {
     #if os(Linux)
     return Int32(SOCK_STREAM.rawValue)
@@ -19,14 +19,14 @@ private let tcpProtocol: Int32 = Int32(IPPROTO_TCP)
 
 /// The system resolver (`getaddrinfo`), the production end of the ``AddressResolver`` seam.
 ///
-/// The libc call blocks, so it is not run on an event loop thread. This toolchain (Swift 6.4.1) has no
-/// blocking-executor API — `withBlockingTaskExecutor` is not in scope — so the call runs on the
+/// The libc call blocks, so it is not run on an event loop thread. This toolchain (Swift 6.4.1) has
+/// no blocking-executor API — `withBlockingTaskExecutor` is not in scope — so the call runs on the
 /// cooperative pool thread it is called from, which is what keeps an event loop free but is still a
 /// blocking call; that is recorded here rather than worked around.
 ///
 /// Its answer is validated once and pinned, which is what keeps the HTTP client from resolving the
-/// name again. The hermetic suite cannot call it against a network, so its test uses a numeric host,
-/// which `getaddrinfo` answers from the string itself without contacting anything.
+/// name again. The hermetic suite cannot call it against a network, so its test uses a numeric
+/// host, which `getaddrinfo` answers from the string itself without contacting anything.
 public struct SystemAddressResolver: AddressResolver, Sendable {
     /// Creates a resolver.
     public init() {}

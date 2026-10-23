@@ -9,9 +9,9 @@ public enum NetworkAddress: Sendable, Equatable {
     case ipv6([UInt8])
 
     /// Parses a dotted-quad or a colon-separated address (with the `::` compression) the way Go's
-    /// parser reads one: every field must have a digit, a group is at most four hex digits, and `::`
-    /// stands for at least one zero group. Returns nil when the text is not an address — a hostname is
-    /// not an address — and zone scopes are not accepted.
+    /// parser reads one: every field must have a digit, a group is at most four hex digits, and
+    /// `::` stands for at least one zero group. Returns nil when the text is not an address — a
+    /// hostname is not an address — and zone scopes are not accepted.
     ///
     /// The text is trimmed first, which Go's parser does not do; recorded in
     /// `docs/reference-notes.md`.
@@ -39,8 +39,9 @@ public enum NetworkAddress: Sendable, Equatable {
 
         var bytes: [UInt8] = []
         for part in parts {
-            // Go reads ASCII digits only here, so a signed group is not a group even though the numeric
-            // range check alone would accept "+2", and an octet with a leading zero is rejected.
+            // Go reads ASCII digits only here, so a signed group is not a group even though the
+            // numeric range check alone would accept "+2", and an octet with a leading zero is
+            // rejected.
             guard !part.isEmpty,
                 isASCIIDigits(part),
                 part.first != "0" || part.count == 1,
@@ -64,8 +65,8 @@ public enum NetworkAddress: Sendable, Equatable {
 
         var groups = head
         if halves.count == 2 {
-            // Go requires `::` to stand for at least one zero group, so a form that leaves nothing to
-            // expand is not an address.
+            // Go requires `::` to stand for at least one zero group, so a form that leaves nothing
+            // to expand is not an address.
             guard let tail = hexGroups(in: halves[1]) else {
                 return nil
             }
@@ -89,9 +90,9 @@ public enum NetworkAddress: Sendable, Equatable {
     }
 
     /// The colon-separated 16-bit groups of one half of the address, or nil when a group is not a
-    /// number in range. An empty half is an empty list, which is what `::` at either end means; a lone
-    /// colon inside a half is not a group, as Go reads the omitted groups as `::`. Named so the value
-    /// built from it in `parseIPv6` is not confused with the function.
+    /// number in range. An empty half is an empty list, which is what `::` at either end means; a
+    /// lone colon inside a half is not a group, as Go reads the omitted groups as `::`. Named so
+    /// the value built from it in `parseIPv6` is not confused with the function.
     private static func hexGroups(in text: String) -> [Int]? {
         guard !text.isEmpty else {
             return []

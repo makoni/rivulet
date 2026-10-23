@@ -59,8 +59,8 @@ import Testing
     }
 
     @Test func anOctetWithALeadingZeroIsNotAnAddressLikeGoRejectsIt() throws {
-        // `netip.ParseAddr` — what `net.ParseIP` uses — rejects an octet with a leading zero, so the
-        // reference never treats `010.1.1.1` as an address. Rivulet must not be more lenient.
+        // `netip.ParseAddr` — what `net.ParseIP` uses — rejects an octet with a leading zero, so
+        // the reference never treats `010.1.1.1` as an address. Rivulet must not be more lenient.
         #expect(NetworkAddress.parse("010.1.1.1") == nil)
         #expect(NetworkAddress.parse("1.2.3.04") == nil)
         #expect(NetworkAddress.parse("10.1.1.1") == NetworkAddress.ipv4([10, 1, 1, 1]))
@@ -68,8 +68,8 @@ import Testing
 
     @Test func anEmptyOctetIsNotAnAddressLikeGoRejectsIt() throws {
         // Go rejects an IPv4 field with no digit, so `1..2.3.4`, `1.2.3.` and `.1.2.3.4` are not
-        // addresses. A split that drops empty parts would accept them, and the policy would then read a
-        // host as an address it should hand to the resolver instead.
+        // addresses. A split that drops empty parts would accept them, and the policy would then
+        // read a host as an address it should hand to the resolver instead.
         #expect(NetworkAddress.parse("1..2.3.4") == nil)
         #expect(NetworkAddress.parse("1.2.3.") == nil)
         #expect(NetworkAddress.parse(".1.2.3.4") == nil)
@@ -77,9 +77,9 @@ import Testing
     }
 
     @Test func aGroupIsNotLongerThanFourDigitsAndTheCompressionExpandsToAtLeastOneGroupLikeGo() throws {
-        // Go reads at most four hex digits per group and requires `::` to stand for at least one zero
-        // group, so `0abcd::1` and `1:2:3:4:5:6:7:8::` are not addresses even though the numeric value
-        // still fits 16 bits.
+        // Go reads at most four hex digits per group and requires `::` to stand for at least one
+        // zero group, so `0abcd::1` and `1:2:3:4:5:6:7:8::` are not addresses even though the
+        // numeric value still fits 16 bits.
         #expect(NetworkAddress.parse("0abcd::1") == nil)
         #expect(NetworkAddress.parse("1:2:3:4:5:6:7:8::") == nil)
         #expect(NetworkAddress.parse("abcd::1") != nil)
@@ -118,8 +118,8 @@ import Testing
     }
 
     @Test func aLoneColonIsNotTheCompressionLikeGoParsesAddresses() throws {
-        // Go reads the omitted groups as `::` — two colons — so a lone leading colon is not an empty
-        // group, and the form `:1:2:...` must not be accepted as an address.
+        // Go reads the omitted groups as `::` — two colons — so a lone leading colon is not an
+        // empty group, and the form `:1:2:...` must not be accepted as an address.
         #expect(NetworkAddress.parse(":1:2:3:4:5:6:7:8") == nil)
         #expect(NetworkAddress.parse("1:2:3:4:5:6:7:8") != nil)
         #expect(NetworkAddress.parse("::1") != nil)

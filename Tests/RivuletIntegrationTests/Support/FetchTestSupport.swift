@@ -2,9 +2,9 @@ import Foundation
 import Testing
 import RivuletCore
 
-/// Setup shared by the fetch suites, so the fetch matrix and the address policy tests start from the
-/// same rules: a server or proxy started for this test only, on port 0, and a fetcher that is closed
-/// on both the success and the failure path.
+/// Setup shared by the fetch suites, so the fetch matrix and the address policy tests start from
+/// the same rules: a server or proxy started for this test only, on port 0, and a fetcher that is
+/// closed on both the success and the failure path.
 enum FetchTestSupport {
     /// The options a fetch test uses, with the values it cares about named at the call site.
     static func options(
@@ -65,9 +65,9 @@ enum FetchTestSupport {
         do {
             try await body(fetcher)
         } catch {
-            // Closing on the failure path cannot be asserted: a shutdown that itself fails would hide
-            // the failure the test is reporting, so the error here is deliberately dropped and the
-            // test's own failure is what propagates.
+            // Closing on the failure path cannot be asserted: a shutdown that itself fails would
+            // hide the failure the test is reporting, so the error here is deliberately dropped and
+            // the test's own failure is what propagates.
             try? await fetcher.shutdown()
             throw error
         }
@@ -90,8 +90,8 @@ actor CountingResolver: AddressResolver {
     }
 }
 
-/// Answers `host` from a table, records the hosts it was asked about, and answers with nothing for a
-/// host the table does not cover.
+/// Answers `host` from a table, records the hosts it was asked about, and answers with nothing for
+/// a host the table does not cover.
 actor SeededResolver: AddressResolver {
     private let answers: [String: [NetworkAddress]]
     private(set) var hosts: [String] = []

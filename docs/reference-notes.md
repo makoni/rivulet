@@ -34,9 +34,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
 - Batch selection: `internal/storage/batch.go` —
-  `next_check_at < now() AND parsing_error_count < limit AND disabled IS false
-  ORDER BY next_check_at ASC LIMIT BATCH_SIZE` (default 100); optional per-host limit
-  (`POLLING_LIMIT_PER_HOST`, default 0 = off).
+  `next_check_at < now() AND parsing_error_count < limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE`
+  (default 100); optional per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off).
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when

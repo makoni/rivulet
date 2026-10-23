@@ -108,8 +108,8 @@ import Testing
 
         // Further past, the truncation lands beyond the previous minute and the delay goes
         // negative: 220 seconds past becomes -180, and a minute on top leaves -120. Upstream
-        // returns the same negative value — its handler is what absorbs it, taking `max(feed TTL,
-        // max-age, expires)`.
+        // returns the same negative value — its handler is what absorbs it, taking
+        // `max(feed TTL, max-age, expires)`.
         let furtherPast = response(200, headers: ["Expires": "Sun, 15 Jun 2025 15:03:00 GMT"])
         #expect(furtherPast.expires(now: now) == .seconds(-120))
     }
