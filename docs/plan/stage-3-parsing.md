@@ -1,14 +1,16 @@
 # Stage 3 — Parsing & sanitization
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
-**Status:** not started. **Effort:** XL (the hardest stage). **Depends on:** Stage 2.
+**Status:** spike complete (2026-10-23), implementation not started. **Effort:** XL (the hardest
+stage). **Depends on:** Stage 2.
 
 ## Scope
 
-- [ ] FeedKit integration: RSS 2.0 (+ 0.91/0.92 to be tested), RDF (RSS 1.0/0.90), Atom 1.0,
-      JSON Feed; a wrapper mapping to internal `ParsedFeed` / `ParsedEntry` models.
-      **Atom 0.3 is not supported by FeedKit** — the spike decides between a manual fallback and a
-      documented limitation.
+- [ ] Parser layer, written by us — no external feed library, decided in the
+      [stage 3 spike](spike-3-parser.md): RSS 2.0 (+ 0.91/0.92 to be tested), RDF (RSS 1.0/0.90),
+      Atom 1.0 and 0.3, JSON Feed; a tree reader fills `ParsedFeed` and `ParsedEntry` directly.
+      Atom 0.3 `issued`/`modified` and the version attribute are in scope, which an external model
+      layer could not express.
 - [ ] Entry identity fallback chains and SHA-256 hashing, exactly as the reference does
       (per-format rules in `docs/reference-notes.md`).
 - [ ] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
@@ -30,9 +32,10 @@
 
 ## Implementation notes
 
-- Start with a **spike**: run FeedKit against the entire ported Miniflux fixture corpus plus
-  targeted samples (Atom 0.3, RSS 0.91/0.92, JSON Feed 1.1), record failures, and decide per case:
-  wrap, patch, or parse manually.
+- The spike is done (2026-10-23) and the decision is to write the layer ourselves: no external feed
+  library. The cases that decide what our reader must tolerate are recorded in
+  [stage 3 spike](spike-3-parser.md): charset label versus bytes, no detection without a label,
+  strictness, date semantics and Atom 0.3.
 - Sanitizer output must be deterministic — golden-file friendly.
 - The sanitizer is security-critical (see `AGENTS.md`): relax nothing to make tests pass.
 
@@ -61,6 +64,7 @@
 
 ## Risks
 
-- FeedKit gaps on quirky feeds — the biggest project risk. Mitigation: the spike above plus
-  per-case fallbacks; deviations recorded in `docs/parity.md` (record as soon as observed —
-  stage 7 consolidates tolerances).
+- The tolerance decision table for the parser (BOM, garbage before the prolog, invalid entities,
+  CDATA) is the biggest project risk, because the reference is lenient and a strict XML reader is
+  not; the spike measured this on the corpus. Deviations are recorded in `docs/parity.md` as soon as
+  observed — stage 7 consolidates tolerances.

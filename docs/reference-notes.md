@@ -130,8 +130,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 
 ## Dates (`internal/reader/date/parser.go`)
 
-- Integer Unix timestamp first; then RFC822/850/1123 interpreted as local time; then ~70 layouts
-  after string normalization; PST/PDT/EST/EDT workaround and UTC-offset clamping.
+- Integer Unix timestamp first; then the RFC822/850/1123 group, parsed in UTC — the group name says
+  "local time", but `parseLocalTimeDates` pins UTC with two named-zone exceptions: `PST`/`PDT` →
+  Los Angeles, `EST`/`EDT` → New York; then ~70 layouts after normalization, with offset clamping.
 - On complete failure the adapters fall back to `time.Now()`.
 
 ## Icons
@@ -338,6 +339,16 @@ Semantics:
     be pinned — the policy is skipped for that hop, as it is upstream.
 - Relevant packages: `internal/reader/fetcher` (request building, response handling),
   `internal/urllib` (IP helpers) — not `internal/http`, which is the integrations/REST client.
+
+## Encoding and XML tolerance
+
+- `internal/reader/encoding/encoding.go`: `CharsetReader` does not convert when the document is
+  already valid UTF-8, so a prolog label that contradicts the bytes is ignored and a mislabeled
+  UTF-8 document is not re-decoded. With a label, conversion follows the WHATWG label map; the
+  content-type path uses BOM → meta prescan in the first 1024 bytes → default `windows-1252`.
+- `internal/reader/xml/decoder.go`: when the prolog declares UTF-8, invalid XML characters are
+  filtered in place rather than converted; unknown entities come from the HTML entity table,
+  `Strict = false` accepts junk before the prolog, and illegal characters are dropped.
 
 ## Test fixtures in the reference
 
