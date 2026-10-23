@@ -8,9 +8,10 @@ import NIOHTTP1
 /// Ported from Miniflux `internal/reader/fetcher` (Apache-2.0); adapted for Swift, with the
 /// differences recorded in `docs/reference-notes.md`: the body cap goes through the response
 /// accumulator, which counts the same bytes the reference's `MaxBytesReader` counts; the
-/// private-network check runs on the answers the resolver seam returns for a direct hop, and the client is
-/// pinned with `dnsOverride` to an address validated when it was built, so a later lookup cannot steer
-/// the connection — the guarantee the reference's dialer `Control` callback gives it, by another
+/// private-network check runs on the address the fetcher gets for a direct hop: the seam's answers
+/// for a name, or the URL's own address when it is already one, and the client is pinned with
+/// `dnsOverride` to an address validated when it was built, so a later lookup cannot steer the
+/// connection — the guarantee the reference's dialer `Control` callback gives it, by another
 /// mechanism; and redirects are followed hop by hop so the check runs on every direct hop, as the
 /// reference's dialer does — which also skips it for the dial to an explicitly configured proxy.
 public actor Fetcher {
@@ -93,10 +94,11 @@ public actor Fetcher {
         }
     }
 
-    /// Sends one hop: for a direct hop the host is resolved and its answers are checked — a proxied hop is
-    /// answered by the proxy, which resolves the target itself — and the request goes out on the client for
-    /// this host and proxy decision, one built from a validated address or a cached one that keeps the
-    /// address it was built with, under the deadline the whole fetch shares.
+    /// Sends one hop: its address is checked — the seam's answers for a name, or the URL's own
+    /// address when it is already one — and the request goes out on the client for this host and
+    /// proxy decision, one built from a validated address or a cached one that keeps the address
+    /// it was built with, under the deadline the whole fetch shares. A proxied hop is answered by
+    /// the proxy, which resolves the target itself, so nothing is checked or pinned for it.
     private func send(_ request: FetchRequest, deadline: NIODeadline) async throws -> FetchResponse {
         guard let host = request.url.host else {
             throw FetchError.invalidURL(request.url.absoluteString)
@@ -182,11 +184,12 @@ public actor Fetcher {
         }
     }
 
-    /// Resolves `host`, refuses any non-public answer, and returns the address a new client is pinned to.
-    /// The client connects to that address through `dnsOverride`, so a lookup that answers differently
-    /// later cannot change the target — the DNS-rebinding case upstream guards with its dialer. A cached
-    /// client keeps the address it was built with; the answers found here are what the policy checks on
-    /// this hop either way.
+    /// Resolves `host`, or classifies it when it is already an address, refuses any non-public
+    /// answer, and returns the address a new client is pinned to. The client connects to that
+    /// address through `dnsOverride`, so a lookup that answers differently later cannot change the
+    /// target — the DNS-rebinding case upstream guards with its dialer. A cached client keeps the
+    /// address it was built with; the answers found here are what the policy checks on this hop
+    /// either way.
     ///
     /// `host` here is what `URL.host` gives, which is the address without its brackets for an IPv6 URL,
     /// and that is also the key AsyncHTTPClient looks up in `dnsOverride`, so the pin and the key agree.
