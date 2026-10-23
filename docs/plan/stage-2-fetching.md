@@ -1,7 +1,9 @@
 # Stage 2 — Feed fetching (HTTP)
 
 **Goal:** robust conditional HTTP fetching of feed documents.
-**Status:** in progress. **Effort:** M. **Depends on:** Stage 1.
+**Status:** the fetcher is merged. The stage is not closed: the exit criterion that persists
+validators and error state into feed state is not met, because nothing calls the repository yet.
+**Effort:** M. **Depends on:** Stage 1.
 
 ## Scope
 
@@ -80,4 +82,7 @@
 
 ## Exit criteria
 
-- [ ] Fetch matrix green; fetch results persist validators and error state into feed state.
+- [x] Fetch matrix green.
+- [ ] Fetch results persist validators and error state into feed state. The fetcher returns both;
+      the repository side writes them, but no caller wires them yet, and that is the refresh path,
+      which needs parsing and scheduling.

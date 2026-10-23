@@ -16,7 +16,9 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 2 — Feed fetching**. Keep this line and the plan's status table in sync.
+Current focus: **Stage 3 — Parsing & sanitization**, the lowest not-started stage.
+Stage 2 is merged, with one exit criterion deferred to the refresh path; see its stage file.
+Keep this line and the plan's status table in sync.
 
 ## Toolchain
 
