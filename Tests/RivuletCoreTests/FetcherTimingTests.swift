@@ -14,9 +14,9 @@ import Testing
     }
 
     @Test func anAbsurdNegativeDurationIsClampedRatherThanTrapping() {
-        // `FetcherOptions` is public and takes any `Duration`, so a large negative one reaches the same
-        // Int64 conversion. It clamps at the negative end, which stays a deadline in the past — the fetch
-        // times out at once instead of trapping.
+        // `FetcherOptions` is public and takes any `Duration`, so a large negative one reaches the
+        // same Int64 conversion. It clamps at the negative end, which stays a deadline in the past
+        // — the fetch times out at once instead of trapping.
         #expect(Fetcher.amount(for: Duration.seconds(-1_000_000_000_000_000_000))
             == TimeAmount.nanoseconds(-(Int64.max / 2)))
     }

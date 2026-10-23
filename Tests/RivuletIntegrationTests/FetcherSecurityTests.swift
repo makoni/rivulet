@@ -88,12 +88,12 @@ import Testing
     }
 
     @Test func everyDirectRedirectHopGoesThroughTheResolverSeam() async throws {
-        // Upstream checks the address on every direct dial, so a hop to another host goes through the
-        // policy rather than a lookup inside the client. This proves the seam is consulted for the hop and
-        // that a hop the seam cannot answer stops the fetch: the escape hatch is on so the first hop can be
-        // answered with the stub's address, and the second name is answered with nothing. A refusal at a
-        // hop is not observable here — the only address the first hop could reach is the stub, which a
-        // denying policy would itself refuse.
+        // Upstream checks the address on every direct dial, so a hop to another host goes through
+        // the policy rather than a lookup inside the client. This proves the seam is consulted for
+        // the hop and that a hop the seam cannot answer stops the fetch: the escape hatch is on so
+        // the first hop can be answered with the stub's address, and the second name is answered
+        // with nothing. A refusal at a hop is not observable here — the only address the first hop
+        // could reach is the stub, which a denying policy would itself refuse.
         let stub = NetworkAddress.parse("127.0.0.1")!
         let resolver = SeededResolver(answers: ["first.example": [stub]])
 

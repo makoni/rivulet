@@ -34,29 +34,28 @@ Rules:
 
 Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 
-- `TestDatabase.swift` — temp-file SQLite database in a temp dir per test; the schema migration
-  is registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
-- `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase`
-  and a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp
-  dir) on both success and failure; used by every suite that needs the migrated schema.
-- `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the
-  repository with a chosen status/starred state, bulk-seeds entries for pagination limits, builds
-  entry inputs, counts entries, tombstones and FTS matches, and backdates timestamps for the
-  retention suites.
-- `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page
-  2, the `_fluent_migrations` root, using the page size from the file header) so integrity
-  tests observe `PRAGMA quick_check` failures without shipping a corrupt database fixture.
-- `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot
-  be read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
-- `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable
-  behavior: status codes, `ETag`/`Last-Modified`, gzip, redirects, delays (before the answer, or
-  after the head so a body can arrive later than a deadline), cut connections, chunked responses,
-  charset headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records
-  every request it receives (target and headers) so a test can check what the client actually sent,
-  and `waitForRequest(for:)` waits for one to arrive — check and wait in one step under the lock —
-  so a test can act while a request is in flight without polling or sleeping, which holds only
-  while the answer is still pending: a quick response releases the client before the test can act.
-  The cache test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
+- `TestDatabase.swift` — temp-file SQLite database in a temp dir per test; the schema migration is
+  registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
+- `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase` and
+  a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp dir) on
+  both success and failure; used by every suite that needs the migrated schema.
+- `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
+  with a chosen status/starred state, bulk-seeds entries for pagination limits, builds entry inputs,
+  counts entries, tombstones and FTS matches, and backdates timestamps for the retention suites.
+- `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page 2, the
+  `_fluent_migrations` root, using the page size from the file header) so integrity tests observe
+  `PRAGMA quick_check` failures without shipping a corrupt database fixture.
+- `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot be
+  read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
+- `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
+  status codes, `ETag`/`Last-Modified`, gzip, redirects, delays (before the answer, or after the
+  head so a body can arrive later than a deadline), cut connections, chunked responses, charset
+  headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records every
+  request it receives (target and headers) so a test can check what the client actually sent, and
+  `waitForRequest(for:)` waits for one to arrive — check and wait in one step under the lock — so a
+  test can act while a request is in flight without polling or sleeping, which holds only while the
+  answer is still pending: a quick response releases the client before the test can act. The cache
+  test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
 - `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
   serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
   the targets it was asked to connect to.
@@ -68,17 +67,17 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   a compressed body without a compression dependency. The fetch test uses this same encoder, so it
   shows that the client decompresses the fixture; the encoder itself is checked against `gunzip` by
   hand when it changes, which is why no test can prove it. Stored blocks cannot reach a compression
-  ratio above 1, so the decompression guard `docs/reference-notes.md` records is not exercised by any
-  test either.
-- `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke
-  tests run commands against a temp database through it.
-- `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the
-  CLI and probe tests).
+  ratio above 1, so the decompression guard `docs/reference-notes.md` records is not exercised by
+  any test either.
+- `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke tests
+  run commands against a temp database through it.
+- `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the CLI
+  and probe tests).
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
   bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
   (swift-log traps on a second one).
-- Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)`
-  takes Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
+- Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)` takes
+  Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
 `SystemAddressResolver` is the only public API that cannot have a hermetic test against a
 network: it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is

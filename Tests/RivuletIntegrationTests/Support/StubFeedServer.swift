@@ -8,8 +8,8 @@ import NIOPosix
 ///
 /// Every test starts its own server bound to port 0 and reads the port the kernel assigned, so no
 /// test depends on a fixed port. What a path answers is declared by the test, and the server keeps
-/// no state beyond that table, the requests it received and the waiters a test registered on a path,
-/// which keeps behavior deterministic. The proxy tests use `StubProxy`, not this server.
+/// no state beyond that table, the requests it received and the waiters a test registered on a
+/// path, which keeps behavior deterministic. The proxy tests use `StubProxy`, not this server.
 final class StubFeedServer: Sendable {
     /// What one path answers. Plain types keep the tests free of NIO imports.
     struct Behavior {
@@ -20,8 +20,9 @@ final class StubFeedServer: Sendable {
         var gzip = false
         /// Wait this long before answering.
         var delay: Duration = .zero
-        /// Send the head at once, then wait this long before the body. A test that passes on a timeout
-        /// can use this to show the deadline covers body reading, not only the response head.
+        /// Send the head at once, then wait this long before the body. A test that passes on a
+        /// timeout can use this to show the deadline covers body reading, not only the response
+        /// head.
         var bodyDelay: Duration = .zero
         /// Close the connection without answering at all.
         var cutConnection = false
@@ -31,8 +32,8 @@ final class StubFeedServer: Sendable {
 
     /// A request the server received.
     struct Received {
-        /// Request target as it arrived, which for these tests is the path the behavior table is keyed
-        /// by.
+        /// Request target as it arrived, which for these tests is the path the behavior table is
+        /// keyed by.
         let target: String
         let headers: [String: String]
     }
@@ -103,11 +104,11 @@ final class StubFeedServer: Sendable {
         try await group.shutdownGracefully()
     }
 
-    /// Arrivals per path, with a way to wait for one without polling. The handler records a path as soon
-    /// as the request head is read, which is after the fetcher took its client from the cache, so a test
-    /// that waits here knows the client was in use when the head arrived. That holds only while the answer
-    /// is still pending — a quick response releases the client before the test can act — which is why the
-    /// cache test holds the body back.
+    /// Arrivals per path, with a way to wait for one without polling. The handler records a path as
+    /// soon as the request head is read, which is after the fetcher took its client from the cache,
+    /// so a test that waits here knows the client was in use when the head arrived. That holds only
+    /// while the answer is still pending — a quick response releases the client before the test can
+    /// act — which is why the cache test holds the body back.
     private final class Arrivals: Sendable {
         private struct State {
             var paths: [String: Int] = [:]

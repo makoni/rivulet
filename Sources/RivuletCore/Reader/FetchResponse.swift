@@ -84,14 +84,14 @@ public struct FetchResponse: Sendable, Equatable {
     }
 
     /// Time until the cached response expires, in whole minutes, as upstream
-    /// (`time.Until(t).Truncate(minute) + minute`): the minute the value falls in, plus one. A value
-    /// inside the current minute yields a minute even when it is already past; a past value that
-    /// truncates to exactly the previous minute yields nothing, because the truncation and the added
-    /// minute cancel; one further past yields a negative delay, which upstream returns too — its handler
-    /// takes `refreshDelay = max(feed TTL, max-age, expires)` and `ScheduleNextCheck` then clamps that with
-    /// `max(interval, refreshDelay)`, so a negative value cannot shorten the schedule. An unparsable value
-    /// yields nothing. The division truncates toward zero, which is what Go's `Truncate` does, so a
-    /// negative value behaves the same here as upstream.
+    /// (`time.Until(t).Truncate(minute) + minute`): the minute the value falls in, plus one. A
+    /// value inside the current minute yields a minute even when it is already past; a past value
+    /// that truncates to exactly the previous minute yields nothing, because the truncation and the
+    /// added minute cancel; one further past yields a negative delay, which upstream returns too —
+    /// its handler takes `refreshDelay = max(feed TTL, max-age, expires)` and `ScheduleNextCheck`
+    /// then clamps that with `max(interval, refreshDelay)`, so a negative value cannot shorten the
+    /// schedule. An unparsable value yields nothing. The division truncates toward zero, which is
+    /// what Go's `Truncate` does, so a negative value behaves the same here as upstream.
     public func expires(now: Int) -> Duration {
         guard let value = header("Expires"), let date = HTTPDate.parse(value) else {
             return .zero

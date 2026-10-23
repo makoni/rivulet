@@ -138,10 +138,11 @@ import Testing
 
     @Test func httpDateNeedsTheWeekdayAndTheCommaLikeTheReferenceLayout() {
         // Rivulet's own test — the reference has no test for its date parser. It pins what Go's
-        // `time.Parse` accepts with `time.RFC1123` ("Mon, 02 Jan 2006 15:04:05 MST"): the weekday with
-        // its comma is part of the format, so the comma-less form is not an HTTP-date and yields no
-        // delay, and a zone name other than GMT/UTC is not read at all (recorded deviation — Go looks
-        // the name up in the local zone table, so `EST` shifts the time when that table defines it).
+        // `time.Parse` accepts with `time.RFC1123` ("Mon, 02 Jan 2006 15:04:05 MST"): the weekday
+        // with its comma is part of the format, so the comma-less form is not an HTTP-date and
+        // yields no delay, and a zone name other than GMT/UTC is not read at all (recorded
+        // deviation — Go looks the name up in the local zone table, so `EST` shifts the time when
+        // that table defines it).
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 GMT") != nil)
         #expect(HTTPDate.parse("Sun 15 Jun 2025 15:07:22 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 15:07:22 EST") == nil)
@@ -153,8 +154,8 @@ import Testing
         #expect(HTTPDate.parse("Sun, 32 Jun 2025 07:28:00 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 25:70:80 GMT") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 20156 07:28:00 GMT") == nil)
-        // Go consumes exactly three characters for the weekday, so a long name is not this layout, and
-        // the minute and second are fixed at two digits while the hour is not.
+        // Go consumes exactly three characters for the weekday, so a long name is not this layout,
+        // and the minute and second are fixed at two digits while the hour is not.
         #expect(HTTPDate.parse("Monday, 15 Jun 2025 07:28:00 GMT") == nil)
         #expect(HTTPDate.parse("Wed, 15 Jun 2025 7:28:00 GMT") != nil)
         #expect(HTTPDate.parse("Wed, 15 Jun 2025 7:28:0 GMT") == nil)
@@ -172,11 +173,11 @@ import Testing
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 GMT x") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00,500 GMT") == nil)
 
-        // Rivulet is stricter at the boundary than Go's numeric path, which reads fixed-width two-digit
-        // fields and allows an hour of 24 and a minute of 60 (`hr > 24`, `mm > 60`): `+2400` and `+0360`
-        // parse under Go's RFC1123Z. The four-digit form is Rivulet's addition relative to RFC1123 — that
-        // layout reads a zone name, and a signed hour there goes through `parseSignedOffset`, which
-        // rejects `+0730`.
+        // Rivulet is stricter at the boundary than Go's numeric path, which reads fixed-width
+        // two-digit fields and allows an hour of 24 and a minute of 60 (`hr > 24`, `mm > 60`):
+        // `+2400` and `+0360` parse under Go's RFC1123Z. The four-digit form is Rivulet's addition
+        // relative to RFC1123 — that layout reads a zone name, and a signed hour there goes through
+        // `parseSignedOffset`, which rejects `+0730`.
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2400") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +0360") == nil)
         #expect(HTTPDate.parse("Sun, 15 Jun 2025 07:28:00 +2359") != nil)

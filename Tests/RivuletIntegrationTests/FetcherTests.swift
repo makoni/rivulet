@@ -3,12 +3,12 @@ import Foundation
 import Testing
 import RivuletCore
 
-/// The fetch matrix against a local stub server: the fetcher is the module boundary, so this is where
-/// its statuses, bodies, decompression, limits and timeouts are checked over a real socket. Every test
-/// starts its own server on port 0, as `docs/testing.md` requires. The address policy and the proxy
-/// hop are in `FetcherSecurityTests.swift`, because the tests there that resolve a host answer it
-/// through a resolver seam: an address host is classified without a lookup, and a proxied hop never
-/// reaches it.
+/// The fetch matrix against a local stub server: the fetcher is the module boundary, so this is
+/// where its statuses, bodies, decompression, limits and timeouts are checked over a real socket.
+/// Every test starts its own server on port 0, as `docs/testing.md` requires. The address policy
+/// and the proxy hop are in `FetcherSecurityTests.swift`, because the tests there that resolve a
+/// host answer it through a resolver seam: an address host is classified without a lookup, and a
+/// proxied hop never reaches it.
 @Suite struct FetcherTests {
     @Test func twoHundredReturnsStatusHeadersAndBody() async throws {
         let body = Data("<feed><title>Stub</title></feed>".utf8)
@@ -242,9 +242,9 @@ import RivuletCore
     }
 
     @Test func aRedirectWithAnEmptyLocationIsTheResponseLikeUpstreamDoes() async throws {
-        // Go returns the response when a redirect status carries an empty `Location`; a 3xx without a
-        // usable location is not followed. Rivulet must not resolve an empty value against the base and
-        // loop on it.
+        // Go returns the response when a redirect status carries an empty `Location`; a 3xx without
+        // a usable location is not followed. Rivulet must not resolve an empty value against the
+        // base and loop on it.
         try await FetchTestSupport.withServer(behaviors: [
             "/empty": StubFeedServer.Behavior(status: 302, headers: ["Location": ""], body: Data("kept".utf8)),
         ]) { server in
@@ -304,9 +304,10 @@ import RivuletCore
                     Issue.record("expected the unparseable redirect location to fail")
                 } catch let error as FetchError {
                     #expect(error == .redirectTargetUnparseable("http://[bad"))
-                    // Go's phrase — `net/http`'s `Client.do` writes it and wraps it in `Get "url":`, which is
-                    // what the reference prints. Rivulet has no parse error to print, so the phrase stands
-                    // alone, and the wrapper is dropped: that is what is asserted here.
+                    // Go's phrase — `net/http`'s `Client.do` writes it and wraps it in `Get
+                    // "url":`, which is what the reference prints. Rivulet has no parse error to
+                    // print, so the phrase stands alone, and the wrapper is dropped: that is what
+                    // is asserted here.
                     #expect(String(describing: error) == "fetcher: failed to parse Location header \"http://[bad\"")
                 }
             }
