@@ -2,9 +2,8 @@
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
-transcoding, fixture corpus); the XML reader slice (tokenizer, lexical scanner, entity table, format
-detection) is in review on its branch; the format adapters are next. **Effort:** XL (the hardest
-stage). **Depends on:** Stage 2.
+transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
+table, format detection); the format adapters are next.
 
 ## Scope
 
