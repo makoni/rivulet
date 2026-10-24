@@ -2,7 +2,8 @@
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
-transcoding, fixture corpus); the parser is next. **Effort:** XL (the hardest
+transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
+table, format detection); the format adapters are next. **Effort:** XL (the hardest
 stage). **Depends on:** Stage 2.
 
 ## Scope
@@ -39,6 +40,10 @@ stage). **Depends on:** Stage 2.
   library. The cases that decide what our reader must tolerate are recorded in
   [stage 3 spike](spike-3-parser.md): charset label versus bytes, no detection without a label,
   strictness, date semantics and Atom 0.3.
+- The reader slice landed (2026-10-24): the lexical primitives, the byte-level tokenizer with the
+  reference's tolerance, the HTML entity table, the `XMLElement` tree and format detection. The
+  tolerance rules are recorded in `docs/reference-notes.md` and the deviations in `docs/parity.md`.
+  The format adapters read through it.
 - Sanitizer output must be deterministic — golden-file friendly.
 - The sanitizer is security-critical (see `AGENTS.md`): relax nothing to make tests pass.
 
