@@ -70,3 +70,4 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | Bare `io.EOF` | returned as it is when nothing is open, such as after a comment at the top level | the same `unexpectedEOF` case | Only the message differs; the reader reports it as one failure |
 | `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix | not ported, because the reference never sets it, so the fallback assigns the empty string | None |
 | `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
+| `pushEOF` and `popEOF` | used only for types that implement `UnmarshalXML`, which Miniflux never implements | not ported; the reader marks where `Decode` stops and reports reaching it | None |

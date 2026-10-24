@@ -4,8 +4,8 @@
 
 import Foundation
 
-/// The bytes the reader compares markup against, named once so the scanner and the tokenizer read the
-/// same characters as the same names.
+/// The bytes the reader compares markup against, named once so the scanner and the tokenizer read
+/// the same characters as the same names.
 enum XMLByte {
     static let space = UInt8(ascii: " ")
     static let tab = UInt8(ascii: "\t")

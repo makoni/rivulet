@@ -72,8 +72,10 @@ final class XMLTokenizer {
         }
     }
 
-    /// Marks the end of the root element, the way `Decode` does when it begins reading a value, and
-    /// reports reaching it.
+    /// Marks where `Decode` stops, which is the end of the root element, and reports reaching it.
+    /// The reference reaches that point because `unmarshal` returns after the root's end tag:
+    /// `pushEOF` is only used for types that implement `UnmarshalXML`, which the reference never
+    /// does.
     func pushEndOfInputMarker() {
         guard var index = stack.lastIndex(where: { $0.kind == .element }) else { return }
         // The declarations below an element belong to it, so the marker goes under them.

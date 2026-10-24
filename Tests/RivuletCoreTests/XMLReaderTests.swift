@@ -255,6 +255,15 @@ import Testing
         #expect(try XMLReader.read(Data("<?xml version=\"\"?><note>x</note>".utf8)).text == "x")
     }
 
+    @Test func instructionContentIsWhatFollowsTheTarget() throws {
+        // The token's content is what is read after the target name, without the `?>` that ends the
+        // instruction, so the target is not part of it.
+        #expect(try contents(Data("<?xml version=\"1.0\" encoding=\"utf-8\"?>".utf8)) {
+            if case .processingInstruction(let target, let content) = $0 { return "\(target)|\(content)" }
+            return nil
+        } == ["xml|version=\"1.0\" encoding=\"utf-8\""])
+    }
+
     @Test func instructionWithNoTargetIsAnError() {
         #expect(throws: XMLError.processingInstructionTargetExpected) {
             try XMLReader.read(Data("<note><?!x>y</note>".utf8))
@@ -404,7 +413,7 @@ import Testing
         }
     }
 
-    @Test func verticalTabIsNotTagWhitespaceAndIsRemovedFromTheDocument() throws {
+    @Test func verticalTabIsRemovedBeforeTokenizingSoTagWhitespaceNeverSeesIt() throws {
         // The reference skips only space, tab, line feed and carriage return, so a vertical tab is
         // not tag whitespace. It is not an XML `Char` either, so it never reaches the tokenizer:
         // the character filter applied to the document removes it first, which leaves the next
@@ -464,5 +473,14 @@ import Testing
         let root = try XMLReader.read(Data("<note xml:lang=\"en\">x</note>".utf8))
         #expect(root.attributes[0].name.namespace == "http://www.w3.org/XML/1998/namespace")
         #expect(root.attributes[0].value == "en")
+    }
+    @Test func nameMatchesItsLocalPartAndTheNamespaceItsTagNames() throws {
+        // A model field matches on the local name alone unless its tag names a namespace, so an
+        // empty `namespace` matches any namespace.
+        let name = XMLName(namespace: "http://www.w3.org/2005/Atom", local: "title")
+        #expect(name.matches(local: "title"))
+        #expect(name.matches(local: "title", namespace: "http://www.w3.org/2005/Atom"))
+        #expect(!name.matches(local: "title", namespace: "http://purl.org/dc/elements/1.1/"))
+        #expect(!name.matches(local: "creator"))
     }
 }
