@@ -341,6 +341,13 @@ import Testing
         }
     }
 
+    @Test func emptyCDATASectionIsReportedAsEmptyText() throws {
+        // The reference reports nothing from `text` only when it never wrote a byte, and the two
+        // `]` of the terminator are written before the `]]>` is checked, so an empty CDATA section
+        // is empty text rather than nothing. Recorded in `docs/reference-notes.md`.
+        #expect(try characterDataContents(Data("<note><![CDATA[]]></note>".utf8)) == [""])
+    }
+
     @Test func unclosedElementAtTheEndOfTheDocumentIsAnError() {
         #expect(throws: XMLError.unexpectedEOF) {
             try XMLReader.read(Data("<note><to>x</to>".utf8))

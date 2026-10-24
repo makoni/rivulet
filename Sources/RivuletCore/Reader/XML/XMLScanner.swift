@@ -31,10 +31,10 @@ final class XMLScanner {
     /// Reads one byte, or records the end of the document as the failure, which is what `getc`
     /// does: once a failure is recorded nothing more is read. The reference records `io.EOF` there,
     /// and `mustgetc` turns it into `unexpected EOF` whenever it reads one; `Token` keeps the bare
-    /// `io.EOF` only when nothing is open, so the two are one case here, as `docs/parity.md`
-    /// records. A primitive that can still return what it has read at the end — `text` outside a
-    /// CDATA section — does so, and the failure is reported on the next read, which is where
-    /// `mustgetc` differs from `getc`.
+    /// `io.EOF` when the stack is empty or is at the record `pushEOF` put, and converts it
+    /// otherwise, so the two are one case here, as `docs/parity.md` records. A primitive that can
+    /// still return what it has read at the end — `text` outside a CDATA section — does so, and the
+    /// failure is reported on the next read, which is where `mustgetc` differs from `getc`.
     func readByte() -> UInt8? {
         if failure != nil { return nil }
         guard position < bytes.count else {
