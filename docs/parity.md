@@ -46,3 +46,21 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
 
 None of these differences is observable on the ported fixture corpus: all fixture assertions the
 reference makes are reproduced. Valid documents in a legacy encoding decode identically.
+
+## XML reader (stage 3)
+
+**Matching the reference.** The name classes, the buffer rules, `space`, `attrval`, `text`, the comment,
+CDATA and directive reading, the namespace scope and the end-of-root rule follow `encoding/xml`
+(Go 1.22) line by line, with the configuration Miniflux builds (`Strict = false`,
+`Entity = xml.HTMLEntity`). The entity table is transcribed from it and attributed in `NOTICE`.
+
+**Known differences.**
+
+| Case | Reference (`encoding/xml`) | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Name classes | two explicit `unicode.RangeTable`s (`first`, `second`), a transcription of an older Unicode version | Swift Unicode properties: letter, number and grapheme-extend, plus the ASCII name bytes and `-`, `.`, `·` | Go's tables omit letters Swift reports as letters (`ª`, `µ`, `º`, the ligature and digraph forms) and most characters above the BMP, so Rivulet accepts names the reference rejects. No fixture covers it |
+| `text` rejects invalid UTF-8 | reports `invalid UTF-8` | not modeled: the reference filters invalid sequences before decoding, so the check cannot be reached | None |
+| Label used on the `CharsetReader` path | Miniflux takes the first `encoding=` of the whole document, so a body label decides the path and is passed to the reader | the label is read from the XML declaration, as Go's `procInst` does, so a body `encoding=` never converts the document | A document with no declaration whose body writes an unresolvable label fails in the reference and is filtered by Rivulet; pinned by a test |
+| End of document inside a name or an unquoted value | fails, because `mustgetc` cannot read past the end | fails as `unexpectedEOF` | Same result; the difference is only in the message, which is not modeled |
+| Error reporting | `SyntaxError` with a line number and a message | typed `XMLError` cases, no line numbers | Callers match on the case, not on the text |
+| `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
