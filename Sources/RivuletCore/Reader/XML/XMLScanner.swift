@@ -1,24 +1,22 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
-// Ported from Miniflux internal/reader/xml (Apache-2.0); adapted for Swift/SQLite. The primitives are
-// the ones `encoding/xml`'s `Decoder` reads through: `getc`/`ungetc`, `space`, `readName`, `name`,
-// `nsname`, `text`, `attrval` and `readEntity`.
+// Ported from Miniflux internal/reader/xml (Apache-2.0); adapted for Swift/SQLite. The primitives
+// are the ones `encoding/xml`'s `Decoder` reads through: `getc`/`ungetc`, `space`, `readName`,
+// `name`, `nsname`, `text`, `attrval` and `readEntity`.
 
 import Foundation
 
 /// The byte cursor and the lexical primitives the tokenizer reads through.
 ///
-/// Reaching the end of the document is kept separate from a failure, because `text` may still return
-/// what it has read at the end of the document while `readName` and `attrval` cannot. Names and text
-/// are built in ``buffer``, which the tokenizer also writes into when it reads a comment or a
-/// directive: `readName` does not clear it, so a name read while a character reference is being read
-/// still starts where the reference started.
+/// The end of the document is recorded as the failure as soon as `getc` reaches it, but a primitive
+/// that can return what it has read — `text` outside a CDATA section — still does, and the failure
+/// is reported on the next read, which is where `mustgetc` differs. Names and text are built in
+/// ``buffer``, which the tokenizer also writes into when it reads a comment or a directive:
+/// `readName` does not clear it, so a name read while a character reference is being read still
+/// starts where the reference started.
 final class XMLScanner {
     /// The failure recorded so far, which is the only failure the primitives report.
     var failure: XMLError?
-
-    /// Whether the end of the document has been reached.
-    private var atEnd = false
 
     private let bytes: [UInt8]
     private var position = 0
@@ -30,12 +28,14 @@ final class XMLScanner {
 
     // MARK: - Cursor
 
-    /// Reads one byte, or `nil` at the end of the document. Once a failure is recorded nothing more is
-    /// read, which is what `mustgetc` does.
+    /// Reads one byte, or records the end of the document as the failure, which is what `getc`
+    /// does: once a failure is recorded nothing more is read. A primitive that can still return
+    /// what it has read at the end — `text` outside a CDATA section — does so, and the failure is
+    /// reported on the next read, which is where `mustgetc` differs from `getc`.
     func readByte() -> UInt8? {
         if failure != nil { return nil }
         guard position < bytes.count else {
-            atEnd = true
+            failure = .unexpectedEOF
             return nil
         }
         let byte = bytes[position]
@@ -43,22 +43,13 @@ final class XMLScanner {
         return byte
     }
 
-    func unreadByte() { position -= 1 }
-
-    /// Reads one byte, or records the end of the document as the failure, which is what `mustgetc` does:
-    /// once the end is reached nothing more is read, and the primitives that cannot return what they
-    /// have read so far report it.
-    func mustReadByte() -> UInt8? {
-        guard let byte = readByte() else {
-            failure = failure ?? .unexpectedEOF
-            return nil
-        }
-        return byte
+    /// Puts the byte back. Once a failure is recorded the reference never reads again, so putting a
+    /// byte back changes nothing there; `ungetc` itself does not look at the failure, which is why
+    /// this is an equivalence rather than the same function.
+    func unreadByte() {
+        if failure != nil { return }
+        position -= 1
     }
-
-    /// Whether a failure is recorded. Reaching the end of the document is not one by itself: it becomes
-    /// one only where the reference cannot return what it has read so far.
-    var hasFailure: Bool { failure != nil }
 
     // MARK: - Names
 
@@ -76,14 +67,14 @@ final class XMLScanner {
 
     /// Reads a name into the buffer without clearing it.
     func readName() -> Bool {
-        guard let byte = mustReadByte() else { return false }
+        guard let byte = readByte() else { return false }
         if isASCII(byte) && !XMLName.isNameByte(byte) {
             unreadByte()
             return false
         }
         buffer.append(byte)
         while true {
-            guard let next = mustReadByte() else { return false }
+            guard let next = readByte() else { return false }
             if isASCII(next) && !XMLName.isNameByte(next) {
                 unreadByte()
                 break
@@ -105,9 +96,9 @@ final class XMLScanner {
         return text
     }
 
-    /// Reads a name and splits the prefix from the local part, which is what `nsname` does: with more
-    /// than one colon there is no name, and an empty part on either side leaves the whole text as the
-    /// local part.
+    /// Reads a name and splits the prefix from the local part, which is what `nsname` does: with
+    /// more than one colon there is no name, and an empty part on either side leaves the whole text
+    /// as the local part.
     func namespaceName() -> XMLName? {
         guard let text = name() else { return nil }
         let parts = text.split(separator: ":", omittingEmptySubsequences: false)
@@ -123,16 +114,17 @@ final class XMLScanner {
     // MARK: - Comments
 
     /// Whether the next bytes are the opening of a comment, which is what the directive reader asks
-    /// before it skips one. When the match fails, the characters that matched and the one that stopped it
-    /// are written to the buffer, because the directive keeps them.
+    /// before it skips one. When the match fails, the characters that matched are written to the
+    /// buffer and the one that stopped it is put back, because the directive keeps it and handles
+    /// it again: a `>` in it still counts against the nesting.
     func startsComment() -> Bool {
         let opening = Array("!--".utf8)
         var matched = 0
         for expected in opening {
-            guard let byte = mustReadByte() else { return false }
+            guard let byte = readByte() else { return false }
             guard byte == expected else {
                 buffer.append(contentsOf: opening[0..<matched])
-                buffer.append(byte)
+                unreadByte()
                 return false
             }
             matched += 1
@@ -144,7 +136,7 @@ final class XMLScanner {
         var previous: UInt8 = 0
         var previousPrevious: UInt8 = 0
         while true {
-            guard let byte = mustReadByte() else { return }
+            guard let byte = readByte() else { return }
             if previousPrevious == XMLByte.hyphen && previous == XMLByte.hyphen
                 && byte == XMLByte.greaterThan {
                 return
@@ -156,8 +148,9 @@ final class XMLScanner {
 
     // MARK: - Text
 
-    /// Reads text up to the closing quote, the end of a CDATA section, a `<` outside one, or the end of
-    /// the document. Character references are decoded, and unescaped carriage returns become line feeds.
+    /// Reads text up to the closing quote, the end of a CDATA section, a `<` outside one, or the
+    /// end of the document. Character references are decoded, and unescaped carriage returns become
+    /// line feeds.
     func text(quote: UInt8?, cdata: Bool) -> String? {
         buffer.removeAll(keepingCapacity: true)
         var previous: UInt8 = 0
@@ -165,9 +158,9 @@ final class XMLScanner {
         var truncated = 0
         input: while true {
             guard let byte = readByte() else {
-                // In a CDATA section the end of the document is a failure; otherwise the text read so
-                // far is returned, which is what `text` does when it breaks out of the loop.
-                if failure != nil || atEnd && cdata { return nil }
+                // In a CDATA section the end of the document is reported; ordinary text returns
+                // what it has read, which is what `text` does when `getc` fails.
+                if cdata { return nil }
                 break input
             }
             if previousPrevious == XMLByte.rightBracket && previous == XMLByte.rightBracket
@@ -189,14 +182,7 @@ final class XMLScanner {
             }
             if quote == byte { break input }
             if byte == XMLByte.ampersand && !cdata {
-                let referenceStart = buffer.count
-                buffer.append(XMLByte.ampersand)
-                if let resolved = characterReference(startingAfter: referenceStart) {
-                    buffer.removeSubrange(referenceStart..<buffer.count)
-                    buffer.append(contentsOf: String(resolved).utf8)
-                } else if hasFailure {
-                    return nil
-                }
+                if !appendCharacterReference(startingAt: buffer.count) { return nil }
                 previousPrevious = 0
                 previous = 0
                 continue
@@ -210,15 +196,32 @@ final class XMLScanner {
             previous = byte
         }
         buffer.removeSubrange((buffer.count - truncated)..<buffer.count)
-        // The characters of XML's `Char` production are checked after the text is read, which is what
-        // `text` does. The document is filtered before tokenizing, so this is reached only through a
-        // numeric character reference, whose value is not part of the document's bytes.
-        let decoded = String(decoding: buffer, as: UTF8.self)
-        for scalar in decoded.unicodeScalars where !FeedCharset.isXMLCharacter(scalar) {
+        return checkCharacterProduction()
+    }
+
+    /// Writes one character reference to the buffer with its `&` already in it: the character it
+    /// resolves to, or the reference as written when it does not. Returns whether the read is
+    /// clean, which is the difference between leaving the text as read and reporting the failure.
+    private func appendCharacterReference(startingAt start: Int) -> Bool {
+        buffer.append(XMLByte.ampersand)
+        if let resolved = characterReference(startingAfter: start) {
+            buffer.removeSubrange(start..<buffer.count)
+            buffer.append(contentsOf: String(resolved).utf8)
+            return true
+        }
+        return failure == nil
+    }
+
+    /// Checks the text against XML's `Char` production, which `text` does after reading it. The
+    /// document is filtered before tokenizing, so this is reached only through a numeric character
+    /// reference, whose value is not part of the document's bytes.
+    private func checkCharacterProduction() -> String? {
+        let text = String(decoding: buffer, as: UTF8.self)
+        for scalar in text.unicodeScalars where !FeedCharset.isXMLCharacter(scalar) {
             failure = .illegalCharacterCode(scalar.value)
             return nil
         }
-        return decoded
+        return text
     }
 
     // MARK: - Character classes
@@ -234,24 +237,25 @@ final class XMLScanner {
             || byte >= UInt8(ascii: "A") && byte <= UInt8(ascii: "F")
     }
 
-    /// Consumes one character reference with its `&` already in the buffer, and returns the character it
-    /// resolves to. Non-strict mode keeps the reference as written when it does not resolve.
+    /// Consumes one character reference with its `&` already in the buffer, and returns the
+    /// character it resolves to. Non-strict mode keeps the reference as written when it does not
+    /// resolve.
     private func characterReference(startingAfter ampersandIndex: Int) -> Unicode.Scalar? {
-        guard let byte = mustReadByte() else { return nil }
+        guard let byte = readByte() else { return nil }
         if byte == XMLByte.hash {
             buffer.append(XMLByte.hash)
-            guard var current = mustReadByte() else { return nil }
+            guard var current = readByte() else { return nil }
             var base = 10
             if current == XMLByte.lowercaseX {
                 base = 16
                 buffer.append(current)
-                guard let next = mustReadByte() else { return nil }
+                guard let next = readByte() else { return nil }
                 current = next
             }
             let digitsStart = buffer.count
             while isDigit(current) || base == 16 && isHexLetter(current) {
                 buffer.append(current)
-                guard let next = mustReadByte() else { return nil }
+                guard let next = readByte() else { return nil }
                 current = next
             }
             guard current == XMLByte.semicolon else {
@@ -261,12 +265,16 @@ final class XMLScanner {
             let digits = String(decoding: buffer[digitsStart...], as: UTF8.self)
             buffer.append(XMLByte.semicolon)
             guard let value = UInt32(digits, radix: base), value <= 0x10FFFF else { return nil }
+            // A surrogate is not a character, but the reference writes `string(rune(n))` for it,
+            // which is the replacement character.
+            if value >= 0xD800 && value <= 0xDFFF { return Unicode.Scalar(0xFFFD) }
             return Unicode.Scalar(value)
         }
 
         unreadByte()
-        if !readName() && hasFailure { return nil }
-        guard mustReadByte() == XMLByte.semicolon else {
+        if !readName() && failure != nil { return nil }
+        guard let byte = readByte() else { return nil }
+        guard byte == XMLByte.semicolon else {
             unreadByte()
             return nil
         }

@@ -9,12 +9,12 @@ import Foundation
 enum XMLReader {
     /// Reads the document and returns its root element.
     ///
-    /// The reader stops where `Decode` stops, which is the end of the root element, so markup after it
-    /// is not read. Characters the reference removes before decoding are removed here too.
+    /// The reader stops where `Decode` stops, which is the end of the root element, so markup after
+    /// it is not read. Characters the reference removes before decoding are removed here too.
     ///
     /// - Throws: ``XMLError`` for markup the reference cannot read even in non-strict mode, and
-    ///   ``CharsetError/unsupportedLabel(_:)`` when the document is not valid UTF-8 and its XML
-    ///   declaration names a label that cannot be resolved.
+    /// ``CharsetError/unsupportedLabel(_:)`` when the document is not valid UTF-8 and its XML
+    /// declaration names a label that cannot be resolved.
     static func read(_ data: Data) throws -> XMLElement {
         let tokenizer = XMLTokenizer(try prepared(data))
         var open: [XMLElement] = []
@@ -37,19 +37,20 @@ enum XMLReader {
         }
     }
 
-    /// The bytes the tokenizer reads: the two branches of `NewXMLDecoder`. When the document declares
-    /// UTF-8, or declares nothing, the illegal characters are removed and the bytes are read as they
-    /// are; otherwise the reference's `CharsetReader` converts them with the label of the declaration,
-    /// and the result is filtered the same way.
+    /// The bytes the tokenizer reads: the two branches of `NewXMLDecoder`. When the document
+    /// declares UTF-8, or declares nothing, the illegal characters are removed and the bytes are
+    /// read as they are; otherwise the reference's `CharsetReader` converts them with the label of
+    /// the first `xml` instruction, and the result is filtered the same way.
     ///
-    /// The label is read from the XML declaration, as `procInst` does. A label written in body text
-    /// decides which path the reference takes but never converts the document, which is the difference
-    /// recorded in `docs/parity.md`.
+    /// A label written in body text decides which path the reference takes but is never resolved
+    /// there, because `procInst` is applied to an instruction token. The reference converts from
+    /// the instruction on, while the label is applied to the whole document here, and a `<?` inside
+    /// markup counts as an instruction start; both are recorded in `docs/parity.md`.
     static func prepared(_ data: Data) throws -> Data {
         if FeedCharset.declaresUTF8XMLDeclaration(data) {
             return FeedCharset.filterInvalidXMLCharacters(data)
         }
-        guard let label = prologDeclaredLabel(data) else {
+        guard let label = instructionDeclaredLabel(data) else {
             return FeedCharset.filterInvalidXMLCharacters(data)
         }
         do {
@@ -59,27 +60,42 @@ enum XMLReader {
         }
     }
 
-    /// The label `procInst("encoding", content)` reads from the document's XML declaration, which is
-    /// the only place the reference consults `CharsetReader`: a document without a declaration is not
-    /// converted, whatever its body says.
-    private static func prologDeclaredLabel(_ data: Data) -> String? {
+    /// The label `procInst("encoding", content)` reads, which is the only place the reference
+    /// consults `CharsetReader`: it is applied to an instruction token, so the label comes from the
+    /// first instruction whose target is `xml`, wherever that instruction is and whatever text
+    /// comes before it. A document with no such instruction is not converted, whatever its body
+    /// text says.
+    ///
+    /// The scan reads instruction starts byte by byte, so a `<?` inside a comment, a CDATA section
+    /// or a quoted attribute value counts as one here, while the reference only reaches `procInst`
+    /// at a token boundary; that approximation is recorded in `docs/parity.md`.
+    private static func instructionDeclaredLabel(_ data: Data) -> String? {
         let bytes = [UInt8](data)
-        guard let start = bytes.firstIndex(of: UInt8(ascii: "<")), start + 1 < bytes.count,
-              bytes[start + 1] == UInt8(ascii: "?") else { return nil }
+        var index = 0
+        while index + 1 < bytes.count {
+            guard bytes[index] == UInt8(ascii: "<"), bytes[index + 1] == UInt8(ascii: "?") else {
+                index += 1
+                continue
+            }
 
-        var index = start + 2
-        var target = [UInt8]()
-        while index < bytes.count && XMLName.isNameByte(bytes[index]) {
-            target.append(bytes[index])
-            index += 1
+            var position = index + 2
+            var target = [UInt8]()
+            while position < bytes.count && XMLName.isNameByte(bytes[position]) {
+                target.append(bytes[position])
+                position += 1
+            }
+            guard String(decoding: target, as: UTF8.self) == "xml" else {
+                index = position
+                continue
+            }
+
+            let content = bytes[position...]
+            guard let end = content.firstRange(of: [UInt8(ascii: "?"), UInt8(ascii: ">")]) else { return nil }
+            return XMLInstructionParameter.value(
+                of: "encoding",
+                in: String(decoding: content[content.startIndex ..< end.lowerBound], as: UTF8.self)
+            )
         }
-        guard String(decoding: target, as: UTF8.self) == "xml" else { return nil }
-
-        let content = bytes[index...]
-        guard let end = content.firstRange(of: [UInt8(ascii: "?"), UInt8(ascii: ">")]) else { return nil }
-        return XMLInstructionParameter.value(
-            of: "encoding",
-            in: String(decoding: content[content.startIndex ..< end.lowerBound], as: UTF8.self)
-        )
+        return nil
     }
 }
