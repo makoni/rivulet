@@ -71,3 +71,60 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix | not ported, because the reference never sets it, so the fallback assigns the empty string | None |
 | `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
 | `pushEOF` and `popEOF` | used by `unmarshalInterface`, so only for values whose type implements `UnmarshalXML`; Miniflux implements it for two types (`internal/reader/rss/rss.go:210`, `internal/reader/opml/opml.go:75`) | not ported, because this layer reads tokens and not values; the marker marks where `unmarshal` stops for a value read as a plain struct | The reference fails a value implementing `UnmarshalXML` that stops before its end tag (Go's `read.go:218-220`); nothing here checks that, because there is no value layer |
+
+## Date parsing (stage 3)
+
+**Matching the reference.**
+
+- The layout catalog is transcribed verbatim: the three constants of the local-time group, then the
+  206 layouts in the order the reference tries them, with the entries it repeats left repeated. The
+  79 normalization pairs are transcribed in order, matched at a position by the priority Go gives
+  them, which is the order the pairs are listed in. The only pair whose pattern is a prefix of
+  another is `Mai`, and the longer `Mai ` is listed before it, with the same trailing space in its
+  replacement, so the two rules give the same output for every input, and the scan advances by the
+  pattern length rather than by the replacement.
+- The reading primitives (`skip`, `getnum`, `getnum3`, `lookup`, `atoi`, `parseTimeZone`,
+  `parseGMT`, `parseSignedOffset`, `parseNanoseconds`) follow Go 1.22 `time/format.go` line by
+  line, over UTF-8 bytes: a layout space matches a run of spaces, `lookup` is a case-insensitive
+  ASCII prefix match, and a fractional kind keeps only the digit count because `parseNanoseconds`
+  accepts `.` or `,` whichever the layout writes. `atoi` accepts a leading sign, which is what lets
+  the two-character year read `+6` and an exact fractional run read `.+5`, while `getnum` does not,
+  so the offset fields take digits only; `parseNanoseconds` reports a negative result as out of
+  range.
+- The zone resolution keeps Go's sentinel: `zoneOffset` starts at −1 to mean "no offset was read",
+  so a value of exactly −1 second is read as no offset at all, and the zone falls back to the
+  default location, which is UTC in both.
+- A value that reads no zone is read as UTC, which is what the reference does too: `time.Parse` is
+  `parse(layout, value, UTC, Local)`, so its default location is UTC, and `parseLocalTimeDates` pins
+  UTC for its three layouts as well. The machine's zone is consulted only when a name or an offset
+  was read, which is the fixed table below.
+- Go's `RFC3339` fast path is not ported, and that changes nothing at all: `Parse` falls back to the
+  general `parse` when `parseRFC3339` fails, so an unpadded field is accepted either way, and for a
+  value the fast path accepts the result is the same as the general path's, location included. The
+  only place where the port and the reference can differ for such a value is the fixed zone table.
+- Field ranges are the reference's: 0–23 for the twenty-four-hour pattern and 0–12 for the
+  twelve-hour ones, since twelve is noon or midnight; minutes and seconds below 60; the day
+  validated against the month; the year-day 1–365 with the leap-year decrement; and the two-digit
+  year split at 69.
+- Day counting is Go's proleptic Gregorian `Date`, checked against `daysBefore`, `daysIn` and
+  `daysSinceEpoch` for every date in years 0 through 9999, which is the range the four-digit pattern
+  reads; a layout with no date leaves year 0 behind, and a `Calendar` is not involved. The suite
+  pins the leap-year and year-day cases rather than the whole range.
+- `checkTimezoneRange` belongs to the entry point, not to the engine: an offset outside −12:00 to
+  +14:00 is reported as UTC with the instant unchanged, so the engine reports what the layout read
+  even for an out-of-range offset.
+- An input that reads as an integer is taken as a Unix timestamp before any layout, which is the
+  instant the reference reports; `Int64(text)` accepts a leading `+` as `strconv.ParseInt` does. Go
+  keeps its local zone for that result, so the zone it reports is the machine's, while the port
+  reports UTC with offset 0. The "now" fallback the reference's adapters use is not this entry
+  point's, because it needs a clock.
+
+**Known differences.**
+
+| Case | Reference (Go 1.22 `time`, the version these notes were traced against) | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Zone abbreviations | `lookupName` asks the machine's local `Location`, so the offset depends on the instant and on tzdata; the reference's `PST`/`PDT` and `EST`/`EDT` names resolve through Los Angeles and New York at the parsed instant | a fixed table: `PST` −28800, `PDT` −25200, `EST` −18000, `EDT` −14400, `UTC` and `GMT` 0, `GMT±hh` from the name, and the documented fallback 0 for everything else | An abbreviation the machine's zone knows resolves to a different offset here, and a name read inside a daylight-saving period keeps the standard offset instead of the daylight one. A value that reads no zone is not affected, because both read it as UTC |
+| Zone name | `Zone()` reports the name of the resolved `*Location`: the machine's zone when it was in effect at the parsed instant, otherwise a fabricated zone named by the name as read | the name as read, which for a bare numeric offset is the empty string | Upstream assertions on `Location().String()` cannot be reproduced; the names are pinned as read, and the two agree when Go fabricates the zone, or when the machine's abbreviation at that instant is the name as read |
+| Version of `time` | the reference is Miniflux v2.3.3, whose `go.mod` declares Go 1.26; a current `time` accepts a literal `Z` for all five ISO patterns and rejects an offset hour above 24, an offset minute above 60 or an offset second above 60 | Go 1.22 `time/format.go`, which these notes were traced against: `Z` for the three patterns that carry no seconds, and no range check inside a numeric offset | `+25:00`, `+01:61` and `+01:00:61` match here and are rejected by a current Go, while `+24:00`, `+01:60` and `+01:00:60` match in both because those checks use `>` rather than `>=`. A 1.22-only match outside `checkTimezoneRange`'s −12:00 to +14:00 is reported as UTC with the instant preserved, while `+01:61` is inside the range and keeps its offset. The `Z` half cannot be reached through the catalog, whose 209 layouts have no seconds-bearing ISO pattern |
+| Trimming | `strings.TrimSpace`, which also trims Unicode whitespace | Go's `asciiSpace` set | Input that starts or ends with a non-ASCII space is trimmed there and left as it is here |
+| A layout that does not match | a `ParseError` naming the layout, the layout element and the value element | no match, because the reference only cares whether a layout matched; the entry point reports the failure after the last layout | The text differs; which layout matched, and the value it read, are the same |
