@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 // Ported from Miniflux internal/reader/xml (Apache-2.0); adapted for Swift/SQLite. The tokenizer is
-// `encoding/xml`'s `Decoder` with the configuration the reference builds (`Strict = false`,
-// `Entity = xml.HTMLEntity`).
+// `encoding/xml`'s `Decoder` with the configuration the reference builds (`Strict = false`, `Entity
+// = xml.HTMLEntity`).
 
 import Foundation
 
@@ -11,14 +11,15 @@ import Foundation
 ///
 /// The tolerance that follows from the reference's configuration: unknown and malformed character
 /// references stay as written, an attribute name without `=` becomes its own value, an unquoted
-/// attribute value is read only over name characters, a mismatched end tag closes the element that is
-/// open, and an undefined prefix is kept as written. Only the failures non-strict mode can still reach
-/// are reported, as ``XMLError``.
+/// attribute value is read only over name characters, a mismatched end tag closes the element that
+/// is open, and an undefined prefix is kept as written. Only the failures non-strict mode can still
+/// reach are reported, as ``XMLError``.
 ///
 /// Two parts of Go's decoder are not ported: the invalid UTF-8 check of `text`, because
 /// ``XMLReader`` removes invalid sequences before the document is tokenized, and the `AutoClose`
-/// list, which the reference never sets. The `Char` production check of `text` is ported, because
-/// a numeric character reference can still reach it after the filter. The reader change
+/// list, which the reference never sets. The `Char` production check of `text` is ported, because a
+/// numeric character reference can still reach it after the filter, and `translate`'s
+/// `DefaultSpace` fallback is not, because the reference never sets that field. The reader change
 /// `CharsetReader` performs is made before tokenizing, so the tokenizer reads one document and
 /// never switches readers.
 final class XMLTokenizer {
@@ -29,8 +30,8 @@ final class XMLTokenizer {
     private struct StackEntry {
         var kind: Kind
         var name: XMLName
-        /// Whether the namespace recorded here was already declared, so closing the element restores
-        /// it instead of removing it.
+        /// Whether the namespace recorded here was already declared, so closing the element
+        /// restores it instead of removing it.
         var wasDeclared: Bool
     }
 
@@ -49,8 +50,8 @@ final class XMLTokenizer {
 
     // MARK: - Reading tokens
 
-    /// The next token, or `nil` at the point where `Decode` stops: the end-of-input marker pushed under
-    /// the root element, or the end of the document.
+    /// The next token, or `nil` at the point where `Decode` stops: the end-of-input marker pushed
+    /// under the root element, or the end of the document.
     func nextToken() throws -> XMLToken? {
         if stack.last?.kind == .endOfInput { return nil }
         if let failure = scanner.failure { throw failure }
@@ -88,7 +89,7 @@ final class XMLTokenizer {
     }
 
     private func rawToken() -> XMLToken? {
-        if scanner.hasFailure { return nil }
+        if scanner.failure != nil { return nil }
         if let pendingClose {
             self.pendingClose = nil
             return .endElement(pendingClose)
@@ -101,7 +102,7 @@ final class XMLTokenizer {
             return .characterData(data)
         }
 
-        guard let marker = scanner.mustReadByte() else { return nil }
+        guard let marker = scanner.readByte() else { return nil }
         switch marker {
         case XMLByte.slash: return endElementToken()
         case XMLByte.questionMark: return processingInstructionToken()
@@ -116,7 +117,8 @@ final class XMLTokenizer {
             return nil
         }
         scanner.skipSpace()
-        guard scanner.mustReadByte() == XMLByte.greaterThan else {
+        guard let byte = scanner.readByte() else { return nil }
+        guard byte == XMLByte.greaterThan else {
             scanner.failure = .invalidEndTag(name.local)
             return nil
         }
@@ -132,15 +134,17 @@ final class XMLTokenizer {
         scanner.buffer.removeAll(keepingCapacity: true)
         var previous: UInt8 = 0
         while true {
-            guard let byte = scanner.mustReadByte() else { return nil }
+            guard let byte = scanner.readByte() else { return nil }
             scanner.buffer.append(byte)
             if previous == XMLByte.questionMark && byte == XMLByte.greaterThan { break }
             previous = byte
         }
         let content = String(decoding: scanner.buffer.dropLast(2), as: UTF8.self) // chop ?>
 
+        // Only a version that is present is checked, so an empty one is not an error.
         if target == Self.xmlPrefix,
            let version = XMLInstructionParameter.value(of: "version", in: content),
+           !version.isEmpty,
            version != "1.0" {
             scanner.failure = .unsupportedXMLVersion(version)
             return nil
@@ -149,7 +153,7 @@ final class XMLTokenizer {
     }
 
     private func declarationToken() -> XMLToken? {
-        guard let marker = scanner.mustReadByte() else { return nil }
+        guard let marker = scanner.readByte() else { return nil }
         switch marker {
         case XMLByte.hyphen: return commentToken()
         case XMLByte.leftBracket: return cdataToken()
@@ -158,7 +162,8 @@ final class XMLTokenizer {
     }
 
     private func commentToken() -> XMLToken? {
-        guard scanner.mustReadByte() == XMLByte.hyphen else {
+        guard let byte = scanner.readByte() else { return nil }
+        guard byte == XMLByte.hyphen else {
             scanner.failure = .malformedComment
             return nil
         }
@@ -166,7 +171,11 @@ final class XMLTokenizer {
         var previous: UInt8 = 0
         var previousPrevious: UInt8 = 0
         while true {
-            guard let byte = scanner.mustReadByte() else { return nil }
+            guard let byte = scanner.readByte() else { return nil }
+            // The byte is written before the terminator is checked, as in the reference, so the
+            // three bytes written last are the `-->` that ends the comment and are not part of its
+            // content.
+            scanner.buffer.append(byte)
             if previousPrevious == XMLByte.hyphen && previous == XMLByte.hyphen {
                 guard byte == XMLByte.greaterThan else {
                     scanner.failure = .malformedComment
@@ -174,17 +183,16 @@ final class XMLTokenizer {
                 }
                 break
             }
-            scanner.buffer.append(byte)
             previousPrevious = previous
             previous = byte
         }
-        // The `-->` that ends the comment is not part of it.
-        return .comment(String(decoding: scanner.buffer, as: UTF8.self))
+        return .comment(String(decoding: scanner.buffer.dropLast(3), as: UTF8.self))
     }
 
     private func cdataToken() -> XMLToken? {
         for expected in Array("CDATA[".utf8) {
-            guard scanner.mustReadByte() == expected else {
+            guard let byte = scanner.readByte() else { return nil }
+            guard byte == expected else {
                 scanner.failure = .malformedCDATA
                 return nil
             }
@@ -199,7 +207,7 @@ final class XMLTokenizer {
         var quoted: UInt8 = 0
         var depth = 0
         while true {
-            guard let byte = scanner.mustReadByte() else { return nil }
+            guard let byte = scanner.readByte() else { return nil }
             if quoted == 0 && byte == XMLByte.greaterThan && depth == 0 { break }
             scanner.buffer.append(byte)
             if quoted != 0 {
@@ -210,8 +218,9 @@ final class XMLTokenizer {
             case XMLByte.doubleQuote, XMLByte.singleQuote: quoted = byte
             case XMLByte.greaterThan: depth -= 1
             case XMLByte.lessThan:
-                // A comment inside a directive is skipped and replaced with a space, so that the parts
-                // it separated do not become new markup when the directive is written back out.
+                // A comment inside a directive is skipped and replaced with a space, so that the
+                // parts it separated do not become new markup when the directive is written back
+                // out.
                 guard scanner.startsComment() else { depth += 1; continue }
                 scanner.buffer.removeLast()
                 scanner.skipToCommentEnd()
@@ -232,9 +241,10 @@ final class XMLTokenizer {
         var attributes: [XMLAttribute] = []
         while true {
             scanner.skipSpace()
-            guard let byte = scanner.mustReadByte() else { return nil }
+            guard let byte = scanner.readByte() else { return nil }
             if byte == XMLByte.slash {
-                guard scanner.mustReadByte() == XMLByte.greaterThan else {
+                guard let next = scanner.readByte() else { return nil }
+                guard next == XMLByte.greaterThan else {
                     scanner.failure = .selfClosingTagNotClosed
                     return nil
                 }
@@ -256,7 +266,7 @@ final class XMLTokenizer {
             return nil
         }
         scanner.skipSpace()
-        guard let byte = scanner.mustReadByte() else { return nil }
+        guard let byte = scanner.readByte() else { return nil }
         if byte != XMLByte.equals {
             // Non-strict mode takes the name as its own value.
             scanner.unreadByte()
@@ -268,21 +278,22 @@ final class XMLTokenizer {
     }
 
     private func attributeValue() -> String? {
-        guard let byte = scanner.mustReadByte() else { return nil }
+        guard let byte = scanner.readByte() else { return nil }
         if byte == XMLByte.doubleQuote || byte == XMLByte.singleQuote {
             return scanner.text(quote: byte, cdata: false)
         }
 
-        // An unquoted value is read over the characters `attrval` lists, and the character that stops it
-        // is put back, which is why `href=http://` gives `http:` and the slash continues as markup. This
-        // class is not the one `readName` reads a name over: it has no `.`, so `href=a.b` gives `a` and
-        // the `.` is left for the next attribute position, where `readName` reads it as the start of a
-        // name and `isName` then rejects it. `attrval` clears the buffer it inherits from the name read,
-        // so a name that is its own value is not written twice.
+        // An unquoted value is read over the characters `attrval` lists, and the character that
+        // stops it is put back, which is why `href=http://` gives `http:` and the slash continues
+        // as markup. This class is not the one `readName` reads a name over: it has no `.`, so
+        // `href=a.b` gives `a` and the `.` is left for the next attribute position, where
+        // `readName` reads it as the start of a name and `isName` then rejects it. `attrval` clears
+        // the buffer it inherits from the name read, so a name that is its own value is not written
+        // twice.
         scanner.buffer.removeAll(keepingCapacity: true)
         scanner.unreadByte()
         while true {
-            guard let current = scanner.mustReadByte() else { return nil }
+            guard let current = scanner.readByte() else { return nil }
             guard XMLName.isAttributeValueByte(current) else {
                 scanner.unreadByte()
                 break
@@ -306,7 +317,8 @@ final class XMLTokenizer {
     }
 
     /// Records the declarations of a start tag before its name is translated, which is the order
-    /// `encoding/xml` uses: the translations listed in the attributes apply to the element name too.
+    /// `encoding/xml` uses: the translations listed in the attributes apply to the element name
+    /// too.
     private func recordDeclarations(in attributes: [XMLAttribute]) {
         for attribute in attributes {
             if attribute.name.namespace == Self.xmlnsPrefix {
@@ -328,7 +340,8 @@ final class XMLTokenizer {
             return false
         }
         if entry.name.local != name.local {
-            // Non-strict mode closes the element that is open and keeps the written name for after it.
+            // Non-strict mode closes the element that is open and keeps the written name for after
+            // it.
             pendingClose = name
             name = entry.name
             return true
@@ -351,6 +364,8 @@ final class XMLTokenizer {
         if name.namespace.isEmpty && !isElementName { return }
         if name.namespace == Self.xmlPrefix { name.namespace = Self.xmlNamespace }
         if name.namespace.isEmpty && name.local == Self.xmlnsPrefix { return }
+        // Go's `translate` falls back to `DefaultSpace` for a name with no prefix; the reference
+        // never sets that field, so the fallback would assign the empty string and change nothing.
         if let declared = namespaces[name.namespace] { name.namespace = declared }
     }
 }
