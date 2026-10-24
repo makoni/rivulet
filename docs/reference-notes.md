@@ -381,6 +381,11 @@ configuration `decoder.go` builds: `Strict = false` and `Entity = xml.HTMLEntity
   unescaped `]]>` outside a CDATA section, rewrites unescaped `CR` and `CRLF` as `LF`, and
   checks the characters it returns against XML's `Char` production, which a numeric character
   reference can still reach because the document is filtered before decoding.
+- `text` reports nothing in the reference only when it never wrote a byte: `Bytes()` on a buffer
+  that was emptied is an empty but non-nil slice, so the three `data == nil` checks in `rawToken`
+  are reached only when an error is already recorded. The ported check returns an empty string for
+  an empty buffer, and no input can reach the two states separately, so `<![CDATA[]]>` is empty text
+  rather than nothing.
 - A comment inside a directive is written as a single space, so that the markup parts it
   separated do not become new markup when the directive is written back out; a partial match of
   `!--` keeps the characters it matched, and the character that stopped it is handled again, so a

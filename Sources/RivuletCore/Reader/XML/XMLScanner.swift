@@ -29,9 +29,12 @@ final class XMLScanner {
     // MARK: - Cursor
 
     /// Reads one byte, or records the end of the document as the failure, which is what `getc`
-    /// does: once a failure is recorded nothing more is read. A primitive that can still return
-    /// what it has read at the end — `text` outside a CDATA section — does so, and the failure is
-    /// reported on the next read, which is where `mustgetc` differs from `getc`.
+    /// does: once a failure is recorded nothing more is read. The reference records `io.EOF` there,
+    /// and `mustgetc` turns it into `unexpected EOF` whenever it reads one; `Token` keeps the bare
+    /// `io.EOF` only when nothing is open, so the two are one case here, as `docs/parity.md`
+    /// records. A primitive that can still return what it has read at the end — `text` outside a
+    /// CDATA section — does so, and the failure is reported on the next read, which is where
+    /// `mustgetc` differs from `getc`.
     func readByte() -> UInt8? {
         if failure != nil { return nil }
         guard position < bytes.count else {
@@ -153,9 +156,17 @@ final class XMLScanner {
     /// line feeds.
     func text(quote: UInt8?, cdata: Bool) -> String? {
         buffer.removeAll(keepingCapacity: true)
+        guard let truncated = readTextBody(quote: quote, cdata: cdata) else { return nil }
+        buffer.removeSubrange((buffer.count - truncated)..<buffer.count)
+        return checkCharacterProduction()
+    }
+
+    /// The loop `text` reads: it writes the text to the buffer and stops at one of the places
+    /// listed above. Returns the number of bytes the caller drops from what it wrote — 2 for the
+    /// `]]>` that ends a CDATA section — or `nil` when a failure was recorded instead.
+    private func readTextBody(quote: UInt8?, cdata: Bool) -> Int? {
         var previous: UInt8 = 0
         var previousPrevious: UInt8 = 0
-        var truncated = 0
         input: while true {
             guard let byte = readByte() else {
                 // In a CDATA section the end of the document is reported; ordinary text returns
@@ -165,10 +176,7 @@ final class XMLScanner {
             }
             if previousPrevious == XMLByte.rightBracket && previous == XMLByte.rightBracket
                 && byte == XMLByte.greaterThan {
-                if cdata {
-                    truncated = 2
-                    break input
-                }
+                if cdata { return 2 }
                 failure = .unescapedBracketInText
                 return nil
             }
@@ -187,16 +195,21 @@ final class XMLScanner {
                 previous = 0
                 continue
             }
-            if byte == XMLByte.carriageReturn {
-                buffer.append(XMLByte.lineFeed)
-            } else if previous != XMLByte.carriageReturn || byte != XMLByte.lineFeed {
-                buffer.append(byte)
-            }
+            appendTextByte(byte, after: previous)
             previousPrevious = previous
             previous = byte
         }
-        buffer.removeSubrange((buffer.count - truncated)..<buffer.count)
-        return checkCharacterProduction()
+        return 0
+    }
+
+    /// Writes one byte of text, which is where an unescaped carriage return becomes a line feed and
+    /// a carriage return followed by a line feed is written once.
+    private func appendTextByte(_ byte: UInt8, after previous: UInt8) {
+        if byte == XMLByte.carriageReturn {
+            buffer.append(XMLByte.lineFeed)
+        } else if previous != XMLByte.carriageReturn || byte != XMLByte.lineFeed {
+            buffer.append(byte)
+        }
     }
 
     /// Writes one character reference to the buffer with its `&` already in it: the character it
@@ -242,43 +255,50 @@ final class XMLScanner {
     /// resolve.
     private func characterReference(startingAfter ampersandIndex: Int) -> Unicode.Scalar? {
         guard let byte = readByte() else { return nil }
-        if byte == XMLByte.hash {
-            buffer.append(XMLByte.hash)
-            guard var current = readByte() else { return nil }
-            var base = 10
-            if current == XMLByte.lowercaseX {
-                base = 16
-                buffer.append(current)
-                guard let next = readByte() else { return nil }
-                current = next
-            }
-            let digitsStart = buffer.count
-            while isDigit(current) || base == 16 && isHexLetter(current) {
-                buffer.append(current)
-                guard let next = readByte() else { return nil }
-                current = next
-            }
-            guard current == XMLByte.semicolon else {
-                unreadByte()
-                return nil
-            }
-            let digits = String(decoding: buffer[digitsStart...], as: UTF8.self)
-            buffer.append(XMLByte.semicolon)
-            guard let value = UInt32(digits, radix: base), value <= 0x10FFFF else { return nil }
-            // A surrogate is not a character, but the reference writes `string(rune(n))` for it,
-            // which is the replacement character.
-            if value >= 0xD800 && value <= 0xDFFF { return Unicode.Scalar(0xFFFD) }
-            return Unicode.Scalar(value)
-        }
-
+        if byte == XMLByte.hash { return numericReference(startingWith: byte) }
         unreadByte()
+        return namedReference(startingAfter: ampersandIndex)
+    }
+
+    /// Reads the digits of a numeric reference with its `#` at the cursor, and the `;` after them.
+    private func numericReference(startingWith hash: UInt8) -> Unicode.Scalar? {
+        buffer.append(hash)
+        guard var current = readByte() else { return nil }
+        var base = 10
+        if current == XMLByte.lowercaseX {
+            base = 16
+            buffer.append(current)
+            guard let next = readByte() else { return nil }
+            current = next
+        }
+        let digitsStart = buffer.count
+        while isDigit(current) || base == 16 && isHexLetter(current) {
+            buffer.append(current)
+            guard let next = readByte() else { return nil }
+            current = next
+        }
+        guard current == XMLByte.semicolon else {
+            unreadByte()
+            return nil
+        }
+        let digits = String(decoding: buffer[digitsStart...], as: UTF8.self)
+        buffer.append(XMLByte.semicolon)
+        guard let value = UInt32(digits, radix: base), value <= 0x10FFFF else { return nil }
+        // A surrogate is not a character, but the reference writes `string(rune(n))` for it, which
+        // is the replacement character.
+        if value >= 0xD800 && value <= 0xDFFF { return Unicode.Scalar(0xFFFD) }
+        return Unicode.Scalar(value)
+    }
+
+    /// Reads a named reference into the buffer, which already holds the `&`, and looks it up. The
+    /// name is read before the `;` is added to the buffer.
+    private func namedReference(startingAfter ampersandIndex: Int) -> Unicode.Scalar? {
         if !readName() && failure != nil { return nil }
         guard let byte = readByte() else { return nil }
         guard byte == XMLByte.semicolon else {
             unreadByte()
             return nil
         }
-        // The name is read from the buffer before the `;` is added to it.
         let entity = String(decoding: buffer[(ampersandIndex + 1)...], as: UTF8.self)
         buffer.append(XMLByte.semicolon)
         guard XMLName.isValidName(entity) else { return nil }

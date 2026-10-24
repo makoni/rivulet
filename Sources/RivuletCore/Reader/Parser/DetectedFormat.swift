@@ -6,8 +6,8 @@ import Foundation
 
 /// What format detection answers: the format, and the Atom version when the format is Atom.
 ///
-/// The reference returns an empty version for every other format, which is `nil` here. For Atom it is
-/// `1.0`, or `0.3` when the root element says so.
+/// The reference returns an empty version for every other format, which is `nil` here. For Atom it
+/// is `1.0`, or `0.3` when the root element says so.
 struct DetectedFormat: Equatable, Sendable {
     var format: FeedFormat
     var version: String? = nil

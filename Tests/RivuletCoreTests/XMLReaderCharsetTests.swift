@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import RivuletCore
+
 /// The charset path the reader takes before tokenizing. Ported from Miniflux
 /// `internal/reader/xml/decoder.go`. The tests here pin the path decision and the label lookup, and
 /// the deviations from the reference are recorded in `docs/parity.md`. The ported fixture tests of
@@ -17,6 +18,7 @@ import Testing
     private func latin1(_ text: String) -> Data {
         Data(text.unicodeScalars.map { UInt8($0.value & 0xFF) })
     }
+
     @Test func readerRejectsAnUnresolvableLabelForNonUTF8Bytes() {
         // The reference resolves the label only when it is the one `procInst` reads from an
         // instruction token, and this document is not valid UTF-8, so `charset.NewReaderLabel`
@@ -26,6 +28,7 @@ import Testing
             try XMLReader.read(data)
         }
     }
+
     @Test func labelFromBodyTextDecidesThePathButIsNeverResolved() throws {
         // `procInst` is applied to an instruction token, so text that writes `encoding=` decides
         // which branch the reference takes but is never resolved: the reference fails such a
@@ -33,18 +36,21 @@ import Testing
         let data = latin1("text with encoding=\"bogus\" inside <note><to>a\u{93}b</to></note>")
         #expect(try XMLReader.read(data).child(local: "to")?.text == "ab")
     }
+
     @Test func labelOfAnInstructionReadAfterTextConvertsTheDocument() throws {
         // The instruction token is read wherever it is, so text before it does not stop the
         // conversion.
         let data = latin1("junk <?xml encoding=\"iso-8859-1\"?><note><to>a\u{E0}b</to></note>")
         #expect(try XMLReader.read(data).child(local: "to")?.text == "a\u{E0}b")
     }
+
     @Test func labelOfTheFirstInstructionWithTheTargetXMLIsUsed() throws {
         // An instruction with another target comes first, so `procInst` is applied to the second
         // one.
         let data = latin1("<?pi x?><?xml encoding=\"iso-8859-1\"?><note><to>a\u{E0}b</to></note>")
         #expect(try XMLReader.read(data).child(local: "to")?.text == "a\u{E0}b")
     }
+
     @Test func instructionStartInsideMarkupCountsHereAlthoughTheReferenceReadsItAsText() throws {
         // The label scan reads `<?` occurrences in the bytes, so the `<?` inside this comment is
         // taken as an instruction start. The reference only reaches `procInst` at a token boundary,
@@ -53,6 +59,7 @@ import Testing
         let data = latin1("<!-- <?xml encoding=\"iso-8859-1\"?> --><note><to>a\u{E0}b</to></note>")
         #expect(try XMLReader.read(data).child(local: "to")?.text == "a\u{E0}b")
     }
+
     @Test func theWholeDocumentIsConvertedRatherThanThePartAfterTheInstruction() throws {
         // `switchToReader` converts from the instruction on, so the bytes read before it stay as
         // they are and the reference fails on them. Rivulet resolves the label once for the whole

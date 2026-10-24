@@ -72,8 +72,11 @@ final class XMLTokenizer {
         }
     }
 
-    /// Marks the end of the root element, the way `Decode` does when it begins reading a value, and
-    /// reports reaching it.
+    /// Marks where `Decode` stops for a value read as a plain struct: `unmarshal` returns after the
+    /// root's end tag. The reference's `pushEOF` marks a single element only when the value's type
+    /// implements `UnmarshalXML`, which Miniflux does for two types, and this port has no value
+    /// layer to check that a value consumed its whole element; `docs/parity.md` records the
+    /// difference.
     func pushEndOfInputMarker() {
         guard var index = stack.lastIndex(where: { $0.kind == .element }) else { return }
         // The declarations below an element belong to it, so the marker goes under them.

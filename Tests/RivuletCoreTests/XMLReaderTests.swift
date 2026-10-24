@@ -255,6 +255,15 @@ import Testing
         #expect(try XMLReader.read(Data("<?xml version=\"\"?><note>x</note>".utf8)).text == "x")
     }
 
+    @Test func instructionContentIsWhatFollowsTheTarget() throws {
+        // The token's content is what is read after the target name, without the `?>` that ends the
+        // instruction, so the target is not part of it.
+        #expect(try contents(Data("<?xml version=\"1.0\" encoding=\"utf-8\"?>".utf8)) {
+            if case .processingInstruction(let target, let content) = $0 { return "\(target)|\(content)" }
+            return nil
+        } == ["xml|version=\"1.0\" encoding=\"utf-8\""])
+    }
+
     @Test func instructionWithNoTargetIsAnError() {
         #expect(throws: XMLError.processingInstructionTargetExpected) {
             try XMLReader.read(Data("<note><?!x>y</note>".utf8))
@@ -404,14 +413,20 @@ import Testing
         }
     }
 
-    @Test func verticalTabIsNotTagWhitespaceAndIsRemovedFromTheDocument() throws {
-        // The reference skips only space, tab, line feed and carriage return, so a vertical tab is
-        // not tag whitespace. It is not an XML `Char` either, so it never reaches the tokenizer:
-        // the character filter applied to the document removes it first, which leaves the next
-        // attribute adjacent to the closing quote and reading its own value.
+    @Test func verticalTabIsRemovedByTheCharacterFilterBeforeTheDocumentIsTokenized() throws {
+        // A vertical tab is outside XML's `Char` production, so the character filter the reference
+        // applies before decoding removes it, and the next attribute ends up adjacent to the
+        // closing quote and reads its own value. What the filter removes is never tag whitespace
+        // either: `space()` skips only space, tab, line feed and carriage return.
         let note = try XMLReader.read(Data("<note x=\"1\"\u{0B}y=\"2\">z</note>".utf8))
         #expect(note.attributes.map { "\($0.name.local)=\($0.value)" } == ["x=1", "y=2"])
         #expect(note.text == "z")
+
+        // The assertion that shows the removal rather than only the outcome: inside a quoted value
+        // nothing is skipped, so a character treated as tag whitespace would stay in the value,
+        // while a character the filter kept would fail the read as an illegal character. Only one
+        // removed before the document is read gives `ab`.
+        #expect(try XMLReader.read(Data("<note x=\"a\u{0B}b\">z</note>".utf8)).attributes[0].value == "ab")
     }
 
     // MARK: - The reader's own contract
@@ -464,5 +479,15 @@ import Testing
         let root = try XMLReader.read(Data("<note xml:lang=\"en\">x</note>".utf8))
         #expect(root.attributes[0].name.namespace == "http://www.w3.org/XML/1998/namespace")
         #expect(root.attributes[0].value == "en")
+    }
+
+    @Test func nameMatchesItsLocalPartAndTheNamespaceItsTagNames() throws {
+        // A model field matches on the local name alone unless its tag names a namespace, so an
+        // empty `namespace` matches any namespace.
+        let name = XMLName(namespace: "http://www.w3.org/2005/Atom", local: "title")
+        #expect(name.matches(local: "title"))
+        #expect(name.matches(local: "title", namespace: "http://www.w3.org/2005/Atom"))
+        #expect(!name.matches(local: "title", namespace: "http://purl.org/dc/elements/1.1/"))
+        #expect(!name.matches(local: "creator"))
     }
 }

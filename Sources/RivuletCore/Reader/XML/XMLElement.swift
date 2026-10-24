@@ -27,7 +27,8 @@ struct XMLElement: Equatable, Sendable {
     }
 
     /// The value of a direct attribute with this local name, and namespace when one is given. An
-    /// attribute with no prefix is not in the default namespace, so an empty `namespace` matches it.
+    /// attribute with no prefix is not in the default namespace, so an empty `namespace` matches
+    /// it.
     func attribute(local: String, namespace: String = "") -> String? {
         attributes.first { $0.name.matches(local: local, namespace: namespace) }?.value
     }

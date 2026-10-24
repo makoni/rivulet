@@ -5,9 +5,10 @@ import Testing
 /// Feed-format detection. Ported from Miniflux `internal/reader/parser/format.go`; the tests that
 /// mirror an upstream assertion name the upstream test (`format_test.go`).
 ///
-/// Detection reads tokens through the same tolerant reader the parser uses, and a tokenizing failure
-/// ends the scan rather than failing the call — the reference ignores the error and breaks, so the
-/// answer is `unknown` — with one exception: JSON is recognized before any XML token is read.
+/// Detection reads tokens through the same tolerant reader the parser uses, and a tokenizing
+/// failure ends the scan rather than failing the call — the reference ignores the error and breaks,
+/// so the answer is `unknown` — with one exception: JSON is recognized before any XML token is
+/// read.
 @Suite struct FeedFormatTests {
     // MARK: - Ported upstream cases
 
@@ -97,8 +98,8 @@ import Testing
     }
 
     @Test func scanStopsAtTheFiftiethToken() {
-        // 49 comments put the root at token 50, which is still read; 50 comments put it at 51, which
-        // is past the cap, so the format is unknown.
+        // 49 comments put the root at token 50, which is still read; 50 comments put it at 51,
+        // which is past the cap, so the format is unknown.
         let atTheCap = String(repeating: "<!-- x -->", count: 49) + "<rss></rss>"
         let pastTheCap = String(repeating: "<!-- x -->", count: 50) + "<rss></rss>"
         #expect(FeedFormatDetector.detect(Data(atTheCap.utf8)).format == .rss)
@@ -110,14 +111,14 @@ import Testing
     }
 
     @Test func rootsAreMatchedOnTheirLocalNameOnly() {
-        // The reference matches `Name.Local`, so a prefixed root element is decided by its local name,
-        // as `rdf:RDF` is in `TestDetectRDF`.
+        // The reference matches `Name.Local`, so a prefixed root element is decided by its local
+        // name, as `rdf:RDF` is in `TestDetectRDF`.
         #expect(FeedFormatDetector.detect(Data("<x><feed></feed></x>".utf8)).format == .atom)
     }
 
     @Test func versionAttributeOnlyCountsForAtom() {
-        // `version="0.3"` on an rss root is not an Atom version, which is what the reference's switch
-        // shape shows.
+        // `version="0.3"` on an rss root is not an Atom version, which is what the reference's
+        // switch shape shows.
         #expect(FeedFormatDetector.detect(Data("<rss version=\"0.3\"></rss>".utf8)).version == nil)
     }
 }

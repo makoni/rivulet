@@ -55,8 +55,8 @@ enum XMLError: Error, Equatable, Sendable {
     case endTagNamespaceMismatch(element: XMLName, endTag: XMLName)
 
     /// A character outside XML's `Char` production, which the reference can still reach through a
-    /// numeric character reference: the document is filtered before decoding, but `&#0;` resolves to a
-    /// character the production does not allow.
+    /// numeric character reference: the document is filtered before decoding, but `&#0;` resolves
+    /// to a character the production does not allow.
     case illegalCharacterCode(UInt32)
 
     /// A document read through its declared label when the bytes are not valid UTF-8 and the label
