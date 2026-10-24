@@ -46,3 +46,28 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
 
 None of these differences is observable on the ported fixture corpus: all fixture assertions the
 reference makes are reproduced. Valid documents in a legacy encoding decode identically.
+
+## XML reader (stage 3)
+
+**Matching the reference.** The buffer rules, `space`, `attrval`, `text`, the comment, CDATA and
+directive reading, `getc` and `mustgetc`, the namespace scope and the end-of-root rule follow
+`encoding/xml` (Go 1.22) line by line, with the configuration Miniflux builds (`Strict = false`,
+`Entity = xml.HTMLEntity`). `ungetc` is an equivalence rather than the same function, since the
+reference never reads after a failure. The name classes are the one approximation, recorded in the
+table below. The entity table is transcribed from it and attributed in `NOTICE`.
+
+**Known differences.**
+
+| Case | Reference (`encoding/xml`) | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Name classes | two explicit `unicode.RangeTable`s (`first`, `second`), a transcription of an older Unicode version | Swift Unicode properties: letter, number and grapheme-extend, plus the ASCII name bytes and `-`, `.`, `·` | Go's tables omit letters Swift reports as letters (`ª`, `µ`, `º`, the ligature and digraph forms) and most characters above the BMP, so Rivulet accepts names the reference rejects. No fixture covers it |
+| `text` rejects invalid UTF-8 | reports `invalid UTF-8` for a rune it cannot decode | not modeled: invalid sequences are removed before the document is read, so the check is reached only when the label is never resolved, which is the case in the next row | The reference fails such a document, Rivulet filters it; pinned by a test |
+| Label | `procInst` is applied to an instruction token, so the label is the one carried by the first instruction whose target is `xml`; Miniflux decides the path from the first `encoding=` of the whole document, which is not the same lookup | the same, with the two lookups kept apart: the path is decided by the first `encoding=` anywhere, the label is read from the first instruction with the target `xml` | A body `encoding=` decides the path but is never resolved, so such a document fails in the reference and is filtered here; pinned by a test |
+| Instruction start | `procInst` is reached at a token boundary, so a `<?` inside a comment, a CDATA section or a quoted attribute value is not an instruction | the label scan reads `<?` occurrences in the bytes, so one inside markup counts | A Latin-1 document whose only `encoding=` is inside a comment converts here and fails in the reference; pinned by a test |
+| Where the conversion applies | `switchToReader` converts from the instruction on, so bytes read before it are not converted | the label is applied to the whole document | Bytes before a late `xml` instruction that are not valid UTF-8 fail in the reference and are decoded here; pinned by a test |
+| End of document inside a name or an unquoted value | fails, because `mustgetc` cannot read past the end | fails as `unexpectedEOF` | Same result; the difference is only in the message, which is not modeled |
+| Error reporting | `SyntaxError` with a line number and a message | typed `XMLError` cases, no line numbers | Callers match on the case, not on the text |
+| Bare `io.EOF` | returned as it is when the stack is empty, such as after a comment at the top level, or when it is at the record `pushEOF` put; `Token` converts it otherwise, and `mustgetc` converts it on every read that finds it | the same `unexpectedEOF` case, because the port keeps one failure | Only the message differs; the reader reports it as one failure |
+| `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix | not ported, because the reference never sets it, so the fallback assigns the empty string | None |
+| `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
+| `pushEOF` and `popEOF` | used by `unmarshalInterface`, so only for values whose type implements `UnmarshalXML`; Miniflux implements it for two types (`internal/reader/rss/rss.go:210`, `internal/reader/opml/opml.go:75`) | not ported, because this layer reads tokens and not values; the marker marks where `unmarshal` stops for a value read as a plain struct | The reference fails a value implementing `UnmarshalXML` that stops before its end tag (Go's `read.go:218-220`); nothing here checks that, because there is no value layer |

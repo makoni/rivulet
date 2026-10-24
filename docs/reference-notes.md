@@ -356,6 +356,58 @@ Semantics:
   not count as a UTF-8 declaration — the document then takes the `CharsetReader` path, where its
   valid UTF-8 bytes still win and nothing is converted.
 
+### Tolerant tokenizer (`encoding/xml`, as the reference configures it)
+
+Verified against `encoding/xml` (Go 1.22), which is the decoder Miniflux uses, with the
+configuration `decoder.go` builds: `Strict = false` and `Entity = xml.HTMLEntity`.
+
+- An attribute name with no `=` after it becomes its own value. An unquoted value is read over the
+  characters `attrval` lists — letters, digits, `_`, `:`, `-` — which is not the class `readName`
+  reads a name over, because `isNameByte` also has `.`, and the character that stops the value is
+  put back, so `href=a.b` gives `a` and the dot is left for the next attribute position.
+- A mismatched end tag closes the element that is open, and the name as written is kept for
+  after it.
+- Unknown, malformed and oversized character references stay as written; the five references XML
+  requires are resolved before the HTML table, which has 252 entries. A numeric reference to a
+  surrogate resolves to U+FFFD, because the reference writes `string(rune(n))` for every value up to
+  the largest rune, and U+FFFD is inside the `Char` production, so the text keeps it.
+- `space()` skips only space, tab, line feed and carriage return, so a vertical tab is not tag
+  whitespace. It is not an XML `Char` either, so it is removed with the other illegal characters
+  before the document is read.
+- `readName` does not clear the buffer, which is what lets a character reference keep the `&` it
+  started with; `name()` and `attrval()` clear it before reading. A name that reads but is not one
+  (`1tag`, `.b`) fails `isName`, because a name cannot start with a digit or a dot.
+- `text` puts back the `<` that ends it, reports an unescaped `<` inside a quoted value and an
+  unescaped `]]>` outside a CDATA section, rewrites unescaped `CR` and `CRLF` as `LF`, and
+  checks the characters it returns against XML's `Char` production, which a numeric character
+  reference can still reach because the document is filtered before decoding.
+- `text` reports nothing in the reference only when it never wrote a byte at all: `Bytes()` on a
+  buffer that was emptied is an empty but non-nil slice, so the three `data == nil` checks in
+  `rawToken` are reached only when an error is already recorded. Every path that calls `text` has
+  written a byte by the time it can return — the first byte of text, the name read before an
+  attribute value, and the two `]` of a CDATA terminator, which are written before the `]]>` check —
+  so no input reaches the two states separately, and the ported empty string matches the reference
+  for every input, including `<![CDATA[]]>`, which is empty text.
+- A comment inside a directive is written as a single space, so that the markup parts it
+  separated do not become new markup when the directive is written back out; a partial match of
+  `!--` keeps the characters it matched, and the character that stopped it is handled again, so a
+  `>` in it still counts against the nesting. The content of a comment is the buffer without the
+  `-->` that ends it.
+- The end of the document is recorded as the failure as soon as `getc` reaches it, and nothing
+  is read after a failure; putting a byte back after one changes nothing, which is what `ungetc`
+  gets from `getc` rather than from checking the failure itself. A primitive that can still return
+  what it has read at the end — `text` outside a CDATA section — does so, and the failure is
+  reported on the next read, which is what `mustgetc` does not. In a CDATA section the end is
+  reported at once.
+- `Decode` stops at the end of the root element, so markup after the root is not read, and the
+  `AutoClose` list is never set by the reference, so it does not invent end tags.
+- Format detection (`parser/format.go`): JSON is decided by the first character that is not
+  whitespace before any XML token is read, with Go's `unicode.IsSpace` class, which counts
+  U+0085 and U+00A0 as whitespace; at most 50 tokens are considered; roots are matched on the
+  local name alone,
+  which is why `rdf:RDF` is `RDF`; a failure ends the scan without an answer, so the answer is
+  `unknown`; an Atom root with no `version` attribute reports `1.0`.
+
 ## Test fixtures in the reference
 
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;

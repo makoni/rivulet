@@ -98,7 +98,10 @@ public enum FeedCharset {
     }
 
     /// XML 1.0 `Char`: tab, newline, carriage return, and the legal ranges.
-    private static func isXMLCharacter(_ scalar: Unicode.Scalar) -> Bool {
+    /// Characters of XML's `Char` production, the same rule `filterInvalidXMLCharacters`
+    /// removes with, and which `text` still reports for a numeric character reference: a value like
+    /// `&#0;` resolves to a character outside the production, and the reference fails there.
+    static func isXMLCharacter(_ scalar: Unicode.Scalar) -> Bool {
         switch scalar.value {
         case 0x09, 0x0A, 0x0D, 0x20...0xD7FF, 0xE000...0xFFFD, 0x10000...0x10FFFF:
             return true
