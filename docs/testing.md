@@ -112,7 +112,9 @@ socket: the `/healthz` tests start the server on an ephemeral port (never the co
 and use Vapor's client. The same socket-level approach backs the client-API journey tests.
 
 Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test
-temp directories, no network access except to the local stub server or the stub proxy). A bounded
+temp directories, no network access except to the local stub server or the stub proxy). The ported
+date parser needs neither the clock nor the machine's zone: it reads no clock and no tzdata, and a
+value that reads no zone is read as UTC, which is what the reference does as well. A bounded
 timeout that proves a failure is fast rather than hanging is allowed — the pool-timeout test
 asserts one — and a test whose pass condition is a timeout says so in its comment. A stub-side
 hold is the only margin that can turn a test into a false pass: the first cache test keeps a

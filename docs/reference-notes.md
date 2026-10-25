@@ -132,7 +132,18 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 
 - Integer Unix timestamp first; then the RFC822/850/1123 group, parsed in UTC — the group name says
   "local time", but `parseLocalTimeDates` pins UTC with two named-zone exceptions: `PST`/`PDT` →
-  Los Angeles, `EST`/`EDT` → New York; then ~70 layouts after normalization, with offset clamping.
+  Los Angeles, `EST`/`EDT` → New York; then the layout list after normalization — 3 layouts in the
+  local-time group and 206 in the list, 209 in all — with the offset clamped to −12:00 to +14:00,
+  reported as UTC.
+- Normalization is a 79-pair table scanned over the bytes: zone locations written as names,
+  localized day and month names, and the two weekday spellings that are not Go's own. At a position
+  Go takes the pair with the highest priority, which is the first one in the order the pairs are
+  listed in. The only pattern that is a prefix of another is `Mai`, and the longer `Mai ` is listed
+  first; its pattern and replacement carry the same trailing space, so the output is the same as a
+  longest-match reading would give.
+- A zone abbreviation is resolved through the machine's local zone (`lookupName`), with the
+  documented fallback offset of 0; `GMT` keeps a signed hour as part of its name. A value that reads
+  no zone at all is read as UTC, because `time.Parse`'s default location is UTC.
 - On complete failure the adapters fall back to `time.Now()`.
 
 ## Icons
