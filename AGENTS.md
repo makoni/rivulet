@@ -77,6 +77,26 @@ We work test-first: **red → green → refactor**.
   dependency needs explicit approval — Linux-first, keep the surface small.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
+## Review
+
+- Every PR is reviewed by three read-only reviewers, and all three must APPROVE on the final head.
+- The budget is three runs, hard cap four. Run 1 is a full review of the pushed head; run 2 verifies
+  the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
+  if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This
+  replaces the older "two clean rounds" wording, which counted rounds but did not cap them: a run
+  per blocker kept the count open.
+- Run 1 checks three things, so nothing from it expands into later runs: the semantics against the
+  reference, that every assertion can actually fail on the behavior it names, and that the docs say
+  what the tests pin.
+- The cap counts runs, not fixes. A blocker is fixed in the commit that answers it; when the budget
+  is spent, findings that do not change behavior go to the backlog and the PR merges.
+- Non-blocking observations do not reopen a review: they land in the same commit or go to the
+  backlog. A wording change that restates what a reviewer proposed is confirmed with one line, not
+  with a run. Style findings (file and function size, unused imports, unported upstream tests) are
+  backlog items, not blockers.
+- Open the PR after the review runs are done, so CI runs once on the final head and the approvals
+  are counted on that head.
+
 ## Commands
 
 ```sh
