@@ -128,3 +128,50 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | Version of `time` | the reference is Miniflux v2.3.3, whose `go.mod` declares Go 1.26; a current `time` accepts a literal `Z` for all five ISO patterns and rejects an offset hour above 24, an offset minute above 60 or an offset second above 60 | Go 1.22 `time/format.go`, which these notes were traced against: `Z` for the three patterns that carry no seconds, and no range check inside a numeric offset | `+25:00`, `+01:61` and `+01:00:61` match here and are rejected by a current Go, while `+24:00`, `+01:60` and `+01:00:60` match in both because those checks use `>` rather than `>=`. A 1.22-only match outside `checkTimezoneRange`'s −12:00 to +14:00 is reported as UTC with the instant preserved, while `+01:61` is inside the range and keeps its offset. The `Z` half cannot be reached through the catalog, whose 209 layouts have no seconds-bearing ISO pattern |
 | Trimming | `strings.TrimSpace`, which also trims Unicode whitespace | Go's `asciiSpace` set | Input that starts or ends with a non-ASCII space is trimmed there and left as it is here |
 | A layout that does not match | a `ParseError` naming the layout, the layout element and the value element | no match, because the reference only cares whether a layout matched; the entry point reports the failure after the last layout | The text differs; which layout matched, and the value it read, are the same |
+
+## URL layer (stage 3)
+
+**Matching the reference.**
+
+- The parse order is Go's: the fragment is cut first, then the scheme, then the query, then the
+  opaque form or the authority, then the path. The control-character check is made on the part
+  before the fragment, which is where Go makes it.
+- Only a colon at the start of the value is a failure. An invalid character before the colon means
+  there is no scheme, and the value is read as a path; a relative value whose first segment carries
+  a colon is the error Go reports for a value like `cache_object:foo/bar`.
+- The scheme is lower-cased, as Go lowercases it after reading it, so `RootURL` and the rebuilt
+  string report it lower-cased whatever the input case was.
+- A raw form is recorded only when it is not already the canonical encoding of the decoded value,
+  which is Go's rule for `RawPath`, and `EscapedPath` refuses a recorded form it cannot decode back
+  to the decoded value. That is what keeps `http://golang.org/a%2Fb` as it was written while
+  `http://golang.org/a%20b` has no recorded form at all.
+- The escape classes are the ones `gen_encoding_table.go` builds the table from: alphanumerics and
+  the marks `-` `_` `.` `~` are never escaped; the path escapes only `?` from its reserved set, a
+  query component escapes all of it, a fragment escapes none of it, and a host allows the
+  sub-delimiters plus `:` `[` `]` `<` `>` `"`. A `+` is a space only for a query component.
+- `validEncoded` allows the sub-delimiters whatever the mode says, because `shouldEscape` is not
+  quite RFC 3986 compliant, which is what decides whether a recorded raw form is used.
+- Query pairs: only `&` separates them, a pair carrying a `;` is an error that `Query()` discards, a
+  pair with no `=` is a key with an empty value, and a malformed escape skips the pair. `Encode()`
+  writes the keys sorted, with the values of one key in the order they were read.
+- `ResolveReference`: a reference that carries an authority is returned as read after its path is
+  cleaned; a reference with no path and no query takes the base query and fragment; otherwise the
+  path is joined through `resolvePath`, which removes dot segments, pops the whole segment before a
+  `..`, keeps a trailing slash when the value ended with a slash or with a dot segment, and does not
+  collapse a doubled slash.
+- `Hostname` reports a bracketed host without its brackets, and a host whose port is not a number is
+  not split at all, which is what Go reports in that case too.
+- `ForceQuery` (a value ending with a single `?`) and `OmitHost` (a scheme followed by a slash path
+  with no authority) are ported, because both change the string the sanitizer writes back into an
+  attribute, and `ResolveReference` does not hand `OmitHost` to the value it resolves.
+
+**Known differences.**
+
+| Case | Reference (`net/url`) | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Bracketed host | must be a valid IP literal — `netip.ParseAddr` over the unescaped name, with an IPv4 inside brackets refused, and a zone identifier read through its own mode | the bracketed value is kept as it was read, and only the port after it is checked | A bracketed host that is not an address parses here, so the reader resolves it as a name and the fetcher's address policy sees a host to look up instead of a value it would refuse |
+| Percent escapes of bytes that are not valid UTF-8 | the bytes are kept as they are, since a Go string can hold them | a Swift string is valid UTF-8, so a decoded byte that is not a valid sequence becomes U+FFFD | Only a malformed escape of non-UTF-8 bytes differs; a host cannot carry such bytes, because Go refuses them there too |
+| Query parameter count | `ParseQuery` refuses a query above its limit | no limit | A query with more pairs than the limit is parsed here |
+| The `*` path | `EscapedPath` returns `*` unescaped | escaped as `%2A` | Only the request-URI form, which the reader never resolves |
+| Authority user part | `Userinfo` keeps the username and password decoded separately and re-escapes them when the string is rebuilt | the user part is kept as it was read | The rebuilt string can differ for an escaped user part; nothing in the reader uses the split |
+| Error wording | sentences such as `invalid port %q after host` and `missing protocol scheme` | cases naming the offending character, port or escape, with the escape named as Go names it — at most three bytes of it | The text differs; which value fails is the same, and the reader acts on the failure, not on the text |

@@ -146,6 +146,30 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   no zone at all is read as UTC, because `time.Parse`'s default location is UTC.
 - On complete failure the adapters fall back to `time.Now()`.
 
+## URL rules (`internal/urllib`, `internal/reader/urlcleaner`)
+
+- `IsRelativePath` rejects a value containing a backslash before parsing, because a browser reads
+  `/\evil.com` as an open redirect while Go reads the backslash as an ordinary path character.
+  Otherwise a value is relative when it parses and carries neither a scheme nor a host.
+- `IsAbsoluteURL` checks the `http`/`https` prefix on the value as it was read, before parsing, so a
+  value that starts with whitespace is not absolute even though `url.Parse` would trim it.
+- `RootURL` turns a leading `//` into `https://`, and a value that does not parse, or parses with no
+  scheme or no host, is answered with as it was read. Otherwise the answer is scheme + `://` + host
+  + `/`. `Domain` is the host as read, and `DomainWithoutWWW` removes only a leading `www.`.
+- `resolveToAbsoluteURL` answers three cases before the base is used: a value beginning with the
+  authority marker takes `https:` whatever the base scheme is; an `http`/`https` prefix is returned
+  as it was read; a value that carries a scheme is returned as it was read. The base is parsed only
+  when it has not been parsed already, and the join is `ResolveReference().String()`.
+- Tracking parameters (`internal/reader/urlcleaner`): the parameter name is compared lower-cased
+  against the table, and the `utm_`/`mtm_` prefixes are checked before the table. `ref` is an
+  outbound parameter, so it is removed only when one of its values equals the feed host or the site
+  host. The query is written back only when something was removed, and then in sorted key order, so
+  a URL with no tracker comes back with its pairs in the order the feed declared them.
+- Two rules of `internal/urllib` are not ported yet because no reader path uses them:
+  `IsValidProxyURL` (the fetcher's proxy check, which needs a host as well as an HTTP or SOCKS5
+  prefix) and `JoinBaseURLAndPath` (the integrations, stage 6). Both read through the same parse
+  when they land.
+
 ## Icons
 
 - Stored in the database: `icons(id, hash unique, mime_type, content bytea)`

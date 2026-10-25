@@ -4,8 +4,9 @@
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
 transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
 table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
-209 layouts, with a fixed zone table in place of the machine's tzdata); the format adapters are
-next.
+209 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
+resolves through is in review (the `net/url` subset, the URI-scheme allowlist, the
+tracking-parameter cleaner). The sanitizer itself and then the format adapters are next.
 
 ## Scope
 
@@ -31,7 +32,10 @@ next.
 - [ ] Sanitizer (SwiftSoup): allowlist of tags/attributes ported from
       `internal/reader/sanitizer` (media: `img/video/audio/source`, `iframe` with a domain
       allowlist); strips scripts, styles, event handlers, `javascript:` URLs; deterministic output.
-- [ ] Normalization: relative URL resolution against feed/site URL, entity decoding, whitespace.
+- [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
+      `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
+      class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
+      Entity decoding and whitespace normalization are still open.
 - [ ] Feed metadata: title, site URL, description, icon link; typed errors ("not a feed",
       "feed not found", too large).
 - [x] Fixtures ported to `Tests/RivuletCoreTests/Fixtures/<area>/` with a provenance `README.md`
@@ -47,6 +51,11 @@ next.
   reference's tolerance, the HTML entity table, the `XMLElement` tree and format detection. The
   tolerance rules are recorded in `docs/reference-notes.md` and the deviations in `docs/parity.md`.
   The format adapters read through it.
+- The URL layer slice is in review (2026-10-25): the `net/url` subset the reader resolves through,
+  the URL rules from `internal/urllib`, the URI-scheme allowlist and the tracking-parameter cleaner.
+  It came before the sanitizer, because the sanitizer resolves the attributes it keeps through it,
+  and before the adapters, because they call the cleaner and the sanitizer. The subset boundary and
+  the pins that are traced rather than ported from a corpus are recorded in `docs/parity.md`.
 - Sanitizer output must be deterministic — golden-file friendly.
 - The sanitizer is security-critical (see `AGENTS.md`): relax nothing to make tests pass.
 
@@ -61,6 +70,9 @@ next.
 - XML: 3 fixtures.
 - Dates: ported table-driven cases. The "now" fallback belongs to the format adapters, so it is
   covered with them rather than by the date slice.
+- URL: the ported tables from `internal/urllib/url_test.go` and
+  `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
+  source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs,
   nested obfuscation).
 
