@@ -5,6 +5,9 @@ import Testing
 /// Query parsing and re-encoding, ported from Go's `net/url` (`url.Values`, `ParseQuery`,
 /// `Values.Encode`). The reference reads the query as a map, so `encode` writes the pairs in sorted
 /// key order, which is what makes a sanitized URL reproducible.
+///
+/// Every case here is traced against Go's source; the cases taken from the upstream corpus are in
+/// `TrackingParametersTests`.
 @Suite struct QueryValuesTests {
     @Test func parseKeepsPairsAsDecodedValues() throws {
         let query = QueryValues.parse("name=John%20Doe&utm_source=newsletter")

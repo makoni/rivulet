@@ -4,7 +4,9 @@
 
 import Foundation
 
-/// Stub for the red run.
+/// Why the cleaner cannot answer: the reference returns an error when any of the three parsed URLs
+/// is absent. The reader decides what to keep in that case, so the failure is reported rather than
+/// answered with an empty string.
 enum TrackingParametersError: Error, Equatable {
     case missingURL
 }

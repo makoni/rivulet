@@ -5,9 +5,10 @@ import Testing
 /// The URL shape the reader resolves through, ported from Go's `net/url` (`url.Parse`).
 ///
 /// Only the parts the reader uses are ported: the fields `parse` fills, the string it rebuilds, the
-/// host and escape rules that decide whether a value parses at all. The subset boundary, and which
-/// of these pins come from the upstream corpus and which are traced against Go's source, are
-/// recorded in `docs/parity.md`.
+/// host and escape rules that decide whether a value parses at all. Every pin in this suite is
+/// traced against Go's source, because the reference has no corpus for the parsed form itself; the
+/// corpus pins are in `URLResolveTests` and `URLRulesTests`. The subset boundary is recorded in
+/// `docs/parity.md`.
 @Suite struct ParsedURLTests {
     // MARK: - Fields parse fills
 
@@ -168,6 +169,39 @@ import Testing
         #expect(throws: URLParseError.invalidEscape("%zz")) { try ParsedURL.parse("https://example.org/a%zz") }
     }
 
+    /// Go reads the host through its host mode, where a byte at or above DEL is part of the host
+    /// and a percent escape may only carry one, so an internationalised host parses there. The
+    /// exception is `%25`, which carries the percent sign of a zone identifier.
+    @Test func hostAcceptsNonASCIIBytesAndOnlyTheirEscapes() throws {
+        #expect(try ParsedURL.parse("http://fooébar/").host == "fooébar")
+        #expect(try ParsedURL.parse("http://foo%c3%a9bar/").host == "fooébar")
+        #expect(try ParsedURL.parse("http://foo%25bar/").host == "foo%bar")
+        #expect(throws: URLParseError.invalidEscape("%2f")) { try ParsedURL.parse("http://foo%2fbar/") }
+    }
+
+    /// Go enforces strict colons for `http` and `https`, so the port is read at the first colon
+    /// there; another scheme keeps the historical reading of the last colon.
+    @Test func portIsReadAtTheFirstColonForHTTPAndHTTPSSchemes() throws {
+        #expect(throws: URLParseError.invalidPort(":bar:80")) {
+            try ParsedURL.parse("http://foo:bar:80/")
+        }
+        #expect(try ParsedURL.parse("ftp://foo:bar:80/").host == "foo:bar:80")
+    }
+
+    /// Go checks the user part against the class RFC 3986 §3.2.1 allows, and it does that after the
+    /// host is read, so a value with both a bad host and a bad user reports the host.
+    @Test func userPartOutsideTheUserinfoClassFailsToParse() throws {
+        #expect(throws: URLParseError.invalidUserinfo("a\"b")) {
+            try ParsedURL.parse("http://a\"b@host/")
+        }
+        #expect(throws: URLParseError.invalidHost(character: "|")) {
+            try ParsedURL.parse("http://a\"b@bad|host/")
+        }
+        // The delimiter between the user and the host is the last `@`, so one inside the user part
+        // is allowed, as in `username:p@ssword@google.com`.
+        #expect(try ParsedURL.parse("http://user:p@ss@example.org/").userInfo == "user:p@ss")
+    }
+
     /// Go reports a colon at the start of the value as a missing protocol scheme.
     @Test func emptySchemeBeforeAColonFailsToParse() {
         #expect(throws: URLParseError.missingScheme) { try ParsedURL.parse("://bad") }
@@ -193,6 +227,12 @@ import Testing
     @Test func controlCharacterFailsToParse() {
         #expect(throws: URLParseError.controlCharacter("\n")) { try ParsedURL.parse("https://example.org/a\nb") }
         #expect(throws: URLParseError.controlCharacter("\t")) { try ParsedURL.parse("\thttps://example.org/p") }
+    }
+
+    /// Because the check is made on the part before the fragment, a control character that is
+    /// inside the fragment is accepted, as Go accepts it.
+    @Test func controlCharacterInsideTheFragmentIsAccepted() throws {
+        #expect(try ParsedURL.parse("https://example.org/p#\n").fragment == "\n")
     }
 
     @Test func hostNameIsHostWithoutPortOrBrackets() throws {

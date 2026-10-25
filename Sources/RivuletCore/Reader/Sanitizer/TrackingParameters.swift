@@ -96,14 +96,10 @@ enum TrackingParameters {
                 continue
             }
 
-            if trackingParamsOutbound.contains(lowerKey) {
-                for value in query.values[key] ?? [] {
-                    if value == feedHost || value == siteHost {
-                        cleaned.values.removeValue(forKey: key)
-                        foundTrackers = true
-                        break
-                    }
-                }
+            if isOutboundMatch(lowerKey, values: query.values[key] ?? [], feedHost: feed.hostName,
+                siteHost: base.hostName) {
+                cleaned.values.removeValue(forKey: key)
+                foundTrackers = true
             }
         }
 
@@ -118,6 +114,14 @@ enum TrackingParameters {
         // trim is the reference's line kept as it is.
         let rebuilt = rewritten.description
         return rebuilt.hasSuffix("?") ? String(rebuilt.dropLast()) : rebuilt
+    }
+
+    /// Go handles duplicate parameters, so the whole value list of an outbound parameter is
+    /// checked.
+    private static func isOutboundMatch(_ parameter: String, values: [String], feedHost: String,
+        siteHost: String) -> Bool {
+        guard trackingParamsOutbound.contains(parameter) else { return false }
+        return values.contains { $0 == feedHost || $0 == siteHost }
     }
 
     private static func isTrackingParam(_ parameter: String) -> Bool {

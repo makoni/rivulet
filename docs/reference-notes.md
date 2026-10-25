@@ -155,7 +155,13 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   value that starts with whitespace is not absolute even though `url.Parse` would trim it.
 - `RootURL` turns a leading `//` into `https://`, and a value that does not parse, or parses with no
   scheme or no host, is answered with as it was read. Otherwise the answer is scheme + `://` + host
-  + `/`. `Domain` is the host as read, and `DomainWithoutWWW` removes only a leading `www.`.
+  + `/`. `Domain` is the host as the parse reports it, which is the decoded form, and
+  `DomainWithoutWWW` removes only a leading `www.`.
+- The host is read through Go's host mode: a byte at or above DEL is part of the host, a percent
+  escape may carry only such a byte except `%25`, and a bracket that opens inside the host is
+  refused. The port is read at the first colon for `http` and `https` — Go's strict-colon rule with
+  its default on — and at the last colon for another scheme. The user part of an authority is
+  checked against the class RFC 3986 §3.2.1 allows, after the host is read.
 - `resolveToAbsoluteURL` answers three cases before the base is used: a value beginning with the
   authority marker takes `https:` whatever the base scheme is; an `http`/`https` prefix is returned
   as it was read; a value that carries a scheme is returned as it was read. The base is parsed only

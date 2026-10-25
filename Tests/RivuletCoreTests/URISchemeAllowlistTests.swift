@@ -49,7 +49,7 @@ import Testing
     /// The allowlist is the reference's, so a scheme it lists is accepted even when the value is
     /// not an HTTP URL, and a scheme it does not list is rejected even when the value is well
     /// formed.
-    @Test func schemesOutsideTheCommonOnesAreInTableOrderNotByShape() {
+    @Test func schemesOutsideTheCommonOnesAreAcceptedByMembershipNotByShape() {
         #expect(URISchemeAllowlist.hasValidScheme("ssh://example.org/p"))
         #expect(URISchemeAllowlist.hasValidScheme("opener:x"))
         #expect(URISchemeAllowlist.hasValidScheme("hack:x"))

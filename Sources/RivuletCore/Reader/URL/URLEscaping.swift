@@ -62,24 +62,20 @@ enum URLEscaping {
         return String(decoding: result, as: UTF8.self)
     }
 
-    /// A percent escape must be well formed; a malformed one is the error the caller reports, named
-    /// as Go names it — at most the first three bytes of the offending escape. A value with nothing
-    /// to decode is returned as it was read, which is what the reference's fast path does.
+    /// Go's `unescape`, in its two passes: the value is checked over the whole string before
+    /// anything is decoded, which is why a host is refused for a character it must escape even when
+    /// there is nothing to decode. A value with nothing to decode is then returned as it was read,
+    /// which is what the reference's fast path does.
     static func unescape(_ value: String, mode: Mode) throws -> String {
         let bytes = Array(value.utf8)
-        guard bytes.contains(UInt8(ascii: "%")) ||
-            (mode.plusIsSpace && bytes.contains(UInt8(ascii: "+"))) else { return value }
+        let checked = try check(bytes, mode: mode)
+        if checked.escapes == 0 && !checked.hasPlus { return value }
 
         var result = [UInt8]()
         var index = 0
         while index < bytes.count {
             switch bytes[index] {
             case UInt8(ascii: "%"):
-                guard index + 2 < bytes.count, isHexDigit(bytes[index + 1]),
-                    isHexDigit(bytes[index + 2]) else {
-                    let reported = bytes[index..<min(index + 3, bytes.count)]
-                    throw URLParseError.invalidEscape(String(decoding: reported, as: UTF8.self))
-                }
                 result.append(UInt8(hexValue(bytes[index + 1]) * 16 + hexValue(bytes[index + 2])))
                 index += 3
             case UInt8(ascii: "+"):
@@ -91,6 +87,49 @@ enum URLEscaping {
             }
         }
         return String(decoding: result, as: UTF8.self)
+    }
+
+    /// Go's first pass: every escape is checked for being well formed, and in the host component
+    /// for carrying a byte that is not ASCII, except `%25`, which carries the percent sign of a
+    /// zone identifier. A character the host mode would escape is the error Go reports for the
+    /// host.
+    private static func check(_ bytes: [UInt8], mode: Mode) throws -> (escapes: Int, hasPlus: Bool) {
+        var escapes = 0
+        var hasPlus = false
+        var index = 0
+        while index < bytes.count {
+            switch bytes[index] {
+            case UInt8(ascii: "%"):
+                guard index + 2 < bytes.count, isHexDigit(bytes[index + 1]),
+                    isHexDigit(bytes[index + 2]) else {
+                    throw URLParseError.invalidEscape(reportedEscape(bytes, at: index))
+                }
+                if mode == .host && hexValue(bytes[index + 1]) < 8 && !isEscapedPercent(bytes, at: index) {
+                    throw URLParseError.invalidEscape(reportedEscape(bytes, at: index))
+                }
+                escapes += 1
+                index += 3
+            case UInt8(ascii: "+"):
+                hasPlus = mode.plusIsSpace
+                index += 1
+            default:
+                if mode == .host && bytes[index] < 0x80 && shouldEscape(bytes[index], mode: mode) {
+                    throw URLParseError.invalidHost(character: Character(Unicode.Scalar(bytes[index])))
+                }
+                index += 1
+            }
+        }
+        return (escapes, hasPlus)
+    }
+
+    /// Go reports at most the first three bytes of the offending escape.
+    private static func reportedEscape(_ bytes: [UInt8], at index: Int) -> String {
+        String(decoding: bytes[index..<min(index + 3, bytes.count)], as: UTF8.self)
+    }
+
+    private static func isEscapedPercent(_ bytes: [UInt8], at index: Int) -> Bool {
+        bytes[index] == UInt8(ascii: "%") && bytes[index + 1] == UInt8(ascii: "2")
+            && bytes[index + 2] == UInt8(ascii: "5")
     }
 
     /// Go's `validEncoded`: whether the value can be used as the recorded raw form of the section

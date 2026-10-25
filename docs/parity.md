@@ -151,6 +151,15 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   sub-delimiters plus `:` `[` `]` `<` `>` `"`. A `+` is a space only for a query component.
 - `validEncoded` allows the sub-delimiters whatever the mode says, because `shouldEscape` is not
   quite RFC 3986 compliant, which is what decides whether a recorded raw form is used.
+- The host is read through the host mode, so a byte at or above DEL is part of it and a percent
+  escape may only carry one — except `%25`, which carries the percent sign of a zone identifier —
+  and the host is stored decoded, as Go stores it. So `http://foo%c3%a9bar/` parses and reports the
+  decoded host.
+- The port is read at the first colon for `http` and `https` and at the last one for another scheme,
+  which is Go's strict-colon rule with its default on; with the `urlstrictcolons` setting off Go
+  takes the last colon there too. A bracket that opens inside the host is refused.
+- The user part is checked against the class RFC 3986 §3.2.1 allows, and Go does that after the host
+  is read, so a value with both a bad host and a bad user reports the host.
 - Query pairs: only `&` separates them, a pair carrying a `;` is an error that `Query()` discards, a
   pair with no `=` is a key with an empty value, and a malformed escape skips the pair. `Encode()`
   writes the keys sorted, with the values of one key in the order they were read.
@@ -169,8 +178,8 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 
 | Case | Reference (`net/url`) | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Bracketed host | must be a valid IP literal — `netip.ParseAddr` over the unescaped name, with an IPv4 inside brackets refused, and a zone identifier read through its own mode | the bracketed value is kept as it was read, and only the port after it is checked | A bracketed host that is not an address parses here, so the reader resolves it as a name and the fetcher's address policy sees a host to look up instead of a value it would refuse |
-| Percent escapes of bytes that are not valid UTF-8 | the bytes are kept as they are, since a Go string can hold them | a Swift string is valid UTF-8, so a decoded byte that is not a valid sequence becomes U+FFFD | Only a malformed escape of non-UTF-8 bytes differs; a host cannot carry such bytes, because Go refuses them there too |
+| Bracketed host | must be a valid IP literal — `netip.ParseAddr` over the unescaped name, with an IPv4 inside brackets refused, and a zone identifier read through its own mode | the bracketed name is read through the host mode and decoded, but only the port after it is checked | A bracketed host that is not an address parses here, so the reader resolves it as a name and the fetcher's address policy sees a host to look up instead of a value it would refuse |
+| Percent escapes of bytes that are not valid UTF-8 | the bytes are kept as they are, since a Go string can hold them | a Swift string is valid UTF-8, so a decoded byte that is not a valid sequence becomes U+FFFD | Only an escape of bytes that are not a valid UTF-8 sequence differs; a host can carry such an escape, because the host mode allows an escape of a byte at or above DEL |
 | Query parameter count | `ParseQuery` refuses a query above its limit | no limit | A query with more pairs than the limit is parsed here |
 | The `*` path | `EscapedPath` returns `*` unescaped | escaped as `%2A` | Only the request-URI form, which the reader never resolves |
 | Authority user part | `Userinfo` keeps the username and password decoded separately and re-escapes them when the string is rebuilt | the user part is kept as it was read | The rebuilt string can differ for an escaped user part; nothing in the reader uses the split |

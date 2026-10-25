@@ -98,22 +98,29 @@ extension ParsedURL {
         return true
     }
 
-    /// Go's `parseAuthority`: the user is read before the host, and the host is validated.
+    /// Go's `parseAuthority`: the host is read and validated first, and only then is the user part
+    /// checked against Go's userinfo class. The user part is kept as it was read, because this
+    /// subset does not split it into a username and a password.
     private static func parseAuthority(_ authority: String, _ url: inout ParsedURL) throws {
         if let at = authority.lastIndex(of: "@") {
-            url.userInfo = String(authority[..<at])
-            let hostPart = String(authority[authority.index(after: at)...])
-            if !hostPart.isEmpty { url.host = try parseHost(hostPart) }
+            url.host = try parseHost(String(authority[authority.index(after: at)...]),
+                scheme: url.scheme)
+            let userPart = String(authority[..<at])
+            if !isValidUserinfo(userPart) { throw URLParseError.invalidUserinfo(userPart) }
+            url.userInfo = userPart
             return
         }
-        url.host = try parseHost(authority)
+        url.host = try parseHost(authority, scheme: url.scheme)
     }
 
     /// Go's `parseHost`: a bracket must not open inside the host, a bracketed host must be closed,
-    /// a port must be a valid optional port, and a character outside the host class is the error.
-    private static func parseHost(_ hostport: String) throws -> String {
+    /// a port must be a valid optional port, and the value is read through the host mode, which
+    /// refuses a character it must escape and an escape that carries an ASCII byte.
+    private static func parseHost(_ hostport: String, scheme: String) throws -> String {
         if let open = hostport.lastIndex(of: "[") {
             if hostport.distance(from: hostport.startIndex, to: open) > 0 {
+                // Go reports this as an invalid IP-literal, and it checks the bracketed value no
+                // further than this in the subset this port covers.
                 throw URLParseError.invalidHost(character: "[")
             }
             guard let closing = hostport.lastIndex(of: "]") else {
@@ -121,32 +128,50 @@ extension ParsedURL {
             }
             let portPart = String(hostport[hostport.index(after: closing)...])
             if !isValidOptionalPort(portPart) { throw URLParseError.invalidPort(portPart) }
-            return hostport
+
+            let name = String(hostport[hostport.index(after: open)..<closing])
+            let decodedName = try URLEscaping.unescape(name, mode: .host)
+            let decodedPort = try URLEscaping.unescape(portPart, mode: .host)
+            return "[" + decodedName + "]" + decodedPort
         }
 
-        if let colon = hostport.lastIndex(of: ":") {
-            let portPart = String(hostport[hostport.index(after: colon)...])
-            if !portPart.isEmpty && !portPart.utf8.allSatisfy(isDigit) {
-                throw URLParseError.invalidPort(":" + portPart)
+        if let colon = hostport.firstIndex(of: ":") {
+            // Go enforces strict colons for `http` and `https`, so the port is read at the first
+            // colon there; for another scheme it keeps the historical reading of the last colon.
+            var portColon = colon
+            if let lastColon = hostport.lastIndex(of: ":"), lastColon != colon,
+                scheme != "http", scheme != "https" {
+                portColon = lastColon
             }
-            try checkHostCharacters(String(hostport[..<colon]))
-            return hostport
+            if !isValidOptionalPort(String(hostport[portColon...])) {
+                throw URLParseError.invalidPort(String(hostport[portColon...]))
+            }
         }
 
-        try checkHostCharacters(hostport)
-        return hostport
+        return try URLEscaping.unescape(hostport, mode: .host)
     }
+
+    /// Go's `validUserinfo`: the class RFC 3986 §3.2.1 allows, with `@` kept because the delimiter
+    /// between the user and the host is the last one in the authority.
+    private static func isValidUserinfo(_ user: String) -> Bool {
+        for byte in user.utf8 {
+            if isLetter(byte) || isDigit(byte) { continue }
+            if userinfoClass.contains(byte) { continue }
+            return false
+        }
+        return true
+    }
+
+    private static let userinfoClass: [UInt8] = [UInt8(ascii: "-"), UInt8(ascii: "."),
+        UInt8(ascii: "_"), UInt8(ascii: ":"), UInt8(ascii: "~"), UInt8(ascii: "!"), UInt8(ascii: "$"),
+        UInt8(ascii: "&"), UInt8(ascii: "'"), UInt8(ascii: "("), UInt8(ascii: ")"), UInt8(ascii: "*"),
+        UInt8(ascii: "+"), UInt8(ascii: ","), UInt8(ascii: ";"), UInt8(ascii: "="), UInt8(ascii: "%"),
+        UInt8(ascii: "@")]
 
     private static func isValidOptionalPort(_ portPart: String) -> Bool {
         if portPart.isEmpty { return true }
         if portPart.first != ":" { return false }
         return portPart.utf8.dropFirst().allSatisfy(isDigit)
-    }
-
-    private static func checkHostCharacters(_ host: String) throws {
-        for byte in host.utf8 where URLEscaping.shouldEscape(byte, mode: .host) {
-            throw URLParseError.invalidHost(character: Character(Unicode.Scalar(byte)))
-        }
     }
 
     /// Go's `stringContainsCTLByte`: a byte below the space or the DEL character.
