@@ -5,7 +5,7 @@
 transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
 table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
 209 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
-resolves through is in review (the `net/url` subset, the URI-scheme allowlist, the
+resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
 tracking-parameter cleaner). The sanitizer itself and then the format adapters are next.
 
 ## Scope
@@ -51,7 +51,7 @@ tracking-parameter cleaner). The sanitizer itself and then the format adapters a
   reference's tolerance, the HTML entity table, the `XMLElement` tree and format detection. The
   tolerance rules are recorded in `docs/reference-notes.md` and the deviations in `docs/parity.md`.
   The format adapters read through it.
-- The URL layer slice is in review (2026-10-25): the `net/url` subset the reader resolves through,
+- The URL layer slice landed (2026-10-25) as #12: the `net/url` subset the reader resolves through,
   the URL rules from `internal/urllib`, the URI-scheme allowlist and the tracking-parameter cleaner.
   It came before the sanitizer, because the sanitizer resolves the attributes it keeps through it,
   and before the adapters, because they call the cleaner and the sanitizer. The subset boundary and
