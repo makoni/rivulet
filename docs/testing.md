@@ -131,6 +131,13 @@ gets its own `README.md` recording provenance: upstream repository, commit `c4d5
 and which files were copied verbatim vs regenerated. `NOTICE` is updated when fixtures land.
 Each ported case carries a comment pointing to the original Go test (`internal/reader/...`).
 
+The URL layer has no fixture corpus, because the reference has none for it: its cases are the ported
+tables from `internal/urllib/url_test.go` and `internal/reader/urlcleaner/urlcleaner_test.go`, plus
+pins traced against Go's `net/url` source — there is no Go toolchain on this machine, so each suite
+says which pins come from the upstream corpus and which are traced from the source, and
+`docs/parity.md` records where the traced subset stops. Nothing in it reads a clock, a locale or the
+network.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.

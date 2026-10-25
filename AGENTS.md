@@ -16,9 +16,10 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 3 — Parsing & sanitization** (charset, XML reader and date parser merged;
-format adapters next). Stage 2 is merged, with one exit criterion deferred to the refresh path;
-see its stage file. Keep this line and the plan's status table in sync.
+Current focus: **Stage 3 — Parsing & sanitization** (charset, XML reader and date parser merged; the
+URL layer the sanitizer resolves through is in review; sanitizer next). Stage 2 is merged, with one
+exit criterion deferred to the refresh path; see its stage file. Keep this line and the plan's
+status table in sync.
 
 ## Toolchain
 
