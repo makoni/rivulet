@@ -36,7 +36,7 @@ is inside the MVP.
 | 0 | [Foundation](stage-0-foundation.md) | done | M |
 | 1 | [Storage layer](stage-1-storage.md) | done | M |
 | 2 | [Feed fetching](stage-2-fetching.md) | fetcher merged, exit criterion deferred | M |
-| 3 | [Parsing & sanitization](stage-3-parsing.md) | charset and XML reader merged, date parser in review, adapters next | XL |
+| 3 | [Parsing & sanitization](stage-3-parsing.md) | charset, XML reader and date parser merged, adapters next | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | not started | M |
 | 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |

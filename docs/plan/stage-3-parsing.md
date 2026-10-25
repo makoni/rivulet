@@ -3,8 +3,9 @@
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
 transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
-table, format detection); the date parser slice is in review (Go's `parse` over the reference's 209
-layouts, with a fixed zone table in place of the machine's tzdata); the format adapters are next.
+table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
+209 layouts, with a fixed zone table in place of the machine's tzdata); the format adapters are
+next.
 
 ## Scope
 
@@ -15,11 +16,11 @@ layouts, with a fixed zone table in place of the machine's tzdata); the format a
       layer could not express.
 - [ ] Entry identity fallback chains and SHA-256 hashing, exactly as the reference does
       (per-format rules in `docs/reference-notes.md`).
-- [ ] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
+- [x] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
       interpreted as local time, 209 layouts after normalization (3 in the local-time group and 206
       in the list), PST/PDT workaround, UTC-offset clamping; adapters fall back to "now" when
       parsing fails completely. Zone abbreviations read through a fixed table instead of the
-      machine's tzdata — see `docs/parity.md`. In review.
+      machine's tzdata — see `docs/parity.md`.
 - [x] Charset detection and transcoding: WHATWG label table transcribed from
       `golang.org/x/text` v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths
       (`CharsetReader`, `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan
