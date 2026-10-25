@@ -94,3 +94,22 @@ tracking-parameter cleaner). The sanitizer itself and then the format adapters a
   CDATA) is the biggest project risk, because the reference is lenient and a strict XML reader is
   not; the spike measured this on the corpus. Deviations are recorded in `docs/parity.md` as soon as
   observed — stage 7 consolidates tolerances.
+
+## Backlog
+
+Findings from the URL layer review (#12) that do not change behavior:
+
+- `String()` keeps two Go branches this subset does not port: the first path slash is escaped when
+  `OmitHost` is set and the path begins with the authority marker, and the `./` prefix is written
+  for a first path segment that carries a colon when nothing else was written. Neither is reachable
+  through `parse` or `resolvePath`, so no assertion can fail on them here; they belong to the subset
+  boundary recorded in `docs/parity.md`.
+- The `*` path row in `docs/parity.md` describes a branch this subset does not port, but a `*` read
+  through `parse` still round-trips as `*` through the recorded raw form, so the row should say what
+  is observable instead of what the unported branch would do.
+- A bracketed host is read through its own mode in Go, and the bracketed name is checked as an
+  address. Both stay outside the subset the reader resolves through; the zone mode rules of
+  `unescape` are the part that would change a value.
+- `TestIsValidProxyURL` and `TestJoinBaseURLAndPath` are not ported, because no reader path uses
+  them. They land with the fetcher's proxy check and the stage 6 integrations, through the same
+  parse.
