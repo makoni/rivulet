@@ -66,7 +66,6 @@ final class HTMLFragmentTree {
     private let root = HTMLNode(kind: .document)
     private var open: [HTMLNode] = []
     private var mode = Mode.body
-    private var finished = false
 
     init(_ tokenizer: HTMLTokenizer) {
         self.tokenizer = tokenizer
@@ -78,7 +77,7 @@ final class HTMLFragmentTree {
         let html = try insertElement(name: "html", attributes: [])
         html.appendChild(HTMLNode(kind: .element, name: "head"))
 
-        while !finished, let token = tokenizer.next() {
+        while let token = tokenizer.next() {
             try process(token)
         }
 
@@ -176,9 +175,9 @@ final class HTMLFragmentTree {
             try insertImplied(name: "tr", scope: .tableBody, modeAfter: .row)
             try processStartTagInTable(name, attributes: attributes)
         case "caption", "col", "colgroup", "tbody", "tfoot", "thead":
-            // The element is popped only when one of the three bodies is open, and the token is
-            // then read again in the table mode.
-            guard let position = index(of: name) else { return }
+            // The open body is popped only when one of the three is open, and the token is then
+            // read again in the table mode.
+            guard let position = indexOfTableBody() else { return }
             open.removeSubrange(position...)
             mode = .table
             try processStartTagInTable(name, attributes: attributes)
@@ -210,13 +209,10 @@ final class HTMLFragmentTree {
 
     private func processEndTag(_ name: String) throws {
         // `body` does not pop anything: only the insertion mode changes, so what follows is still
-        // added to it. `html` ends the parse outside a table, and is ignored inside one.
+        // added to it. `html` is read as `</body>` and reprocessed, which leaves the body open, so
+        // it is ignored here too; inside a table both are ignored.
         if mode == .body {
-            if name == "body" { return }
-            if name == "html" {
-                finished = true
-                return
-            }
+            if name == "body" || name == "html" { return }
         } else {
             if name == "html" || name == "body" { return }
             return processEndTagInTable(name)
@@ -317,6 +313,10 @@ final class HTMLFragmentTree {
 
     private func index(of name: String) -> Int? {
         open.lastIndex(where: { $0.name == name })
+    }
+
+    private func indexOfTableBody() -> Int? {
+        open.lastIndex(where: { $0.name == "tbody" || $0.name == "thead" || $0.name == "tfoot" })
     }
 
     private func elementNamed(_ name: String) -> HTMLNode? {

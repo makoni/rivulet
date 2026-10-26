@@ -307,4 +307,26 @@ import Testing
         for _ in 0..<(512 - 1) { input = "<div>" + input + "</div>" }
         #expect(sanitize(input) == "")
     }
+
+    /// `inBodyIM` reads `</html>` as `</body>` and reprocesses it, and the body stays open, so
+    /// content after it is still part of the body. Traced against `parse.go`.
+    @Test func endTagForHtmlDoesNotEndTheParse() {
+        #expect(sanitize("<p>a</p></html><p>b</p>") == "<p>a</p><p>b</p>")
+    }
+
+    /// `inTableBodyIM` pops the open `tbody` (or `thead`/`tfoot`) before it reprocesses the start
+    /// tag that follows, which is why a section or a caption is not ignored. Traced against
+    /// `parse.go`.
+    @Test(arguments: [
+        (
+            "<table><tbody><thead><tr><th>H</th></tr></thead></table>",
+            "<table><thead><tr><th>H</th></tr></thead></table>"
+        ),
+        (
+            "<table><tbody><caption>C</caption></table>",
+            "<table><caption>C</caption></table>"
+        ),
+    ]) func tableBodyIsPoppedByTheNextSectionStartTag(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
 }

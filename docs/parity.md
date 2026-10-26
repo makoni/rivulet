@@ -200,17 +200,17 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   which is what the reference parses with. The rules pinned by
   `Tests/RivuletCoreTests/HTMLTokenizerTests.swift`: a comment closes only after two dashes (`-->`
   or `--!>`), so a `>` inside its data is data; `<!>` has no data, and at the end of the input the
-  trailing dashes are not data either. A tag name keeps a NUL as it was read, while an attribute key
-  or value has it replaced with U+FFFD, which `TagAttr` does whatever the state, and a text token
-  has it removed by the insertion mode, because the tokenizer flags only the raw-text, comment and
-  doctype states as converting. A named reference without its semicolon is resolved outside the
-  attribute mode only, and the semicolon stays part of the name because the reader is already past
-  the character it stopped on. A duplicate attribute name is kept once. `</p>` with no open `p`
-  inserts an empty one, and `</br>` is read as a start tag. Only `hr` and the block list close an
-  open `p` — `button` does not, and `br`, `img` and `wbr` do not. `td` and `th` outside a table are
-  not elements at all, and `tbody` is inserted inside a table but is not in the sanitizer allowlist,
-  so it is invisible in the output.
-- - The entity table is the data `x/net/html` builds from the HTML5 named character references,
+  trailing dashes are not data either. A tag name, an attribute key and an attribute value have NUL
+  replaced with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed by the
+  insertion mode, because the tokenizer flags only the raw-text, comment and doctype states as
+  converting. A named reference without its semicolon is resolved outside the attribute mode only,
+  and the semicolon stays part of the name because the reader is already past the character it
+  stopped on. A duplicate attribute name is kept once. `</p>` with no open `p` inserts an empty one,
+  and `</br>` is read as a start tag. Only `hr` and the block list close an open `p` — `button` does
+  not, and `br`, `img` and `wbr` do not. `td` and `th` outside a table are not elements at all, and
+  `tbody` is inserted inside a table but is not in the sanitizer allowlist, so it is invisible in
+  the output.
+- The entity table is the data `x/net/html` builds from the HTML5 named character references,
    generated from that source. The reference keeps 2138 entries, 106 of them without a semicolon;
    every one of those 106 resolves to the value its semicolon form resolves to, which the generator
    asserts, so the table stores the 2032 semicolon forms once and the short names as a set. The 93
@@ -223,7 +223,7 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | --- | --- | --- | --- |
 | Foster parenting | content the table modes cannot take is attached to the parent of the table, so it is written before the table | the insertion point is the open element, so it is written inside the table | This is the subset boundary: no case in the reference corpus changes what the sanitizer writes because of it, but real feeds can nest content inside a table here where the reference moves it out |
 | Active formatting elements and the adoption agency | a formatting-element list and the adoption agency algorithm, which can move a node into or out of an element | not ported | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in the corpus covers it |
-| Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr` | A `caption` or a nested table is attached to the insertion point instead of being handled by its own mode |
+| Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
 | Text inside a table | only whitespace text is added to the table element; anything else is foster parented | added to the insertion point | Same for whitespace; non-whitespace text can be inside the table here |
 | Comment nodes | kept as nodes in the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the shape the sanitizer sees |
-| `escape` and `unescape` | `&#34;` and `&#39;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests | None |
+| `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests | None |

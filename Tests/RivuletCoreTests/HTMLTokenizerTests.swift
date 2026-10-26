@@ -7,8 +7,9 @@ import Testing
 ///
 /// These are traced against `golang.org/x/net/html` (BSD-3-Clause) rather than ported from a
 /// reference test, because the reference has no test for this area; `docs/parity.md` records where
-/// the ported subset stops. Every case is asserted through `Sanitizer.sanitize`, so what is pinned
-/// is the rule as the sanitizer sees it.
+/// the ported subset stops. Except the tag-name case, which the sanitizer output cannot show
+/// because such a name is never in the allowlist, every case is asserted through
+/// `Sanitizer.sanitize`, so what is pinned is the rule as the sanitizer sees it.
 @Suite struct HTMLTokenizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
     private let baseURL = "http://example.org/"
@@ -42,6 +43,37 @@ import Testing
         #expect(sanitize("<p>a</p><script><em>x</em></script><p>b</p>") == "<p>a</p><p>b</p>")
     }
 
+    /// A `<` that does not begin a tag is text: `Next` reconsumes it into the accumulated text.
+    @Test func lessThanThatDoesNotBeginATagIsText() {
+        #expect(sanitize("<p>a < b</p>") == "<p>a &lt; b</p>")
+    }
+
+    /// An empty raw text element emits no text token, but `Next` still reads its end tag, so the
+    /// rest of the document is not lost.
+    @Test(arguments: ["script", "style", "title"]) func emptyRawTextElementKeepsReading(element: String) {
+        #expect(sanitize("<p>a</p><\(element)></\(element)><p>b</p>") == "<p>a</p><p>b</p>")
+    }
+
+    /// `readRawEndTag` accepts `/` before `>`, so `</script/>` ends the raw text.
+    @Test func rawTextEndTagWithASolidusEndsTheRawText() {
+        #expect(sanitize("<p>a</p><script></script/><p>b</p>") == "<p>a</p><p>b</p>")
+    }
+
+    /// `TagName` replaces NUL with U+FFFD, as `TagAttr` does for a key and a value.
+    @Test func tagNameNULIsReplaced() throws {
+        let token = try #require(HTMLTokenizer("<di\u{00}v>").next())
+        #expect(token.name == "di\u{FFFD}v")
+    }
+
+    /// `EscapeString` escapes a carriage return as `&#13;`, after a character reference has
+    /// decoded it.
+    @Test(arguments: [
+        ("<p>a&#13;b</p>", "<p>a&#13;b</p>"),
+        ("<ul id=\"a&#13;b\"></ul>", "<ul id=\"a&#13;b\"></ul>"),
+    ]) func carriageReturnIsEscaped(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
+
     /// A comment and an empty `</>` are tokens the reference keeps in the tree and the renderer
     /// skips. A `>` inside the data does not end it, and `--!>` does.
     @Test(arguments: [
@@ -65,9 +97,9 @@ import Testing
     }
 
     /// NUL is removed from a text token by the insertion mode, while the tokenizer replaces it with
-    /// U+FFFD in the states it flags as converting (raw text, comment, doctype) and in an attribute key
-    /// or value, which `TagAttr` does whatever the state. The tag name is not converted at all, so a name
-    /// carrying a NUL is simply not in the allowlist.
+    /// U+FFFD in the states it flags as converting (raw text, comment, doctype) and in an attribute
+    /// key or value, which `TagAttr` does whatever the state. `TagName` replaces it too, so a name
+    /// carrying a NUL is not in the allowlist.
     @Test(arguments: [
         ("<p>a\u{00}b</p>", "<p>ab</p>"),
         ("<img src=\"http://example.org/i.png\" title=\"a\u{00}b\">",

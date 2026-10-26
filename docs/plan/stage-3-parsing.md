@@ -127,3 +127,21 @@ Findings from the URL layer review (#12) that do not change behavior:
 - `TestIsValidProxyURL` and `TestJoinBaseURLAndPath` are not ported, because no reader path uses
   them. They land with the fetcher's proxy check and the stage 6 integrations, through the same
   parse.
+
+Findings from the sanitizer slice review that do not change behavior:
+
+- `TestInvalidURLScheme` copies the upstream case, where the invalid scheme sits on an `<a>` that
+  has no `href`; the element is unwrapped because `href` is mandatory, so the case does not pin the
+  scheme. Add an `<a href="file:///etc/passwd">` case; scheme rejection is pinned for `img` and
+  `srcset` today.
+- `mediaValidatorsDoNotApplyToOtherTags` names `fetchpriority` and `decoding`, but a `p` allowlist
+  is empty, so the pair would pass even if the validators did not exist. The validators are pinned
+  by the `img` table; the comment should say the pair only pins the tag gate.
+- `startTagInRowMode` looks for an open `tr` anywhere in the stack, where the reference uses
+  `popUntil(tableRowScope, tr)`. Equivalent while the stack is well formed; a scope-aware version
+  belongs with the nested-table work.
+- `SrcSetParser` writes an integral density as `1000000x`, where Go's
+  `strconv.FormatFloat(v, 'g', -1, 64)` writes `1e+06x`. Pathological, but it is a formatting
+  difference.
+- `SanitizerIFrameTests` keeps upstream's `contains("<iframe")` assertion, which would pass for a
+  wrong iframe output; the exact-output cases next to it cover the same domains.

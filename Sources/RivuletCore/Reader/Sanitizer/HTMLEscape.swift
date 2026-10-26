@@ -8,8 +8,8 @@ import Foundation
 /// The escaping the sanitizer writes text and attribute values through, which is
 /// `html.EscapeString`.
 ///
-/// It is not the escaping the reference's renderer uses for a whole document: the five characters
-/// the function knows about are the five the sanitizer can put into its own output.
+/// It is not the escaping the reference's renderer uses for a whole document: the six characters
+/// the function knows about are the six the sanitizer can put into its own output.
 enum HTMLEscape {
     private static let replacements: [Character: String] = [
         "&": "&amp;",
@@ -17,6 +17,7 @@ enum HTMLEscape {
         ">": "&gt;",
         "\"": "&#34;",
         "'": "&#39;",
+        "\r": "&#13;",
     ]
 
     static func escapeString(_ value: String) -> String {

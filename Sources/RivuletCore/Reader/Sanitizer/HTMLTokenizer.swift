@@ -57,13 +57,13 @@ final class HTMLTokenizer {
             position += 1
             guard position < chars.count else { break }
 
-            let kind = tagKind(after: chars[position], at: position)
-            if kind == nil {
-                position -= 1
+            guard let kind = tagKind(after: chars[position], at: position) else {
+                // The `<` does not begin a tag, so it stays in the text and the scan resumes after
+                // it, which is the reconsumption `Next` does.
                 continue
             }
 
-            let token = parseTag(startedAt: tagStart, kind: kind!)
+            let token = parseTag(startedAt: tagStart, kind: kind)
             // A non-text token can have text accumulated before it, and the reference returns that
             // text first and the token on the next call.
             if textStart < tagStart {
@@ -112,21 +112,24 @@ final class HTMLTokenizer {
 
     // MARK: - Tag states
 
-    /// The tag name, read to its delimiter, which the attribute state then consumes. `TagName` lower-cases
-    /// it without converting newlines or NUL and without decoding a character reference, which is the one
-    /// name rule that is not the conversion the data states apply.
+    /// The tag name, read to its delimiter, which the attribute state then consumes. `TagName`
+    /// replaces NUL with U+FFFD and lower-cases the name, but it converts no newline and decodes no
+    /// character reference, which is the one name rule that is not the conversion the data states
+    /// apply.
     private func readTagName(startedAt: Int, endTag: Bool) -> String {
         var index = startedAt + (endTag ? 2 : 1)
         let nameStart = index
         while index < chars.count, !isTagDelimiter(chars[index]) { index += 1 }
         position = index
-        return lower(String(chars[nameStart..<index]))
+        let name = String(chars[nameStart..<index])
+            .replacingOccurrences(of: "\u{00}", with: "\u{FFFD}")
+        return lower(name)
     }
 
-    /// The attribute key and value states, read until the close angle, which is consumed here. A name
-    /// that is empty or already seen is not saved, as `readTag` only saves the first of each name, and
-    /// for an end tag nothing is saved at all: the states are still read, so the input is consumed the
-    /// same way.
+    /// The attribute key and value states, read until the close angle, which is consumed here. A
+    /// name that is empty or already seen is not saved, as `readTag` only saves the first of each
+    /// name, and for an end tag nothing is saved at all: the states are still read, so the input is
+    /// consumed the same way.
     private func readAttributes(endTag: Bool) -> [HTMLAttribute] {
         var attributes: [HTMLAttribute] = []
         var seen = Set<String>()
@@ -293,9 +296,13 @@ final class HTMLTokenizer {
             position += 1
         }
         rawTag = nil
-        // A raw text element with no content produces no token, and the end tag is read on the next
-        // call.
-        if start == position { return nil }
+        // A raw text element with no content produces no text token, but the end tag at the current
+        // position is still a token, which `Next` reads by falling through. At the end of the input
+        // there is nothing left to read.
+        if start == position {
+            guard position < chars.count else { return nil }
+            return parseTag(startedAt: position, kind: .endTag)
+        }
         // `textarea` and `title` are the two raw states whose content is still decoded.
         return HTMLToken(kind: .text, data: normalize(String(chars[start..<position]),
             decoded: tag == "textarea" || tag == "title", attribute: false, nulToReplacement: true))
@@ -310,7 +317,8 @@ final class HTMLTokenizer {
             if !sameAsciiLetter(chars[cursor], char) { return false }
             cursor += 1
         }
-        guard cursor < chars.count, isSpace(chars[cursor]) || chars[cursor] == ">" else { return false }
+        guard cursor < chars.count,
+            isSpace(chars[cursor]) || chars[cursor] == "/" || chars[cursor] == ">" else { return false }
         position = index - 2
         return true
     }
@@ -325,11 +333,12 @@ final class HTMLTokenizer {
 
     // MARK: - Character conversion
 
-    /// The conversion `Text` and `TagAttr` apply: newlines normalized, NUL replaced in the states the
-    /// reference flags as converting (raw text, comment, doctype) and in an attribute key or value, which
-    /// `TagAttr` replaces whatever the state, and character references decoded in the states that decode
-    /// them, through the mode the state reads them with. The tag name is not converted at all, which is
-    /// why it is read through `lower` alone.
+    /// The conversion `Text` and `TagAttr` apply: newlines normalized, NUL replaced in the states
+    /// the reference flags as converting (raw text, comment, doctype) and in an attribute key or
+    /// value, which `TagAttr` replaces whatever the state, and character references decoded in the
+    /// states that decode them, through the mode the state reads them with. The tag name has its
+    /// own rule, which replaces NUL and lower-cases but converts no newline; it is read through
+    /// `readTagName`.
     private func normalize(_ value: String, decoded: Bool, attribute: Bool, nulToReplacement: Bool) -> String {
         var out = convertNewlines(value)
         if nulToReplacement { out = out.replacingOccurrences(of: "\u{00}", with: "\u{FFFD}") }
