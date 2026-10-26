@@ -86,6 +86,10 @@ We work test-first: **red → green → refactor**.
   if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This
   replaces the older "two clean rounds" wording, which counted rounds but did not cap them: a run
   per blocker kept the count open.
+- Runs are sequential, one agent at a time: a run starts only after the previous one has reported.
+  Three reviewers read the same head, so the three agents run one after another, never together — a
+  parallel set is one pass over the head, not three runs, and it cannot verify a delta that does not
+  exist yet.
 - Run 1 checks three things, so nothing from it expands into later runs: the semantics against the
   reference, that every assertion can actually fail on the behavior it names, and that the docs say
   what the tests pin.
