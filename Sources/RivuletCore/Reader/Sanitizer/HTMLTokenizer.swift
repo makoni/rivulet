@@ -9,10 +9,11 @@ import Foundation
 ///
 /// The states the reference has are the ones this port reads through: data, tag open, the attribute
 /// key and value states, the self-closing start tag state, the character reference state, the raw
-/// text states and the comment state. Two of the reference's states are not ported, because the
-/// sanitizer answers without them: CDATA, which the reference enters only inside foreign content,
-/// and the script escaping states, which change nothing for a tag the sanitizer drops. Where the
-/// subset stops is recorded in `docs/parity.md`.
+/// text states and the comment state, which is the two-dash state plus the doctype and
+/// bogus-comment branches `readMarkupDeclaration` answers with. Two of the reference's states are
+/// not ported, because the sanitizer answers without them: CDATA, which the reference enters only
+/// inside foreign content, and the script escaping states, which change nothing for a tag the
+/// sanitizer drops. Where the subset stops is recorded in `docs/parity.md`.
 final class HTMLTokenizer {
     /// The elements whose content is read as data rather than as markup, the list `readStartTag`
     /// uses to flag the next token as raw.
@@ -94,8 +95,7 @@ final class HTMLTokenizer {
 
     private func parseTag(startedAt: Int, kind: HTMLToken.Kind) -> HTMLToken {
         if kind == .comment {
-            // The data starts after `<!`, which is where `readMarkupDeclaration` sets it.
-            return HTMLToken(kind: .comment, data: readComment(from: startedAt + 2))
+            return HTMLToken(kind: .comment, data: readCommentLikeToken(startedAt: startedAt))
         }
 
         let name = readTagName(startedAt: startedAt, endTag: kind == .endTag)
@@ -213,9 +213,41 @@ final class HTMLTokenizer {
 
     // MARK: - Comment and raw text states
 
-    /// The comment state. A `>` inside the data does not close the comment: the reference closes it
-    /// only after two dashes, `-->` or `--!>`, which is the `dashCount` rule. `<!>` has no data,
-    /// and at the end of the input the trailing dashes are not part of it, which is what
+    /// The three comment-shaped tokens `Next` answers with, whose data the renderer never writes,
+    /// so what these rules decide is where the token ends. `readMarkupDeclaration` is the two-dash
+    /// comment only when the two bytes after `<!` are two dashes; `<!DOCTYPE` is a doctype and `<?`
+    /// a processing instruction, and any other `<!` or `<?` is a bogus comment that closes at the
+    /// first `>`, as `readUntilCloseAngle` does.
+    private func readCommentLikeToken(startedAt: Int) -> String {
+        // `<?` is read from the `?`, which is where `raw.end` is put back; `<!` is read from the
+        // two bytes after it, and the comment state is entered only when those two are dashes.
+        let after = startedAt + 1
+        if chars[after] == "?" { return readUntilCloseAngle(from: after) }
+
+        let dataStart = startedAt + 2
+        guard dataStart < chars.count else {
+            position = chars.count
+            return ""
+        }
+        if chars[dataStart] == "-" && dataStart + 1 < chars.count && chars[dataStart + 1] == "-" {
+            return readComment(from: dataStart + 2)
+        }
+        return readUntilCloseAngle(from: dataStart)
+    }
+
+    /// `readUntilCloseAngle`: the data is what lies before the first `>`, which is consumed.
+    private func readUntilCloseAngle(from index: Int) -> String {
+        var end = index
+        while end < chars.count, chars[end] != ">" { end += 1 }
+        position = min(end + 1, chars.count)
+        return normalize(String(chars[index..<end]), decoded: false, attribute: false,
+            nulToReplacement: true)
+    }
+
+    /// The comment state, entered through the two dashes. A `>` inside the data does not close the
+    /// comment: the reference closes it only after two dashes, `-->` or `--!>`, which is the
+    /// `dashCount` rule, and the `>` that is the whole data is one, which `beginning` answers for.
+    /// At the end of the input the trailing dashes are not part of the data, which is what
     /// `calculateAbruptCommentDataEnd` answers with.
     private func readComment(from index: Int) -> String {
         let dataStart = chars[index...].starts(with: "--") ? index + 2 : index

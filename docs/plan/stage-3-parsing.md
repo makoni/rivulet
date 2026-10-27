@@ -88,7 +88,9 @@ the format adapters are next.
   `TestTruncateHTML`, which belong to the format adapters and land with the next slice, and
   `TestFuzzSanitizer`, which compares token counts a subset tokenizer does not expose. The tokenizer
   and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output
-  as traced against `golang.org/x/net/html` — see `docs/parity.md`.
+  as traced against `golang.org/x/net/html` — see `docs/parity.md` — except the two the output
+  cannot show, an attribute key carrying a NUL and the shape of the entity table, which are
+  asserted through the tokenizer itself.
 
 ### Integration
 

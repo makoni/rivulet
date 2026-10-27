@@ -128,6 +128,14 @@ import Testing
         #expect(Sanitizer.sanitize(baseURL: baseURL, rawHTML: input, options: custom) == expected)
     }
 
+    /// Traced against `sanitizer.go`: `dnt=1` is appended only for the `/video/` path, so a Vimeo
+    /// source outside that path is written as it was read.
+    @Test func vimeoDoNotTrackIsWrittenOnlyForTheVideoPath() {
+        let input = #"<iframe src="https://player.vimeo.com/user/12345"></iframe>"#
+        let expected = #"<iframe src="https://player.vimeo.com/user/12345" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>"#
+        #expect(sanitize(input) == expected)
+    }
+
     /// `TestVimeoIframeRewriteWithQueryString` and `TestVimeoIframeRewriteWithoutQueryString`
     @Test(arguments: [
         (

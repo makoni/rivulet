@@ -4,10 +4,11 @@ import Testing
 
 /// The sanitizer rules, ported from Miniflux `internal/reader/sanitizer/sanitizer.go`.
 ///
-/// Every case names the upstream test it comes from. The reference wraps the input in `<body>`
-/// before parsing, which the sanitizer does too, so a case that depends on the tree shape — the
-/// implicit `p` close, a `td` outside a table, the depth limit — is a tree pin as much as a rule
-/// pin.
+/// Every case names the upstream test it comes from, or says the rule is traced against
+/// `golang.org/x/net/html` when the reference has no test for it. The reference wraps the input in
+/// `<body>` before parsing, which the sanitizer does too, so a case that depends on the tree shape
+/// — the implicit `p` close, a `td` outside a table, the depth limit — is a tree pin as much as a
+/// rule pin.
 @Suite struct SanitizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
 
@@ -204,9 +205,51 @@ import Testing
     }
 
     /// `TestEspaceAttributes`: a `td` outside a table is not an element, so the escaped attribute
-    /// value never reaches the output.
-    @Test func tableCellOutsideATableIsNotAnElement() {
-        #expect(sanitize(#"<td rowspan="<b>injection</b>">text</td>"#) == "text")
+    /// value never reaches the output. `th` is in the same insertion-mode case, which the reference
+    /// has no case for.
+    @Test(arguments: [
+        (#"<td rowspan="<b>injection</b>">text</td>"#, "text"),
+        (#"<th colspan="<b>injection</b>">text</th>"#, "text"),
+    ]) func tableCellOutsideATableIsNotAnElement(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against `parse.go`: only `hr` and the block list close an open `p`. `button` is not
+    /// in that list, so the text stays inside the `p`, while `xmp` is in its own case that pops
+    /// `p`.
+    @Test(arguments: [
+        ("<p>a<button>x</p>", "<p>ax</p>"),
+        ("<p>a<xmp>b</xmp>c</p>", "<p>a</p>bc<p></p>"),
+    ]) func blockListAndHRCloseAnOpenP(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against `parse.go`: `cite` is one of the attributes that hold a URL, so it is
+    /// resolved against the base like `src`, `href` and `poster`.
+    @Test func citeIsResolvedAgainstTheBaseURL() {
+        #expect(sanitize(#"<q cite="doc.html">x</q>"#) == #"<q cite="http://example.org/doc.html">x</q>"#)
+    }
+
+    /// Traced against `hasRequiredAttributes`: the three mandatory attributes decide what happens
+    /// to the content, and an `iframe` missing its `src` writes nothing at all.
+    @Test(arguments: [
+        ("<a>test</a>", "test"),
+        ("<iframe><p>test</p></iframe>", ""),
+        (#"<img alt="Example">text"#, "text"),
+        (#"<picture><source type="video/mp4">fallback</source></picture>"#, "<picture>fallback</picture>"),
+    ]) func missingMandatoryAttributeWritesOnlyTheContent(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
+
+    /// The hostile corpus the plan names: an event handler is not in any tag's list, a
+    /// `javascript:` URL is outside the scheme allowlist, and obfuscation nested inside a dropped
+    /// tag writes only the content, with the tags inside it that are in the allowlist.
+    @Test(arguments: [
+        (#"<p onerror="alert(1)">x</p>"#, "<p>x</p>"),
+        (#"<p><span onerror="alert(1)"><em>y</em></span></p>"#, "<p><em>y</em></p>"),
+        (#"<p><a href="javascript:alert(1)">x</a></p>"#, "<p>x</p>"),
+    ]) func hostileInputWritesNoActiveContent(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
     }
 
     /// `TestXmlEntities`
@@ -264,7 +307,7 @@ import Testing
         #expect(sanitize(input) == "<p>Some text.</p><hr>Test.<p></p>")
     }
 
-    /// `TestReplaceScript`, `TestReplaceStyle` and `TestReplaceNoscript`
+    /// `TestReplaceScript`, `TestReplaceStyle` and `TestReplaceNoScript`
     @Test(arguments: [
         (
             #"<p>Before paragraph.</p><script type="text/javascript">alert("1");</script><p>After paragraph.</p>"#,

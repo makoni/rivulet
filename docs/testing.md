@@ -142,7 +142,11 @@ The sanitizer's upstream corpus is ported in full except `TestStripTags` and `Te
 which belong to the format adapters and land with the next slice, and `TestFuzzSanitizer`, which
 compares token counts a subset tokenizer does not expose. The tokenizer and the insertion modes
 have no upstream corpus, so the five sanitizer suites name what is traced against
-`golang.org/x/net/html`, and `docs/parity.md` records where that subset stops.
+`golang.org/x/net/html`, and `docs/parity.md` records where that subset stops. Two of those pins
+cannot be seen through the sanitizer output and are asserted through the tokenizer itself: an
+attribute key carrying a NUL, and the shape of the entity table. The hostile corpus the plan names
+is the case that writes no active content: an event handler, a `javascript:` URL, and obfuscation
+nested inside a tag that is dropped.
 
 ## Running
 

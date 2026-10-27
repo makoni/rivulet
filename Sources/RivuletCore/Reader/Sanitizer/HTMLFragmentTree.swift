@@ -14,10 +14,12 @@ import Foundation
 /// rules that put a node on the tree with nothing in it, and the depth limit the reference refuses.
 ///
 /// Where the subset stops, recorded in `docs/parity.md`: foster parenting, the active formatting
-/// elements, the adoption agency, the caption and column-group modes, nested tables and the scope
-/// markers. No case in the reference corpus changes what the sanitizer writes because of them, so
-/// the tree is built as if the insertion point were the open element, which is what the modes
-/// answer with for the tags in the corpus.
+/// elements, the adoption agency, the caption and column-group modes, nested tables, the scope
+/// markers, the heading and list-item ancestor pops, the raw-text leading-newline mode and the
+/// foreign-content self-closing pop. None of them changes what the sanitizer writes for a case in
+/// the reference corpus, but a real feed can nest content differently here, so the tree is built as
+/// if the insertion point were the open element, which is what the modes answer with for the tags
+/// in the corpus.
 ///
 /// Comment nodes are not kept, because the renderer answers with nothing for them.
 final class HTMLFragmentTree {
@@ -26,13 +28,14 @@ final class HTMLFragmentTree {
     /// test pins.
     static let maxOpenElements = 512
 
-    /// The start tags that close an open `p`, the list `inBodyIM` pops `buttonScope, p` for.
-    /// `button` is not in it, which is why the list is not the HTML5 block set.
+    /// The start tags that close an open `p`: the list `inBodyIM` pops `buttonScope, p` for, plus
+    /// the tags that have their own case and pop `p` first (`hr`, `li`, `listing`, `plaintext`,
+    /// `table`, `xmp`). `button` is not in the list, which is why it is not the HTML5 block set.
     static let pClosingTags: Set<String> = [
         "address", "article", "aside", "blockquote", "center", "dd", "details", "dialog", "dir", "div",
         "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form", "header", "h1", "h2", "h3",
         "h4", "h5", "h6", "hgroup", "hr", "li", "listing", "main", "menu", "nav", "ol", "p", "plaintext",
-        "pre", "search", "section", "summary", "table", "ul",
+        "pre", "search", "section", "summary", "table", "ul", "xmp",
     ]
 
     /// The tags the reference pops from the open stack as soon as it inserts them.

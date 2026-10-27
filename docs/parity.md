@@ -198,24 +198,33 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   dependency `EntryText` uses.
 - The tokenizer and the insertion modes are traced against `golang.org/x/net/html` (BSD-3-Clause),
   which is what the reference parses with. The rules pinned by
-  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift`: a comment closes only after two dashes (`-->`
-  or `--!>`), so a `>` inside its data is data; `<!>` has no data, and at the end of the input the
-  trailing dashes are not data either. A tag name, an attribute key and an attribute value have NUL
-  replaced with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed by the
-  insertion mode, because the tokenizer flags only the raw-text, comment and doctype states as
-  converting. A named reference without its semicolon is resolved outside the attribute mode only,
-  and the semicolon stays part of the name because the reader is already past the character it
-  stopped on. A duplicate attribute name is kept once. `</p>` with no open `p` inserts an empty one,
-  and `</br>` is read as a start tag. Only `hr` and the block list close an open `p` — `button` does
-  not, and `br`, `img` and `wbr` do not. `td` and `th` outside a table are not elements at all, and
-  `tbody` is inserted inside a table but is not in the sanitizer allowlist, so it is invisible in
-  the output.
+  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift`: the comment state is entered only through the
+  two dashes of `<!--`, and a comment closes only after two dashes (`-->` or `--!>`), so a `>`
+  inside its data is data; a doctype, a processing instruction and any other `<!` or `<?` close at
+  the first `>`, and the data of those tokens is never written, so only where the token ends is
+  observable. A `>` that is the whole data closes it, and at the end of the input the trailing
+  dashes are not data either. A tag name, an attribute key and an attribute value have NUL replaced
+  with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed by the insertion
+  mode, because the tokenizer flags only the raw-text, comment and doctype states as converting; the
+  key is pinned through the tokenizer, since a name carrying U+FFFD is never in the allowlist. A
+  named reference without its semicolon is resolved outside the attribute mode only, and the
+  semicolon stays part of the name because the reader is already past the character it stopped on. A
+  duplicate attribute name is kept once. `</p>` with no open `p` inserts an empty one, and `</br>`
+  is read as a start tag. Only `hr` and the block list close an open `p` — `button` does not, and
+  `br`, `img` and `wbr` do not. `td` and `th` outside a table are not elements at all, and `tbody`
+  is inserted inside a table but is not in the sanitizer allowlist, so it is invisible in the
+  output.
+  A `>` inside raw text is data, and the content of a raw state that is still written (`title`,
+  `textarea`) shows that; the two raw states that can carry script are dropped with their content.
+  A newline at the start of a `pre` or `listing` block is dropped when it is the first thing in it.
+  The escape forms are `&#34;`, `&#39;` and `&#13;`, pinned in text and in an attribute value.
 - The entity table is the data `x/net/html` builds from the HTML5 named character references,
-   generated from that source. The reference keeps 2138 entries, 106 of them without a semicolon;
-   every one of those 106 resolves to the value its semicolon form resolves to, which the generator
-   asserts, so the table stores the 2032 semicolon forms once and the short names as a set. The 93
-   paired references are kept apart because they resolve to two code points. The XML reader's table
-   is `encoding/xml`'s smaller HTML4 set, so the two tables are kept apart rather than merged.
+  transcribed from that source, and its shape is pinned by `HTMLTokenizerTests`. The source has
+  2138 entries, 106 of them without a semicolon, and every one of those 106 resolves to the value
+  its semicolon form resolves to, so the table stores the 2032 semicolon forms once and the short
+  names as a set. The 93 paired references are kept apart because they resolve to two code points.
+  The XML reader's table is `encoding/xml`'s smaller HTML4 set, so the two tables are kept apart
+  rather than merged.
 
 **Known differences.**
 
@@ -226,4 +235,9 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
 | Text inside a table | only whitespace text is added to the table element; anything else is foster parented | added to the insertion point | Same for whitespace; non-whitespace text can be inside the table here |
 | Comment nodes | kept as nodes in the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the shape the sanitizer sees |
-| `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests | None |
+| A heading start tag | pops an open `h1`–`h6` before the new heading is inserted | only the `p` pop is ported | `<h1>a<h1>b</h1>` nests the second heading inside the first here |
+| `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p` pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the first here |
+| The leading newline of raw text | `textIM` drops it for `textarea` and `title` | dropped for `pre` and `listing` only | `<textarea>\nx` keeps the newline here |
+| A self-closing start tag in foreign content | pops the element it opened | the token kind is read, the insertion effect is not | `<math/>x` nests here instead of closing `math` |
+| The Vimeo `dnt=1` append | the link is written as it was read | rebuilt from the parsed parts | A query that is not already in the canonical form is re-encoded, so the string differs; one that is, is written the same |
+| `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
