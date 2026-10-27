@@ -13,15 +13,16 @@ https://github.com/miniflux/v2
 Test fixtures under `Tests/RivuletCoreTests/Fixtures/` are copied verbatim from
 Miniflux v2.3.3 (commit c4d54f87); see that directory's README for provenance.
 
-The WHATWG character-encoding label table in `Sources/RivuletCore/Reader/Charset/`
-is transcribed from `golang.org/x/text` (encoding/htmlindex), which is distributed under
-the BSD 3-Clause License; the table itself is published by the WHATWG Encoding Standard.
-The UTF-8 error rule and the encoding-detection order follow `golang.org/x/text`
-(encoding/unicode) and `golang.org/x/net/html/charset`, also BSD 3-Clause.
-The named character reference table in `Sources/RivuletCore/Reader/XML/` is transcribed from
-the Go standard library (`encoding/xml`, `HTMLEntity`), also BSD 3-Clause.
-The layout engine, chunk scanner and reading primitives in `Sources/RivuletCore/Reader/Date/`
-follow the Go standard library (`time`, `time/format.go`), also BSD 3-Clause.
-https://cs.opensource.google/go/x/text
-https://cs.opensource.google/go/x/net
-https://cs.opensource.google/go/go
+The WHATWG character-encoding label table in `Sources/RivuletCore/Reader/Charset/` is transcribed
+ from `golang.org/x/text` (encoding/htmlindex), which is distributed under the BSD 3-Clause License;
+ the table itself is published by the WHATWG Encoding Standard. The UTF-8 error rule and the
+ encoding-detection order follow `golang.org/x/text` (encoding/unicode) and
+ `golang.org/x/net/html/charset`, also BSD 3-Clause. The named character reference table in
+ `Sources/RivuletCore/Reader/XML/` is transcribed from the Go standard library (`encoding/xml`,
+ `HTMLEntity`), also BSD 3-Clause. The named character reference table in
+ `Sources/RivuletCore/Reader/Sanitizer/HTMLEntityTable.swift` is generated from
+ `golang.org/x/net/html` (`entity` and `entity2`), and the HTML tokenizer subset and the insertion
+ modes the sanitizer reads through follow the same package, also BSD 3-Clause. The layout engine,
+ chunk scanner and reading primitives in `Sources/RivuletCore/Reader/Date/` follow the Go standard
+ library (`time`, `time/format.go`), also BSD 3-Clause. https://cs.opensource.google/go/x/text
+ https://cs.opensource.google/go/x/net https://cs.opensource.google/go/go

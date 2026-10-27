@@ -6,7 +6,9 @@ transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical 
 table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
 209 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
-tracking-parameter cleaner). The sanitizer itself and then the format adapters are next.
+tracking-parameter cleaner). The sanitizer slice is this PR: the HTML tokenizer subset, the fragment
+tree, the allowlists, the attribute writer and the `srcset` parser. `StripTags`, `TruncateHTML` and
+the format adapters are next.
 
 ## Scope
 
@@ -29,9 +31,12 @@ tracking-parameter cleaner). The sanitizer itself and then the format adapters a
       Platform decoder gaps (EUC-JP on Linux) go through a glibc `iconv` fallback; the
       deviations are in `docs/parity.md`.
 - [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
-- [ ] Sanitizer (SwiftSoup): allowlist of tags/attributes ported from
-      `internal/reader/sanitizer` (media: `img/video/audio/source`, `iframe` with a domain
-      allowlist); strips scripts, styles, event handlers, `javascript:` URLs; deterministic output.
+- [ ] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
+      `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
+      handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
+      subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
+      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. `StripTags` and
+      `TruncateHTML` belong to the format adapters, which are the next slice.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
@@ -56,6 +61,11 @@ tracking-parameter cleaner). The sanitizer itself and then the format adapters a
   It came before the sanitizer, because the sanitizer resolves the attributes it keeps through it,
   and before the adapters, because they call the cleaner and the sanitizer. The subset boundary and
   the pins that are traced rather than ported from a corpus are recorded in `docs/parity.md`.
+- The sanitizer slice reads through the port's own tokenizer subset and fragment tree rather than
+  through SwiftSoup, and it builds the output string itself, which is what the reference does. The
+  rules that decide which tags and attributes survive are the allowlists in
+  `Sources/RivuletCore/Reader/Sanitizer/`; the rules that decide the tree the renderer walks are the
+  insertion modes, and the subset of them that is ported is recorded in `docs/parity.md`.
 - Sanitizer output must be deterministic — golden-file friendly.
 - The sanitizer is security-critical (see `AGENTS.md`): relax nothing to make tests pass.
 
@@ -74,7 +84,13 @@ tracking-parameter cleaner). The sanitizer itself and then the format adapters a
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs,
-  nested obfuscation).
+  nested obfuscation). The reference corpus is ported in full except `TestStripTags` and
+  `TestTruncateHTML`, which belong to the format adapters and land with the next slice, and
+  `TestFuzzSanitizer`, which compares token counts a subset tokenizer does not expose. The tokenizer
+  and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output
+  as traced against `golang.org/x/net/html` — see `docs/parity.md` — except the two the output
+  cannot show, an attribute key carrying a NUL and the shape of the entity table, which are
+  asserted through the tokenizer itself.
 
 ### Integration
 
@@ -113,3 +129,24 @@ Findings from the URL layer review (#12) that do not change behavior:
 - `TestIsValidProxyURL` and `TestJoinBaseURLAndPath` are not ported, because no reader path uses
   them. They land with the fetcher's proxy check and the stage 6 integrations, through the same
   parse.
+
+Findings from the sanitizer slice review that do not change behavior:
+
+- `TestInvalidURLScheme` copies the upstream case, where the invalid scheme sits on an `<a>` that
+  has no `href`; the element is unwrapped because `href` is mandatory, so the case does not pin the
+  scheme. Add an `<a href="file:///etc/passwd">` case; scheme rejection is pinned for `img` and
+  `srcset` today.
+- `mediaValidatorsDoNotApplyToOtherTags` names `fetchpriority` and `decoding`, but a `p` allowlist
+  is empty, so the pair would pass even if the validators did not exist. The validators are pinned
+  by the `img` table; the comment should say the pair only pins the tag gate.
+- `startTagInRowMode` looks for an open `tr` anywhere in the stack, where the reference uses
+  `popUntil(tableRowScope, tr)`. Equivalent while the stack is well formed; a scope-aware version
+  belongs with the nested-table work.
+- `SrcSetParser` writes an integral density as `1000000x`, where Go's
+  `strconv.FormatFloat(v, 'g', -1, 64)` writes `1e+06x`. Pathological, but it is a formatting
+  difference.
+- `SanitizerIFrameTests` keeps upstream's `contains("<iframe")` assertion, which would pass for a
+  wrong iframe output; the exact-output cases next to it cover the same domains.
+- `HTMLEscape.escapeString` walks `Character`s, so a decoded `&#13;&#10;` arrives as one CRLF
+  grapheme and the CR is not escaped; the reference writes `&#13;\n`. A lone CR is escaped and
+  pinned. Walk unicode scalars if a feed can produce the pair.

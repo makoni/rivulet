@@ -176,6 +176,47 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   prefix) and `JoinBaseURLAndPath` (the integrations, stage 6). Both read through the same parse
   when they land.
 
+## HTML sanitizer (`internal/reader/sanitizer`)
+
+- The input is wrapped in `<body>` before it is parsed, and the output is built from the children of
+  the body node. A document that does not parse — the open-element stack passing its limit of 512,
+  with `html` and `body` counted in it — is answered with the empty string.
+- The output string is written by the sanitizer itself: the element name, then the attributes it
+  kept in the order they were read, then the attributes it adds. Text is written through
+  `EscapeString`, which uses `&#34;` and `&#39;` rather than the named forms `&quot;` and `&apos;`
+  and writes a carriage return as `&#13;`.
+- A tag outside the allowlist is not written, but its content is. An element is skipped with its
+  content when it is a one-pixel image — both `height` and `width` present and each one the digit
+  `1` or `0`, read from the value as the tokenizer read it — when it is one of the three tags that
+  can carry script (`noscript`, `script`, `style`), or when it carries the `hidden` attribute.
+- An attribute outside the tag's own list is read and dropped. A value that holds a URL (`src`,
+  `href`, `poster`, `cite`) is resolved against the base URL and checked against the scheme
+  allowlist; the tracking parameters are removed from it only when it carries a query. A data URL
+  on an `img` and an in-document anchor (`href` starting with `#`) are kept as they were read,
+  before any resolution.
+- Three attributes are mandatory, and they decide what happens to the content: `a` needs `href`,
+  `iframe` needs `src`, `img` and `source` need `src` or `srcset`. An element missing one writes
+  nothing for itself but still writes its content, except an `iframe`, which writes nothing at all.
+- What the sanitizer adds, after the attributes it kept: `a` gets `rel` and `referrerpolicy`, plus
+  `target` when the option is on; `video` and `audio` get `controls`; `iframe` gets `sandbox` and
+  `loading`, plus `referrerpolicy` for a YouTube embed, which is the only place that attribute is
+  written; `img` gets `loading`. None of it is written for an in-document anchor, because the anchor
+  branch sets the flag the added attributes check.
+- The `iframe` rules read the source before it is resolved, so a protocol-relative source is
+  judged on the host as it was written. The domain compared with the allowlist is the host without
+  a leading `www.`, and the YouTube override domain and the Invidious instance are compared the
+  same way. The embed prefix replaces `youtube.com` only for the `/embed/` path, and the Vimeo
+  player gets `dnt=1` only for `/video/`.
+- `srcset` is read as candidates — a URL up to the first ASCII whitespace, then its descriptors —
+  and the value written is the serializer's join of the candidates that survive, so the spacing the
+  feed wrote is replaced. A candidate whose URL does not resolve, or whose scheme is invalid or
+  blocked, is dropped, and a value with no surviving candidate is not written. A descriptor is kept
+  only when it parses as one height, one width or one positive density, and a URL ending with a
+  comma has its comma removed instead of taking a descriptor.
+- Text is written after the insertion mode has removed NUL from the token, and the newline rules are
+  the tokenizer's: CRLF and a lone CR become LF, and a newline at the start of a `pre` or `listing`
+  block is dropped when it is the first thing in it.
+
 ## Icons
 
 - Stored in the database: `icons(id, hash unique, mime_type, content bytea)`

@@ -84,8 +84,6 @@ enum TrackingParameters {
         let query = input.query()
         var cleaned = query
         var foundTrackers = false
-        let feedHost = feed.hostName
-        let siteHost = base.hostName
 
         for key in query.values.keys.sorted() {
             let lowerKey = key.lowercased()
