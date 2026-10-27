@@ -145,3 +145,6 @@ Findings from the sanitizer slice review that do not change behavior:
   difference.
 - `SanitizerIFrameTests` keeps upstream's `contains("<iframe")` assertion, which would pass for a
   wrong iframe output; the exact-output cases next to it cover the same domains.
+- `HTMLEscape.escapeString` walks `Character`s, so a decoded `&#13;&#10;` arrives as one CRLF
+  grapheme and the CR is not escaped; the reference writes `&#13;\n`. A lone CR is escaped and
+  pinned. Walk unicode scalars if a feed can produce the pair.
