@@ -39,14 +39,17 @@ import Testing
         #expect(TruncateHTML.truncate(input, limit: limit) == expected, Comment(rawValue: name))
     }
 
-    /// `unicode.IsSpace` is the set `FieldsSeq` splits on: `White_Space` plus category Z plus
-    /// `Pattern_White_Space`, so `U+0085`, `U+00A0` and the four separators `U+001C`–`U+001F` split
-    /// a word, and the separator written back is the single ASCII space.
+    /// `unicode.IsSpace` is the `White_Space` table Go generates from the UCD property, not the
+    /// three sets its comment names, so `U+0085`, `U+00A0` and `U+2028` split a word while `U+001E`
+    /// and `U+200F` do not, and the separator that is written back is the single ASCII space. The
+    /// word that is not split is 11 code points, so it fits under the limit and is written as read.
     @Test(arguments: [
         ("hello\u{00A0}world", 12, "hello world"),
         ("hello\u{0085}world", 12, "hello world"),
-        ("hello\u{001E}world", 12, "hello world"),
-    ]) func NELNoBreakSpaceAndPatternWhiteSpaceSplitWords(input: String, limit: Int, expected: String) {
+        ("hello\u{2028}world", 12, "hello world"),
+        ("hello\u{001E}world", 12, "hello\u{001E}world"),
+        ("hello\u{200F}world", 12, "hello\u{200F}world"),
+    ]) func theTableSplitsWordsAndTheSetsTheCommentNamesDoNot(input: String, limit: Int, expected: String) {
         #expect(TruncateHTML.truncate(input, limit: limit) == expected, Comment(rawValue: input))
     }
 

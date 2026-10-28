@@ -8,18 +8,18 @@ import Foundation
 /// The whitespace rules the text layer reads through: the set `unicode.IsSpace` has, the split
 /// `FieldsSeq` does, and the trim `strings.TrimSpace` does.
 ///
-/// Go's set is the Unicode `White_Space` property plus category Z plus `Pattern_White_Space`, which
-/// is what a Swift scalar reports except for the four separators the last set adds, named below.
-/// The three places that need the set — the split, the trim and the space check in `TruncateHTML` —
-/// read the same rule, and `U+0085` and `U+00A0` are in it.
+/// What `IsSpace` answers with is the `White_Space` table Go generates from the UCD property, which
+/// is what a Swift scalar reports. Its comment also names category Z and `Pattern_White_Space`, but
+/// the table has neither the four separators `U+001C` to `U+001F` nor `U+200E` and `U+200F`, so the
+/// port does not add them. The three places that need the set — the split, the trim and the space
+/// check in `TruncateHTML` — read the same rule.
 enum UnicodeSpace {
-    /// The contract `unicode.IsSpace` documents: `White_Space`, category Z and
-    /// `Pattern_White_Space`. There is no Go toolchain on this machine, so this reads the
-    /// documented contract rather than the generated table, and the four characters are named so
-    /// the port answers the rule Go documents.
+    /// The table `IsSpace` reads, as `unicode/graphic.go` and `unicode/tables.go` build it: the
+    /// Latin-1 fast path answers true for only the eight characters the comment names, and the
+    /// table used above Latin-1 is the UCD property. That is the same set Swift's scalar property
+    /// has, which the tests pin on the code points a reading of the comment alone would get wrong.
     static func isSpace(_ scalar: Unicode.Scalar) -> Bool {
-        if (0x001C...0x001F).contains(scalar.value) { return true }
-        return scalar.properties.isWhitespace
+        scalar.properties.isWhitespace
     }
 
     /// `FieldsSeq`: runs of whitespace split the value into words, and an empty piece is not a

@@ -42,14 +42,26 @@ import Testing
         #expect(StripTags.strip(input) == expected)
     }
 
-    /// `unicode.IsSpace` is `White_Space` plus category Z plus `Pattern_White_Space`, and that last
-    /// set adds the four separators `U+001C`–`U+001F`, which a Swift scalar reports as not
-    /// whitespace. The port names them, so the trim reads the reference's set.
+    /// `unicode.IsSpace` answers with the `White_Space` table Go generates from the UCD property,
+    /// which is not the three sets its comment names: the table has the eight Latin-1 characters
+    /// the comment lists, so they are trimmed, but it has none of `U+001C` to `U+001F` and none of
+    /// `U+200E` and `U+200F`, which a reading of the comment alone would trim. The two halves are
+    /// pinned apart.
     @Test(arguments: [
-        ("a\u{001C}", "a"),
-        ("\u{001D}b", "b"),
-        ("a\u{001E}b\u{001F}", "a\u{001E}b"),
-    ]) func patternWhiteSpaceIsTrimmed(input: String, expected: String) {
+        ("a\u{001C}", "a\u{001C}"),
+        ("a\u{001D}b", "a\u{001D}b"),
+        ("a\u{001E}b\u{001F}", "a\u{001E}b\u{001F}"),
+        ("a\u{200E}b\u{200F}", "a\u{200E}b\u{200F}"),
+    ]) func theTableIsNotTheSetsTheCommentNames(input: String, expected: String) {
+        #expect(StripTags.strip(input) == expected, Comment(rawValue: input))
+    }
+
+    /// The members the table does have, through the two halves the Latin-1 comment does not name:
+    /// `U+2000` and `U+3000` are in the table, so the trim removes them.
+    @Test(arguments: [
+        ("\u{2028}a\u{3000}", "a"),
+        ("\u{2000}a\u{00A0}", "a"),
+    ]) func tableMembersAreTrimmed(input: String, expected: String) {
         #expect(StripTags.strip(input) == expected, Comment(rawValue: input))
     }
 

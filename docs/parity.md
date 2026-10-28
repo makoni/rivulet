@@ -255,10 +255,11 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   the data decoded for the states that are not raw, `title` and `textarea` decoded, the other raw
   states written as read, and newlines normalized. A data-state text token keeps its NUL, because
   `Text()` converts only in the states the tokenizer flags as converting — the raw-text states and
-  CDATA — and for a comment token. `TrimSpace` and `FieldsSeq` read `unicode.IsSpace`, which is
-  `White_Space` plus category Z plus `Pattern_White_Space`, so `U+0085`, `U+00A0` and the four
-  separators `U+001C` to `U+001F` split a word here as they do in Go, and the limit counts code
-  points, which is what the reference counts.
+  CDATA — and for a comment token. `TrimSpace` and `FieldsSeq` read `unicode.IsSpace`, which answers
+  with the generated `White_Space` table, the UCD property, and not with the three sets its comment
+  names: `U+0085` and `U+00A0` split a word, while `U+001C` to `U+001F` and `U+200E` and `U+200F` do
+  not, and a Swift scalar reports the same table, which `StripTagsTests` pins on both halves. The
+  limit counts code points, which is what the reference counts.
 
 **Known differences.**
 
