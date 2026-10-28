@@ -178,6 +178,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 
 ## HTML sanitizer (`internal/reader/sanitizer`)
 
+- The rules below are read through `golang.org/x/net/html`, the package `miniflux/go.mod` pins at
+  v0.57.0. There is no Go toolchain on this machine, so they are traced from the source; the copy
+  the entity table was generated from is the module cache at v0.61.0.
 - The input is wrapped in `<body>` before it is parsed, and the output is built from the children of
   the body node. A document that does not parse — the open-element stack passing its limit of 512,
   with `html` and `body` counted in it — is answered with the empty string.
@@ -211,8 +214,13 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   and the value written is the serializer's join of the candidates that survive, so the spacing the
   feed wrote is replaced. A candidate whose URL does not resolve, or whose scheme is invalid or
   blocked, is dropped, and a value with no surviving candidate is not written. A descriptor is kept
-  only when it parses as one height, one width or one positive density, and a URL ending with a
-  comma has its comma removed instead of taking a descriptor.
+  only when it parses as one height, one width or one density that is finite and not below zero —
+  negative zero passes, while a leading `+` or a trailing `.` is not a number. The two integer
+  descriptors read through `ParseUint(value, 10, 0)`, whose range is the whole unsigned 64-bit
+  value. The string written back is the serializer's own: the density with
+  `strconv.FormatFloat(value, 'g', -1, 64)`, which takes the exponent form when the decimal exponent
+  is below -4 or at least 6, and the width as `FormatUint` writes it. A URL ending with a comma has
+  its comma removed instead of taking a descriptor.
 - Text is written after the insertion mode has removed NUL from the token, and the newline rules are
   the tokenizer's: CRLF and a lone CR become LF, and a newline at the start of a `pre` or `listing`
   block is dropped when it is the first thing in it.
@@ -440,8 +448,11 @@ Semantics:
 
 ### Tolerant tokenizer (`encoding/xml`, as the reference configures it)
 
-Verified against `encoding/xml` (Go 1.22), which is the decoder Miniflux uses, with the
-configuration `decoder.go` builds: `Strict = false` and `Entity = xml.HTMLEntity`.
+Verified against `encoding/xml`, which is the decoder Miniflux uses, read from the source rather
+than run — there is no Go toolchain on this machine, so the rules were traced from the module-cache
+copy `golang.org/x/net@v0.52.0/webdav/internal/xml`, an internal copy of the package, while
+`miniflux/go.mod` pins `go 1.26.0` — with the configuration `decoder.go` builds: `Strict = false`
+and `Entity = xml.HTMLEntity`.
 
 - An attribute name with no `=` after it becomes its own value. An unquoted value is read over the
   characters `attrval` lists — letters, digits, `_`, `:`, `-` — which is not the class `readName`

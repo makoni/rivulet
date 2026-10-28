@@ -71,8 +71,8 @@ enum SrcSetParser {
 
     private struct DescriptorResult {
         var density = 0.0
-        var resourceWidth = 0
-        var resourceHeight = 0
+        var resourceWidth: UInt64 = 0
+        var resourceHeight: UInt64 = 0
         var hasDensity = false
         var hasWidth = false
         var hasHeight = false
@@ -168,10 +168,12 @@ enum SrcSetParser {
         case afterToken
     }
 
-    private static func parseNonNegativeInteger(_ value: String) -> Int? {
+    /// The reference reads the integer descriptors through `ParseUint(value, 10, 0)`, whose range
+    /// is the whole unsigned 64-bit value.
+    private static func parseNonNegativeInteger(_ value: String) -> UInt64? {
         if value.isEmpty { return nil }
         guard value.allSatisfy({ $0 >= "0" && $0 <= "9" }) else { return nil }
-        return Int(value)
+        return UInt64(value)
     }
 
     /// The valid HTML floating point number rule: a leading `+` or a trailing `.` is not one, and
@@ -183,11 +185,57 @@ enum SrcSetParser {
         return parsed
     }
 
-    /// The reference formats the density with `strconv.FormatFloat(value, 'g', -1, 64)`, the
-    /// shortest form that round-trips; an integral value is written without the fractional part.
+    /// The reference formats the density with `strconv.FormatFloat(value, 'g', -1, 64)`: the
+    /// shortest digits that round-trip, the exponent form when the decimal exponent is below -4 or
+    /// at least 6, and the sign of a negative zero, which the number rule accepts.
     private static func formatFloat(_ value: Double) -> String {
-        if value == value.rounded() && abs(value) < 1e16 { return String(Int64(value)) }
-        return String(value)
+        let sign = value.sign == .minus ? "-" : ""
+        let magnitude = abs(value)
+        if magnitude == 0 { return sign + "0" }
+
+        let (digits, exponent) = shortestDigits(String(magnitude))
+        if exponent < -4 || exponent >= 6 {
+            let fraction = digits.count > 1 ? "." + String(digits.dropFirst()) : ""
+            let exponentWidth = abs(exponent)
+            let padded = exponentWidth < 10 ? "0\(exponentWidth)" : String(exponentWidth)
+            return "\(sign)\(digits.first!)\(fraction)e\(exponent < 0 ? "-" : "+")\(padded)"
+        }
+
+        if exponent < 0 {
+            return "\(sign)0.\(String(repeating: "0", count: -exponent - 1))\(digits)"
+        }
+
+        let beforePoint = min(exponent + 1, digits.count)
+        let tail = beforePoint < digits.count ? "." + String(digits.dropFirst(beforePoint)) : ""
+        return sign + String(digits.prefix(beforePoint)) + tail
+            + String(repeating: "0", count: max(0, exponent + 1 - digits.count))
+    }
+
+    /// The shortest digits that round-trip and the decimal exponent of the value, read off the form
+    /// Swift writes, which is already the shortest form. The leading zero of a value below one and
+    /// the trailing zeros of that form are not part of Go's digit string.
+    private static func shortestDigits(_ written: String) -> (digits: String, exponent: Int) {
+        if let marker = written.firstIndex(of: "e") ?? written.firstIndex(of: "E") {
+            let mantissa = String(written[written.startIndex..<marker]).filter { $0.isNumber }
+            return (trimTrailingZeros(mantissa), Int(written[marker...].dropFirst()) ?? 0)
+        }
+
+        let point = written.firstIndex(of: ".") ?? written.endIndex
+        let integerPart = String(written[written.startIndex..<point])
+        let fractionalPart = String(written[point...].dropFirst())
+
+        var digits = integerPart + fractionalPart
+        if integerPart == "0" { digits = String(digits.drop(while: { $0 == "0" })) }
+        digits = trimTrailingZeros(digits)
+
+        if !integerPart.isEmpty && integerPart != "0" { return (digits, integerPart.count - 1) }
+        return (digits, -fractionalPart.prefix(while: { $0 == "0" }).count - 1)
+    }
+
+    private static func trimTrailingZeros(_ digits: String) -> String {
+        var trimmed = digits
+        while trimmed.last == "0" { trimmed.removeLast() }
+        return trimmed
     }
 
     // MARK: - Positions

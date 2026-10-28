@@ -204,9 +204,10 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
-    /// `TestEspaceAttributes`: a `td` outside a table is not an element, so the escaped attribute
-    /// value never reaches the output. `th` is in the same insertion-mode case, which the reference
-    /// has no case for.
+    /// `TestEspaceAttributes` is the `td` case; `th` is traced against the same insertion-mode
+    /// case, which the corpus has no input for. In both, the cell outside a table is not an
+    /// element, so the escaped attribute value never reaches the output — this is the tree-shape
+    /// pin, not the escape pin, which is the case inside a table.
     @Test(arguments: [
         (#"<td rowspan="<b>injection</b>">text</td>"#, "text"),
         (#"<th colspan="<b>injection</b>">text</th>"#, "text"),
@@ -214,12 +215,23 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
+    /// Traced against `escapeString`: the same value inside a table is an element, so the escape is
+    /// observable. `colspan` is one of the attributes `td` keeps.
+    @Test func attributeValueIsEscapedWhenTheCellIsInsideATable() {
+        #expect(sanitize(#"<table><tr><td colspan="<b>injection</b>">text</td></tr></table>"#) ==
+            #"<table><tr><td colspan="&lt;b&gt;injection&lt;/b&gt;">text</td></tr></table>"#)
+    }
+
     /// Traced against `parse.go`: only `hr` and the block list close an open `p`. `button` is not
-    /// in that list, so the text stays inside the `p`, while `xmp` is in its own case that pops
-    /// `p`.
+    /// in that list, so the text stays inside the `p`; `button` is a `buttonScope` stop tag, so
+    /// `</p>` cannot reach the `p` and inserts an empty one instead. `xmp` is in its own case that
+    /// pops `p`, and `table` is not in the block list at all — `p.quirks` is always true on the
+    /// reference's path, which is the gate `inBodyIM` checks for `table`.
     @Test(arguments: [
-        ("<p>a<button>x</p>", "<p>ax</p>"),
+        ("<p>a<button>x</p>", "<p>ax<p></p></p>"),
+        ("<p>a<button>x<p>y</p>", "<p>ax<p>y</p></p>"),
         ("<p>a<xmp>b</xmp>c</p>", "<p>a</p>bc<p></p>"),
+        ("<p>a<table><tr><td>x</td></tr></table>z</p>", "<p>a<table><tr><td>x</td></tr></table>z</p>"),
     ]) func blockListAndHRCloseAnOpenP(input: String, expected: String) {
         #expect(sanitize(input) == expected)
     }

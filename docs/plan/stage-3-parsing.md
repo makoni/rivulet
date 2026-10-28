@@ -3,12 +3,13 @@
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
 transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
-table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
-209 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
+table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
+layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
-tracking-parameter cleaner). The sanitizer slice is this PR: the HTML tokenizer subset, the fragment
-tree, the allowlists, the attribute writer and the `srcset` parser. `StripTags`, `TruncateHTML` and
-the format adapters are next.
+tracking-parameter cleaner). The sanitizer slice is merged (PR #13): the HTML tokenizer subset, the
+fragment tree, the allowlists, the attribute writer and the `srcset` parser, with the findings from
+that PR's review landed as this follow-up. `StripTags` and `TruncateHTML` are the next slice, then
+the format adapters.
 
 ## Scope
 
@@ -35,8 +36,8 @@ the format adapters are next.
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
       subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
-      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. `StripTags` and
-      `TruncateHTML` belong to the format adapters, which are the next slice.
+      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged; the
+      text layer (`StripTags` and `TruncateHTML`, which the format adapters call) is the next slice.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
@@ -142,9 +143,6 @@ Findings from the sanitizer slice review that do not change behavior:
 - `startTagInRowMode` looks for an open `tr` anywhere in the stack, where the reference uses
   `popUntil(tableRowScope, tr)`. Equivalent while the stack is well formed; a scope-aware version
   belongs with the nested-table work.
-- `SrcSetParser` writes an integral density as `1000000x`, where Go's
-  `strconv.FormatFloat(v, 'g', -1, 64)` writes `1e+06x`. Pathological, but it is a formatting
-  difference.
 - `SanitizerIFrameTests` keeps upstream's `contains("<iframe")` assertion, which would pass for a
   wrong iframe output; the exact-output cases next to it cover the same domains.
 - `HTMLEscape.escapeString` walks `Character`s, so a decoded `&#13;&#10;` arrives as one CRLF

@@ -29,13 +29,16 @@ final class HTMLFragmentTree {
     static let maxOpenElements = 512
 
     /// The start tags that close an open `p`: the list `inBodyIM` pops `buttonScope, p` for, plus
-    /// the tags that have their own case and pop `p` first (`hr`, `li`, `listing`, `plaintext`,
-    /// `table`, `xmp`). `button` is not in the list, which is why it is not the HTML5 block set.
+    /// the tags that have their own case and pop `p` first (`hr`, `li`, `dd`, `dt`, `listing`,
+    /// `plaintext`, `xmp`). `button` is not in the list, which is why it is not the HTML5 block
+    /// set, and `table` is not in it either: its own case pops `p` only when the parser is not in
+    /// quirks mode, and `p.quirks` is always true on the reference's path, because `initialIM`
+    /// answers with the input wrapped in `<body>` and no doctype is read before it.
     static let pClosingTags: Set<String> = [
         "address", "article", "aside", "blockquote", "center", "dd", "details", "dialog", "dir", "div",
         "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form", "header", "h1", "h2", "h3",
         "h4", "h5", "h6", "hgroup", "hr", "li", "listing", "main", "menu", "nav", "ol", "p", "plaintext",
-        "pre", "search", "section", "summary", "table", "ul", "xmp",
+        "pre", "search", "section", "summary", "ul", "xmp",
     ]
 
     /// The tags the reference pops from the open stack as soon as it inserts them.
@@ -132,7 +135,15 @@ final class HTMLFragmentTree {
         }
         if HTMLFragmentTree.tableOnlyTags.contains(name) { return }
 
-        if HTMLFragmentTree.pClosingTags.contains(name) { cut(to: "p") }
+        if name == "button" {
+            // `case a.Button` closes an open `button` that is in the default scope, and it is the
+            // one block-list case that does not pop an open `p`.
+            popUntil(.defaultScope, "button")
+            try insertElement(name: name, attributes: attributes)
+            return
+        }
+
+        if HTMLFragmentTree.pClosingTags.contains(name) { popUntil(.buttonScope, "p") }
         try insertElement(name: name, attributes: attributes)
         if HTMLFragmentTree.voidTags.contains(name) { open.removeLast() }
     }
@@ -222,9 +233,12 @@ final class HTMLFragmentTree {
         }
 
         if name == "p" {
-            // An end tag for p when no p is open inserts an empty one, then closes it.
-            if elementNamed("p") == nil { try insertElement(name: "p", attributes: []) }
-            cut(to: "p")
+            // An end tag for `p` inserts an empty one when the open `p` is not in `buttonScope`,
+            // then closes the one that is in the scope.
+            if indexOfElementInScope(.buttonScope, "p") == nil {
+                try insertElement(name: "p", attributes: [])
+            }
+            popUntil(.buttonScope, "p")
             return
         }
 
@@ -234,15 +248,16 @@ final class HTMLFragmentTree {
             return
         }
 
-        guard elementNamed(name) != nil else { return }
-        cut(to: name)
+        guard indexOfElementInScope(.defaultScope, name) != nil else { return }
+        popUntil(.defaultScope, name)
     }
 
-    /// The end tags the table modes pop, which is `clearStackToContext` and then one element. The
-    /// other end tags are ignored inside a table.
+    /// The end tags the table modes pop, which is `clearStackToContext` and then one element.
+    /// `table` is the one that also switches back to the insertion mode for the body, so what
+    /// follows it is not table content. The other end tags are ignored inside a table.
     private func processEndTagInTable(_ name: String) {
-        guard HTMLFragmentTree.tableOnlyTags.contains(name) else { return }
-        guard let position = index(of: name) else { return }
+        guard name == "table" || HTMLFragmentTree.tableOnlyTags.contains(name) else { return }
+        guard let position = indexOfOpenElement(name) else { return }
         open.removeSubrange(position...)
 
         switch name {
@@ -267,19 +282,19 @@ final class HTMLFragmentTree {
     }
 
     private func addText(_ value: String) {
-        // NUL is removed from a text token by the insertion mode, which is the one place the
-        // reference does not read it as U+FFFD.
-        var cleaned = value.replacingOccurrences(of: "\u{00}", with: "")
-        if cleaned.isEmpty { return }
-
         let parent = open.last ?? root
+
+        // The leading-newline rule reads the token data as it was read, before the NUL is removed,
+        // so a block that starts with a NUL keeps its newline. NUL is removed after the check,
+        // which is the one place the reference does not read it as U+FFFD.
+        var data = value
         if (parent.name == "pre" || parent.name == "listing") && parent.firstChild == nil {
-            // A newline at the start of a pre block is ignored.
-            if cleaned.hasPrefix("\r") || cleaned.hasPrefix("\n") {
-                cleaned = String(cleaned.dropFirst())
-                if cleaned.isEmpty { return }
-            }
+            if data.hasPrefix("\r") { data = String(data.dropFirst()) }
+            if data.hasPrefix("\n") { data = String(data.dropFirst()) }
         }
+
+        let cleaned = data.replacingOccurrences(of: "\u{00}", with: "")
+        if cleaned.isEmpty { return }
 
         let node = HTMLNode(kind: .text)
         node.text = cleaned
@@ -307,14 +322,30 @@ final class HTMLFragmentTree {
         open.removeSubrange((position + 1)...)
     }
 
-    /// The open element is cut to `p`, which is what `popUntil(buttonScope, p)` answers with when
-    /// the p is in the scope, and does nothing when it is not.
-    private func cut(to name: String) {
-        guard let position = index(of: name) else { return }
+    /// `popUntil(scope, name)`: the stack is cut to the element only when it is in the scope, which
+    /// is what `indexOfElementInScope` answers with.
+    private func popUntil(_ scope: ElementScope, _ name: String) {
+        guard let position = indexOfElementInScope(scope, name) else { return }
         open.removeSubrange(position...)
     }
 
-    private func index(of name: String) -> Int? {
+    /// `indexOfElementInScope`: the walk from the top stops at the scope's own stop tags, and at
+    /// the shared `defaultScopeStopTags`, whatever the scope. An element that is both a match and a
+    /// stop tag is found first, because the match is checked before the stop tags.
+    private func indexOfElementInScope(_ scope: ElementScope, _ name: String) -> Int? {
+        for index in open.indices.reversed() {
+            let element = open[index].name
+            if element == name { return index }
+            if scope.ownStopTags.contains(element) { return nil }
+            if Self.defaultScopeStopTags.contains(element) { return nil }
+        }
+        return nil
+    }
+
+    /// `indexOfOpenElement`: a plain search of the open stack. The table scopes stop at `html` and
+    /// the table itself, which is the anchor the port already cuts to, so no stop tag can be
+    /// reached above the match inside a table.
+    private func indexOfOpenElement(_ name: String) -> Int? {
         open.lastIndex(where: { $0.name == name })
     }
 
@@ -325,4 +356,23 @@ final class HTMLFragmentTree {
     private func elementNamed(_ name: String) -> HTMLNode? {
         open.last(where: { $0.name == name })
     }
+
+    /// The scopes the port answers with: `defaultScope` has no stop tags of its own, `buttonScope`
+    /// stops at `button`. `listItemScope` is not ported, because the ancestor loop that uses it is
+    /// part of the subset boundary.
+    private enum ElementScope {
+        case defaultScope, buttonScope
+
+        var ownStopTags: Set<String> {
+            switch self {
+            case .defaultScope: return []
+            case .buttonScope: return ["button"]
+            }
+        }
+    }
+
+    /// The stop tags `defaultScopeStopTags` holds for the HTML namespace.
+    static let defaultScopeStopTags: Set<String> = [
+        "applet", "caption", "html", "table", "td", "th", "marquee", "object", "template", "select",
+    ]
 }
