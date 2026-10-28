@@ -3,12 +3,13 @@
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
 **Status:** implementation in progress: the charset slice is merged (labels, detection and
 transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
-table, format detection); the date parser slice is merged too (Go's `parse` over the reference's
-209 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
+table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
+layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
-tracking-parameter cleaner). The sanitizer slice is this PR: the HTML tokenizer subset, the fragment
-tree, the allowlists, the attribute writer and the `srcset` parser. `StripTags`, `TruncateHTML` and
-the format adapters are next.
+tracking-parameter cleaner). The sanitizer slice is merged (PR #13): the HTML tokenizer subset, the
+fragment tree, the allowlists, the attribute writer and the `srcset` parser, with the findings from
+that PR's review landed as this follow-up. `StripTags` and `TruncateHTML` are the next slice, then
+the format adapters.
 
 ## Scope
 
@@ -24,19 +25,19 @@ the format adapters are next.
       in the list), PST/PDT workaround, UTC-offset clamping; adapters fall back to "now" when
       parsing fails completely. Zone abbreviations read through a fixed table instead of the
       machine's tzdata — see `docs/parity.md`.
-- [x] Charset detection and transcoding: WHATWG label table transcribed from
-      `golang.org/x/text` v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths
-      (`CharsetReader`, `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan
-      (1024 bytes) → UTF-8 heuristic → `windows-1252` default; output is always UTF-8.
-      Platform decoder gaps (EUC-JP on Linux) go through a glibc `iconv` fallback; the
-      deviations are in `docs/parity.md`.
+- [x] Charset detection and transcoding: WHATWG label table transcribed from the
+      `golang.org/x/text` `encoding/htmlindex` copy in the module cache, which `miniflux/go.mod`
+      pins at v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths (`CharsetReader`,
+      `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan (1024 bytes) → UTF-8
+      heuristic → `windows-1252` default; output is always UTF-8. Platform decoder gaps (EUC-JP on
+      Linux) go through a glibc `iconv` fallback; the deviations are in `docs/parity.md`.
 - [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
 - [ ] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
       subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
-      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. `StripTags` and
-      `TruncateHTML` belong to the format adapters, which are the next slice.
+      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged; the
+      text layer (`StripTags` and `TruncateHTML`, which the format adapters call) is the next slice.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
@@ -83,14 +84,15 @@ the format adapters are next.
 - URL: the ported tables from `internal/urllib/url_test.go` and
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
-- Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs,
-  nested obfuscation). The reference corpus is ported in full except `TestStripTags` and
-  `TestTruncateHTML`, which belong to the format adapters and land with the next slice, and
-  `TestFuzzSanitizer`, which compares token counts a subset tokenizer does not expose. The tokenizer
-  and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output
-  as traced against `golang.org/x/net/html` — see `docs/parity.md` — except the two the output
-  cannot show, an attribute key carrying a NUL and the shape of the entity table, which are
-  asserted through the tokenizer itself.
+- Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs, nested
+  obfuscation). The reference corpus is ported in full except `TestStripTags` and
+  `TestTruncateHTML`, which are the text layer of the next slice, and the fuzz target
+  `FuzzSanitizer`, whose expectation is that the output has no more tokens than the input, which
+  needs a fuzz harness and a seed corpus that Swift Testing does not have. The tokenizer and
+  insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output as
+  traced against `golang.org/x/net/html` — see `docs/parity.md` — except the four the output cannot
+  show, a tag name and an attribute key carrying a NUL, the shape of the entity table, and where
+  comment data ends, which are asserted through the tokenizer itself.
 
 ### Integration
 
@@ -142,9 +144,6 @@ Findings from the sanitizer slice review that do not change behavior:
 - `startTagInRowMode` looks for an open `tr` anywhere in the stack, where the reference uses
   `popUntil(tableRowScope, tr)`. Equivalent while the stack is well formed; a scope-aware version
   belongs with the nested-table work.
-- `SrcSetParser` writes an integral density as `1000000x`, where Go's
-  `strconv.FormatFloat(v, 'g', -1, 64)` writes `1e+06x`. Pathological, but it is a formatting
-  difference.
 - `SanitizerIFrameTests` keeps upstream's `contains("<iframe")` assertion, which would pass for a
   wrong iframe output; the exact-output cases next to it cover the same domains.
 - `HTMLEscape.escapeString` walks `Character`s, so a decoded `&#13;&#10;` arrives as one CRLF

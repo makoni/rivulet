@@ -7,10 +7,10 @@ import Testing
 ///
 /// These are traced against `golang.org/x/net/html` (BSD-3-Clause) rather than ported from a
 /// reference test, because the reference has no test for this area; `docs/parity.md` records where
-/// the ported subset stops. Except the three cases the sanitizer output cannot show — a tag name or
-/// an attribute key carrying a NUL is never in the allowlist, and the shape of the entity table is
-/// not a rule the sanitizer runs through — every case is asserted through `Sanitizer.sanitize`, so
-/// what is pinned is the rule as the sanitizer sees it.
+/// the ported subset stops. Except the four cases the sanitizer output cannot show — a tag name or
+/// an attribute key carrying a NUL is never in the allowlist, the shape of the entity table is not
+/// a rule the sanitizer runs through, and a comment writes nothing — every case is asserted through
+/// `Sanitizer.sanitize`, so what is pinned is the rule as the sanitizer sees it.
 @Suite struct HTMLTokenizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
     private let baseURL = "http://example.org/"
@@ -26,6 +26,14 @@ import Testing
         #expect(sanitize("<pre>x&copy=y</pre>") == "<pre>x©=y</pre>")
     }
 
+    /// A name outside that set is only in the table with its semicolon, so the name the reader
+    /// passes to `resolve` has to keep it: the reader is already past the character it stopped on.
+    /// `nGt;` is one of the paired references and is not in the 106 short names.
+    @Test func semicolonStaysPartOfTheNameForANameOutsideTheShortSet() {
+        #expect(sanitize("<p>a&nGt;b</p>") == "<p>a\u{226B}\u{20D2}b</p>")
+        #expect(sanitize("<p>a&nGt b</p>") == "<p>a&amp;nGt b</p>")
+    }
+
     /// In an attribute value a named reference without the semicolon is left as it is when the
     /// character after it is `=`, which is the rule `unescape` applies only in the attribute mode.
     @Test func namedReferenceInAnAttributeValueIsLeftBeforeAnEqualsSign() {
@@ -38,13 +46,15 @@ import Testing
         #expect(sanitize(decoded) == #"<img src="http://example.org/i.png" title="x© z" loading="lazy">"#)
     }
 
-    /// The content of a raw text element is data, not markup. The two raw states whose content is
-    /// still written are `title` and `textarea`, so the escaped content is what can fail: a nested
-    /// tag is written as text, not as a node. For `script`, `style` and `noscript` the content is
-    /// dropped with the tag, so those cannot show the rule.
+    /// The content of a raw text element is data, not markup: a nested tag inside it is written as
+    /// text, and a `>` inside it is data too. The two raw states whose content is still written are
+    /// `title` and `textarea`, so the escaped content is what can fail. For `script`, `style` and
+    /// `noscript` the content is dropped with the tag, so those cannot show the rule.
     @Test(arguments: [
         ("<p>a</p><title><em>x</em></title><p>b</p>", "<p>a</p>&lt;em&gt;x&lt;/em&gt;<p>b</p>"),
         ("<p>a</p><textarea><em>x</em></textarea><p>b</p>", "<p>a</p>&lt;em&gt;x&lt;/em&gt;<p>b</p>"),
+        ("<p>a</p><title>x>y</title><p>b</p>", "<p>a</p>x&gt;y<p>b</p>"),
+        ("<p>a</p><textarea>x>y</textarea><p>b</p>", "<p>a</p>x&gt;y<p>b</p>"),
     ]) func rawTextElementContentIsNotMarkup(input: String, expected: String) {
         #expect(sanitize(input) == expected)
     }
@@ -92,15 +102,39 @@ import Testing
     }
 
     /// A comment and an empty `</>` are tokens the reference keeps in the tree and the renderer
-    /// skips. A `>` inside the data does not end it, and `--!>` does.
+    /// skips. A `>` inside the data does not end it, and `--!>` does. A `>` that is the whole data
+    /// ends it, which is the `beginning` rule.
     @Test(arguments: [
         ("<p>a<!-- <em>x</em> -->b</p>", "<p>ab</p>"),
         ("<p>a</>b</p>", "<p>ab</p>"),
         ("<p>a<!--x>y-->b</p>", "<p>ab</p>"),
         ("<p>a<!--x--!>b</p>", "<p>ab</p>"),
         ("<p>a<!>b</p>", "<p>ab</p>"),
+        ("<p>a<!-->b</p>", "<p>ab</p>"),
     ]) func commentIsNotRendered(input: String, expected: String) {
         #expect(sanitize(input) == expected)
+    }
+
+    /// At the end of the input the trailing dashes are not part of the data, which is what
+    /// `calculateAbruptCommentDataEnd` answers with. The renderer writes nothing for a comment, so
+    /// this is asserted through the tokenizer: the data and where the next token begins.
+    @Test(arguments: [
+        ("<!-->b", "", "b"),
+        ("<!--x--", "x", ""),
+        ("<!--x--!>", "x", ""),
+        ("<!--x-", "x", ""),
+    ]) func commentDataEndsWhereTheReferenceEndsIt(input: String, data: String, following: String) throws {
+        let tokenizer = HTMLTokenizer(input)
+        let comment = try #require(tokenizer.next())
+        #expect(comment.kind == .comment && comment.data == data, Comment(rawValue: input))
+
+        // An empty `following` means the input ends inside the comment, so the reader has to answer
+        // with nothing rather than with an empty token.
+        if following.isEmpty {
+            #expect(tokenizer.next() == nil, Comment(rawValue: input))
+        } else {
+            #expect(tokenizer.next()?.data == following, Comment(rawValue: input))
+        }
     }
 
     /// `readMarkupDeclaration` is the two-dash comment only when the two bytes after `<!` are two
@@ -116,9 +150,24 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
+    /// A solidus where the value would begin ends the tag, but a solidus after the `=` is the
+    /// unquoted value, which `readTagAttrVal` reads through the default branch of its quote switch.
+    /// The value is asserted through `alt`, because a URL attribute resolves an empty value to the
+    /// base, which is the string the solidus resolves to as well, so `src` cannot show the rule.
+    @Test func solidusAfterTheEqualsSignIsTheUnquotedValue() {
+        #expect(sanitize(#"<img src="http://example.org/i.png" alt=/>"#) ==
+            #"<img src="http://example.org/i.png" alt="/" loading="lazy">"#)
+    }
+
     /// A duplicate attribute name is read once, as `readTag` keeps only the first of each name.
     @Test func duplicateAttributeNameIsKeptOnce() {
         #expect(sanitize(#"<ul id="a" id="b">x</ul>"#) == #"<ul id="a">x</ul>"#)
+    }
+
+    /// `readTagAttrVal` opens by skipping whitespace, so the whitespace between a name and `=` is
+    /// consumed before the `=` is read and is not part of the name.
+    @Test func whitespaceBetweenTheNameAndTheEqualsSignIsSkipped() {
+        #expect(sanitize(#"<ul id ="x">y</ul>"#) == #"<ul id="x">y</ul>"#)
     }
 
     /// The tag name is lower-cased before the allowlist is checked.
@@ -136,6 +185,12 @@ import Testing
             "<img src=\"http://example.org/i.png\" title=\"a\u{FFFD}b\" loading=\"lazy\">"),
     ]) func nulInTextAndInAnAttributeValue(input: String, expected: String) {
         #expect(sanitize(input) == expected)
+    }
+
+    /// The leading-newline rule reads the data as the token was read, before the NUL is removed, so
+    /// a block that starts with a NUL keeps its newline.
+    @Test func leadingNewlineOfAPreBlockSurvivesALeadingNUL() {
+        #expect(sanitize("<pre>\u{00}\nx</pre>") == "<pre>\nx</pre>")
     }
 
     /// Newlines in text and in an attribute value are normalized to LF, a lone CR as well as CRLF.
@@ -175,8 +230,12 @@ import Testing
         #expect(HTMLEntityTable.namesWithoutSemicolon.count == 106)
         #expect(HTMLEntityTable.pairedReferences.count == 93)
         for name in HTMLEntityTable.namesWithoutSemicolon {
+            // The value has to exist for the short name, otherwise both sides answer with nothing.
+            #expect(HTMLEntityTable.resolve(name) != nil, Comment(rawValue: name))
             #expect(HTMLEntityTable.resolve(name) == HTMLEntityTable.resolve(name + ";"),
                 Comment(rawValue: name))
         }
+        #expect(HTMLEntityTable.resolve("copy;") == Unicode.Scalar(0x00A9))
+        #expect(HTMLEntityTable.resolve("amp test") == nil)
     }
 }

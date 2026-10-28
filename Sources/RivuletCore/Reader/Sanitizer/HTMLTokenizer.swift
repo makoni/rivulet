@@ -164,42 +164,57 @@ final class HTMLTokenizer {
         return attributes
     }
 
-    /// The value state: `=` starts it, a quote closes it, and whitespace or `>` ends an unquoted
-    /// one. A solidus where a value would begin ends the tag instead. `endMinusOne` is
-    /// `pendingAttr[1].end - 1`, the position of the last character of the value.
+    /// The value state: `readTagAttrVal` opens by skipping whitespace, so whitespace between the
+    /// name and `=` is consumed before the `=` is read. A solidus where a value would begin ends
+    /// the tag; a solidus after the `=` is the unquoted value. `endMinusOne` is
+    /// `pendingAttr[1].end - 1`, the position of the last character of the value, which
+    /// `readStartTag` compares with the last character before the close angle.
     private func readAttributeValue() -> (value: String, endMinusOne: Int) {
-        guard position < chars.count else { return ("", position - 1) }
+        // `pendingAttr[1]` is set to the position the value state starts at, and it is not moved by
+        // the two `skipWhiteSpace` calls below.
         let entry = position
 
-        if chars[position] == "/" {
-            position += 1
+        skipWhiteSpace()
+        guard position < chars.count else { return ("", entry - 1) }
+        let nameEnd = chars[position]
+        position += 1
+        if nameEnd == "/" { return ("", entry - 1) }
+        if nameEnd != "=" {
+            position -= 1
             return ("", entry - 1)
         }
-        guard chars[position] == "=" else { return ("", entry - 1) }
 
-        position += 1
         skipWhiteSpace()
-        guard position < chars.count else { return ("", entry) }
-
+        guard position < chars.count else { return ("", entry - 1) }
         let quote = chars[position]
-        if quote == "/" || quote == ">" { return ("", position - 1) }
-
-        if quote == "\"" || quote == "'" {
-            position += 1
-            let start = position
-            while position < chars.count, chars[position] != quote { position += 1 }
-            let value = normalize(String(chars[start..<position]), decoded: true, attribute: true,
-                nulToReplacement: true)
-            let end = position
-            if position < chars.count { position += 1 }
-            return (value, end - 1)
+        position += 1
+        if quote == ">" {
+            position -= 1
+            return ("", entry - 1)
         }
 
+        if quote == "\"" || quote == "'" { return readQuotedValue(quote) }
+        return readUnquotedValue()
+    }
+
+    private func readQuotedValue(_ quote: Character) -> (value: String, endMinusOne: Int) {
         let start = position
+        while position < chars.count, chars[position] != quote { position += 1 }
+        let end = position
+        if position < chars.count { position += 1 }
+        return (decodeValue(chars[start..<end]), end - 1)
+    }
+
+    /// The unquoted state: the value starts at the character the reader stopped on, and the
+    /// delimiter is put back before `end` is answered with.
+    private func readUnquotedValue() -> (value: String, endMinusOne: Int) {
+        let start = position - 1
         while position < chars.count, !isSpace(chars[position]), chars[position] != ">" { position += 1 }
-        let value = normalize(String(chars[start..<position]), decoded: true, attribute: true,
-            nulToReplacement: true)
-        return (value, position - 1)
+        return (decodeValue(chars[start..<position]), position - 1)
+    }
+
+    private func decodeValue(_ slice: ArraySlice<Character>) -> String {
+        normalize(String(slice), decoded: true, attribute: true, nulToReplacement: true)
     }
 
     /// The check `readStartTag` makes for `<br/>`, with the guard that an attribute value can end

@@ -204,9 +204,10 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
-    /// `TestEspaceAttributes`: a `td` outside a table is not an element, so the escaped attribute
-    /// value never reaches the output. `th` is in the same insertion-mode case, which the reference
-    /// has no case for.
+    /// `TestEspaceAttributes` is the `td` case; `th` is traced against the same insertion-mode
+    /// case, which the corpus has no input for. In both, the cell outside a table is not an
+    /// element, so the escaped attribute value never reaches the output — this is the tree-shape
+    /// pin, not the escape pin, which is the case inside a table.
     @Test(arguments: [
         (#"<td rowspan="<b>injection</b>">text</td>"#, "text"),
         (#"<th colspan="<b>injection</b>">text</th>"#, "text"),
@@ -214,18 +215,83 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
+    /// Traced against `escapeString`: the same value inside a table is an element, so the escape is
+    /// observable. `colspan` is one of the attributes `td` keeps.
+    @Test func attributeValueIsEscapedWhenTheCellIsInsideATable() {
+        #expect(sanitize(#"<table><tr><td colspan="<b>injection</b>">text</td></tr></table>"#) ==
+            #"<table><tr><td colspan="&lt;b&gt;injection&lt;/b&gt;">text</td></tr></table>"#)
+    }
+
     /// Traced against `parse.go`: only `hr` and the block list close an open `p`. `button` is not
-    /// in that list, so the text stays inside the `p`, while `xmp` is in its own case that pops
-    /// `p`.
+    /// in that list, so the text stays inside the `p`; `button` is a `buttonScope` stop tag, so
+    /// `</p>` cannot reach the `p` and inserts an empty one instead. `xmp` is in its own case that
+    /// pops `p`, and `table` is not in the block list at all — `p.quirks` is always true on the
+    /// reference's path, which is the gate `inBodyIM` checks for `table`.
     @Test(arguments: [
-        ("<p>a<button>x</p>", "<p>ax</p>"),
+        ("<p>a<button>x</p>", "<p>ax<p></p></p>"),
+        ("<p>a<button>x<p>y</p>", "<p>ax<p>y</p></p>"),
         ("<p>a<xmp>b</xmp>c</p>", "<p>a</p>bc<p></p>"),
+        ("<p>a<table><tr><td>x</td></tr></table>z</p>", "<p>a<table><tr><td>x</td></tr></table>z</p>"),
     ]) func blockListAndHRCloseAnOpenP(input: String, expected: String) {
         #expect(sanitize(input) == expected)
     }
 
-    /// Traced against `parse.go`: `cite` is one of the attributes that hold a URL, so it is
-    /// resolved against the base like `src`, `href` and `poster`.
+    /// Traced against `inBodyEndTagOther`: the walk from the top stops at the first special
+    /// element, which is not the same set as the default-scope stop tags. `span` is in neither set,
+    /// so it reaches the rule, and `p` is special, so the end tag is ignored and the text that
+    /// follows stays inside the `p`.
+    @Test func otherEndTagStopsAtTheFirstSpecialElement() {
+        #expect(sanitize("<span><p>a</span>b</p>") == "<p>ab</p>")
+    }
+
+    /// Traced against `listItemScope`, whose stop tags are `ol` and `ul`: `</li>` cannot reach the
+    /// `li` through the inner `ul`, so the end tag is ignored and the text after it stays inside
+    /// the inner list.
+    @Test func listItemEndTagCannotReachThroughAnInnerList() {
+        #expect(sanitize("<ul><li>a<ul>b</li>c</ul>") == "<ul><li>a<ul>bc</ul></li></ul>")
+    }
+
+    /// Traced against the table modes: a start tag inside a cell is not one of the table-only tags,
+    /// so the mode falls through to the rules for the body without the foster-parenting flag, and
+    /// the node is added to the open cell.
+    @Test func startTagInsideACellIsWrittenToTheCell() {
+        let input = #"<table><tr><td><img src="http://example.org/i.png" alt="x"></td></tr></table>"#
+        let expected = #"<table><tr><td><img src="http://example.org/i.png" alt="x" loading="lazy">"#
+            + #"</td></tr></table>"#
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against the table modes: an end tag inside a cell is not one of the table-only tags,
+    /// so the mode falls through to the rules for the body, where `td` is a stop tag and the open
+    /// `p` is out of `buttonScope`, so the empty one is written at the cell. The case has no text,
+    /// so foster parenting cannot be what the assertion is about.
+    @Test func endTagInsideACellIsProcessedByTheBodyRules() {
+        #expect(sanitize("<table><tr><td></p></td></tr></table>") ==
+            "<table><tr><td><p></p></td></tr></table>")
+    }
+
+    /// The same rule with an open `p` below the cell: the stop tag is above the match, so the walk
+    /// does not reach it and the end tag is read as a start tag. This is the half of
+    /// `indexOfElementInScope` that checks `defaultScopeStopTags`, which the case above cannot show
+    /// because it has no open `p`.
+    @Test func endTagCannotReachAnOpenElementThroughAStopTag() {
+        #expect(sanitize("<p>a<table><tr><td></p></td></tr></table>") ==
+            "<p>a<table><tr><td><p></p></td></tr></table></p>")
+    }
+
+    /// Traced against `inCellIM`: a name from its own list closes the open cell and the token is
+    /// read again in the row mode, so the second cell is a sibling of the first. The case has no
+    /// text, so foster parenting cannot be what the assertion is about.
+    @Test func cellClosesForANestedCellAndReprocessesInTheRowMode() {
+        let input = #"<table><tr><td><img src="http://example.org/i.png" alt="x"><td>"#
+            + #"<img src="http://example.org/j.png" alt="y"></td></tr></table>"#
+        let expected = #"<table><tr><td><img src="http://example.org/i.png" alt="x" loading="lazy">"#
+            + #"</td><td><img src="http://example.org/j.png" alt="y" loading="lazy"></td></tr></table>"#
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against the sanitizer's own attribute switch, which resolves `src`, `href`, `poster`
+    /// and `cite` against the base: `cite` is one of the four, and `q` is allowlisted with it.
     @Test func citeIsResolvedAgainstTheBaseURL() {
         #expect(sanitize(#"<q cite="doc.html">x</q>"#) == #"<q cite="http://example.org/doc.html">x</q>"#)
     }
@@ -357,17 +423,19 @@ import Testing
         #expect(sanitize("<p>a</p></html><p>b</p>") == "<p>a</p><p>b</p>")
     }
 
-    /// `inTableBodyIM` pops the open `tbody` (or `thead`/`tfoot`) before it reprocesses the start
-    /// tag that follows, which is why a section or a caption is not ignored. Traced against
+    /// `inTableBodyIM` pops the open section element before it reprocesses the start tag that
+    /// follows, so the caption is written at the table and not inside the section. The case has to
+    /// open `thead`, not `tbody`: `tbody` is not in the allowlist, so a case built on it writes the
+    /// same string whether the pop happens or not, and cannot pin the rule. Traced against
     /// `parse.go`.
     @Test(arguments: [
         (
-            "<table><tbody><thead><tr><th>H</th></tr></thead></table>",
-            "<table><thead><tr><th>H</th></tr></thead></table>"
+            "<table><thead><caption>C</caption></table>",
+            "<table><thead></thead><caption>C</caption></table>"
         ),
         (
-            "<table><tbody><caption>C</caption></table>",
-            "<table><caption>C</caption></table>"
+            "<p>a<table><thead><caption>C</caption></table>",
+            "<p>a<table><thead></thead><caption>C</caption></table></p>"
         ),
     ]) func tableBodyIsPoppedByTheNextSectionStartTag(input: String, expected: String) {
         #expect(sanitize(input) == expected)

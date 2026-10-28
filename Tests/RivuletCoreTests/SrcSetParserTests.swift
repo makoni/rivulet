@@ -80,4 +80,34 @@ import Testing
         #expect(SrcSetParser.parse("a.png 1.50x").map(\.description).joined(separator: ", ") == "a.png 1.5x")
         #expect(SrcSetParser.parse("a.png 2.0x").map(\.description).joined(separator: ", ") == "a.png 2x")
     }
+
+    /// `FormatFloat(value, 'g', -1, 64)` takes the exponent form when the decimal exponent is below
+    /// -4 or at least 6, and it keeps the sign of a negative zero, which
+    /// `parseValidHTMLFloatingPointNumber` accepts because `-0` is not below zero.
+    @Test(arguments: [
+        ("a.png 1000000x", "a.png 1e+06x"),
+        ("a.png 100000x", "a.png 100000x"),
+        ("a.png 0.0001x", "a.png 0.0001x"),
+        ("a.png 0.00001x", "a.png 1e-05x"),
+        ("a.png -0x", "a.png -0x"),
+    ]) func densityIsFormattedTheWayGoFormatsIt(input: String, expected: String) {
+        #expect(SrcSetParser.parse(input).map(\.description).joined(separator: ", ") == expected)
+    }
+
+    /// `parseValidHTMLNonNegativeInteger` reads through `ParseUint(value, 10, 0)`, whose range is
+    /// the whole unsigned 64-bit value, so a descriptor above `Int64.max` is still a candidate.
+    @Test func widthDescriptorAcceptsTheWholeUnsigned64Range() {
+        #expect(SrcSetParser.parse("a.png 9223372036854775808w").map(\.description)
+            .joined(separator: ", ") == "a.png 9223372036854775808w")
+    }
+
+    /// The same range on the height, which the serializer never writes, so it is observable only
+    /// through the rule that keeps a candidate: a height alone makes the descriptor invalid, so the
+    /// value has to be read before the width can be written back.
+    @Test func heightDescriptorAcceptsTheWholeUnsigned64Range() {
+        #expect(SrcSetParser.parse("a.png 9223372036854775808h 320w").map(\.description)
+            .joined(separator: ", ") == "a.png 320w")
+        #expect(SrcSetParser.parse("a.png 18446744073709551616h 320w").map(\.description)
+            .joined(separator: ", ") == "")
+    }
 }
