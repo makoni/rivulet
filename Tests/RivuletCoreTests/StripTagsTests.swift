@@ -43,10 +43,10 @@ import Testing
     }
 
     /// `unicode.IsSpace` answers with the `White_Space` table Go generates from the UCD property,
-    /// which is not the three sets its comment names: the table has the eight Latin-1 characters
-    /// the comment lists, so they are trimmed, but it has none of `U+001C` to `U+001F` and none of
-    /// `U+200E` and `U+200F`, which a reading of the comment alone would trim. The two halves are
-    /// pinned apart.
+    /// which is not the three sets its comment names. The table has the eight Latin-1 characters
+    /// the comment lists, so they are trimmed. The two sets the comment adds give `U+200E` and
+    /// `U+200F`, and the four separators `U+001C` to `U+001F` are in none of the three, so none of
+    /// the six is trimmed, which is what a reading of the comment alone gets wrong.
     @Test(arguments: [
         ("a\u{001C}", "a\u{001C}"),
         ("a\u{001D}b", "a\u{001D}b"),

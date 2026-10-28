@@ -257,9 +257,9 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   `Text()` converts only in the states the tokenizer flags as converting — the raw-text states and
   CDATA — and for a comment token. `TrimSpace` and `FieldsSeq` read `unicode.IsSpace`, which answers
   with the generated `White_Space` table, the UCD property, and not with the three sets its comment
-  names: `U+0085` and `U+00A0` split a word, while `U+001C` to `U+001F` and `U+200E` and `U+200F` do
-  not, and a Swift scalar reports the same table, which `StripTagsTests` pins on both halves. The
-  limit counts code points, which is what the reference counts.
+  names: `U+0085`, `U+00A0` and `U+2028` split a word, while `U+001E` and `U+200F` do not, and a
+  Swift scalar reports the same table. The trim half is pinned by `StripTagsTests` and the split
+  half by `TruncateHTMLTests`. The limit counts code points, which is what the reference counts.
 
 **Known differences.**
 
