@@ -6,10 +6,9 @@ transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical 
 table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
-tracking-parameter cleaner). The sanitizer slice is merged (PR #13): the HTML tokenizer subset, the
-fragment tree, the allowlists, the attribute writer and the `srcset` parser, with the findings from
-that PR's review landed as this follow-up. `StripTags` and `TruncateHTML` are the next slice, then
-the format adapters.
+tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
+review landed as PR #14; the text layer it reads through — `StripTags` and `TruncateHTML` — is this
+PR, and the format adapters are next.
 
 ## Scope
 
@@ -37,7 +36,8 @@ the format adapters.
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
       subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
       `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged; the
-      text layer (`StripTags` and `TruncateHTML`, which the format adapters call) is the next slice.
+      text layer (`StripTags` and `TruncateHTML`, which the format adapters call) is this PR, and
+      the format adapters are next.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
@@ -85,14 +85,14 @@ the format adapters.
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs, nested
-  obfuscation). The reference corpus is ported in full except `TestStripTags` and
-  `TestTruncateHTML`, which are the text layer of the next slice, and the fuzz target
-  `FuzzSanitizer`, whose expectation is that the output has no more tokens than the input, which
-  needs a fuzz harness and a seed corpus that Swift Testing does not have. The tokenizer and
-  insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output as
-  traced against `golang.org/x/net/html` — see `docs/parity.md` — except the four the output cannot
-  show, a tag name and an attribute key carrying a NUL, the shape of the entity table, and where
-  comment data ends, which are asserted through the tokenizer itself.
+  obfuscation). The reference corpus is ported in full except the fuzz target `FuzzSanitizer`, whose
+  expectation is that the output has no more tokens than the input, which needs a fuzz harness and a
+  seed corpus that Swift Testing does not have. The text layer (`StripTags` and `TruncateHTML`) is
+  the suite this PR adds. The tokenizer and insertion-mode rules have no reference corpus, so they
+  are pinned through the sanitizer output as traced against `golang.org/x/net/html` — see
+  `docs/parity.md` — except the four the output cannot show, a tag name and an attribute key
+  carrying a NUL, the shape of the entity table, and where comment data ends, which are asserted
+  through the tokenizer itself.
 
 ### Integration
 

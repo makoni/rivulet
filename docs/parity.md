@@ -251,6 +251,13 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   table stores the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries
   are kept apart because they resolve to two code points. The XML reader's table is `encoding/xml`'s
   smaller HTML4 set, so the two tables are kept apart rather than merged.
+- The text layer reads through the same tokenizer and writes what `Text()` gives for a text token:
+  the data decoded for the states that are not raw, `title` and `textarea` decoded, the other raw
+  states written as read, and newlines normalized. A text token keeps its NUL, because the tokenizer
+  flags only the raw-text, comment and doctype states as converting. `TrimSpace` and `FieldsSeq`
+  read `unicode.IsSpace`, which is the Unicode `White_Space` property, so `U+0085` and `U+00A0` are
+  separators here as they are in Go, and the limit counts code points, which is what the reference
+  counts.
 
 **Known differences.**
 
@@ -270,6 +277,8 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | Script escaping states | the script data can end at a different position through the escaping states | the raw state ends at the end tag | Nothing is written for `script`, `style` or `noscript`, so the difference is only where the token ends |
 | Content in `head` | read through the insertion mode for the head, so markup there is not part of the node the renderer walks | `html` and `head` do not put a node on the tree, so it is read in the body | `<head><title>x</title></head>` writes `x` here and nothing in the reference |
 | Implied end tags | `generateImpliedEndTags` pops `p`, `li`, `dd` and `dt` before `hr` and `button` in some cases | the open `p` is popped, which is the same answer while the stack is well formed | A list item or definition inside a `p` nests through the ancestor loop, which is the row above |
-| Positions and counts | the tokenizer measures bytes and the character walks count runes | `Character` graphemes | A combining sequence or a ZWJ sequence is one position here where the reference counts more; the `&#13;&#10;` pair is one instance of that |
+| Positions and counts | the tokenizer measures bytes and the character walks count runes | `Character` graphemes, except the text layer, which walks the scalars so the count is per code point | A combining sequence or a ZWJ sequence is one position here where the reference counts more; the `&#13;&#10;` pair is one instance of that |
+| The reader error `stripIter` reports | `StripTags` and `TruncateHTML` write nothing when the reader reports an error | no equivalent, because the input is a string and the walk always completes | Nothing differs for an input that is already a string; the path is only reachable through a reader |
+| A byte that is not valid UTF-8 | counted as one against the limit and written as the byte it was read as | a Swift string cannot hold it, so the value is U+FFFD | Only for input that is not valid UTF-8, which the reader never produces, because its output is always UTF-8 |
 | The Vimeo `dnt=1` append | the link is written as it was read | rebuilt from the parsed parts | A query that is not already in the canonical form is re-encoded, so the string differs; one that is, is written the same |
 | `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
