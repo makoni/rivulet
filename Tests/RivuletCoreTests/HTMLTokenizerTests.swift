@@ -7,10 +7,10 @@ import Testing
 ///
 /// These are traced against `golang.org/x/net/html` (BSD-3-Clause) rather than ported from a
 /// reference test, because the reference has no test for this area; `docs/parity.md` records where
-/// the ported subset stops. Except the three cases the sanitizer output cannot show — a tag name or
-/// an attribute key carrying a NUL is never in the allowlist, and the shape of the entity table is
-/// not a rule the sanitizer runs through — every case is asserted through `Sanitizer.sanitize`, so
-/// what is pinned is the rule as the sanitizer sees it.
+/// the ported subset stops. Except the four cases the sanitizer output cannot show — a tag name or
+/// an attribute key carrying a NUL is never in the allowlist, the shape of the entity table is not
+/// a rule the sanitizer runs through, and a comment writes nothing — every case is asserted through
+/// `Sanitizer.sanitize`, so what is pinned is the rule as the sanitizer sees it.
 @Suite struct HTMLTokenizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
     private let baseURL = "http://example.org/"

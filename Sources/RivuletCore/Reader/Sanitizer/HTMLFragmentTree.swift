@@ -56,9 +56,11 @@ final class HTMLFragmentTree {
     ]
 
     /// The elements `isSpecialElement` answers true for. The end tag that is not in the block list
-    /// walks the stack and stops at the first of these, which is not the same set as
-    /// `defaultScopeStopTags`: the stop list has the table and the list-container tags, and the
-    /// special list also has `p`, `div`, `li`, `button`, `pre` and the other block tags.
+    /// walks the stack and stops at the first of these, which is a different set from
+    /// `defaultScopeStopTags`: the stop list has `applet`, `caption`, `html`, `table`, `td`, `th`,
+    /// `marquee`, `object`, `template` and `select`, while the special list also has `p`, `div`,
+    /// `li`, `button`, `pre` and the other block tags. `ol` and `ul` are only in the special list;
+    /// they are `listItemScope`'s own stop tags, not default ones.
     static let specialElements: Set<String> = [
         "address", "applet", "area", "article", "aside", "base", "basefont", "bgsound", "blockquote",
         "body", "br", "button", "caption", "center", "col", "colgroup", "dd", "details", "dir", "div",

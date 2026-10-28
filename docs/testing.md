@@ -144,12 +144,12 @@ not a test with an expectation: it compares the number of tokens the tokenizer r
 with the number it reads in the sanitized output, so porting it needs a fuzz harness and a seed
 corpus, and Swift Testing has neither. The tokenizer and the insertion modes have no upstream
 corpus, so the five sanitizer suites name what is traced against `golang.org/x/net/html` v0.61.0 —
-`miniflux/go.mod` pins v0.57.0 — and `docs/parity.md` records where that subset stops. Three of
-those pins cannot be seen through the sanitizer output and are asserted through the tokenizer
-itself: an attribute key carrying a NUL, the shape of the entity table, and where comment data ends,
-because the renderer writes nothing for a comment. The hostile corpus the plan names is the case
-that writes no active content: an event handler, a `javascript:` URL, and obfuscation nested inside
-a tag that is dropped.
+`miniflux/go.mod` pins v0.57.0 — and `docs/parity.md` records where that subset stops. Four of those
+pins cannot be seen through the sanitizer output and are asserted through the tokenizer itself: a
+tag name and an attribute key carrying a NUL, which are never in the allowlist, the shape of the
+entity table, and where comment data ends, because the renderer writes nothing for a comment. The
+hostile corpus the plan names is the case that writes no active content: an event handler, a
+`javascript:` URL, and obfuscation nested inside a tag that is dropped.
 
 ## Running
 

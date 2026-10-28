@@ -100,4 +100,14 @@ import Testing
         #expect(SrcSetParser.parse("a.png 9223372036854775808w").map(\.description)
             .joined(separator: ", ") == "a.png 9223372036854775808w")
     }
+
+    /// The same range on the height, which the serializer never writes, so it is observable only
+    /// through the rule that keeps a candidate: a height alone makes the descriptor invalid, so the
+    /// value has to be read before the width can be written back.
+    @Test func heightDescriptorAcceptsTheWholeUnsigned64Range() {
+        #expect(SrcSetParser.parse("a.png 9223372036854775808h 320w").map(\.description)
+            .joined(separator: ", ") == "a.png 320w")
+        #expect(SrcSetParser.parse("a.png 18446744073709551616h 320w").map(\.description)
+            .joined(separator: ", ") == "")
+    }
 }

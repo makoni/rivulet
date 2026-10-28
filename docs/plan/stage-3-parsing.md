@@ -25,12 +25,12 @@ the format adapters.
       in the list), PST/PDT workaround, UTC-offset clamping; adapters fall back to "now" when
       parsing fails completely. Zone abbreviations read through a fixed table instead of the
       machine's tzdata — see `docs/parity.md`.
-- [x] Charset detection and transcoding: WHATWG label table transcribed from
-      `golang.org/x/text` v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths
-      (`CharsetReader`, `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan
-      (1024 bytes) → UTF-8 heuristic → `windows-1252` default; output is always UTF-8.
-      Platform decoder gaps (EUC-JP on Linux) go through a glibc `iconv` fallback; the
-      deviations are in `docs/parity.md`.
+- [x] Charset detection and transcoding: WHATWG label table transcribed from the
+      `golang.org/x/text` `encoding/htmlindex` copy in the module cache, which `miniflux/go.mod`
+      pins at v0.40.0 (BSD-3-Clause, attributed in `NOTICE`); both reference paths (`CharsetReader`,
+      `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan (1024 bytes) → UTF-8
+      heuristic → `windows-1252` default; output is always UTF-8. Platform decoder gaps (EUC-JP on
+      Linux) go through a glibc `iconv` fallback; the deviations are in `docs/parity.md`.
 - [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
 - [ ] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
@@ -84,14 +84,16 @@ the format adapters.
 - URL: the ported tables from `internal/urllib/url_test.go` and
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
-- Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs,
-  nested obfuscation). The reference corpus is ported in full except `TestStripTags` and
-  `TestTruncateHTML`, which belong to the format adapters and land with the next slice, and
-  `TestFuzzSanitizer`, which compares token counts a subset tokenizer does not expose. The tokenizer
-  and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output
-  as traced against `golang.org/x/net/html` — see `docs/parity.md` — except the two the output
-  cannot show, an attribute key carrying a NUL and the shape of the entity table, which are
-  asserted through the tokenizer itself.
+- Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs, nested
+  obfuscation). The reference corpus is ported in full except `TestStripTags` and
+  `TestTruncateHTML`, which are the text layer of the next slice, and the fuzz target
+  `FuzzSanitizer`, which is not a test with an expectation: it compares the number of tokens read in
+  the input with the number read in the output, so porting it needs a fuzz harness that Swift
+  Testing does not have. The tokenizer and insertion-mode rules have no reference corpus, so they
+  are pinned through the sanitizer output as traced against `golang.org/x/net/html` — see
+  `docs/parity.md` — except the four the output cannot show, a tag name and an attribute key
+  carrying a NUL, the shape of the entity table, and where comment data ends, which are asserted
+  through the tokenizer itself.
 
 ### Integration
 

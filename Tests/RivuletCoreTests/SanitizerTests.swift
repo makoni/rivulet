@@ -270,6 +270,15 @@ import Testing
             "<table><tr><td><p></p></td></tr></table>")
     }
 
+    /// The same rule with an open `p` below the cell: the stop tag is above the match, so the walk
+    /// does not reach it and the end tag is read as a start tag. This is the half of
+    /// `indexOfElementInScope` that checks `defaultScopeStopTags`, which the case above cannot show
+    /// because it has no open `p`.
+    @Test func endTagCannotReachAnOpenElementThroughAStopTag() {
+        #expect(sanitize("<p>a<table><tr><td></p></td></tr></table>") ==
+            "<p>a<table><tr><td><p></p></td></tr></table></p>")
+    }
+
     /// Traced against `inCellIM`: a name from its own list closes the open cell and the token is
     /// read again in the row mode, so the second cell is a sibling of the first. The case has no
     /// text, so foster parenting cannot be what the assertion is about.
@@ -281,8 +290,8 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
-    /// Traced against `parse.go`: `cite` is one of the attributes that hold a URL, so it is
-    /// resolved against the base like `src`, `href` and `poster`.
+    /// Traced against the sanitizer's own attribute switch, which resolves `src`, `href`, `poster`
+    /// and `cite` against the base: `cite` is one of the four, and `q` is allowlisted with it.
     @Test func citeIsResolvedAgainstTheBaseURL() {
         #expect(sanitize(#"<q cite="doc.html">x</q>"#) == #"<q cite="http://example.org/doc.html">x</q>"#)
     }
@@ -414,17 +423,24 @@ import Testing
         #expect(sanitize("<p>a</p></html><p>b</p>") == "<p>a</p><p>b</p>")
     }
 
-    /// `inTableBodyIM` pops the open `tbody` (or `thead`/`tfoot`) before it reprocesses the start
-    /// tag that follows, which is why a section or a caption is not ignored. Traced against
+    /// `inTableBodyIM` pops the open section element before it reprocesses the start tag that
+    /// follows, which is why the caption is written at the table. The case uses an open `thead`,
+    /// because that is a name the renderer writes: an open `tbody` cannot pin this, since it is not
+    /// in the allowlist and the string is the same whether the pop happens or not. Traced against
+    /// `parse.go`.
+    /// `inTableBodyIM` pops the open section element before it reprocesses the start tag that
+    /// follows, so the caption is written at the table and not inside the section. The case has to
+    /// open `thead`, not `tbody`: `tbody` is not in the allowlist, so a case built on it writes the
+    /// same string whether the pop happens or not, and cannot pin the rule. Traced against
     /// `parse.go`.
     @Test(arguments: [
         (
-            "<table><tbody><thead><tr><th>H</th></tr></thead></table>",
-            "<table><thead><tr><th>H</th></tr></thead></table>"
+            "<table><thead><caption>C</caption></table>",
+            "<table><thead></thead><caption>C</caption></table>"
         ),
         (
-            "<table><tbody><caption>C</caption></table>",
-            "<table><caption>C</caption></table>"
+            "<p>a<table><thead><caption>C</caption></table>",
+            "<p>a<table><thead></thead><caption>C</caption></table></p>"
         ),
     ]) func tableBodyIsPoppedByTheNextSectionStartTag(input: String, expected: String) {
         #expect(sanitize(input) == expected)
