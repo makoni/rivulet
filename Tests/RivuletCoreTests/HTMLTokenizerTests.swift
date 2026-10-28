@@ -176,9 +176,10 @@ import Testing
     }
 
     /// NUL is removed from a text token by the insertion mode, while the tokenizer replaces it with
-    /// U+FFFD in the states it flags as converting (raw text, comment, doctype) and in an attribute
-    /// key or value, which `TagAttr` does whatever the state. `TagName` replaces it too, so a name
-    /// carrying a NUL is not in the allowlist.
+    /// U+FFFD in the states it flags as converting — CDATA and the raw-text state — and in an
+    /// attribute key or value, which `TagAttr` does whatever the state. A comment converts it
+    /// through `Text`'s own check rather than through the flag. `TagName` replaces it too, so a
+    /// name carrying a NUL is not in the allowlist.
     @Test(arguments: [
         ("<p>a\u{00}b</p>", "<p>ab</p>"),
         ("<img src=\"http://example.org/i.png\" title=\"a\u{00}b\">",

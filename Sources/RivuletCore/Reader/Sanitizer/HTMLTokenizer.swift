@@ -381,11 +381,13 @@ final class HTMLTokenizer {
     // MARK: - Character conversion
 
     /// The conversion `Text` and `TagAttr` apply: newlines normalized, NUL replaced in the states
-    /// the reference flags as converting (raw text, comment, doctype) and in an attribute key or
-    /// value, which `TagAttr` replaces whatever the state, and character references decoded in the
-    /// states that decode them, through the mode the state reads them with. The tag name has its
-    /// own rule, which replaces NUL and lower-cases but converts no newline; it is read through
-    /// `readTagName`.
+    /// the reference flags as converting — CDATA and the raw-text state — and in an attribute key
+    /// or value, which `TagAttr` replaces whatever the state, and character references decoded in
+    /// the states that decode them, through the mode the state reads them with. A comment converts
+    /// NUL through `Text`'s own check rather than through the flag. The port converts it for a
+    /// doctype as well, which the reference does not; a doctype is never written, so that is a
+    /// recorded boundary. The tag name has its own rule, which replaces NUL and lower-cases but
+    /// converts no newline, and is read through `readTagName`.
     private func normalize(_ value: String, decoded: Bool, attribute: Bool, nulToReplacement: Bool) -> String {
         var out = convertNewlines(value)
         if nulToReplacement { out = out.replacingOccurrences(of: "\u{00}", with: "\u{FFFD}") }

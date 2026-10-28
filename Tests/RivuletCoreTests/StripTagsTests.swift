@@ -32,15 +32,25 @@ import Testing
         #expect(StripTags.strip(input) == expected)
     }
 
-    /// A text token keeps its NUL: the tokenizer flags only the raw-text, comment and doctype
-    /// states as converting, so the U+FFFD rule is the insertion mode's, not `Text()`'s. The
-    /// insertion mode is not what this layer runs through, so a text token keeps the NUL and a raw
-    /// state converts it.
+    /// A data-state text token keeps its NUL, because `Text()` converts only in the states the
+    /// tokenizer flags as converting — the raw-text states and CDATA — and for a comment token. A
+    /// raw-state text token converts it, because the flag is set there.
     @Test(arguments: [
         ("<p>a\u{00}b</p>", "a\u{00}b"),
         ("<title>a\u{00}b</title>", "a\u{FFFD}b"),
     ]) func textTokenKeepsNULAndRawStateConvertsIt(input: String, expected: String) {
         #expect(StripTags.strip(input) == expected)
+    }
+
+    /// `unicode.IsSpace` is `White_Space` plus category Z plus `Pattern_White_Space`, and that last
+    /// set adds the four separators `U+001C`–`U+001F`, which a Swift scalar reports as not
+    /// whitespace. The port names them, so the trim reads the reference's set.
+    @Test(arguments: [
+        ("a\u{001C}", "a"),
+        ("\u{001D}b", "b"),
+        ("a\u{001E}b\u{001F}", "a\u{001E}b"),
+    ]) func patternWhiteSpaceIsTrimmed(input: String, expected: String) {
+        #expect(StripTags.strip(input) == expected, Comment(rawValue: input))
     }
 
     /// Newlines are normalized whatever the state, which `Text()` does before the decode, and the
@@ -62,5 +72,14 @@ import Testing
         ("<p>a</p>", "a"),
     ]) func onlyTextTokensAreYielded(input: String, expected: String) {
         #expect(StripTags.strip(input) == expected)
+    }
+
+    /// The script escaping states are not ported, and the text layer is what makes that observable,
+    /// because it writes the content of a raw state: the reference reads a `</script>` inside the
+    /// escape as data and ends the token at the one that closes the escaped state, so it writes
+    /// `<!--<script </script>x`. The port ends the raw state at the first `</script>`, which is
+    /// what this case pins. Nothing in the corpus covers it.
+    @Test func rawStateEndsAtTheFirstCloseTagWithoutTheEscapingStates() {
+        #expect(StripTags.strip("<script><!--<script </script>x</script>") == "<!--<script x")
     }
 }

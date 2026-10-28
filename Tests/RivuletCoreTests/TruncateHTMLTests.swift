@@ -39,13 +39,14 @@ import Testing
         #expect(TruncateHTML.truncate(input, limit: limit) == expected, Comment(rawValue: name))
     }
 
-    /// `unicode.IsSpace` is the set `FieldsSeq` splits on, which is the Unicode White_Space
-    /// property: `U+0085` and `U+00A0` are separators, and the separator written back is the single
-    /// ASCII space.
+    /// `unicode.IsSpace` is the set `FieldsSeq` splits on: `White_Space` plus category Z plus
+    /// `Pattern_White_Space`, so `U+0085`, `U+00A0` and the four separators `U+001C`–`U+001F` split
+    /// a word, and the separator written back is the single ASCII space.
     @Test(arguments: [
         ("hello\u{00A0}world", 12, "hello world"),
         ("hello\u{0085}world", 12, "hello world"),
-    ]) func NELAndNoBreakSpaceSplitWords(input: String, limit: Int, expected: String) {
+        ("hello\u{001E}world", 12, "hello world"),
+    ]) func NELNoBreakSpaceAndPatternWhiteSpaceSplitWords(input: String, limit: Int, expected: String) {
         #expect(TruncateHTML.truncate(input, limit: limit) == expected, Comment(rawValue: input))
     }
 

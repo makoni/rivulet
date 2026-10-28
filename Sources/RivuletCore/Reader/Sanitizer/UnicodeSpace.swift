@@ -8,13 +8,18 @@ import Foundation
 /// The whitespace rules the text layer reads through: the set `unicode.IsSpace` has, the split
 /// `FieldsSeq` does, and the trim `strings.TrimSpace` does.
 ///
-/// Go's `IsSpace` is the Unicode `White_Space` property, which is what a Swift scalar reports, so
-/// the three places that need the set — the split, the trim and the space check in `TruncateHTML` —
-/// read the same rule. The two Latin-1 characters Go names in its comment, `U+0085` and `U+00A0`,
-/// are in the property, which is where a Swift `Character` could read a set of its own.
+/// Go's set is the Unicode `White_Space` property plus category Z plus `Pattern_White_Space`, which
+/// is what a Swift scalar reports except for the four separators the last set adds, named below.
+/// The three places that need the set — the split, the trim and the space check in `TruncateHTML` —
+/// read the same rule, and `U+0085` and `U+00A0` are in it.
 enum UnicodeSpace {
+    /// The contract `unicode.IsSpace` documents: `White_Space`, category Z and
+    /// `Pattern_White_Space`. There is no Go toolchain on this machine, so this reads the
+    /// documented contract rather than the generated table, and the four characters are named so
+    /// the port answers the rule Go documents.
     static func isSpace(_ scalar: Unicode.Scalar) -> Bool {
-        scalar.properties.isWhitespace
+        if (0x001C...0x001F).contains(scalar.value) { return true }
+        return scalar.properties.isWhitespace
     }
 
     /// `FieldsSeq`: runs of whitespace split the value into words, and an empty piece is not a

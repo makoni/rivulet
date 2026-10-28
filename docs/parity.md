@@ -206,37 +206,37 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   (`-->` or `--!>`), so a `>` inside its data is data; a doctype, a processing instruction and any
   other `<!` or `<?` close at the first `>`. A tag name, an attribute key and an attribute value
   have NUL replaced with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed
-  by the insertion mode, because the tokenizer flags only the raw-text, comment and doctype states
-  as converting. A named reference without its semicolon is resolved outside the attribute mode
-  only, and the semicolon stays part of the name because the reader is already past the character it
-  stopped on, which a name outside the 106 short names shows. A duplicate attribute name is kept
-  once. `readTagAttrVal` skips whitespace before the `=`, and a solidus after the `=` is the
-  unquoted value. `>`, `<` and a nested tag inside a raw state are data, which the content of the
-  two raw states that are still written (`title`, `textarea`) shows. A newline at the start of a
-  `pre` or `listing` block is dropped when it is the first thing in the data as the token was read,
-  before the NUL is removed, and the escape forms are `&#34;`, `&#39;` and `&#13;`, pinned in text
-  and in an attribute value. Four pins cannot be seen through the sanitizer output and are asserted
-  through the tokenizer itself: the tag name and the attribute key carrying a NUL, the shape of the
-  entity table, and where comment data ends, because the renderer writes nothing for a comment.
-  `Tests/RivuletCoreTests/SanitizerTests.swift` pins what the insertion modes answer with: `</p>`
-  with no open `p` in `buttonScope` inserts an empty one, and `</br>` is read as a start tag. Only
-  `hr` and the block list close an open `p` — `button` does not, and `br`, `img` and `wbr` do not,
-  and `table` pops `p` only outside quirks mode, which is never the case on the reference's path.
-  `td` and `th` outside a table are not elements at all, while inside one the escaped attribute
-  value is written, and `</table>` switches back to the insertion mode for the body, so content
-  after it is not table content. The scope walk stops at the scope's own stop tags and at
-  `defaultScopeStopTags`, and the second half needs a stop tag above the match: a `</p>` cannot
-  reach an open `p` through the cell, so it writes an empty `p` at the cell. `listItemScope`'s own
-  stop tags are `ol` and `ul`, which the default list does not have, and that is pinned by an `li`
-  under an inner list. An end tag outside the block list walks the stack and stops at the first
-  special element, which is a different set from the stop tags: `p` is special but is not a default
-  stop tag, and `span` is neither, so a `</span>` inside a `p` is ignored and the text that follows
-  stays in the `p`. A start tag or an end tag that the current table mode does not name is processed
-  by the rules for the body at the insertion point, so an `img` inside a cell is written into the
-  cell and `</p>` puts an empty `p` there. A section start tag pops the open section element before
-  the token is read again in the table mode, and the case has to open `thead`, because that is a
-  name the renderer writes: `tbody` is not in the allowlist, so a case built on `tbody` writes the
-  same string whether the pop happens or not.
+  by the insertion mode, because the tokenizer flags only CDATA and the raw-text state as
+  converting, and `Text()` converts a comment through its own check. A named reference without its
+  semicolon is resolved outside the attribute mode only, and the semicolon stays part of the name
+  because the reader is already past the character it stopped on, which a name outside the 106 short
+  names shows. A duplicate attribute name is kept once. `readTagAttrVal` skips whitespace before the
+  `=`, and a solidus after the `=` is the unquoted value. `>`, `<` and a nested tag inside a raw
+  state are data, which the content of the two raw states that are still written (`title`,
+  `textarea`) shows. A newline at the start of a `pre` or `listing` block is dropped when it is the
+  first thing in the data as the token was read, before the NUL is removed, and the escape forms are
+  `&#34;`, `&#39;` and `&#13;`, pinned in text and in an attribute value. Four pins cannot be seen
+  through the sanitizer output and are asserted through the tokenizer itself: the tag name and the
+  attribute key carrying a NUL, the shape of the entity table, and where comment data ends, because
+  the renderer writes nothing for a comment. `Tests/RivuletCoreTests/SanitizerTests.swift` pins what
+  the insertion modes answer with: `</p>` with no open `p` in `buttonScope` inserts an empty one,
+  and `</br>` is read as a start tag. Only `hr` and the block list close an open `p` — `button` does
+  not, and `br`, `img` and `wbr` do not, and `table` pops `p` only outside quirks mode, which is
+  never the case on the reference's path. `td` and `th` outside a table are not elements at all,
+  while inside one the escaped attribute value is written, and `</table>` switches back to the
+  insertion mode for the body, so content after it is not table content. The scope walk stops at the
+  scope's own stop tags and at `defaultScopeStopTags`, and the second half needs a stop tag above
+  the match: a `</p>` cannot reach an open `p` through the cell, so it writes an empty `p` at the
+  cell. `listItemScope`'s own stop tags are `ol` and `ul`, which the default list does not have, and
+  that is pinned by an `li` under an inner list. An end tag outside the block list walks the stack
+  and stops at the first special element, which is a different set from the stop tags: `p` is
+  special but is not a default stop tag, and `span` is neither, so a `</span>` inside a `p` is
+  ignored and the text that follows stays in the `p`. A start tag or an end tag that the current
+  table mode does not name is processed by the rules for the body at the insertion point, so an
+  `img` inside a cell is written into the cell and `</p>` puts an empty `p` there. A section start
+  tag pops the open section element before the token is read again in the table mode, and the case
+  has to open `thead`, because that is a name the renderer writes: `tbody` is not in the allowlist,
+  so a case built on `tbody` writes the same string whether the pop happens or not.
 - The srcset descriptor rules are ported, including the two that decide the string written back: the
   density is written with `strconv.FormatFloat(value, 'g', -1, 64)`'s rule — the shortest digits
   that round-trip, the exponent form when the decimal exponent is below -4 or at least 6, and the
@@ -253,11 +253,12 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   smaller HTML4 set, so the two tables are kept apart rather than merged.
 - The text layer reads through the same tokenizer and writes what `Text()` gives for a text token:
   the data decoded for the states that are not raw, `title` and `textarea` decoded, the other raw
-  states written as read, and newlines normalized. A text token keeps its NUL, because the tokenizer
-  flags only the raw-text, comment and doctype states as converting. `TrimSpace` and `FieldsSeq`
-  read `unicode.IsSpace`, which is the Unicode `White_Space` property, so `U+0085` and `U+00A0` are
-  separators here as they are in Go, and the limit counts code points, which is what the reference
-  counts.
+  states written as read, and newlines normalized. A data-state text token keeps its NUL, because
+  `Text()` converts only in the states the tokenizer flags as converting — the raw-text states and
+  CDATA — and for a comment token. `TrimSpace` and `FieldsSeq` read `unicode.IsSpace`, which is
+  `White_Space` plus category Z plus `Pattern_White_Space`, so `U+0085`, `U+00A0` and the four
+  separators `U+001C` to `U+001F` split a word here as they do in Go, and the limit counts code
+  points, which is what the reference counts.
 
 **Known differences.**
 
@@ -274,11 +275,12 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | The leading newline of raw text | `textIM` drops it for `textarea` and `title` | dropped for `pre` and `listing` only | `<textarea>\nx` keeps the newline here |
 | A self-closing start tag in foreign content | pops the element it opened | the token kind is read, the insertion effect is not | `<math/>x` nests here instead of closing `math`; the check also compares against the last *saved* attribute, where the port tracks every value read |
 | A `<![CDATA[` | a CDATA token inside foreign content only, which `AllowCDATA` answers for | a bogus comment that closes at the first `>` | `<math><![CDATA[x]]>` writes `x` in the reference and nothing here |
-| Script escaping states | the script data can end at a different position through the escaping states | the raw state ends at the end tag | Nothing is written for `script`, `style` or `noscript`, so the difference is only where the token ends |
+| Script escaping states | the script data can end at a different position through the escaping states, which can pass a `</script>` as data | the raw state ends at the end tag | The renderer writes nothing for `script`, but the text layer writes the content of a raw state, so the difference is observable there: for `<script><!--<script </script>x</script>` the reference writes `<!--<script </script>x` and the port writes `<!--<script x`, which `StripTagsTests` pins |
 | Content in `head` | read through the insertion mode for the head, so markup there is not part of the node the renderer walks | `html` and `head` do not put a node on the tree, so it is read in the body | `<head><title>x</title></head>` writes `x` here and nothing in the reference |
 | Implied end tags | `generateImpliedEndTags` pops `p`, `li`, `dd` and `dt` before `hr` and `button` in some cases | the open `p` is popped, which is the same answer while the stack is well formed | A list item or definition inside a `p` nests through the ancestor loop, which is the row above |
 | Positions and counts | the tokenizer measures bytes and the character walks count runes | `Character` graphemes, except the text layer, which walks the scalars so the count is per code point | A combining sequence or a ZWJ sequence is one position here where the reference counts more; the `&#13;&#10;` pair is one instance of that |
 | The reader error `stripIter` reports | `StripTags` and `TruncateHTML` write nothing when the reader reports an error | no equivalent, because the input is a string and the walk always completes | Nothing differs for an input that is already a string; the path is only reachable through a reader |
 | A byte that is not valid UTF-8 | counted as one against the limit and written as the byte it was read as | a Swift string cannot hold it, so the value is U+FFFD | Only for input that is not valid UTF-8, which the reader never produces, because its output is always UTF-8 |
+| NUL in comment and doctype data | the flag is set only for CDATA and the raw-text state, and `Text()` converts a comment through its own check, so a doctype keeps the NUL | converted in both | A comment and a doctype are not written, and `stripIter` skips those kinds, so this cannot be observed |
 | The Vimeo `dnt=1` append | the link is written as it was read | rebuilt from the parsed parts | A query that is not already in the canonical form is re-encoded, so the string differs; one that is, is written the same |
 | `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
