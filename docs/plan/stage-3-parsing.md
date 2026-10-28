@@ -87,13 +87,12 @@ the format adapters.
 - Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs, nested
   obfuscation). The reference corpus is ported in full except `TestStripTags` and
   `TestTruncateHTML`, which are the text layer of the next slice, and the fuzz target
-  `FuzzSanitizer`, which is not a test with an expectation: it compares the number of tokens read in
-  the input with the number read in the output, so porting it needs a fuzz harness that Swift
-  Testing does not have. The tokenizer and insertion-mode rules have no reference corpus, so they
-  are pinned through the sanitizer output as traced against `golang.org/x/net/html` — see
-  `docs/parity.md` — except the four the output cannot show, a tag name and an attribute key
-  carrying a NUL, the shape of the entity table, and where comment data ends, which are asserted
-  through the tokenizer itself.
+  `FuzzSanitizer`, whose expectation is that the output has no more tokens than the input, which
+  needs a fuzz harness and a seed corpus that Swift Testing does not have. The tokenizer and
+  insertion-mode rules have no reference corpus, so they are pinned through the sanitizer output as
+  traced against `golang.org/x/net/html` — see `docs/parity.md` — except the four the output cannot
+  show, a tag name and an attribute key carrying a NUL, the shape of the entity table, and where
+  comment data ends, which are asserted through the tokenizer itself.
 
 ### Integration
 

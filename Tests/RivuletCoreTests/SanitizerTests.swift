@@ -424,11 +424,6 @@ import Testing
     }
 
     /// `inTableBodyIM` pops the open section element before it reprocesses the start tag that
-    /// follows, which is why the caption is written at the table. The case uses an open `thead`,
-    /// because that is a name the renderer writes: an open `tbody` cannot pin this, since it is not
-    /// in the allowlist and the string is the same whether the pop happens or not. Traced against
-    /// `parse.go`.
-    /// `inTableBodyIM` pops the open section element before it reprocesses the start tag that
     /// follows, so the caption is written at the table and not inside the section. The case has to
     /// open `thead`, not `tbody`: `tbody` is not in the allowlist, so a case built on it writes the
     /// same string whether the pop happens or not, and cannot pin the rule. Traced against
