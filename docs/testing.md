@@ -138,11 +138,14 @@ says which pins come from the upstream corpus and which are traced from the sour
 `docs/parity.md` records where the traced subset stops. Nothing in it reads a clock, a locale or the
 network.
 
-The sanitizer's upstream corpus is ported in full except `TestStripTags` and `TestTruncateHTML`,
-which belong to the text layer that is the next slice, and the fuzz target `FuzzSanitizer`, whose
+The sanitizer's upstream corpus is ported in full except the fuzz target `FuzzSanitizer`, whose
 expectation is that the sanitized output has no more tokens than the input, which needs a fuzz
-harness and a seed corpus that Swift Testing has neither. The tokenizer and the insertion modes have
-no upstream corpus, so the five sanitizer suites name what is traced against `golang.org/x/net/html`
+harness and a seed corpus that Swift Testing has neither. The two text-layer suites port
+`TestStripTags` and `TestTruncateHTML`, and name the three rules the corpus does not cover: the
+count per code point rather than per Swift grapheme, the set `unicode.IsSpace` answers with as its
+generated table rather than as its comment reads it, and the raw state that ends at its end tag
+because the script escaping states are not ported. The tokenizer and the insertion modes have no
+upstream corpus, so the seven sanitizer suites name what is traced against `golang.org/x/net/html`
 v0.61.0 — `miniflux/go.mod` pins v0.57.0 — and `docs/parity.md` records where that subset stops.
 Four of those pins cannot be seen through the sanitizer output and are asserted through the
 tokenizer itself: a tag name and an attribute key carrying a NUL, which are never in the allowlist,
