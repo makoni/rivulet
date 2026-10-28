@@ -10,16 +10,17 @@ import Foundation
 ///
 /// The port covers the rules the sanitizer can see: the tags that close an open `p`, the void tags
 /// popped as soon as they are inserted, the table-only tags that are not elements outside a table,
-/// the implied `tbody` and `tr` inside one, the end tags that pop the table modes, the two end-tag
-/// rules that put a node on the tree with nothing in it, and the depth limit the reference refuses.
+/// the implied `tbody` and `tr` inside one, the end tags that pop the table modes, the end tags
+/// that walk the stack and stop at the first special element, the two end-tag rules that put a node
+/// on the tree with nothing in it, and the depth limit the reference refuses.
 ///
 /// Where the subset stops, recorded in `docs/parity.md`: foster parenting, the active formatting
 /// elements, the adoption agency, the caption and column-group modes, nested tables, the scope
-/// markers, the heading and list-item ancestor pops, the raw-text leading-newline mode and the
-/// foreign-content self-closing pop. None of them changes what the sanitizer writes for a case in
-/// the reference corpus, but a real feed can nest content differently here, so the tree is built as
-/// if the insertion point were the open element, which is what the modes answer with for the tags
-/// in the corpus.
+/// markers, the ancestor loops the start tags run for `li`, `dd` and `dt`, the raw-text
+/// leading-newline mode and the foreign-content self-closing pop. None of them changes what the
+/// sanitizer writes for a case in the reference corpus, but a real feed can nest content
+/// differently here, so the tree is built as if the insertion point were the open element, which is
+/// what the modes answer with for the tags in the corpus.
 ///
 /// Comment nodes are not kept, because the renderer answers with nothing for them.
 final class HTMLFragmentTree {
@@ -52,6 +53,37 @@ final class HTMLFragmentTree {
     /// is invisible in the output even though it is on the tree.
     static let tableOnlyTags: Set<String> = [
         "caption", "col", "colgroup", "frame", "head", "tbody", "td", "tfoot", "th", "thead", "tr",
+    ]
+
+    /// The elements `isSpecialElement` answers true for. The end tag that is not in the block list
+    /// walks the stack and stops at the first of these, which is not the same set as
+    /// `defaultScopeStopTags`: the stop list has the table and the list-container tags, and the
+    /// special list also has `p`, `div`, `li`, `button`, `pre` and the other block tags.
+    static let specialElements: Set<String> = [
+        "address", "applet", "area", "article", "aside", "base", "basefont", "bgsound", "blockquote",
+        "body", "br", "button", "caption", "center", "col", "colgroup", "dd", "details", "dir", "div",
+        "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer", "form", "frame", "frameset",
+        "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "iframe", "img",
+        "input", "keygen", "li", "link", "listing", "main", "marquee", "menu", "meta", "nav",
+        "noembed", "noframes", "noscript", "object", "ol", "p", "param", "plaintext", "pre", "script",
+        "section", "select", "source", "style", "summary", "table", "tbody", "td", "template",
+        "textarea", "tfoot", "th", "thead", "title", "tr", "track", "ul", "wbr", "xmp",
+    ]
+
+    /// The end tags `inBodyIM` answers with `popUntil(defaultScope, ...)`: the block list, the own
+    /// cases for `dd`, `dt` and the six headings, and the three that clear the formatting list.
+    /// `p`, `li` and `br` have their own rules, and everything else uses the special-element walk.
+    static let endTagsInDefaultScope: Set<String> = [
+        "address", "article", "aside", "blockquote", "button", "center", "dd", "details", "dialog",
+        "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "header", "h1", "h2",
+        "h3", "h4", "h5", "h6", "hgroup", "applet", "marquee", "object", "listing", "main", "menu",
+        "nav", "ol", "pre", "search", "section", "summary", "ul",
+    ]
+
+    /// The names `inCellIM` handles before it falls through: it closes the open cell and reads the
+    /// token again in the row mode.
+    static let cellStartTags: Set<String> = [
+        "caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr",
     ]
 
     struct Failure: Error, Equatable {}
@@ -157,8 +189,17 @@ final class HTMLFragmentTree {
         case .table: try startTagInTableMode(name, attributes: attributes)
         case .tableBody: try startTagInTableBodyMode(name, attributes: attributes)
         case .row: try startTagInRowMode(name, attributes: attributes)
-        // The table-only start tags are ignored inside a cell: a cell cannot hold another cell.
-        case .cell: break
+        case .cell:
+            // The cell closes for the names in its own list and the token is read again in the row
+            // mode. Anything else is processed by the rules for the body, where the insertion point
+            // is the cell itself, because a cell is a special element.
+            if Self.cellStartTags.contains(name) {
+                open.removeLast()
+                mode = .row
+                try processStartTagInTable(name, attributes: attributes)
+                return
+            }
+            try insertAtInsertionPoint(name, attributes: attributes)
         }
     }
 
@@ -222,14 +263,15 @@ final class HTMLFragmentTree {
     }
 
     private func processEndTag(_ name: String) throws {
-        // `body` does not pop anything: only the insertion mode changes, so what follows is still
-        // added to it. `html` is read as `</body>` and reprocessed, which leaves the body open, so
-        // it is ignored here too; inside a table both are ignored.
+        // `body` does not pop anything, only the insertion mode changes, and `html` is read as
+        // `</body>`, which leaves the body open. Both are ignored inside a table.
         if mode == .body {
             if name == "body" || name == "html" { return }
         } else {
             if name == "html" || name == "body" { return }
-            return processEndTagInTable(name)
+            // Each table mode has its own list of end tags. A name outside it is processed by the
+            // rules for the body, at the insertion point, which is the open table element.
+            if processEndTagInTable(name) { return }
         }
 
         if name == "p" {
@@ -248,16 +290,37 @@ final class HTMLFragmentTree {
             return
         }
 
-        guard indexOfElementInScope(.defaultScope, name) != nil else { return }
-        popUntil(.defaultScope, name)
+        if name == "li" {
+            popUntil(.listItemScope, "li")
+            return
+        }
+
+        if Self.endTagsInDefaultScope.contains(name) {
+            popUntil(.defaultScope, name)
+            return
+        }
+
+        popOtherEndTag(name)
     }
 
-    /// The end tags the table modes pop, which is `clearStackToContext` and then one element.
-    /// `table` is the one that also switches back to the insertion mode for the body, so what
-    /// follows it is not table content. The other end tags are ignored inside a table.
-    private func processEndTagInTable(_ name: String) {
-        guard name == "table" || HTMLFragmentTree.tableOnlyTags.contains(name) else { return }
-        guard let position = indexOfOpenElement(name) else { return }
+    /// `inBodyEndTagOther`: the walk stops at the match or at the first special element, which is a
+    /// different set from the default-scope stop tags.
+    private func popOtherEndTag(_ name: String) {
+        for index in open.indices.reversed() {
+            if open[index].name == name {
+                open.removeSubrange(index...)
+                return
+            }
+            if Self.specialElements.contains(open[index].name) { return }
+        }
+    }
+
+    /// The end tags each table mode answers for, and the ones it ignores. A name in neither list is
+    /// processed by the rules for the body.
+    private func processEndTagInTable(_ name: String) -> Bool {
+        if ignoredEndTag(name) { return true }
+        guard name == "table" || HTMLFragmentTree.tableOnlyTags.contains(name) else { return false }
+        guard let position = indexOfOpenElement(name) else { return true }
         open.removeSubrange(position...)
 
         switch name {
@@ -266,6 +329,24 @@ final class HTMLFragmentTree {
         case "tr": mode = .tableBody
         case "td", "th": mode = .row
         default: break
+        }
+        return true
+    }
+
+    /// The names the current table mode ignores, which are the ones its own switch lists.
+    private func ignoredEndTag(_ name: String) -> Bool {
+        switch mode {
+        case .table:
+            return ["caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr"]
+                .contains(name)
+        case .tableBody:
+            return ["caption", "col", "colgroup", "td", "th", "tr"].contains(name)
+        case .row:
+            return ["caption", "col", "colgroup", "td", "th"].contains(name)
+        case .cell:
+            return ["caption", "col", "colgroup"].contains(name)
+        case .body:
+            return false
         }
     }
 
@@ -358,15 +439,17 @@ final class HTMLFragmentTree {
     }
 
     /// The scopes the port answers with: `defaultScope` has no stop tags of its own, `buttonScope`
-    /// stops at `button`. `listItemScope` is not ported, because the ancestor loop that uses it is
-    /// part of the subset boundary.
+    /// stops at `button`, `listItemScope` stops at `ol` and `ul`. The table scopes are the anchors
+    /// `clearStackToContext` uses, and the ancestor loop that could use `listItemScope` for a start
+    /// tag is part of the subset boundary; the scope is still what `</li>` answers with.
     private enum ElementScope {
-        case defaultScope, buttonScope
+        case defaultScope, buttonScope, listItemScope
 
         var ownStopTags: Set<String> {
             switch self {
             case .defaultScope: return []
             case .buttonScope: return ["button"]
+            case .listItemScope: return ["ol", "ul"]
             }
         }
     }

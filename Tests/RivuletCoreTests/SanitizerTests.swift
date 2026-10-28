@@ -236,6 +236,40 @@ import Testing
         #expect(sanitize(input) == expected)
     }
 
+    /// Traced against `inBodyEndTagOther`: the walk from the top stops at the first special
+    /// element, which is not the same set as the default-scope stop tags. `span` is in neither set,
+    /// so it reaches the rule, and `p` is special, so the end tag is ignored and the text that
+    /// follows stays inside the `p`.
+    @Test func otherEndTagStopsAtTheFirstSpecialElement() {
+        #expect(sanitize("<span><p>a</span>b</p>") == "<p>ab</p>")
+    }
+
+    /// Traced against `listItemScope`, whose stop tags are `ol` and `ul`: `</li>` cannot reach the
+    /// `li` through the inner `ul`, so the end tag is ignored and the text after it stays inside
+    /// the inner list.
+    @Test func listItemEndTagCannotReachThroughAnInnerList() {
+        #expect(sanitize("<ul><li>a<ul>b</li>c</ul>") == "<ul><li>a<ul>bc</ul></li></ul>")
+    }
+
+    /// Traced against the table modes: a start tag inside a cell is not one of the table-only tags,
+    /// so the mode falls through to the rules for the body, and the cell is a special element, so
+    /// the node is added to it rather than foster parented.
+    @Test func startTagInsideACellIsWrittenToTheCell() {
+        let input = #"<table><tr><td><img src="http://example.org/i.png" alt="x"></td></tr></table>"#
+        let expected = #"<table><tr><td><img src="http://example.org/i.png" alt="x" loading="lazy">"#
+            + #"</td></tr></table>"#
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against the table modes: an end tag inside a cell is not one of the table-only tags,
+    /// so the mode falls through to the rules for the body, where `td` is a stop tag and the open
+    /// `p` is out of `buttonScope`, so the empty one is written at the cell. The case has no text,
+    /// so foster parenting cannot be what the assertion is about.
+    @Test func endTagInsideACellIsProcessedByTheBodyRules() {
+        #expect(sanitize("<table><tr><td></p></td></tr></table>") ==
+            "<table><tr><td><p></p></td></tr></table>")
+    }
+
     /// Traced against `parse.go`: `cite` is one of the attributes that hold a URL, so it is
     /// resolved against the base like `src`, `href` and `poster`.
     @Test func citeIsResolvedAgainstTheBaseURL() {

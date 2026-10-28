@@ -225,7 +225,13 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   dropped when it is the first thing in the data as the token was read, before the NUL is removed.
   The escape forms are `&#34;`, `&#39;` and `&#13;`, pinned in text and in an attribute value. The
   scope walk stops at the `defaultScopeStopTags` and at the scope's own stop tags, which is what
-  `buttonScope` answers with for a `p` inside a `button`.
+  `buttonScope` answers with for a `p` inside a `button` and what `listItemScope` answers with for
+  an `li` under an inner list, whose stop tags are `ol` and `ul`. An end tag outside the block list
+  walks the stack and stops at the first special element, which is a different set from the stop
+  tags: `p` is special but is not a default stop tag, and `span` is neither, so a `</span>` inside a
+  `p` is ignored and the text that follows stays in the `p`. A start tag or an end tag that the
+  current table mode does not name is processed by the rules for the body at the insertion point, so
+  an `img` inside a cell is written into the cell and `</p>` puts an empty `p` there.
 - The srcset descriptor rules are ported, including the two that decide the string written back: the
   integer descriptor is read through `ParseUint(value, 10, 0)`, whose range is the whole unsigned
   64-bit value, and the density is written with `strconv.FormatFloat(value, 'g', -1, 64)`'s rule —
@@ -234,11 +240,11 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   `SrcSetParserTests`.
 - The entity table is the data `x/net/html` builds from the HTML5 named character references,
   generated from the module-cache copy at v0.61.0 (`miniflux/go.mod` pins v0.57.0), and its shape is
-  pinned by `HTMLTokenizerTests`. The source has 2138 entries, 106 of them without a semicolon, and
-  every one of those 106 resolves to the value its semicolon form resolves to, so the table stores
-  the 2032 semicolon forms once and the short names as a set. The 93 paired references are kept
-  apart because they resolve to two code points. The XML reader's table is `encoding/xml`'s smaller
-  HTML4 set, so the two tables are kept apart rather than merged.
+  pinned by `HTMLTokenizerTests`. The `entity` map has 2138 entries, 106 of them without a
+  semicolon, and every one of those 106 resolves to the value its semicolon form resolves to, so the
+  table stores the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries
+  are kept apart because they resolve to two code points. The XML reader's table is `encoding/xml`'s
+  smaller HTML4 set, so the two tables are kept apart rather than merged.
 
 **Known differences.**
 
@@ -246,11 +252,12 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | --- | --- | --- | --- |
 | Foster parenting | content the table modes cannot take is attached to the parent of the table, so it is written before the table | the insertion point is the open element, so it is written inside the table | This is the subset boundary: no case in the reference corpus changes what the sanitizer writes because of it, but real feeds can nest content inside a table here where the reference moves it out |
 | Active formatting elements and the adoption agency | a formatting-element list and the adoption agency algorithm, which can move a node into or out of an element | not ported | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in the corpus covers it |
-| Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
+| Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed, and a cell closes for the names `inCellIM` lists | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
 | Text inside a table | only whitespace text is added to the table element; anything else is foster parented | added to the insertion point | Same for whitespace; non-whitespace text can be inside the table here |
 | Comment nodes | kept as nodes in the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the shape the sanitizer sees |
 | A heading start tag | pops an open `h1`–`h6` before the new heading is inserted | only the `p` pop is ported | `<h1>a<h1>b</h1>` nests the second heading inside the first here |
-| `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p` pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the first here |
+| `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p` pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the first here; the end tag for `li` is ported and uses `listItemScope` |
+| A second `form` start tag | ignored while `p.form` is still set | inserted | None, because `form` is not in the allowlist and only its content is written; the string is the same either way |
 | The leading newline of raw text | `textIM` drops it for `textarea` and `title` | dropped for `pre` and `listing` only | `<textarea>\nx` keeps the newline here |
 | A self-closing start tag in foreign content | pops the element it opened | the token kind is read, the insertion effect is not | `<math/>x` nests here instead of closing `math`; the check also compares against the last *saved* attribute, where the port tracks every value read |
 | A `<![CDATA[` | a CDATA token inside foreign content only, which `AllowCDATA` answers for | a bogus comment that closes at the first `>` | `<math><![CDATA[x]]>` writes `x` in the reference and nothing here |
