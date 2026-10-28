@@ -21,8 +21,6 @@ import Testing
 
     /// A named reference is decoded in text without its semicolon, which is the set the HTML5 table
     /// lists without one.
-    /// A named reference is decoded in text without its semicolon, which is the set the HTML5 table
-    /// lists without one.
     @Test func namedReferenceInTextDoesNotNeedTheSemicolon() {
         #expect(sanitize("<p>&amp test</p>") == "<p>&amp; test</p>")
         #expect(sanitize("<pre>x&copy=y</pre>") == "<pre>x©=y</pre>")
@@ -129,7 +127,14 @@ import Testing
         let tokenizer = HTMLTokenizer(input)
         let comment = try #require(tokenizer.next())
         #expect(comment.kind == .comment && comment.data == data, Comment(rawValue: input))
-        #expect((tokenizer.next()?.data ?? "") == following)
+
+        // An empty `following` means the input ends inside the comment, so the reader has to answer
+        // with nothing rather than with an empty token.
+        if following.isEmpty {
+            #expect(tokenizer.next() == nil, Comment(rawValue: input))
+        } else {
+            #expect(tokenizer.next()?.data == following, Comment(rawValue: input))
+        }
     }
 
     /// `readMarkupDeclaration` is the two-dash comment only when the two bytes after `<!` are two
@@ -147,8 +152,11 @@ import Testing
 
     /// A solidus where the value would begin ends the tag, but a solidus after the `=` is the
     /// unquoted value, which `readTagAttrVal` reads through the default branch of its quote switch.
+    /// The value is asserted through `alt`, because a URL attribute resolves an empty value to the
+    /// base, which is the string the solidus resolves to as well, so `src` cannot show the rule.
     @Test func solidusAfterTheEqualsSignIsTheUnquotedValue() {
-        #expect(sanitize(#"<img src=/>"#) == #"<img src="http://example.org/" loading="lazy">"#)
+        #expect(sanitize(#"<img src="http://example.org/i.png" alt=/>"#) ==
+            #"<img src="http://example.org/i.png" alt="/" loading="lazy">"#)
     }
 
     /// A duplicate attribute name is read once, as `readTag` keeps only the first of each name.

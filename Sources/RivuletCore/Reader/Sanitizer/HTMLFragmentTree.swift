@@ -71,13 +71,15 @@ final class HTMLFragmentTree {
     ]
 
     /// The end tags `inBodyIM` answers with `popUntil(defaultScope, ...)`: the block list, the own
-    /// cases for `dd`, `dt` and the six headings, and the three that clear the formatting list.
-    /// `p`, `li` and `br` have their own rules, and everything else uses the special-element walk.
+    /// cases for `dd`, `dt` and the six headings, and the three that clear the formatting list,
+    /// which is not ported. `p`, `li` and `br` have their own rules, and everything else uses the
+    /// special-element walk, which stops at the first special element. A void element is not in the
+    /// list, because it is popped as soon as it is inserted.
     static let endTagsInDefaultScope: Set<String> = [
         "address", "article", "aside", "blockquote", "button", "center", "dd", "details", "dialog",
         "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "header", "h1", "h2",
-        "h3", "h4", "h5", "h6", "hgroup", "applet", "marquee", "object", "listing", "main", "menu",
-        "nav", "ol", "pre", "search", "section", "summary", "ul",
+        "h3", "h4", "h5", "h6", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "search",
+        "section", "select", "summary", "ul", "applet", "marquee", "object",
     ]
 
     /// The names `inCellIM` handles before it falls through: it closes the open cell and reads the

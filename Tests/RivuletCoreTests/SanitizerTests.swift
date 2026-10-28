@@ -252,8 +252,8 @@ import Testing
     }
 
     /// Traced against the table modes: a start tag inside a cell is not one of the table-only tags,
-    /// so the mode falls through to the rules for the body, and the cell is a special element, so
-    /// the node is added to it rather than foster parented.
+    /// so the mode falls through to the rules for the body without the foster-parenting flag, and
+    /// the node is added to the open cell.
     @Test func startTagInsideACellIsWrittenToTheCell() {
         let input = #"<table><tr><td><img src="http://example.org/i.png" alt="x"></td></tr></table>"#
         let expected = #"<table><tr><td><img src="http://example.org/i.png" alt="x" loading="lazy">"#
@@ -268,6 +268,17 @@ import Testing
     @Test func endTagInsideACellIsProcessedByTheBodyRules() {
         #expect(sanitize("<table><tr><td></p></td></tr></table>") ==
             "<table><tr><td><p></p></td></tr></table>")
+    }
+
+    /// Traced against `inCellIM`: a name from its own list closes the open cell and the token is
+    /// read again in the row mode, so the second cell is a sibling of the first. The case has no
+    /// text, so foster parenting cannot be what the assertion is about.
+    @Test func cellClosesForANestedCellAndReprocessesInTheRowMode() {
+        let input = #"<table><tr><td><img src="http://example.org/i.png" alt="x"><td>"#
+            + #"<img src="http://example.org/j.png" alt="y"></td></tr></table>"#
+        let expected = #"<table><tr><td><img src="http://example.org/i.png" alt="x" loading="lazy">"#
+            + #"</td><td><img src="http://example.org/j.png" alt="y" loading="lazy"></td></tr></table>"#
+        #expect(sanitize(input) == expected)
     }
 
     /// Traced against `parse.go`: `cite` is one of the attributes that hold a URL, so it is
