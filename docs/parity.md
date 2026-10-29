@@ -374,7 +374,33 @@ reports are the opcodes `scanObjectKey` and `scanObjectValue`/`scanArrayValue`, 
 | An empty document | `Decode` reports `io.EOF` when nothing was read and `io.ErrUnexpectedEOF` when a value is left open; `checkValid` reports both as `unexpected end of JSON input` | one failure, `unexpectedEnd`, for the two | Only the error identity separates them in the reference, and nothing in the port reads the message |
 | Input that ends where a state still needs a byte | `readValue` uses the invented space only to decide whether to break, so it reports `io.ErrUnexpectedEOF` there, while `checkValid` reports that space as invalid in the state's context — `invalid character ' ' in numeric literal` for `{"a":-` | the end of input, `unexpectedEnd`, which is what `readValue` reports; the context the state names is not kept | None on the `Decode` path; a reader that validated the whole document would name the state |
 | Invalid UTF-8 inside a string | `unquoteBytes` coerces the bytes to well-formed UTF-8, one U+FFFD per byte that is not a valid encoding, because `utf8.DecodeRune` reports one byte at a time and rejects an overlong form, an encoding of a surrogate and a form above U+10FFFF | the same checks, written out rather than left to Swift's UTF-8 decoder, so the one-byte-at-a-time rule is the reader's own | None; Swift's decoder answers the same for the cases pinned, so the difference is which code keeps the rule |
-| The order an object keeps | `map[string]any` keeps no order and one value per key, so a repeated key is folded and the value it holds is the last assignment | the tree keeps the members as the document wrote them, so a repeated key stays two members; the last-wins rule is pinned with the adapter | Order is what the field read walks, which the reference could not pin |
-| The name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it, so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the reference and not here; pinned when the adapter lands |
-| A number | `Number` keeps the literal, and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with `null` into a non-primitive target leaving the value as it was | the tree keeps the literal as the machine read it; the conversion rules are the field read's and are pinned with the adapter | None |
+| The order an object keeps | `map[string]any` keeps no order and one value per key, so a repeated key is folded and the value it holds is the last assignment | the tree keeps the members as the document wrote them, so a repeated key stays two members; the last-wins rule is pinned in `JSONFieldReadTests` | Order is what the field read walks, which the reference could not pin |
+| The name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it, so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the reference and not here; pinned in `JSONFieldReadTests` |
+| A number | `Number` keeps the literal, and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with `null` setting a map or a slice to zero while leaving a primitive or a string as it was | the tree keeps the literal as the machine read it and the field read converts it per target, which is what `int64` and `int` mean there | None; the conversion and the `null` per target are pinned in `JSONFieldReadTests` |
 | Depth | `pushParseState` reports `exceeded max depth` at the byte that goes past 10000 | the same limit, reported as `maxDepthExceeded` | None |
+
+## JSON Feed adapter (stage 3)
+
+**Matching the reference.** Miniflux has no field-read code to port either: the adapter decodes
+the document straight into the structs `json.go` declares, so `JSONFieldRead` mirrors what
+`decode.go` answers for one field — `d.object`, `d.array` and `literalStore` — over the members
+the tree keeps. The order the model fields are written in is `adapter.go`'s: language, URL,
+title, content, date, author, enclosures, tags, hash, and each chain stops at the first value
+it can read, resolve or parse. Three rules the reference reads as a property of the target
+type are pinned here: `null` sets a slice to empty but leaves a string, a bool, an `int64` or
+a struct field as it started — which is what a repeated key separates — a number is converted
+per target (`ParseInt` for the size field), so a literal that conversion cannot read is reported
+with the literal as the value, and `JSONAuthors.UnmarshalJSON` returns without assigning when
+neither branch can read the value, so a field keeps what an earlier member gave it. The shape
+keeps every field the struct declares, not only the ones the adapter writes, because the type
+check is what decides whether the document fails and, for `authors`, whether the leniency
+keeps the whole array or none of it. Because the field read walks the members in the order
+the document wrote them and `saveError` keeps the first failure, the failure the document
+reports is the first member the field's type cannot accept, not the first field the table has.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The name a field matches | `foldName` also accepts a case-insensitive name, as the reader section records | not ported: the walk matches the name as the document wrote it | `{"Title": "x"}` matches `title` in the reference and not here; pinned by `JSONFieldReadTests.nameMatchIsExact` |
+| `UnmarshalTypeError` | keeps the value word, the type and the byte offset, and the message is built from them: `json: cannot unmarshal number into Go value of type string` | the two words are the case's values — the kind the literal is, and Go's rendering of the field type (`json.JSONFeed`, `json.JSONAuthor`, `json.JSONHub`, `[]json.JSONItem`, `[]json.JSONAttachment`, `[]string`, `int64`, `int`, `bool`, `string`) — and the offset is not modelled | None, because nothing in the port reads the message; the pins name the two words |
