@@ -1,0 +1,23 @@
+// SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+// Rivulet's own reader over the bytes; the failures are the ones `encoding/json` reports, in its
+// own words. `JSONScanner` names the source the rules are traced against.
+
+import Foundation
+
+/// Failures of the JSON reader.
+///
+/// Each failure names the position the parse state is in, in the words Go uses, so a pin can
+/// compare it against what the reference reports. `unexpectedEnd` is the failure Go separates only
+/// by message: an empty input is `io.EOF` and an incomplete value is `unexpected end of JSON
+/// input`, so the two are one case here, as `docs/parity.md` records.
+enum JSONError: Error, Equatable, Sendable {
+    /// The input ended with a value still open, or had no value at all.
+    case unexpectedEnd
+
+    /// A byte the position the machine is in cannot accept.
+    case unexpectedCharacter(character: UInt8, context: String)
+
+    /// A value nested deeper than the depth `pushParseState` limits to, which is 10000.
+    case maxDepthExceeded
+}

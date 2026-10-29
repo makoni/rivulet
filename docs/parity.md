@@ -347,3 +347,32 @@ as it is written. `AtomLanguageTests` pins both levels and the namespace gate.
   fails on anything else the alphabet does not have. Go reports padding that is not at the end as an
   error; Swift's `Data(base64Encoded:)` answers `nil` for the same input, which is the same outcome
   here, because a failed read leaves the content empty.
+
+## JSON reader (stage 3)
+
+**Matching the reference.** Miniflux has no JSON reader code to port: its JSON adapter reads a feed
+through `encoding/json`, so this layer mirrors the part of that source the reader reads through —
+`scanner.go`, `decode.go` and `stream.go`, the Go 1.26 that `go.mod` pins. The positions are the
+`stateX` productions, and the context of a failure is the words the production names, which is what
+lets a pin compare the message against what the reference reports. The rules that belong to the
+machine are the machine's: the four ASCII separators rather than any byte below the printable range,
+the escape set `stateInStringEsc` accepts, the number states with the fall-throughs `state1` has to
+`state0` and `stateE` to `stateESign`, the literal words walked letter by letter, the depth
+`pushParseState` limits to, and the way `unquoteBytes` makes the bytes well-formed. No dependency is
+added: the reader is our own over the bytes, because a platform JSON decoder cannot reproduce the
+per-field error semantics or the leniency the reference has. The two separators the token machine
+reports are the opcodes `scanObjectKey` and `scanObjectValue`/`scanArrayValue`, which are what
+`Token` elides, so they are kept because the tree is built from them.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The path that reads the document | `Unmarshal` validates the whole document with `checkValid` before it decodes anything, while `Decode` — the path the reference's JSON adapter takes — reads one value and breaks at `scanEnd`, so bytes after the top-level value are never examined | the `Decode` path: the machine stops at the end of the first top-level value, and the only byte after it that is read is the one that ends a top-level scalar, because it is what decides whether the literal had ended | `1garbage` fails in both, because that byte is a byte the position cannot accept; `1 2` and `{"a":1}garbage` read here and fail in `checkValid`, where the first byte after the value is reported |
+| An empty document | `Decode` reports `io.EOF`; `checkValid` reports `unexpected end of JSON input`, and so does the end of input that leaves a value open | one failure, `unexpectedEnd` | Only the message separates them, and nothing reads the message |
+| Input that ends where a state still needs a byte | the end of input pushes an invented space through the machine, so the failure is that space being invalid in the state's context rather than an end of input | the same, pinned, for the states that reject the space: `{"a":-` fails with the space in "in numeric literal" | None |
+| Invalid UTF-8 inside a string | `unquoteBytes` coerces the bytes to well-formed UTF-8, one U+FFFD per bad byte, because `utf8.DecodeRune` reports one byte at a time | our own `utf8.DecodeRune` rules, because Swift's `String(decoding:as:UTF8.self)` keeps `ED 80 80` as U+D000 — an encoding of a surrogate — and keeps an overlong form, both of which Go rejects | None; the rules are the reference's, only the platform decoder would differ |
+| The order an object keeps | `map[string]any` keeps no order and one value per key, so a repeated key is folded and the value it holds is the last assignment | the tree keeps the members as the document wrote them, so a repeated key stays two members; the last-wins rule is pinned with the adapter | Order is what the field read walks, which the reference could not pin |
+| The name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it, so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the reference and not here; pinned when the adapter lands |
+| A number | `Number` keeps the literal, and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with `null` into a non-primitive target leaving the value as it was | the tree keeps the literal as the machine read it; the conversion rules are the field read's and are pinned with the adapter | None |
+| Depth | `pushParseState` reports `exceeded max depth` at the byte that goes past 10000 | the same limit, reported as `maxDepthExceeded` | None |
