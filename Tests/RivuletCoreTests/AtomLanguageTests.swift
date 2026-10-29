@@ -77,10 +77,11 @@ import Testing
         #expect(feed.entries[1].language == "fr-ca")
     }
 
-    /// Traced: the inheritance is the adapter's fallback rather than a walk up the tree, so a value
-    /// declared on an element that is not the entry is not inherited — which is the boundary
-    /// recorded in `docs/parity.md`.
-    @Test func inheritanceIsTheFeedValueAndNotAParentWalk() throws {
+    /// Traced: the entry's value is its own attribute or the feed's, because the field tag reads
+    /// the attribute on the element that carries it, so a value declared on an element that is
+    /// neither the entry nor the root does not reach the entry — which is what the reference
+    /// answers too.
+    @Test func langFromAnIntermediateElementDoesNotReachTheEntry() throws {
         let feed = try Atom10Adapter.parse(baseURL: "http://example.org/feed.xml",
             data: Data(("<feed xmlns=\"http://www.w3.org/2005/Atom\" xml:lang=\"en\"><author xml:lang=\"fr\">"
                 + "<name>x</name></author><entry></entry></feed>").utf8), now: now)
