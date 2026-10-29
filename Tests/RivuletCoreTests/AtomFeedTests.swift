@@ -87,18 +87,31 @@ import Testing
         #expect(feed.feedURL == "https://example.org/feed")
     }
 
-    /// `TestParseFeedWithRelativeSiteURL` — the entry URL is resolved against the site URL, not
-    /// against the base URL, which is what makes the third assertion different from the first.
-    @Test func entryURLIsResolvedAgainstTheSiteURLRatherThanTheBaseURL() throws {
+    /// `TestParseFeedWithRelativeSiteURL` — the feed URL and the site URL are the two links,
+    /// resolved against the base URL.
+    @Test func relativeSiteLinkIsResolvedAgainstTheBaseURL() throws {
         let feed = try parse("<feed xmlns=\"http://www.w3.org/2005/Atom\"><title>Example Feed</title>"
             + "<link href=\"/blog/atom.xml\" rel=\"self\" type=\"application/atom+xml\"/>"
-            + "<link href=\"/blog \"/><entry><title>Test</title>"
-            + "<link href=\"/blog/article.html\"/><id>/blog/article.html</id>"
-            + "<updated>2003-12-13T18:30:02Z</updated><summary>Some text.</summary></entry></feed>")
+            + "<link href=\"/blog \"/></feed>")
 
         #expect(feed.feedURL == "https://example.org/blog/atom.xml")
         #expect(feed.siteURL == "https://example.org/blog")
-        #expect(try #require(feed.entries.first).url == "https://example.org/blog/article.html")
+    }
+
+    /// Traced against `atom_10_adapter.go`: the entry URL is resolved against the site URL, not
+    /// against the base URL. The upstream case cannot show this, because its entry href is
+    /// root-relative and both bases answer the same, so the pin uses values that are not: the site
+    /// is a directory and the base is a file, which is what `url.Parse` keeps. Resolving the entry
+    /// from the base instead would answer `https://example.org/feeds/article.html`.
+    @Test func entryURLIsResolvedAgainstTheSiteURLRatherThanTheBaseURL() throws {
+        let feed = try parse("<feed xmlns=\"http://www.w3.org/2005/Atom\"><title>Example Feed</title>"
+            + "<link href=\"blog/\"/><entry><title>Test</title>"
+            + "<link href=\"article.html\"/><id>urn:uuid:x</id>"
+            + "<updated>2003-12-13T18:30:02Z</updated><summary>Some text.</summary></entry></feed>",
+            baseURL: "https://example.org/feeds/page.html")
+
+        #expect(feed.siteURL == "https://example.org/feeds/blog/")
+        #expect(try #require(feed.entries.first).url == "https://example.org/feeds/blog/article.html")
     }
 
     /// `TestParseFeedSiteURLWithTrailingSpace` and `TestParseFeedWithFeedURLWithTrailingSpace`: the
@@ -147,17 +160,18 @@ import Testing
     // MARK: - Icon
 
     /// `TestParseFeedWithIconURL` — the icon is resolved against the site URL, not against the base
-    /// URL, so a relative icon is resolved from the site root, which is what `url.Parse` keeps: the
-    /// base path is not a directory.
+    /// URL. The upstream case resolves a root-relative value, where both bases answer the same, so
+    /// the second half here uses a value that is not root-relative: the site path is a directory,
+    /// so the two answers differ.
     @Test func iconIsResolvedAgainstTheSiteURL() throws {
         #expect(try parse("<feed xmlns=\"http://www.w3.org/2005/Atom\"><title>Example Feed</title>"
             + "<link href=\"http://example.org/\"/><icon>http://example.org/icon.png</icon></feed>").iconURL
             == "http://example.org/icon.png")
 
-        let feed = try parse("<feed xmlns=\"http://www.w3.org/2005/Atom\"><link href=\"/blog\"/>"
-            + "<icon>/icon.png</icon></feed>")
-        #expect(feed.siteURL == "https://example.org/blog")
-        #expect(feed.iconURL == "https://example.org/icon.png")
+        let feed = try parse("<feed xmlns=\"http://www.w3.org/2005/Atom\"><link href=\"blog/\"/>"
+            + "<icon>icon.png</icon></feed>", baseURL: "https://example.org/feed.xml")
+        #expect(feed.siteURL == "https://example.org/blog/")
+        #expect(feed.iconURL == "https://example.org/blog/icon.png")
     }
 
     /// Traced: the reference reads `icon` first and only then `logo`, so `logo` is used when `icon`

@@ -168,23 +168,22 @@ clock, a locale or the network.
 
 Atom is the seven suites `AtomFeedTests`, `AtomEntryTests`, `AtomTextConstructTests`,
 `AtomMediaTests`, `AtomHashTests`, `Atom03Tests` and `AtomLanguageTests`, ported from
-`internal/reader/atom/atom_10_test.go` (67 cases) and `internal/reader/atom/atom_03_test.go` (10),
-with the media description rule carried by `TestDescription` and `TestFirstDescription` from
-`internal/reader/media/media_test.go`. Two boundaries decide which upstream cases can be ported:
-the tree keeps character data already decoded, while the reference keeps `innerxml` as the bytes it
-read, and `",chardata"` keeps only the level the field is read at. So a case whose stated value is
-the markup with entities, or the text at the element's own level plus the text inside a child,
-cannot be pinned — entry 1 of `TestParseEntryWithHTMLTitle`, `TestParseEntryWithHTMLSummary`,
-`TestParseEntryWithHTMLContent`, `TestParseEntryWithXHTMLTitle`, `TestParseEntryWithXHTMLContent`,
-`TestParseEntryWithXHTMLSummary`, `TestParseTitleWithSingleQuote`,
-`TestParseTitleWithEncodedSingleQuote`, entry 1 of `TestParseTitleWithSingleQuoteAndHTMLType`, and
-the entity entries of `TestParseEntryWithTextSummary` and `TestParseEntryWithTextContent` are left
-unported, and each suite names what it ports. `Atom03Tests` also pins what this format does not
-read: its structs have no icon, tags, comments or attachments, so those fields are what the model
-starts with. `AtomMediaTests` pins the Atom group order and the key its media thumbnails test the
-deduplication map against — the value as the element carries it, before the reference resolves it,
-which is where the shared media rule has to be the format's own and is read as a flag on the
-candidate.
+`internal/reader/atom/atom_10_test.go` (64 test functions) and
+`internal/reader/atom/atom_03_test.go` (10), with the media description rule carried by
+`TestDescription` and `TestFirstDescription` from `internal/reader/media/media_test.go`. The tree
+keeps character data as the reader resolved it, which is what the reference's `",chardata"` field
+holds, so a case whose stated value is text with entities is pinnable, and `",chardata"` keeping
+only the level the field is read at is pinned in `XMLTreeTests` and `RDFEntryTests`. The boundary
+that cannot be pinned is the xhtml branch: the reference answers `innerxml` — the markup as the
+bytes it read — while the tree keeps a reconstruction of the text it read, so
+`TestParseEntryWithXHTMLSummary` and `TestParseEntryWithXHTMLContent`, whose stated value keeps an
+entity inside the div, are left unported; `TestParseEntryWithXHTMLTitle` is ported because its div
+has no entity, where the two answers agree. Each suite names what it ports. `Atom03Tests` also pins
+what this format does not read: its structs have no icon, tags, comments or attachments, so those
+fields are what the model starts with. `AtomMediaTests` pins the Atom group order and the key its
+media thumbnails test the deduplication map against — the value as the element carries it, before
+the reference resolves it, which is where the shared media rule has to be the format's own and is
+read as a flag on the candidate.
 
 ## Running
 

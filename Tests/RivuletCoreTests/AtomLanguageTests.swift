@@ -7,12 +7,11 @@ import Testing
 /// names the upstream test it comes from, and a traced case states the value the reference
 /// produces.
 ///
-/// The reference reads `xml:lang` through a namespace-qualified field tag, so an attribute from
-/// another namespace cannot override it, and an unqualified `lang` is not the XML one. The
-/// inheritance is modelled as the adapter's own fallback — the entry's attribute, then the feed's —
-/// which is what the reference's adapter code does on purpose, and which for an entry is the whole
-/// chain the decoder carries; the tree has no parent link, so the inheritance is not modelled as a
-/// walk.
+/// The reference reads `xml:lang` through a namespace-qualified field tag on the element that
+/// carries the attribute, so another namespace cannot override it and an unqualified `lang` is not
+/// the XML one. The decoder inherits nothing between elements, so the entry→feed chain the suite
+/// pins is the adapter's own code, read the same way here: the entry's attribute, otherwise the
+/// feed's.
 @Suite struct AtomLanguageTests {
     private let now = ParsedDate(epochSeconds: 1_700_000_000, nanoseconds: 0, zoneName: "UTC",
         zoneOffsetSeconds: 0)

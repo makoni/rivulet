@@ -11,7 +11,9 @@ import Testing
 /// The group order is the Atom one, which is where this format differs from `RSSMedia`: the media
 /// thumbnails, then the `link` elements with relation `enclosure`, then the media contents, then
 /// the media peer links, each group reading the entry's own elements before the group's, and the
-/// whole list deduplicated by the resolved URL.
+/// whole list deduplicated by the resolved URL — except the thumbnails, which test the map on the
+/// value as the element carries it, before the reference resolves it, which is the pair pinned
+/// below.
 @Suite struct AtomMediaTests {
     private let now = ParsedDate(epochSeconds: 1_700_000_000, nanoseconds: 0, zoneName: "UTC",
         zoneOffsetSeconds: 0)
@@ -65,12 +67,26 @@ import Testing
     }
 
     /// Traced: the length is read through `strconv.ParseInt`, which answers zero for a value it
-    /// cannot read, and the URL is kept as it was read when it cannot be resolved — the enclosure
-    /// group is the one that does not drop an unresolvable URL.
+    /// cannot read, and the Atom enclosure group drops a URL the reference cannot parse — the RSS
+    /// `enclosure` is the group that keeps it, which `RSSMediaTests` pins.
     @Test func enclosureSizeIsTheParsedLength() throws {
         #expect(try enclosures("<link rel=\"enclosure\" type=\"audio/mpeg\""
             + " href=\"http://www.example.org/file.mp3\" length=\"not a number\"/>")
             == [ParsedEnclosure(url: "http://www.example.org/file.mp3", mimeType: "audio/mpeg", size: 0)])
+    }
+
+    /// Traced against `atom_10_adapter.go`: a URL the reference cannot parse is skipped, so neither
+    /// the enclosure link nor a media element is an attachment. `%zz` is such a value — its percent
+    /// escape is not two hex digits — so this is the only place the drop branch is reached. The RSS
+    /// `enclosure` is the group that keeps the value as it was read, which `RSSMediaTests` pins.
+    @Test func anUnresolvableURLIsNotAnAttachment() throws {
+        let enclosureLink = try enclosures("<link rel=\"enclosure\" href=\"%zz\" length=\"1\"/>")
+        let mediaContent = try enclosures("<media:content url=\"%zz\" medium=\"image\"/>")
+        let mediaThumbnail = try enclosures("<media:thumbnail url=\"%zz\"/>")
+
+        #expect(enclosureLink.isEmpty)
+        #expect(mediaContent.isEmpty)
+        #expect(mediaThumbnail.isEmpty)
     }
 
     /// `TestParseMediaGroup` — the thumbnails come before the contents, a duplicate URL is not

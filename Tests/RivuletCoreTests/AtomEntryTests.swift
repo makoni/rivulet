@@ -76,13 +76,13 @@ import Testing
     }
 
     /// `TestParseEntryWithoutTitleButWithXHTMLContent`: the title is `TruncateHTML` of the content,
-    /// which is the XHTML branch of the Text construct read through the tokenizer, so the entities
-    /// the reconstruction holds are decoded there.
-    @Test func titleFallbackDecodesTheContent() throws {
+    /// and the sanitizer decodes the entity there. Only the title is asserted, because the
+    /// reference reads the div as `innerxml` — the bytes as written — so its content would keep
+    /// `&amp;`, which the tree cannot answer: that is the boundary recorded in `docs/parity.md`.
+    @Test func titleFallbackReadsTheXHTMLDiv() throws {
         let parsed = try entry("<entry><link href=\"http://example.org/2003/12/13/atom03\"/>"
             + "<content type=\"xhtml\"><div xmlns=\"http://www.w3.org/1999/xhtml\">"
             + "AT&amp;T bought <b>by SBC</b>!</div></content></entry>")
-        #expect(parsed.content == "AT&T bought <b>by SBC</b>!")
         #expect(parsed.title == "AT&T bought by SBC!")
     }
 

@@ -329,13 +329,12 @@ answer the same way for every input.
 - The `type` gate is `strings.EqualFold`, and the port applies the ASCII fast path, as recorded
   above.
 
-### `xml:lang` inheritance
+### `xml:lang`
 
-Go resolves `xml:lang` through a namespace-qualified field tag, and an attribute on the root applies
-to the whole subtree it is declared on. The tree has no parent link, so inheritance is modelled as
-the adapter's own fallback — the entry's attribute, otherwise the feed's — which is what the
-reference's adapter code does on purpose. A value declared on an element that is neither the entry
-nor the root is inherited by the reference and not here; the corpus has no such case.
+No deviation here. The field tag is namespace-qualified and reads the attribute on the element that
+carries it, and the decoder inherits nothing between elements, so the entry's value is its own
+attribute and the feed's value is the root's. The entry→feed chain is the adapter's own code, ported
+as it is written. `AtomLanguageTests` pins both levels and the namespace gate.
 
 ### Bytes, not characters
 

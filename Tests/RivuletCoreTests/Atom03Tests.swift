@@ -16,7 +16,7 @@ import Testing
 
     private func parse(_ document: String, baseURL: String = "http://diveintomark.org/") throws
         -> ParsedFeed {
-        try Atom03Adapter.parse(baseURL: baseURL, data: Data((document).utf8), now: now)
+        try Atom03Adapter.parse(baseURL: baseURL, data: Data(document.utf8), now: now)
     }
 
     /// `TestParseAtom03`, the reference's sample feed read end to end.
