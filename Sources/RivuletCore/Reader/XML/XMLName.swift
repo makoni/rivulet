@@ -21,6 +21,20 @@ struct XMLName: Equatable, Sendable {
         self.local == local && (namespace.isEmpty || self.namespace == namespace)
     }
 
+    /// Whether the name is the one a model field with this namespace and local part matches, once the
+    /// default space is applied: `translate` substitutes `DefaultSpace` for a name with no prefix, and
+    /// the tree has already resolved a declared default namespace, so a name that reaches this with an
+    /// empty namespace is one that had no prefix at all.
+    func matches(local: String, namespace: String, defaultSpace: String) -> Bool {
+        local == self.local && (namespace.isEmpty || namespace == resolvedNamespace(defaultSpace: defaultSpace))
+    }
+
+    /// The namespace `translate` resolves this name to for an element name, with `defaultSpace`
+    /// standing in for a name that had no prefix.
+    private func resolvedNamespace(defaultSpace: String) -> String {
+        namespace.isEmpty ? defaultSpace : namespace
+    }
+
     /// Whether the text can be an XML name, which is what `encoding/xml`'s `isName` decides.
     ///
     /// A digit cannot start a name, even though `readName` reads digits as name bytes, so `1tag`

@@ -18,7 +18,8 @@ a CLI-first interface and no web UI.
 
 Current focus: **Stage 3 — Parsing & sanitization** (charset, XML reader, date parser, the URL layer
 the sanitizer resolves through, the sanitizer core and its text layer (`StripTags`, `TruncateHTML`)
-merged, and the format adapters next). Stage 2 is merged, with one exit criterion
+merged, the normalized model with the shared primitives and the RSS adapter merged, and the other
+format adapters next). Stage 2 is merged, with one exit criterion
 deferred to the refresh path; see its stage file. Keep this line and the plan's status table in
 sync.
 

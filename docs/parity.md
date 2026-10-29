@@ -70,9 +70,12 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | End of document inside a name or an unquoted value | fails, because `mustgetc` cannot read past the end | fails as `unexpectedEOF` | Same result; the difference is only in the message, which is not modeled |
 | Error reporting | `SyntaxError` with a line number and a message | typed `XMLError` cases, no line numbers | Callers match on the case, not on the text |
 | Bare `io.EOF` | returned as it is when the stack is empty, such as after a comment at the top level, or when it is at the record `pushEOF` put; `Token` converts it otherwise, and `mustgetc` converts it on every read that finds it | the same `unexpectedEOF` case, because the port keeps one failure | Only the message differs; the reader reports it as one failure |
-| `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix | not ported, because the reference never sets it, so the fallback assigns the empty string | None |
+| `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix, which the reference sets to `rss` for this format (`internal/reader/rss/parser.go`) | the same, as the match takes a default space: `XMLName.matches(local:namespace:defaultSpace:)`. A declared default namespace wins, because `translate` substitutes only for a name that had no prefix | A feed with a declared default namespace reads empty in both, which is pinned as a test |
 | `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
 | `pushEOF` and `popEOF` | used by `unmarshalInterface`, so only for values whose type implements `UnmarshalXML`; Miniflux implements it for two types (`internal/reader/rss/rss.go:210`, `internal/reader/opml/opml.go:75`) | not ported, because this layer reads tokens and not values; the marker marks where `unmarshal` stops for a value read as a plain struct | The reference fails a value implementing `UnmarshalXML` that stops before its end tag (Go's `read.go:218-220`); nothing here checks that, because there is no value layer |
+| `Inner` (`",innerxml"`) | the bytes the tokenizer read, so a run inside it keeps the entities as they were written, and a comment, a directive or an instruction inside the element is part of it | a reconstruction from the tokens: the markup plus the text, with the text already decoded, and with comment, directive and instruction tokens kept out of the content | `rssAuthor.Inner` decides its branch on `<![CDATA[`, which the flag on the text run carries, so the branch is the reference's rule; the text inside a reconstruction differs by the decode. Pinned by a test |
+| Names inside a reconstruction | as written, because the bytes are the ones read | as the tokenizer resolved them, because the tree keeps the resolved name | A document with an aliased prefix writes the resolved namespace here; no fixture covers it |
+| The two ways of reading an element | `",chardata"` is the character data at the element's own level, while `innerContent` (Miniflux's own type, `internal/reader/xml/decoder.go`) collects every character token, including the ones inside a child | the same two, kept apart as `XMLElement.text` and `XMLElement.innerContent`, which is why content is stored in document order | None; the difference between the two is pinned by a test |
 
 ## Date parsing (stage 3)
 
@@ -285,3 +288,21 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | NUL in comment and doctype data | the flag is set only for CDATA and the raw-text state, and `Text()` converts a comment through its own check, so a doctype keeps the NUL | converted in both | A comment and a doctype are not written, and `stripIter` skips those kinds, so this cannot be observed |
 | The Vimeo `dnt=1` append | the link is written as it was read | rebuilt from the parsed parts | A query that is not already in the canonical form is re-encoded, so the string differs; one that is, is written the same |
 | `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
+## Format adapters (stage 3)
+
+**Matching the reference.** An adapter fills the normalized model by matching the tree against the
+namespaces the reference's field tags name, so the chains, the fallback orders and where a value is
+trimmed are the reference's. The model is ours: the fields `model.Feed` carries for the storage layer
+(the fetch time, the conditional-GET headers, the error counters) are not parsing results, so they are
+not modelled, and adapters do not sanitize content — sanitization is the layer after this one.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The clock the date fallback reads | `time.Now()` for a value that is empty or cannot be parsed | the clock is a parameter of `parse`, so the suite is deterministic; the parser itself reads no clock in either | Only the injected value differs |
+| A value read through a field tag | `strings.TrimSpace` applied by the adapter, so the tree keeps the text as the tokens read it | the same split, as `XMLElement.text` plus a trim in the adapter | None |
+| A field tag with no namespace | matches any namespace, because `finfo.xmlns` is empty | the same, as a match with an empty namespace | None |
+| The cache lifetime | `time.Duration`, read back as minutes | minutes, because the reference only ever reads it as minutes | None |
+| The relation fold | `strings.EqualFold` takes the ASCII fast path and folds the rest through `unicode.SimpleFold`, so `aℓternate` — with U+2113, which folds to `l` — matches `alternate` there | the ASCII path only, so such a relation does not match here | A relation written with a letter that folds to an ASCII letter is read as an alternate link in the reference and not here; the ASCII path is pinned by a test |
+| Entry identity with a repeated GUID | the first occurrence keeps `SHA256(guid)`, a later one uses the entry URL, and the position only when the entry has no URL at all, which needs a base URL nothing can be resolved against | the same, in the same order | The position branch is reached only by the traced case with an empty base URL; with an absolute one the URL wins, which `TestParseEntriesWithDuplicateGUIDAndNoLink` pins |

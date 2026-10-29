@@ -7,8 +7,9 @@ table, format detection); the date parser slice is merged too (Go's `parse` over
 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
 tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
-review landed as PR #14; the text layer it reads through — `StripTags` and `TruncateHTML` — is this
-PR, and the format adapters are next.
+review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` — as PR #15. The
+normalized model with the shared primitives and the RSS adapter is merged as PR #16; the other format
+adapters are next.
 
 ## Scope
 
@@ -35,9 +36,9 @@ PR, and the format adapters are next.
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
       subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
-      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged; the
-      text layer (`StripTags` and `TruncateHTML`, which the format adapters call) is this PR, and
-      the format adapters are next.
+      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged, and so
+      is the text layer it reads through (`StripTags` and `TruncateHTML`, which the format adapters
+      call); the format adapters are next.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
