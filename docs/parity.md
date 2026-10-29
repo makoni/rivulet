@@ -347,3 +347,34 @@ as it is written. `AtomLanguageTests` pins both levels and the namespace gate.
   fails on anything else the alphabet does not have. Go reports padding that is not at the end as an
   error; Swift's `Data(base64Encoded:)` answers `nil` for the same input, which is the same outcome
   here, because a failed read leaves the content empty.
+
+## JSON reader (stage 3)
+
+**Matching the reference.** Miniflux has no JSON reader code to port: its JSON adapter reads a feed
+through `encoding/json`, so this layer mirrors the part of that source the reader reads through —
+`scanner.go`, `decode.go` and `stream.go`, the Go 1.26 that `go.mod` pins. The positions are the
+`stateX` productions. For a byte inside the value the context of a failure is the words the
+production names, which is what lets a pin compare it against what the reference reports; for input
+that ends the path `Decode` takes reports the end of input itself, so no context is pinned there,
+and the contexts the states name belong to `checkValid`. The rules that belong to the
+machine are the machine's: the four ASCII separators rather than any byte below the printable range,
+the escape set `stateInStringEsc` accepts, the number states with the fall-throughs `state1` has to
+`state0` and `stateE` to `stateESign`, the literal words walked letter by letter, the depth
+`pushParseState` limits to, and the way `unquoteBytes` makes the bytes well-formed. No dependency is
+added: the reader is our own over the bytes, because a platform JSON decoder cannot reproduce the
+per-field error semantics or the leniency the reference has. The two separators the token machine
+reports are the opcodes `scanObjectKey` and `scanObjectValue`/`scanArrayValue`, which are what
+`Token` elides, so they are kept because the tree is built from them.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The path that reads the document | `Decode` — the path the reference's JSON adapter takes — reads one value and breaks at the first `scanEnd`, so nothing after the top-level value is examined; `Unmarshal`, which validates the whole document with `checkValid` first, does examine it and reports the failure at the first byte after the value | the `Decode` path: for a container the byte that closes it is the last byte read, because `readValue` tests `scanEnd` against an invented space, and for a scalar the byte that ends the literal is read, because it is what decides whether the literal had ended, but `stateEndTop` reports `scanEnd` for whatever it is, so the machine stops there | `1garbage`, `1 2` and `{"a":1}garbage` read here without a failure. `Unmarshal` reports `invalid character 'g' after top-level value` for `1garbage` and the same for the other two, and `Decode` reports no syntax error at all for them |
+| An empty document | `Decode` reports `io.EOF` when nothing was read and `io.ErrUnexpectedEOF` when a value is left open; `checkValid` reports both as `unexpected end of JSON input` | one failure, `unexpectedEnd`, for the two | Only the error identity separates them in the reference, and nothing in the port reads the message |
+| Input that ends where a state still needs a byte | `readValue` uses the invented space only to decide whether to break, so it reports `io.ErrUnexpectedEOF` there, while `checkValid` reports that space as invalid in the state's context — `invalid character ' ' in numeric literal` for `{"a":-` | the end of input, `unexpectedEnd`, which is what `readValue` reports; the context the state names is not kept | None on the `Decode` path; a reader that validated the whole document would name the state |
+| Invalid UTF-8 inside a string | `unquoteBytes` coerces the bytes to well-formed UTF-8, one U+FFFD per byte that is not a valid encoding, because `utf8.DecodeRune` reports one byte at a time and rejects an overlong form, an encoding of a surrogate and a form above U+10FFFF | the same checks, written out rather than left to Swift's UTF-8 decoder, so the one-byte-at-a-time rule is the reader's own | None; Swift's decoder answers the same for the cases pinned, so the difference is which code keeps the rule |
+| The order an object keeps | `map[string]any` keeps no order and one value per key, so a repeated key is folded and the value it holds is the last assignment | the tree keeps the members as the document wrote them, so a repeated key stays two members; the last-wins rule is pinned with the adapter | Order is what the field read walks, which the reference could not pin |
+| The name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it, so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the reference and not here; pinned when the adapter lands |
+| A number | `Number` keeps the literal, and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with `null` into a non-primitive target leaving the value as it was | the tree keeps the literal as the machine read it; the conversion rules are the field read's and are pinned with the adapter | None |
+| Depth | `pushParseState` reports `exceeded max depth` at the byte that goes past 10000 | the same limit, reported as `maxDepthExceeded` | None |
