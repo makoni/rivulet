@@ -11,8 +11,10 @@ review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` �
 normalized model with the shared primitives and the RSS adapter is merged as PR #16, and RDF
 (RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters are landing one format at a
 time: the JSON reader — our own reader over the bytes, because Miniflux reads a JSON
-feed through `encoding/json` — is merged as PR #19, and the JSON Feed adapter — the field
-read for the shapes `json.go` declares, and the chains `adapter.go` writes — is next.
+feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed adapter — the
+field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20.
+The open items are the XML tolerance table, the hostile sanitizer corpus, and entity decoding
+and whitespace normalization in the normalization URL part.
 
 ## Scope
 
@@ -129,6 +131,22 @@ Findings from the JSON reader review (#19) that do not change behavior:
   branch cannot be pinned here.
 - `JSONScanner.swift` is at 367 lines, above the 150–300 aim: the literal writing is split out
   as `JSONUnquote`, so the machine itself is the part that stays long.
+
+Findings from the JSON Feed adapter review (#20) that do not change behavior:
+
+- The attachment pin compares the whole `ParsedEnclosure` and does not assert `count == 1`, which
+  the rest of the file does, so a failure there reads as a whole structure rather than as the rule.
+- The shape's comment says the last assignment the field's type accepts is the value the shape
+  holds; for a slice field `d.array` merges the elements into what the field already had and
+  truncates to the length of the array, so a repeated key on a filled slice is not a replacement,
+  and no pin covers that path.
+- `docs/parity.md` names the `SetZero` targets as a map or a slice, without interface and pointer,
+  and for `authors` the answer reaches `SetZero` through the `Unmarshal` the method calls rather
+  than through `literalStore` on the field itself.
+- `Int(attachment.size)` traps on a 32-bit platform, which the comment records as out of scope: the
+  model's `Int` is 64 bits on the platforms this project targets.
+- `JSONFieldRead.swift` is at 337 lines, above the 150–300 aim, because the shapes keep every field
+  the structs declare rather than only the ones the adapter writes.
 
 Findings from the URL layer review (#12) that do not change behavior:
 
