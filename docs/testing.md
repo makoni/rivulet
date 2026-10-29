@@ -193,8 +193,18 @@ the `Decode` path, which is the path the JSON adapter takes. What cannot be pinn
 offset `SyntaxError` carries, which the model does not keep, and the contexts the states name at the
 end of input, because `readValue` reports `io.ErrUnexpectedEOF` there and only `checkValid` reports
 the space it invents; the pins name the end of input, and `docs/parity.md` records where the traced
-subset stops. The upstream corpus comes with the JSON Feed adapter, which ports
-`internal/reader/json/parser_test.go` (40 test functions).
+subset stops.
+
+The JSON Feed adapter ports `internal/reader/json/parser_test.go` (40 test functions) into
+six suites: `JSONFeedTests` for the feed-level chains, `JSONEntryTests`, `JSONAuthorTests`,
+`JSONEnclosureTests` and `JSONHashTests` for the entry rules, and `JSONFieldReadTests` for
+the field read the adapter reads through, which the reference has no code for and so no corpus
+of its own. Each case names the upstream test it comes from, and a traced case states the
+value the reference produces. What cannot be pinned is the byte offset `UnmarshalTypeError`
+carries and the message the reference builds from it, because nothing in the port reads the
+message; the pins name the value word and the type. Two cases state a deviation recorded
+in `docs/parity.md` — the field table stops at the fields the adapter reads, and the name
+match is exact — so they assert what this layer does rather than what the reference does.
 
 ## Running
 

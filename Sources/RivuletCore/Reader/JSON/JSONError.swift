@@ -19,4 +19,10 @@ enum JSONError: Error, Equatable, Sendable {
 
     /// A value nested deeper than the depth `pushParseState` limits to, which is 10000.
     case maxDepthExceeded
+
+    /// `UnmarshalTypeError`: the value the machine read is not the type the field it is assigned to
+    /// is. This is the field read's failure rather than the machine's, so it names the value word
+    /// Go uses for the literal and the type Go names for the target. The byte offset the reference
+    /// keeps is not modelled, because nothing in the port reads the message.
+    case unmarshalTypeError(value: String, target: String)
 }
