@@ -163,3 +163,11 @@ Findings from the sanitizer slice review that do not change behavior:
 - `HTMLEscape.escapeString` walks `Character`s, so a decoded `&#13;&#10;` arrives as one CRLF
   grapheme and the CR is not escaped; the reference writes `&#13;\n`. A lone CR is escaped and
   pinned. Walk unicode scalars if a feed can produce the pair.
+
+Findings from the RDF adapter review (#17) that do not change behavior:
+
+- The last-match rule is pinned in `RDFEntryTests`, which is the RDF copy of the helper. Reverting the
+  RSS copy to the first match leaves the suite green, so an RSS case with two same-level `title`
+  elements is what would pin the rule for that format too.
+- `XMLReaderTests.swift` is at 500 lines, which is the cap rather than the aim, so the next case added
+  to it needs its own suite.
