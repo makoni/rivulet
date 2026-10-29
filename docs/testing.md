@@ -166,6 +166,25 @@ standing in for a name with no prefix is pinned in `RSSFeedTests`. The clock the
 injected as a parameter, so no case depends on the machine's time; nothing else in this layer reads a
 clock, a locale or the network.
 
+Atom is the seven suites `AtomFeedTests`, `AtomEntryTests`, `AtomTextConstructTests`,
+`AtomMediaTests`, `AtomHashTests`, `Atom03Tests` and `AtomLanguageTests`, ported from
+`internal/reader/atom/atom_10_test.go` (64 test functions) and
+`internal/reader/atom/atom_03_test.go` (10), with the media description rule carried by
+`TestDescription` and `TestFirstDescription` from `internal/reader/media/media_test.go`. The tree
+keeps character data as the reader resolved it, which is what the reference's `",chardata"` field
+holds, so a case whose stated value is text with entities is pinnable, and `",chardata"` keeping
+only the level the field is read at is pinned in `XMLTreeTests` and `RDFEntryTests`. The boundary
+that cannot be pinned is the xhtml branch: the reference answers `innerxml` — the markup as the
+bytes it read — while the tree keeps a reconstruction of the text it read, so
+`TestParseEntryWithXHTMLSummary` and `TestParseEntryWithXHTMLContent`, whose stated value keeps an
+entity inside the div, are left unported; `TestParseEntryWithXHTMLTitle` is ported because its div
+has no entity, where the two answers agree. Each suite names what it ports. `Atom03Tests` also pins
+what this format does not read: its structs have no icon, tags, comments or attachments, so those
+fields are what the model starts with. `AtomMediaTests` pins the Atom group order and the key its
+media thumbnails test the deduplication map against — the value as the element carries it, before
+the reference resolves it, which is where the shared media rule has to be the format's own and is
+read as a flag on the candidate.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.

@@ -50,8 +50,19 @@ import Testing
         ])
     }
 
-    /// `TestParseEntryWithMediaContent`: the thumbnail is read before the content, and the type comes
-    /// from `type`, or from `medium`, or is the fallback.
+    /// Traced: the RSS enclosure is the group that keeps a URL the reference cannot resolve, while
+    /// the media groups skip it. `%zz` is a value `url.Parse` cannot read — its percent escape is
+    /// not two hex digits — so this is where the two branches are reached, on the same value.
+    @Test func theEnclosureKeepsAnUnresolvableURL() throws {
+        let parsed = try entry("<item><link>https://example.org/entries/1</link>"
+            + "<enclosure url=\"%zz\" type=\"audio/mpeg\" length=\"42\"></enclosure>"
+            + "<media:content url=\"%zz\" medium=\"image\"></media:content></item>", namespaces: media)
+
+        #expect(parsed.enclosures == [enclosure("%zz", "audio/mpeg", 42)])
+    }
+
+    /// `TestParseEntryWithMediaContent`: the thumbnail is read before the content, and the type
+    /// comes from `type`, or from `medium`, or is the fallback.
     @Test func mediaContentMimeTypeFallsBackToTheMedium() throws {
         let parsed = try entry("<item><link>https://example.org/entries/1</link>"
             + "<media:thumbnail url=\"https://example.org/thumbnail.jpg\" />"
@@ -73,8 +84,8 @@ import Testing
         ])
     }
 
-    /// `TestParseEntryWithMediaPeerLink`: a peer link reads its `href`, and the resolved URL is what
-    /// the dedup compares.
+    /// `TestParseEntryWithMediaPeerLink`: a peer link reads its `href`, and the resolved URL is
+    /// what the dedup compares.
     @Test func mediaPeerLinkUsesHref() throws {
         let parsed = try entry("<item><link>https://example.org/entries/1</link>"
             + "<media:peerLink type=\"application/x-bittorrent\" href=\"https://example.org/file.torrent\" />"
@@ -108,8 +119,8 @@ import Testing
         #expect(try #require(parsed.enclosures.first).url == expected)
     }
 
-    /// Traced from `path.Base`: a value that is only separators is the filename `/`, which every URL that
-    /// ends with a separator has, so the enclosure takes the original link.
+    /// Traced from `path.Base`: a value that is only separators is the filename `/`, which every
+    /// URL that ends with a separator has, so the enclosure takes the original link.
     @Test func anOriginalLinkOfOnlySeparatorsIsTheFilename() throws {
         let parsed = try entry("<item><link>http://example.org/entries/1</link>"
             + "<enclosure url=\"http://example.org/67ca/File.mp3/\" length=\"1\" type=\"audio/mpeg\" />"
@@ -132,9 +143,9 @@ import Testing
         #expect(try #require(parsed.enclosures.first).size == expected)
     }
 
-    /// An empty enclosure URL is not an attachment, which is what `TestParseEntryWithEmptyEnclosureURL`
-    /// pins, and the URL is resolved against the site URL, which is what
-    /// `TestParseEntryWithRelativeEnclosureURL` pins.
+    /// An empty enclosure URL is not an attachment, which is what
+    /// `TestParseEntryWithEmptyEnclosureURL` pins, and the URL is resolved against the site URL,
+    /// which is what `TestParseEntryWithRelativeEnclosureURL` pins.
     @Test(arguments: [
         (" /files/file.mp3  ", "https://example.org/files/file.mp3"),
         (" ", ""),
