@@ -44,7 +44,7 @@ import Testing
     }
 
     private func characterDataContents(_ data: Data) throws -> [String] {
-        try contents(data) { if case .characterData(let value) = $0 { return value } else { return nil } }
+        try contents(data) { if case .characterData(let value, _) = $0 { return value } else { return nil } }
     }
 
     // MARK: - Ported fixture tests

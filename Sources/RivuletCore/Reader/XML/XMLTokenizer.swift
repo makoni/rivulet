@@ -102,7 +102,7 @@ final class XMLTokenizer {
         guard byte == XMLByte.lessThan else {
             scanner.unreadByte()
             guard let data = scanner.text(quote: nil, cdata: false) else { return nil }
-            return .characterData(data)
+            return .characterData(data, isCDATA: false)
         }
 
         guard let marker = scanner.readByte() else { return nil }
@@ -201,7 +201,7 @@ final class XMLTokenizer {
             }
         }
         guard let data = scanner.text(quote: nil, cdata: true) else { return nil }
-        return .characterData(data)
+        return .characterData(data, isCDATA: true)
     }
 
     private func directiveToken(from first: UInt8) -> XMLToken? {

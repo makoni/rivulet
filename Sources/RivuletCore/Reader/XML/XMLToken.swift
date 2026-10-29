@@ -6,10 +6,14 @@
 import Foundation
 
 /// A token the tokenizer reports.
+///
+/// Character data carries which production it was read from, because the tree needs that to write the
+/// content back the way the reference keeps it: `encoding/xml` records the bytes it read, so a run
+/// that came from a `<![CDATA[` section keeps its marker there.
 enum XMLToken: Equatable, Sendable {
     case startElement(XMLName, [XMLAttribute])
     case endElement(XMLName)
-    case characterData(String)
+    case characterData(String, isCDATA: Bool)
     case comment(String)
     case processingInstruction(target: String, content: String)
     case directive(String)

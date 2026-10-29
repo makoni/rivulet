@@ -6,6 +6,10 @@ import Foundation
 
 /// Reads a document into a tree, the way the reference reads one: the bytes are prepared with the
 /// charset rule the reference applies, and the tokens of the tolerant tokenizer are assembled.
+///
+/// Content pieces are appended as the tokens come, so an element keeps its content in document order,
+/// which is what the format adapters need: the reference reads an element's content two ways, and the
+/// two do not agree.
 enum XMLReader {
     /// Reads the document and returns its root element.
     ///
@@ -24,13 +28,13 @@ enum XMLReader {
             switch token {
             case .startElement(let name, let attributes):
                 if open.isEmpty { tokenizer.pushEndOfInputMarker() }
-                open.append(XMLElement(name: name, attributes: attributes, children: [], text: ""))
+                open.append(XMLElement(name: name, attributes: attributes, content: []))
             case .endElement(let name):
                 guard let closed = open.popLast() else { throw XMLError.unexpectedEndElement(name.local) }
-                if !open.isEmpty { open[open.count - 1].children.append(closed) }
+                if !open.isEmpty { open[open.count - 1].content.append(.element(closed)) }
                 if tokenizer.popEndOfInputMarker() { return closed }
-            case .characterData(let text):
-                if !open.isEmpty { open[open.count - 1].text += text }
+            case .characterData(let text, let isCDATA):
+                if !open.isEmpty { open[open.count - 1].content.append(.text(text: text, isCDATA: isCDATA)) }
             case .comment, .directive, .processingInstruction:
                 break // Comments, directives and instructions are not part of the tree.
             }
