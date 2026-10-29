@@ -10,6 +10,10 @@ enum FeedNamespaces {
     /// namespace.
     static let rssDefault = "rss"
 
+    /// The RSS 1.0 namespace. Only one field tag in the reference names it explicitly — the RDF item
+    /// title — while the channel title tag names none, so the two resolve differently.
+    static let rss10 = "http://purl.org/rss/1.0/"
+
     static let atom = "http://www.w3.org/2005/Atom"
     static let dublinCore = "http://purl.org/dc/elements/1.1/"
     static let contentModule = "http://purl.org/rss/1.0/modules/content/"

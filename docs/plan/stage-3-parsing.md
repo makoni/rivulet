@@ -8,8 +8,8 @@ layouts, with a fixed zone table in place of the machine's tzdata); the URL laye
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
 tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
 review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` — as PR #15. The
-normalized model with the shared primitives and the RSS adapter is merged as PR #16; the other format
-adapters are next.
+normalized model with the shared primitives and the RSS adapter is merged as PR #16; the format
+adapters are landing one format at a time, and RDF (RSS 1.0) is this PR.
 
 ## Scope
 
