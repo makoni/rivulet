@@ -348,8 +348,8 @@ struct JSONScanner {
     // MARK: - End of input
 
     /// A number state that ends the literal when it sees the space `readValue` tests at the end of
-    /// input, which is what `checkValid` reports as that space in the state's own context. The path
-    /// `Decode` takes reports the end of input itself, so the state's context is not kept here.
+    /// input. `checkValid` names the state for a byte it has already read; for a state that accepts
+    /// the space it reports one message, so the state's context is not kept here.
     private func endsLiteralNumber(_ state: NumberState) -> Bool {
         switch state {
         case .afterHyphen, .afterDot, .afterExponentSign: return false

@@ -3,11 +3,11 @@ import Testing
 @testable import RivuletCore
 
 /// The tree the reader builds out of the tokens. Each value is what the reference's decoder
-/// produces for it — `d.value`, `d.string` through `unquoteBytes`, and
-/// `arrayInterface`/`objectInterface` for the containers, which are empty rather than nil. What is
-/// ours is the shape: `map[string]any` keeps no order and one value per key, so a repeated key is
-/// one entry there and stays two members here, and the rule the adapters read through it — the last
-/// effective assignment wins — is pinned in the adapter PR.
+/// produces for it — `d.value`, `literalInterface` through `unquoteBytes`, and `arrayInterface` and
+/// `objectInterface` for the containers, which are empty rather than nil. What is ours is the
+/// shape: `map[string]any` keeps no order and one value per key, so a repeated key is one entry
+/// there and stays two members here, and the rule the adapters read through it — the last effective
+/// assignment wins — is pinned in the adapter PR.
 @Suite struct JSONReaderTests {
     private func read(_ document: String) throws -> JSONValue {
         try JSONReader.read(Data(document.utf8))
