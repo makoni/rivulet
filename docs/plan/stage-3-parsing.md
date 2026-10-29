@@ -10,9 +10,9 @@ tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the fi
 review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` — as PR #15. The
 normalized model with the shared primitives and the RSS adapter is merged as PR #16, and RDF
 (RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters are landing one format at a
-time: the JSON reader — our own reader over the bytes, because Miniflux reads a JSON feed through
-`encoding/json` — is merged as PR #19, and the JSON Feed adapter — the field read for the shapes
-`json.go` declares, and the chains `adapter.go` writes — lands as PR #20.
+time: the JSON reader — our own reader over the bytes, because Miniflux reads a JSON
+feed through `encoding/json` — is merged as PR #19, and the JSON Feed adapter — the field
+read for the shapes `json.go` declares, and the chains `adapter.go` writes — is next.
 
 ## Scope
 

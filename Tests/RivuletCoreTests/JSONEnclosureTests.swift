@@ -15,8 +15,9 @@ import Testing
 
     /// The enclosures of the first entry of a document whose `items` array holds one item, read
     /// through the site URL, which is the home page here.
-    private func enclosures(_ item: String) throws -> [ParsedEnclosure] {
-        try #require(parse("{\"home_page_url\": \"https://example.org/\", \"items\": [ \(item) ]}")
+    private func enclosures(_ item: String, siteURL: String = "https://example.org/") throws
+        -> [ParsedEnclosure] {
+        try #require(parse("{\"home_page_url\": \"\(siteURL)\", \"items\": [ \(item) ]}")
             .entries.first?.enclosures)
     }
 

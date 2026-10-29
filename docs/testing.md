@@ -202,9 +202,11 @@ the field read the adapter reads through, which the reference has no code for an
 of its own. Each case names the upstream test it comes from, and a traced case states the
 value the reference produces. What cannot be pinned is the byte offset `UnmarshalTypeError`
 carries and the message the reference builds from it, because nothing in the port reads the
-message; the pins name the value word and the type. Two cases state a deviation recorded
-in `docs/parity.md` — the field table stops at the fields the adapter reads, and the name
-match is exact — so they assert what this layer does rather than what the reference does.
+message; the pins name the value word and the type. The rules that can only be pinned by
+this layer are the three branches of `JSONAuthors.UnmarshalJSON` and the order the first
+failure is recorded in, because the reference has no code of its own for them. One case
+asserts a deviation recorded in `docs/parity.md` — the name match is exact, where `foldName`
+would also fold — so it states what this layer does rather than what the reference does.
 
 ## Running
 
