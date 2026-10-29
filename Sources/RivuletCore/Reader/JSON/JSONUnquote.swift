@@ -4,8 +4,6 @@
 // read through `utf8.DecodeRune` and `utf16.DecodeRune` as the reference uses them. `JSONScanner`
 // names the source the rules are traced against.
 
-import Foundation
-
 /// Writes a string literal out: the escapes are written, a surrogate pair is combined, and a
 /// surrogate that is not paired becomes the replacement character. The bytes are made well-formed,
 /// which is where the reference's documented rule for invalid UTF-8 inside a string comes from.

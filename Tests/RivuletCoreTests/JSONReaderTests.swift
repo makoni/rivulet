@@ -2,11 +2,12 @@ import Foundation
 import Testing
 @testable import RivuletCore
 
-/// The tree the reader builds out of the tokens. The reference decodes the top-level value into
-/// `map[string]any` (`objectInterface` in `decode.go`), which keeps no order and folds a repeated
-/// key, so the order and the repeated key pins here describe our shape rather than the reference's;
-/// the rule the adapters read through it — the last effective assignment wins — is pinned in the
-/// adapter PR.
+/// The tree the reader builds out of the tokens. Each value is what the reference's decoder
+/// produces for it — `d.value`, `d.string` through `unquoteBytes`, and
+/// `arrayInterface`/`objectInterface` for the containers, which are empty rather than nil. What is
+/// ours is the shape: `map[string]any` keeps no order and one value per key, so a repeated key is
+/// one entry there and stays two members here, and the rule the adapters read through it — the last
+/// effective assignment wins — is pinned in the adapter PR.
 @Suite struct JSONReaderTests {
     private func read(_ document: String) throws -> JSONValue {
         try JSONReader.read(Data(document.utf8))
@@ -52,20 +53,19 @@ import Testing
 
     // MARK: - What the tree is
 
-    /// Traced: `Decode` reads one top-level value and breaks at `scanEnd`, so the tree is that
-    /// value and nothing after it is read — not even a byte the machine would have rejected there.
-    /// The byte that ends a top-level scalar is read, because the machine cannot know the literal
-    /// has ended until it sees a byte that cannot continue it.
+    /// Traced: `Decode` reads one top-level value and breaks at the first `scanEnd`, so the tree is
+    /// that value and nothing after it is read — not even a byte the machine would have rejected
+    /// there. The byte that ends a top-level scalar is read, because it is what decides whether the
+    /// literal had ended, and `stateEndTop` reports `scanEnd` for whatever it is, so there is no
+    /// failure: `checkValid`, the path `Unmarshal` takes, reports the failure that state records,
+    /// which `docs/parity.md` records as a difference.
     @Test func theTreeIsTheFirstTopLevelValue() throws {
         #expect(try read("1 garbage") == .number(text: "1"))
         #expect(try read("[1]}garbage") == .array(values: [.number(text: "1")]))
         #expect(try read(#"{"a":1}garbage"#) == .object(members: [
             JSONMember(key: "a", value: .number(text: "1")),
         ]))
-
-        #expect(throws: JSONError.unexpectedCharacter(character: 0x67, context: "after top-level value")) {
-            _ = try read("1garbage")
-        }
+        #expect(try read("1garbage") == .number(text: "1"))
     }
 
     /// Traced: the number keeps the literal as the scanner read it, because the conversion is per

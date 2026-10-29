@@ -188,11 +188,13 @@ read as a flag on the candidate.
 The JSON reader has no corpus of its own, because the reference has no JSON reader code to port: it
 reads a feed through `encoding/json`. Its two suites — `JSONScannerTests` for the token machine and
 `JSONReaderTests` for the tree — are traced against `scanner.go`, `decode.go` and `stream.go` (Go
-1.26, the version `miniflux/go.mod` pins), and every case states the value the reference produces.
-What cannot be pinned is the byte offset `SyntaxError` carries, which the model does not keep; what
-is pinned is the context the position names, in the words the production uses, and `docs/parity.md`
-records where the traced subset stops. The upstream corpus comes with the JSON Feed adapter, which
-ports `internal/reader/json/parser_test.go` (37 test functions).
+1.26, the version `miniflux/go.mod` pins), and every case states the value the reference produces on
+the `Decode` path, which is the path the JSON adapter takes. What cannot be pinned is the byte
+offset `SyntaxError` carries, which the model does not keep, and the contexts the states name at the
+end of input, because `readValue` reports `io.ErrUnexpectedEOF` there and only `checkValid` reports
+the space it invents; the pins name the end of input, and `docs/parity.md` records where the traced
+subset stops. The upstream corpus comes with the JSON Feed adapter, which ports
+`internal/reader/json/parser_test.go` (40 test functions).
 
 ## Running
 

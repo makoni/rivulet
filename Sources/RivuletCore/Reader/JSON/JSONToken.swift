@@ -3,8 +3,6 @@
 // Rivulet's own reader over the bytes; the tokens are the positions `encoding/json`'s scanner
 // reports. `JSONScanner` names the source the rules are traced against.
 
-import Foundation
-
 /// A token the token machine reports.
 ///
 /// The kinds are the opcodes the reference's scanner returns, which are what the tree is built

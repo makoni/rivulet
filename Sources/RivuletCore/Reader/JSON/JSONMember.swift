@@ -3,8 +3,6 @@
 // Rivulet's own reader over the bytes; the shape is what the reference's decoder produces for the
 // value it reads. `JSONScanner` names the source the rules are traced against.
 
-import Foundation
-
 /// One member of an object: the key as the machine decoded it, and the value it is assigned.
 ///
 /// A key that appears twice is two members, in the order the document wrote them, which is what the

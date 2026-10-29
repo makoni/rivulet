@@ -10,12 +10,13 @@ import Foundation
 ///
 /// The position decides which byte the machine accepts, and the position is what names the context
 /// of a failure, in the words `scanner.go` uses. One top-level value is read, which is where
-/// `readValue` breaks: for a container the byte that closes it is the machine's last token, because
-/// `readValue` breaks at `scanEnd` on an invented space rather than on the byte after it, while for
-/// a scalar the byte that ends the literal has to be read, and it has to be one of the four
-/// separators. Nothing after the top-level value is read, because `Decode` is the path the
-/// reference's JSON adapter takes; `docs/parity.md` records that `checkValid`, which `Unmarshal`
-/// uses, reads it.
+/// `readValue` breaks at the first `scanEnd`: for a container the byte that closes it is the
+/// machine's last token, because `readValue` tests `scanEnd` against an invented space rather than
+/// against the byte after it, while for a scalar the byte that ends the literal has to be read,
+/// because it is what decides whether the literal had ended. `stateEndTop` reports `scanEnd`
+/// whatever that byte is, so the machine stops there without a failure, and the failure it records
+/// is what `checkValid`, the path `Unmarshal` takes, reports; `docs/parity.md` records that as a
+/// difference.
 struct JSONScanner {
     /// The states `pushParseState` puts, which is what `stateEndValue` switches on.
     private enum ParseState {
@@ -38,8 +39,8 @@ struct JSONScanner {
     /// `maxNestingDepth`, the depth `pushParseState` limits to.
     private static let maxNestingDepth = 10_000
 
-        /// `stateT`, `stateF` and `stateN`: the word, the letters it still expects, and the value
-        /// it reads as.
+    /// `stateT`, `stateF` and `stateN`: the word, the letters it still expects, and the value it
+    /// reads as.
     private static let words: [UInt8: (name: String, letters: [UInt8], value: JSONValue)] = [
         JSONByte.lowercaseT: ("true", [JSONByte.lowercaseR, JSONByte.lowercaseU, JSONByte.lowercaseE],
             .boolean(true)),
@@ -64,6 +65,10 @@ struct JSONScanner {
     /// - Throws: ``JSONError`` for a byte the position cannot accept, or for input that ends while
     /// a value is still open.
     mutating func nextToken() throws -> JSONToken? {
+        // `readValue` breaks at the first `scanEnd`: for a container that is the invented space it
+        // tests, so the byte that closed the container is the machine's last token, and for a
+        // scalar it is the byte that ends the literal, because that byte is what decides whether
+        // the literal had ended.
         if finished { return nil }
 
         // `stateEndTop` does not skip space, because the byte that ends a top-level scalar is what
@@ -71,20 +76,20 @@ struct JSONScanner {
         if position != .endTop { skipSeparators() }
 
         guard let byte = peek() else {
-            // At the top level the value is complete, which is the end `eof()` reports; anywhere
-            // else the value is still open, which is the failure the end of input reports.
+            // At the top level the value is complete, which is where `readValue` breaks; anywhere
+            // else the value is still open, which is the failure `readValue` returns.
             if position == .endTop { return nil }
             throw JSONError.unexpectedEnd
         }
 
         switch position {
         case .endTop:
-            // Only a separator is seen now, and `readValue` breaks at the one that ends the value,
-            // so it is the machine's last token. For a container `readValue` breaks at `scanEnd` on
-            // an invented space instead, so the byte that closed it was already the last token.
+            // `stateEndTop` reports `scanEnd` whatever the byte is, so `readValue` breaks at it and
+            // the machine reports no failure. The failure that state records is what `checkValid`
+            // reports; `docs/parity.md` records that as a difference.
             cursor += 1
-            if isSpace(byte) { return nil }
-            throw JSONError.unexpectedCharacter(character: byte, context: "after top-level value")
+            finished = true
+            return nil
         case .beginKeyOrEmpty where byte == JSONByte.rightBrace:
             cursor += 1
             return pop(returning: .objectEnd)
@@ -174,8 +179,8 @@ struct JSONScanner {
         guard parseStates.count <= JSONScanner.maxNestingDepth else { throw JSONError.maxDepthExceeded }
     }
 
-    /// `popParseState`. At the top level `readValue` breaks where the state is popped, so the
-    /// machine is finished and the byte that closed the container is its last token.
+    /// `popParseState`. At the top level `readValue` breaks at the invented space it tests rather
+    /// than at the byte after, so the byte that closed the container is the machine's last token.
     private mutating func pop(returning token: JSONToken) -> JSONToken {
         parseStates.removeLast()
         if parseStates.isEmpty {
@@ -208,7 +213,7 @@ struct JSONScanner {
                 return literal
             case JSONByte.backslash:
                 literal.append(byte)
-                guard let escaped = peek() else { throw endOfInput("in string escape code") }
+                guard let escaped = peek() else { throw JSONError.unexpectedEnd }
                 cursor += 1
                 if escaped == JSONByte.lowercaseU {
                     literal.append(escaped)
@@ -225,20 +230,18 @@ struct JSONScanner {
             }
         }
 
-        // `stateInString` accepts the space `eof()` pushes, so a string that ends early is the
-        // failure `eof()` reports by message.
+        // A string that ends early is the failure `readValue` returns, and the reference reports it
+        // as the invented space in this state's context only on the `checkValid` path.
         throw JSONError.unexpectedEnd
     }
 
-    /// `stateInStringEscU` and its four digits: the escape that ends early fails at the byte that
-    /// is not a digit, or at the space `eof()` pushes.
+    /// `stateInStringEscU` and its four digits: the escape that ends early fails at the end of
+    /// input.
     private mutating func readHexDigits() throws -> [UInt8] {
         var digits: [UInt8] = []
 
         for _ in 0 ..< 4 {
-            guard let byte = peek() else {
-                throw endOfInput("in \\u hexadecimal character escape")
-            }
+            guard let byte = peek() else { throw JSONError.unexpectedEnd }
             guard JSONUnquote.hexDigit(byte) != nil else {
                 throw JSONError.unexpectedCharacter(character: byte,
                     context: "in \\u hexadecimal character escape")
@@ -264,10 +267,8 @@ struct JSONScanner {
             state = next
         }
 
-        // `eof()` pushes an invented space through the machine: a state that accepts it ends the
-        // literal, and a state that still needs a byte is reported as that space.
-        guard let context = numberContext(for: state) else { return text(literal) }
-        throw endOfInput(context)
+        if endsLiteralNumber(state) { return text(literal) }
+        throw JSONError.unexpectedEnd
     }
 
     /// The number state the byte moves to, or `nil` where the production falls through to
@@ -308,9 +309,7 @@ struct JSONScanner {
         let word = JSONScanner.words[first]!
 
         for letter in word.letters {
-            guard let byte = peek() else {
-                throw endOfInput("in literal \(word.name) (expecting '\(letterCharacter(letter))')")
-            }
+            guard let byte = peek() else { throw JSONError.unexpectedEnd }
             guard byte == letter else {
                 throw JSONError.unexpectedCharacter(character: byte,
                     context: "in literal \(word.name) (expecting '\(letterCharacter(letter))')")
@@ -348,24 +347,13 @@ struct JSONScanner {
 
     // MARK: - End of input
 
-    /// `eof()`: the reference pushes an invented space through the machine, so input that ends
-    /// where a state still needs a byte is reported as that space being invalid in the state's
-    /// context, and input where the state accepts the space is the failure `eof()` reports by
-    /// message. `docs/parity.md` records that only the message distinguishes an empty document,
-    /// which `Decode` reads as `io.EOF`.
-    private func endOfInput(_ context: String?) -> JSONError {
-        guard let context else { return JSONError.unexpectedEnd }
-        return JSONError.unexpectedCharacter(character: JSONByte.space, context: context)
-    }
-
-    /// The context the number state that still needs a byte names, and `nil` for a state that ends
-    /// the literal when it sees the space `eof()` pushes.
-    private func numberContext(for state: NumberState) -> String? {
+    /// A number state that ends the literal when it sees the space `readValue` tests at the end of
+    /// input, which is what `checkValid` reports as that space in the state's own context. The path
+    /// `Decode` takes reports the end of input itself, so the state's context is not kept here.
+    private func endsLiteralNumber(_ state: NumberState) -> Bool {
         switch state {
-        case .afterHyphen: return "in numeric literal"
-        case .afterDot: return "after decimal point in numeric literal"
-        case .afterExponentSign: return "in exponent of numeric literal"
-        case .afterZero, .afterNonZero, .afterDotDigit, .afterExponentDigit: return nil
+        case .afterHyphen, .afterDot, .afterExponentSign: return false
+        case .afterZero, .afterNonZero, .afterDotDigit, .afterExponentDigit: return true
         }
     }
 

@@ -5,7 +5,7 @@ import Testing
 /// The token machine the JSON reader reads through. The reference has no corpus for this layer:
 /// Miniflux reads a JSON feed through `encoding/json` (Go 1.26, the version `go.mod` pins), so
 /// every case here is traced against that source — `scanner.go`, `decode.go` and `stream.go` — and
-/// states the value the reference produces.
+/// states the value the reference produces on the path its JSON adapter takes, `Decoder.Decode`.
 @Suite struct JSONScannerTests {
     private func tokens(_ data: Data) throws -> [JSONToken] {
         var scanner = JSONScanner(data)
@@ -183,25 +183,21 @@ import Testing
 
     // MARK: - Where the machine stops
 
-    /// Traced against `readValue` in `stream.go`: `Decode` reads one value and breaks at `scanEnd`,
-    /// so nothing after the top-level value is examined — not even a byte the machine would have
-    /// rejected there. For a container the byte that closes it is the machine's last token, because
-    /// `readValue` breaks at `scanEnd` on an invented space rather than on the byte after it, while
-    /// for a scalar the byte that ends the literal has to be read, and it has to be one of the four
-    /// separators. `checkValid`, the path `Unmarshal` takes, reads the bytes after the value; the
-    /// difference is recorded in `docs/parity.md`.
+    /// Traced against `readValue` in `stream.go`: `Decode` reads one value and breaks at the first
+    /// `scanEnd`, so nothing after the top-level value is examined — not even a byte the machine
+    /// would have rejected there. For a container the byte that closes it is the machine's last
+    /// token, because `readValue` tests `scanEnd` against an invented space rather than against the
+    /// byte after it, while for a scalar the byte that ends the literal has to be read, because it
+    /// is what decides whether the literal had ended. `stateEndTop` reports `scanEnd` for whatever
+    /// that byte is, so the machine stops there without a failure; the failure that state records
+    /// is what `checkValid` reports, which `docs/parity.md` records as a difference.
     @Test func theMachineReadsOnlyTheFirstTopLevelValue() throws {
         #expect(try tokens("{\"a\":1} garbage") == [
             .objectStart, .key("a"), .valueSeparator, .value(.number(text: "1")), .objectEnd,
         ])
         #expect(try tokens("[1]}garbage") == [.arrayStart, .value(.number(text: "1")), .arrayEnd])
         #expect(try tokens("1 2") == [.value(.number(text: "1"))])
-
-        // A top-level scalar is not known to have ended until a byte that cannot continue it is
-        // read, so `stateEndTop` reports a byte there that is not one of the four separators.
-        #expect(throws: JSONError.unexpectedCharacter(character: 0x67, context: "after top-level value")) {
-            _ = try tokens("1garbage")
-        }
+        #expect(try tokens("1garbage") == [.value(.number(text: "1"))])
     }
 
     /// Traced: the failure is the one the position the machine is in names, so a byte inside the
@@ -214,29 +210,15 @@ import Testing
 
     // MARK: - End of input
 
-    /// Traced: the end of input pushes an invented space through the machine. A state that accepts
-    /// it — a literal that is already complete, a string that is still open, a position that skips
-    /// space — is the failure the end of input reports, `unexpected end of JSON input`; a state
-    /// that still needs a byte is reported as that space being invalid in the context the state
-    /// names. `docs/parity.md` records that the reference separates an empty document as `io.EOF`
-    /// only by message, which is why the two are one failure here.
-    @Test(arguments: ["", "[1", "{\"a\":1", "\"a", "[", "{"])
+    /// Traced against `readValue` in `stream.go`: input that ends while a value is open is the
+    /// failure `readValue` returns, `io.ErrUnexpectedEOF`, and an empty document is `io.EOF`; the
+    /// model reports both as one failure, `unexpectedEnd`. The invented space the reference pushes
+    /// through the machine only decides whether to break, so the contexts the states name are what
+    /// `checkValid` reports, not what `Decode` reports — `docs/parity.md` records that.
+    @Test(arguments: ["", "[1", "{\"a\":1", "\"a", "\"\\", "\"\\u1", "[", "{",
+        "{\"a\":-", "{\"a\":1.", "{\"a\":1e", "t"])
     func anUnterminatedValueIsAnError(document: String) throws {
         #expect(throws: JSONError.unexpectedEnd) { _ = try tokens(document) }
-    }
-
-    @Test(arguments: [
-        ("in numeric literal", "{\"a\":-"),
-        ("after decimal point in numeric literal", "{\"a\":1."),
-        ("in exponent of numeric literal", "{\"a\":1e"),
-        ("in string escape code", "\"" + "\\"),
-        ("in \\u hexadecimal character escape", "\"" + "\\u1"),
-        ("in literal true (expecting 'r')", "t"),
-    ]) func inputThatEndsWhereTheInventedSpaceIsRejectedNamesThatSpace(context: String,
-        document: String) throws {
-        #expect(throws: JSONError.unexpectedCharacter(character: 0x20, context: context)) {
-            _ = try tokens(document)
-        }
     }
 
     // MARK: - Depth

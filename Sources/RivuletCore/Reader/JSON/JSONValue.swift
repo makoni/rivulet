@@ -3,8 +3,6 @@
 // Rivulet's own reader over the bytes; the shape is what the reference's decoder produces for the
 // value it reads. `JSONScanner` names the source the rules are traced against.
 
-import Foundation
-
 /// A JSON value as the reader keeps it.
 ///
 /// The number is kept as the literal text as the machine read it, because `encoding/json` keeps the

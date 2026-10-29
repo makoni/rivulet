@@ -3,14 +3,13 @@
 // Rivulet's own reader over the bytes; the failures are the ones `encoding/json` reports, in its
 // own words. `JSONScanner` names the source the rules are traced against.
 
-import Foundation
-
 /// Failures of the JSON reader.
 ///
 /// Each failure names the position the parse state is in, in the words Go uses, so a pin can
-/// compare it against what the reference reports. `unexpectedEnd` is the failure Go separates only
-/// by message: an empty input is `io.EOF` and an incomplete value is `unexpected end of JSON
-/// input`, so the two are one case here, as `docs/parity.md` records.
+/// compare it against what the reference reports for the same byte. `unexpectedEnd` is what the
+/// path `Decode` takes reports for input that ends: `io.EOF` when nothing was read and
+/// `io.ErrUnexpectedEOF` when a value is still open, which `checkValid` reports as one message, so
+/// the two are one case here, as `docs/parity.md` records.
 enum JSONError: Error, Equatable, Sendable {
     /// The input ended with a value still open, or had no value at all.
     case unexpectedEnd

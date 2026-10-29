@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Rivulet's own reader over the bytes. `JSONScanner` names the source the rules are traced against.
 
-import Foundation
-
 /// The bytes the machine compares a byte against, named once so the positions and the literals read
 /// the same characters as the same names.
 enum JSONByte {
