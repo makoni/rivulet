@@ -292,9 +292,10 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 
 **Matching the reference.** An adapter fills the normalized model by matching the tree against the
 namespaces the reference's field tags name, so the chains, the fallback orders and where a value is
-trimmed are the reference's. The shape the struct has decides where a value is read from, which is why
-the RDF items are read at the root level rather than through the channel, and a single-value field takes
-the last element that matches at its own level, because the reference assigns the field for every match.
+trimmed are the reference's. The shape the struct has decides where a value is read from, which is
+why the RDF items are read at the root level rather than through the channel, and a single-value
+field takes the last element that matches at its own level, because the reference assigns the field
+for every match.
 The model is ours: the fields `model.Feed` carries for the storage layer (the fetch time, the
 conditional-GET headers, the error counters) are not parsing results, so they are not modelled, and
 adapters do not sanitize content — sanitization is the layer after this one.
@@ -310,3 +311,40 @@ adapters do not sanitize content — sanitization is the layer after this one.
 | The cache lifetime | `time.Duration`, read back as minutes | minutes, because the reference only ever reads it as minutes | None |
 | The relation fold | `strings.EqualFold` takes the ASCII fast path and folds the rest through `unicode.SimpleFold`, so `aℓternate` — with U+2113, which folds to `l` — matches `alternate` there | the ASCII path only, so such a relation does not match here | A relation written with a letter that folds to an ASCII letter is read as an alternate link in the reference and not here; the ASCII path is pinned by a test |
 | Entry identity with a repeated GUID | the first occurrence keeps `SHA256(guid)`, a later one uses the entry URL, and the position only when the entry has no URL at all, which needs a base URL nothing can be resolved against | the same, in the same order | The position branch is reached only by the traced case with an empty base URL; with an absolute one the URL wins, which `TestParseEntriesWithDuplicateGUIDAndNoLink` pins |
+| The key the media attachments are deduplicated against | the Atom media thumbnails test the map on the URL as the element carries it, before the reference resolves it, so two spellings of one file stay two attachments; every other group tests the resolved value, as the RSS thumbnails do | the same split, as the key flag on `MediaRules.Candidate` that the format sets for its thumbnails | None; both orders are pinned, in `AtomMediaTests` and `RSSMediaTests` |
+
+### The Atom Text construct
+
+Two readings of the same element, which the reference does not agree on, and which the tree cannot
+answer the same way for every input.
+
+- The reference keeps `innerxml` as the bytes it read, and `",chardata"` as the character data it
+  gathered while walking the subtree. The tree keeps character data already decoded, so
+  `innerMarkup` is a reconstruction: a run that carries entities comes back as the character it
+  resolves to, not as the reference wrote it. Cases whose stated value needs the bytes as written
+  cannot be pinned, and are not ported — see `docs/testing.md`.
+- `",chardata"` keeps only the level the field is read at, so the text inside a child element is not
+  part of the value, while `innerContent` writes every character token it read. The tree keeps the
+  two apart, which is what the Atom content cases depend on.
+- The `type` gate is `strings.EqualFold`, and the port applies the ASCII fast path, as recorded
+  above.
+
+### `xml:lang` inheritance
+
+Go resolves `xml:lang` through a namespace-qualified field tag, and an attribute on the root applies
+to the whole subtree it is declared on. The tree has no parent link, so inheritance is modelled as
+the adapter's own fallback — the entry's attribute, otherwise the feed's — which is what the
+reference's adapter code does on purpose. A value declared on an element that is neither the entry
+nor the root is inherited by the reference and not here; the corpus has no such case.
+
+### Bytes, not characters
+
+- `textLinkRegex` is `(?mi)(\bhttps?://[^\s]+)`. RE2 reads `\b` and `\s` as ASCII classes, while
+  Swift's `Regex` reads them as Unicode ones, so the port implements the rule on bytes with the
+  ASCII word boundary and the ASCII whitespace class Go uses. A URL that begins with a non-ASCII
+  letter, or that is followed by a Unicode separator, is matched by Swift's `Regex` and not by RE2 —
+  the ASCII behaviour is what the port keeps, and the fold and the boundary are pinned by a test.
+- The Atom 0.3 base64 branch is `base64.StdEncoding.DecodeString`, which skips the two newlines and
+  fails on anything else the alphabet does not have. Go reports padding that is not at the end as an
+  error; Swift's `Data(base64Encoded:)` answers `nil` for the same input, which is the same outcome
+  here, because a failed read leaves the content empty.

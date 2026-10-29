@@ -1,20 +1,33 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
-// Ported from Miniflux internal/reader (the namespaces its field tags name); adapted for Swift/SQLite.
+// Ported from Miniflux internal/reader (the namespaces its field tags name); adapted for
+// Swift/SQLite.
 
-/// The namespaces the format adapters match element names against, the ones the reference's field tags
-/// name. A tag with no namespace matches any namespace, which is what the tree's own match does.
+/// The namespaces the format adapters match element names against, the ones the reference's field
+/// tags name. A tag with no namespace matches any namespace, which is what the tree's own match
+/// does.
 enum FeedNamespaces {
     /// The `DefaultSpace` the reference gives the decoder for RSS. It is not a URL: it is what
     /// `translate` substitutes for a name with no prefix when the document declares no default
     /// namespace.
     static let rssDefault = "rss"
 
-    /// The RSS 1.0 namespace. Only one field tag in the reference names it explicitly — the RDF item
-    /// title — while the channel title tag names none, so the two resolve differently.
+    /// The RSS 1.0 namespace. Only one field tag in the reference names it explicitly — the RDF
+    /// item title — while the channel title tag names none, so the two resolve differently.
     static let rss10 = "http://purl.org/rss/1.0/"
 
     static let atom = "http://www.w3.org/2005/Atom"
+
+    /// The Atom 0.3 namespace. The feed-level field tags name it, while the entry-level ones name
+    /// none, so the two resolve differently.
+    static let atom03 = "http://purl.org/atom/ns#"
+
+    /// The XHTML namespace, which the Text construct's xhtml branch matches the div against.
+    static let xhtml = "http://www.w3.org/1999/xhtml"
+
+    /// The XML namespace `http://www.w3.org/XML/1998/namespace`, which the `xml:lang` field tag
+    /// names. A name with this prefix always resolves to it, whatever the document declares.
+    static let xml = "http://www.w3.org/XML/1998/namespace"
     static let dublinCore = "http://purl.org/dc/elements/1.1/"
     static let contentModule = "http://purl.org/rss/1.0/modules/content/"
     static let media = "http://search.yahoo.com/mrss/"
