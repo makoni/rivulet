@@ -153,13 +153,13 @@ the shape of the entity table, and where comment data ends, because the renderer
 a comment. The hostile corpus the plan names is the case that writes no active content: an event
 handler, a `javascript:` URL, and obfuscation nested inside a tag that is dropped.
 
-The format adapters have no fixture corpus of their own. The RSS suite is the ported cases from
-`internal/reader/rss/parser_test.go`, split by what the adapter writes — the feed level, the entry
-level, the attachments, the identity — plus the pins traced against the reference where the corpus
-does not reach. Every traced case states the value the reference produces, and the tree rules the
-adapters read through — `",chardata"` at the element's own level, the CDATA marker inside `Inner`, the
-markup a child contributes to it — are pinned in `XMLTreeTests`, while the default space standing in
-for a name with no prefix is pinned in `RSSFeedTests`. The clock the date
+The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
+from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what the
+adapter writes — the feed level, the entry level, the attachments, the identity — plus the pins traced
+against the reference where the corpus does not reach. Every traced case states the value the reference
+produces, and the tree rules the adapters read through — `",chardata"` at the element's own level, the
+CDATA marker inside `Inner`, the markup a child contributes to it — are pinned in `XMLTreeTests`, while
+the default space standing in for a name with no prefix is pinned in `RSSFeedTests`. The clock the date
 fallback reads is injected as a parameter, so no case depends on the machine's time; nothing else in
 this layer reads a clock, a locale or the network.
 

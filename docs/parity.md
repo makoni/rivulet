@@ -292,16 +292,19 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 
 **Matching the reference.** An adapter fills the normalized model by matching the tree against the
 namespaces the reference's field tags name, so the chains, the fallback orders and where a value is
-trimmed are the reference's. The model is ours: the fields `model.Feed` carries for the storage layer
-(the fetch time, the conditional-GET headers, the error counters) are not parsing results, so they are
-not modelled, and adapters do not sanitize content — sanitization is the layer after this one.
+trimmed are the reference's. The shape the struct has decides where a value is read from, which is why
+the RDF items are read at the root level rather than through the channel. The model is ours: the fields
+`model.Feed` carries for the storage layer (the fetch time, the conditional-GET headers, the error
+counters) are not parsing results, so they are not modelled, and adapters do not sanitize content —
+sanitization is the layer after this one.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
 | The clock the date fallback reads | `time.Now()` for a value that is empty or cannot be parsed | the clock is a parameter of `parse`, so the suite is deterministic; the parser itself reads no clock in either | Only the injected value differs |
-| A value read through a field tag | `strings.TrimSpace` applied by the adapter, so the tree keeps the text as the tokens read it | the same split, as `XMLElement.text` plus a trim in the adapter | None |
+| A value read through a field tag | the decoder keeps the character data as the tokens read it, because `copyValue` assigns a string without trimming, so the trim is the adapter's own | the same split, as `XMLElement.text` plus a trim where the adapter applies one | None; the places where the reference does not trim before using the value — the content, the hash inputs, and the author branch that chooses before it strips — are pinned by tests |
+| The name the root must have | `Unmarshal` fails when the root name or its namespace is not the one the `XMLName` field tag names (`encoding/xml/read.go`), and the RDF struct has such a field | not ported, because this layer reads tokens and not values, so an adapter fills the model from whatever root it read | Reachable through the parser, because detection matches the root on its local name only: a root with the local name `RDF` in another namespace is routed to the RDF adapter, where the reference fails and this reads the feed |
 | A field tag with no namespace | matches any namespace, because `finfo.xmlns` is empty | the same, as a match with an empty namespace | None |
 | The cache lifetime | `time.Duration`, read back as minutes | minutes, because the reference only ever reads it as minutes | None |
 | The relation fold | `strings.EqualFold` takes the ASCII fast path and folds the rest through `unicode.SimpleFold`, so `aℓternate` — with U+2113, which folds to `l` — matches `alternate` there | the ASCII path only, so such a relation does not match here | A relation written with a letter that folds to an ASCII letter is read as an alternate link in the reference and not here; the ASCII path is pinned by a test |
