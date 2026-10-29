@@ -9,8 +9,8 @@ resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, 
 tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
 review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` — as PR #15. The
 normalized model with the shared primitives and the RSS adapter is merged as PR #16, and RDF
-(RSS 1.0) as PR #17; the format adapters are landing one format at a time, and Atom 1.0 and 0.3 are
-this PR.
+(RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters are landing one format at a
+time, and JSON Feed is next.
 
 ## Scope
 
@@ -172,3 +172,16 @@ Findings from the RDF adapter review (#17) that do not change behavior:
   elements is what would pin the rule for that format too.
 - `XMLReaderTests.swift` is at 500 lines, which is the cap rather than the aim, so the next case added
   to it needs its own suite.
+
+Findings from the Atom adapter review (#18) that do not change behavior:
+- `Atom10Adapter.entry` is 63 lines, above the aim, because the entry chain reads the link, the
+  content, the title, the author, the date and the attachments in one pass. The media and the date
+  parts are already helpers, so the rest splits by group.
+- `AtomTextConstructTests` paraphrases the upstream CDATA inputs with characters already decoded,
+  so those rows cannot fail on the point their comment names — that the reader does not resolve
+  inside a CDATA section. `theTwoEntryPointsDoNotAgreeOnCDATA` is the pair that pins the two entry
+  points, so the rows should carry `&#8220;` and `&lt;tag&gt;` as the upstream corpus writes them.
+- `RSSAdapter.parse` is 51 lines, above the aim, so the enclosure and the identity halves need
+  named helpers.
+- Prose that predates this stage and is over the width: `docs/testing.md` 157-166, and this file
+  at 39, 169 and 172.
