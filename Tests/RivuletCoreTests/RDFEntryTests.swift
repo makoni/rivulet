@@ -43,12 +43,22 @@ import Testing
 
     /// `TestParseRDFItemWithDuplicateTitleElement` and `TestParseRDFItemWithDublinCoreTitleElement`:
     /// the item title is read first, so it wins over `dc:title`, which is the other way round from RSS.
+    /// The first case is the one that can fail on the order, because both values are read.
     @Test(arguments: [
+        ("<title>Item Title</title><dc:title>Dublin Core Title</dc:title>", "Item Title"),
         ("<title>Item Title</title><dc:title/>", "Item Title"),
         ("<dc:title>Dublin Core Title</dc:title>", "Dublin Core Title"),
     ]) func itemTitleWinsOverDublinCoreTitle(itemTitle: String, expected: String) throws {
         #expect(try entry("<item>" + itemTitle + "<link>http://example.org/item</link>"
             + "<description>Test</description></item>", namespaces: dcNamespace).title == expected)
+    }
+
+    /// Traced: the reference assigns a field for every element that matches at the element's own level, so
+    /// the last occurrence wins, not the first. This is the rule `field` reads, not the tree's own
+    /// `child`, which answers the first.
+    @Test func theLastMatchAtTheElementsOwnLevelWins() throws {
+        #expect(try entry("<item><title>First</title><title>Second</title>"
+            + "<link>http://example.org/item</link></item>").title == "Second")
     }
 
     /// The title is decoded once more than the content is: `TestParseItemWithEncodedHTMLTitle` and
@@ -127,13 +137,13 @@ import Testing
             == "http://example.org/item?rss=1")
     }
 
-    /// Traced: when the relative value cannot be parsed the reference keeps the link as it read it, so the
-    /// entry URL is the link rather than empty. This is an escape the parser refuses, because a control
-    /// character cannot reach this branch through the reader: the reference removes the bytes it filters
-    /// before decoding.
+    /// Traced: when the relative value cannot be parsed the reference keeps the link as the adapter
+    /// trimmed it, so the entry URL is the trimmed link rather than empty. This is an escape the parser
+    /// refuses, because the control characters that would make `url.Parse` fail are the bytes the reference
+    /// removes before decoding.
     @Test func entryURLStaysAsWrittenWhenResolutionFails() throws {
         #expect(try entry("<item><title>Title</title><description>Test</description>"
-            + "<link>test%zz.html</link></item>", channel: "<link>http://example.org/</link>").url
+            + "<link>  test%zz.html  </link></item>", channel: "<link>http://example.org/</link>").url
             == "test%zz.html")
     }
 

@@ -159,10 +159,20 @@ import Testing
         #expect(feed.siteURL == "http://example.org/a&b")
     }
 
+    /// Traced: when the link cannot be parsed the site URL keeps the trimmed value, because the reference
+    /// assigns it before the resolution and overwrites it only on success. An escape the parser refuses is
+    /// what reaches this branch, since the control characters it also refuses are removed before decoding.
+    @Test func siteURLStaysAsWrittenWhenResolutionFails() throws {
+        let feed = try parse(document("<title>Example Feed</title><link>  test%zz.html  </link>",
+            "<item><title>Example</title><link>http://example.org/item</link></item>"))
+        #expect(feed.siteURL == "test%zz.html")
+    }
+
     // MARK: - Language
 
-    /// `TestParseFeedWithChannelLanguage` and `TestParseFeedWithItemLanguage`: the language is read
-    /// from `dc:language` only, an entry inherits the channel language, and its own value wins.
+    /// `TestParseFeedWithChannelLanguage`, `TestParseFeedWithItemLanguage` and
+    /// `TestParseFeedWithoutLanguage`: the language is read from `dc:language` only, an entry inherits the
+    /// channel language, and its own value wins.
     @Test(arguments: [
         ("<dc:language>EN-us</dc:language>", "", "en-us", "en-us"),
         ("<dc:language>en</dc:language>", "<dc:language>fr_CA</dc:language>", "en", "fr-ca"),

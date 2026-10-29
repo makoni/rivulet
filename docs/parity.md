@@ -293,10 +293,11 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 **Matching the reference.** An adapter fills the normalized model by matching the tree against the
 namespaces the reference's field tags name, so the chains, the fallback orders and where a value is
 trimmed are the reference's. The shape the struct has decides where a value is read from, which is why
-the RDF items are read at the root level rather than through the channel. The model is ours: the fields
-`model.Feed` carries for the storage layer (the fetch time, the conditional-GET headers, the error
-counters) are not parsing results, so they are not modelled, and adapters do not sanitize content —
-sanitization is the layer after this one.
+the RDF items are read at the root level rather than through the channel, and a single-value field takes
+the last element that matches at its own level, because the reference assigns the field for every match.
+The model is ours: the fields `model.Feed` carries for the storage layer (the fetch time, the
+conditional-GET headers, the error counters) are not parsing results, so they are not modelled, and
+adapters do not sanitize content — sanitization is the layer after this one.
 
 **Known differences.**
 

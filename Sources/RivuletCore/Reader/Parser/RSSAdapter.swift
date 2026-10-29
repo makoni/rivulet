@@ -298,8 +298,10 @@ enum RSSAdapter {
         scope?.children(local: local, namespace: namespace, defaultSpace: defaultSpace) ?? []
     }
 
+    /// The element a model field reads: the reference assigns the field for every element that matches at
+    /// the element's own level, so the last occurrence wins.
     private static func field(_ scope: XMLElement?, local: String, namespace: String) -> XMLElement? {
-        fields(scope, local: local, namespace: namespace).first
+        fields(scope, local: local, namespace: namespace).last
     }
 
     /// The value a model field tagged `",chardata"` reads: the character data at the element's own level.

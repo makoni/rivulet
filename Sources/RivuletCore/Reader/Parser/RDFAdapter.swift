@@ -112,8 +112,11 @@ enum RDFAdapter {
         scope?.children(local: local, namespace: namespace) ?? []
     }
 
+    /// The element a model field reads. The reference assigns the field for every element that matches at
+    /// the element's own level, so the last occurrence wins, which is why this takes the last match rather
+    /// than the first the tree's own `child` answers.
     private static func field(_ scope: XMLElement?, local: String, namespace: String = "") -> XMLElement? {
-        fields(scope, local: local, namespace: namespace).first
+        fields(scope, local: local, namespace: namespace).last
     }
 
     /// The value a model field tagged `",chardata"` reads: the character data at the element's own level.
