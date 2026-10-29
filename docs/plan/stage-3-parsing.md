@@ -133,6 +133,19 @@ Findings from the URL layer review (#12) that do not change behavior:
   them. They land with the fetcher's proxy check and the stage 6 integrations, through the same
   parse.
 
+Findings from the RSS adapter review (#16) that do not change behavior:
+
+- `SortedNames` reads the duplicate check on the bytes, but the case that separates the two readings
+  uses two spellings that are not canonically equivalent, so it pins the order only. The pair that
+  would pin the duplicate half is `caf\u{00E9}` against `cafe\u{0301}`: the reference inserts both,
+  because the bytes differ.
+- No upstream case shows how `Inner` treats a comment inside the element, so that boundary of the
+  reconstruction is recorded in `docs/parity.md` without a pin.
+- `docs/testing.md` reads as if the seven sanitizer suites all name traced pins, while the two
+  text-layer suites port the upstream corpus.
+- `HTMLFragmentTree.swift` is at 465 lines, close to the hard cap.
+- `docs/plan/stage-6-cli.md:11` is 102 columns, which predates this stage.
+
 Findings from the sanitizer slice review that do not change behavior:
 
 - `TestInvalidURLScheme` copies the upstream case, where the invalid scheme sits on an `<a>` that
