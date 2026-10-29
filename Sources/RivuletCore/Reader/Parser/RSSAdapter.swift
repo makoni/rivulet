@@ -202,7 +202,7 @@ enum RSSAdapter {
         let name = firstNonEmpty([
             text(channel, local: "author", namespace: FeedNamespaces.itunes),
             text(channel, local: "author", namespace: FeedNamespaces.googlePlay),
-            personName(field(channel, local: "owner", namespace: FeedNamespaces.itunes)),
+            ownerString(field(channel, local: "owner", namespace: FeedNamespaces.itunes)),
             text(channel, local: "managingEditor", namespace: defaultSpace),
             text(channel, local: "webMaster", namespace: defaultSpace),
         ])
@@ -213,6 +213,14 @@ enum RSSAdapter {
     private static func personName(_ person: XMLElement?) -> String {
         let name = trimmed(text(person, local: "name", namespace: ""))
         return name.isEmpty ? trimmed(text(person, local: "email", namespace: "")) : name
+    }
+
+    /// `ItunesOwnerElement.String()`, which is not the rule above: the choice is made on the values as
+    /// they were read, and only the one chosen is trimmed, so a name that is only whitespace wins and
+    /// answers empty.
+    private static func ownerString(_ owner: XMLElement?) -> String {
+        let name = text(owner, local: "name", namespace: "")
+        return trimmed(name.isEmpty ? text(owner, local: "email", namespace: "") : name)
     }
 
     /// `findEntryTags`: the item's categories, then the media categories that carry a label.
@@ -316,7 +324,9 @@ enum RSSAdapter {
     /// `html.UnescapeString`, the pass the adapters read through on top of what the tokenizer decoded.
     private static func decoded(_ value: String) -> String { HTMLEntities.decode(value, attribute: false) }
 
-    /// Go's `strings.EqualFold`, which folds ASCII only.
+    /// The fold `strings.EqualFold` does on the ASCII range, which is its fast path. The reference goes
+    /// past ASCII through `unicode.SimpleFold`, so a relation such as `aſternate` matches there and not
+    /// here — recorded in `docs/parity.md`.
     private static func equalFold(_ left: String, _ right: String) -> Bool {
         func fold(_ byte: UInt8) -> UInt8 { byte >= 65 && byte <= 90 ? byte + 32 : byte }
         return [UInt8](left.utf8).map(fold) == [UInt8](right.utf8).map(fold)

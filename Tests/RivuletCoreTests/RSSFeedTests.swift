@@ -68,8 +68,8 @@ import Testing
         #expect(try #require(feed.entries.first).title == "'b")
     }
 
-    /// `TestParseItemTitleWithCDATA`: inside a CDATA section the reference does not decode the
-    /// references, so the second unescape pass is what resolves them.
+    /// `TestParseItemTitleWithCDATA`: the tokenizer does not decode a reference inside a CDATA section,
+    /// so the pass the adapter reads through is what resolves it.
     @Test func cdataTitleIsDecodedByTheSecondPass() throws {
         let feed = try parse("<rss version=\"2.0\"><channel><link>https://example.org/</link>"
             + "<item><title><![CDATA[Jenny&#8217;s Newsletter]]></title>"
@@ -80,7 +80,7 @@ import Testing
     // MARK: - URLs
 
     /// Traced: the feed URL is the base URL as the reference trims it, as long as nothing else claims
-    /// it. `TestParseRss2Sample` pins the same value with an untrimmed base URL.
+    /// it. `TestParseRss2Sample` pins the same value for a base URL that has no whitespace.
     @Test(arguments: [
         ("https://example.org/ ", "https://example.org/"),
         ("https://example.org/", "https://example.org/"),

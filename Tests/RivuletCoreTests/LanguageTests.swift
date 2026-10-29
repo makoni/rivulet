@@ -45,7 +45,9 @@ import Testing
         #expect(Language.normalize(input) == expected)
     }
 
-    /// `TestNormalize`, the length bound. The bound is checked on the bytes, before the alphabet.
+    /// `TestNormalize`, the length bound, which `len` reads on the bytes. The two readings can only
+    /// differ for a multibyte value, and such a value is rejected by the alphabet anyway, so no case
+    /// separates them and this is the rule as stated rather than as pinned.
     @Test(arguments: [
         (String(repeating: "a", count: 51), ""),
         ("en-" + String(repeating: "a", count: 100), ""),

@@ -117,13 +117,13 @@ enum RSSMedia {
         element.attribute(local: local) ?? ""
     }
 
-    /// Go's `path.Base`: the last segment, with the trailing separators dropped, and `.` when nothing is
-    /// left.
+    /// Go's `path.Base`: the last segment, with the trailing separators dropped, `.` when nothing is
+    /// written at all, and `/` when what is left is only separators.
     private static func pathBase(_ path: String) -> String {
         var value = path
         while value.hasSuffix("/") { value = String(value.dropLast()) }
-        guard !value.isEmpty else { return "." }
-        if let lastSlash = value.lastIndex(of: "/") { value = String(value[value.index(after: lastSlash)...]) }
-        return value.isEmpty ? "." : value
+        guard !value.isEmpty else { return path.isEmpty ? "." : "/" }
+        if let lastSlash = value.lastIndex(of: "/") { return String(value[value.index(after: lastSlash)...]) }
+        return value
     }
 }

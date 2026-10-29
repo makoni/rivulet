@@ -108,6 +108,17 @@ import Testing
         #expect(try #require(parsed.enclosures.first).url == expected)
     }
 
+    /// Traced from `path.Base`: a value that is only separators is the filename `/`, which every URL that
+    /// ends with a separator has, so the enclosure takes the original link.
+    @Test func anOriginalLinkOfOnlySeparatorsIsTheFilename() throws {
+        let parsed = try entry("<item><link>http://example.org/entries/1</link>"
+            + "<enclosure url=\"http://example.org/67ca/File.mp3/\" length=\"1\" type=\"audio/mpeg\" />"
+            + "<feedburner:origEnclosureLink>/</feedburner:origEnclosureLink></item>",
+            namespaces: " xmlns:feedburner=\"http://rssnamespace.org/feedburner/ext/1.0\"",
+            siteLink: "http://example.org")
+        #expect(try #require(parsed.enclosures.first).url == "http://example.org/")
+    }
+
     /// `TestParseEntryWithIncorrectEnclosureLength`: a length that is not a number is zero, and an
     /// empty one is zero before the parse is even attempted.
     @Test(arguments: [

@@ -102,6 +102,10 @@ import Testing
                 + "<atom:link rel=\"alternate\" href=\"https://example.org/b\" />", "https://example.org/b"),
         (" xmlns:atom=\"http://www.w3.org/2005/Atom\"",
             "<atom:link rel=\"alternate\" href=\"  \" />", "https://example.org/"),
+        // The relation is compared with `strings.EqualFold`, so the ASCII fold is what makes an
+        // uppercase spelling match.
+        (" xmlns:atom=\"http://www.w3.org/2005/Atom\"",
+            "<atom:link rel=\"Alternate\" href=\"https://example.org/a\" />", "https://example.org/a"),
         ("", "<guid isPermaLink=\"false\">guid</guid>", "https://example.org/"),
     ]) func entryURLChain(namespaces: String, content: String, expected: String) throws {
         let parsed = try entry("<item>" + content + "</item>", namespaces: namespaces)
@@ -203,6 +207,17 @@ import Testing
         let parsed = try entry("<item><link>https://example.org/item</link></item>", namespaces: namespaces,
             channel: channelElement)
         #expect(parsed.author == expected)
+    }
+
+    /// Traced from `ItunesOwnerElement.String()`: the choice is made on the value as it was read, so a
+    /// name that is only whitespace wins and answers empty, and nothing is left for the chain. The two
+    /// rules are not the same as `PersonName`, which trims before it chooses.
+    @Test func theOwnerChoiceIsMadeBeforeTheTrim() throws {
+        let parsed = try entry("<item><link>https://example.org/item</link></item>",
+            namespaces: " xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\"",
+            channel: "<itunes:owner><itunes:name> </itunes:name>"
+                + "<itunes:email>john.doe@example.com</itunes:email></itunes:owner>")
+        #expect(parsed.author == "")
     }
 
     /// The entry's own author wins over the channel's, which is the order `TestParseEntryWithAuthorAndInnerHTML`
