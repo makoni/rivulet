@@ -50,9 +50,9 @@ import Testing
         #expect(names.names == ["Visual Art", "ace"])
     }
 
-    /// Traced from `cmp.Compare`: the comparison is on the bytes, so a composed form and the same
-    /// letters with a combining mark are two names, and the byte order decides the position. Swift's
-    /// comparison treats the two spellings as one string, so this case is what separates the two.
+    /// Traced from `cmp.Compare`: the comparison is on the bytes, so the byte order decides the
+    /// position. Swift orders by canonical equivalence, which puts these two the other way round, so
+    /// this case is what separates the two readings.
     @Test func theComparisonIsOnTheBytes() {
         var names = SortedNames()
         for name in ["caf\u{00E0}", "cafe\u{0301}"] { names.insert(name) }

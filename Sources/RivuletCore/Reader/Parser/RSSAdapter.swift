@@ -325,8 +325,8 @@ enum RSSAdapter {
     private static func decoded(_ value: String) -> String { HTMLEntities.decode(value, attribute: false) }
 
     /// The fold `strings.EqualFold` does on the ASCII range, which is its fast path. The reference goes
-    /// past ASCII through `unicode.SimpleFold`, so a relation such as `aſternate` matches there and not
-    /// here — recorded in `docs/parity.md`.
+    /// past ASCII through `unicode.SimpleFold`, so a relation written with a letter that folds to an
+    /// ASCII letter matches there and not here — recorded in `docs/parity.md`.
     private static func equalFold(_ left: String, _ right: String) -> Bool {
         func fold(_ byte: UInt8) -> UInt8 { byte >= 65 && byte <= 90 ? byte + 32 : byte }
         return [UInt8](left.utf8).map(fold) == [UInt8](right.utf8).map(fold)
