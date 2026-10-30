@@ -404,3 +404,34 @@ reports is the first member the field's type cannot accept, not the first field 
 | --- | --- | --- | --- |
 | The name a field matches | `foldName` also accepts a case-insensitive name, as the reader section records | not ported: the walk matches the name as the document wrote it | `{"Title": "x"}` matches `title` in the reference and not here; pinned by `JSONFieldReadTests.nameMatchIsExact` |
 | `UnmarshalTypeError` | keeps the value word, the type and the byte offset, and the message is built from them: `json: cannot unmarshal number into Go value of type string` | the two words are the case's values — the kind the literal is, and Go's rendering of the field type (`json.JSONFeed`, `json.JSONAuthor`, `json.JSONHub`, `[]json.JSONItem`, `[]json.JSONAttachment`, `[]string`, `int64`, `int`, `bool`, `string`) — and the offset is not modelled | None, because nothing in the port reads the message; the pins name the two words |
+
+## Parser fixture corpus (stage 3)
+
+**Matching the reference.** The 8 parser fixtures are read end to end by `ParserCorpusTests`, which
+compares the port against what the reference produces for them. Upstream uses these files only as
+benchmark and fuzz inputs, so no upstream test states what a parse produces and nothing could be
+ported; the golden files carry the reference's own values, written by running Miniflux v2.3.3 with
+Go 1.26 — the version `miniflux/go.mod` pins — over the byte-for-byte copies with the clock fixed
+to UTC, through a scratch package inside a verbatim copy of the clone, because the reference's
+`internal/` packages cannot be imported from another module. Each golden file says on its own line
+that the values below it are the reference's output for that fixture. The method is recorded in
+`docs/testing.md`. On the pinned subset the port agrees with the reference on every value, so the
+corpus reports no difference; a difference can only enter it by being recorded here.
+
+**What this corpus cannot pin.**
+
+- The zone name a date resolves to, because the reference reads it through the machine's tzdata, the
+  deviation the date parsing section records. Only the epoch and the offset are pinned, and the
+  port's fixed zone table can differ from the machine's while those two still agree.
+- The double unescape the RSS title chain applies: no title in these fixtures carries a doubly
+  encoded reference, so entity decoding is pinned through the content instead, and the title rules
+  are pinned only as far as the bytes show them.
+- The date order for the two large fixtures: `published` and `updated` are equal in every entry, so
+  only the value is pinned, not which of the two the adapter took.
+- Relative URL resolution: no fixture has a relative URL, so the URL layer's own tables are where
+  that is pinned.
+- A content value longer than the golden files keep readable is pinned as its first 120 code points
+  plus its SHA-256. The prefix is taken on the content as read, before the escaping, and the hash is
+  taken on the whole content, so the whole of it is pinned but not the shape of the middle.
+
+Each golden file names the rule its fixture pins and what that fixture cannot pin.

@@ -1,0 +1,33 @@
+# RSS 2.0, 50 entries, windows-1251 declared in the prolog. Entry 1 pins the label path for
+# Cyrillic. Entry 2 pins that a numeric character reference inside CDATA stays as written,
+# which entry 1 cannot show because its content is escaped text. The hash is the GUID; the
+# date offset comes from the value itself.
+# Every value below is the reference's own output for this fixture.
+format = rss
+version = (empty)
+feed.title = iBash.Org.Ru
+feed.feedURL = https://example.org/feed.xml
+feed.siteURL = http://ibash.org.ru/
+feed.description = Новый цитатник Рунета
+feed.language = ru
+feed.iconURL = (empty)
+feed.ttlMinutes = 0
+entries = 50
+entry.1.title = Цитата #17703
+entry.1.url = http://ibash.org.ru/quote.php?id=17703
+entry.1.commentsURL = (empty)
+entry.1.author = (empty)
+entry.1.content = xxx: есть у кого жаба программер <br />xxx: кот немного пхп знает? <br />yyy: то что кот PHP немного знает, я бы ещё может поверил <br />yyy: но вот жаба-программер - это ты по-моему загнул
+entry.1.language = ru
+entry.1.date = 1521617252 10800
+entry.1.hash = 7feba6b97f52ca048c66ff216e0a6ae270c0c4aae0850459665922aac004e53f
+entry.1.tags = (empty)
+entry.2.title = Цитата #17705
+entry.2.url = http://ibash.org.ru/quote.php?id=17705
+entry.2.commentsURL = (empty)
+entry.2.author = (empty)
+entry.2.content = ххх: 1С изначально проектировалась для небольшого количества пользователей, поэтому оператору предоставлялась бо&#039;льшая свобода действий. <br />ууу: Я склоняюсь к версии что 1С изначально вообще не проектировалась, а сразу писалась.
+entry.2.language = ru
+entry.2.date = 1521617242 10800
+entry.2.hash = 200743200ac2d0ae73697eb8284280d767b5f1270c77b2d2a17e71561214edcf
+entry.2.tags = (empty)

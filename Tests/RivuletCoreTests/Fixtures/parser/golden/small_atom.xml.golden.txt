@@ -1,0 +1,40 @@
+# Atom 1.0, 20 entries. Pins the title read through TrimSpace, the Person name author, the
+# entry language falling back to the feed language, the numeric character reference decoded
+# inside the content, and the media thumbnail becoming an enclosure with the media mime type
+# and no size. Entry 20 pins that the whole document is read, not only the tokens detection
+# looks at.
+# Every value below is the reference's own output for this fixture.
+format = atom
+version = 1.0
+feed.title = Recent Commits to v2:main
+feed.feedURL = https://github.com/miniflux/v2/commits/main.atom
+feed.siteURL = https://github.com/miniflux/v2/commits/main
+feed.description = (empty)
+feed.language = en-us
+feed.iconURL = (empty)
+feed.ttlMinutes = 0
+entries = 20
+entry.1.title = Parse podcast categories
+entry.1.url = https://github.com/miniflux/v2/commit/6d97f8b4582414b6ce69467656824690057d4793
+entry.1.commentsURL = (empty)
+entry.1.author = fguillot
+entry.1.content = <pre style='white-space:pre-wrap;width:81ex'>Parse podcast categories</pre>
+entry.1.language = en-us
+entry.1.date = 1710221427 0
+entry.1.hash = 7aa3fb1bac20f0cef750cebc5a42c0cf60d1fab6f11a4a218b8fe13ad3fbc076
+entry.1.tags = (empty)
+entry.1.enclosure.1.mimeType = image/*
+entry.1.enclosure.1.size = 0
+entry.1.enclosure.1.url = https://avatars.githubusercontent.com/u/323546?s=30&v=4
+entry.20.title = Reuse a Reader instead of copying to a buffer when parsing an atom feed
+entry.20.url = https://github.com/miniflux/v2/commit/111e3f2106646cd29f7f74c0102f2a570c598e2e
+entry.20.commentsURL = (empty)
+entry.20.author = jvoisin
+entry.20.content = <pre style='white-space:pre-wrap;width:81ex'>Reuse a Reader instead of copying to a buffer when parsing an atom feed</pre>
+entry.20.language = en-us
+entry.20.date = 1709602570 0
+entry.20.hash = 21487ea9016a89667d2a5be0fc798c96a0e5331d7fbc6eb5d99fc0e8e6a010fa
+entry.20.tags = (empty)
+entry.20.enclosure.1.mimeType = image/*
+entry.20.enclosure.1.size = 0
+entry.20.enclosure.1.url = https://avatars.githubusercontent.com/u/325724?s=30&v=4

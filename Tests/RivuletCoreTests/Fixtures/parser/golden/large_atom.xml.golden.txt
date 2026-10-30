@@ -1,0 +1,39 @@
+# Atom 1.0, 25 entries, the same site as large_rss.xml. The feed URL is the self link and
+# the site URL is the alternate link, so the two relations of the same element are pinned
+# apart. The title is the text construct as read, the author is the Person name, the tags
+# are the categories, and the hash is the entry ID. The date order cannot be pinned here:
+# published and updated are equal in every entry, so only the value is pinned. Entry 1
+# content is longer than the golden files keep readable, so it is pinned as its first 120
+# code points and its SHA-256. Entry 16 pins the offset that comes from the value itself:
+# 7200 seconds where entry 1 has 3600.
+# Every value below is the reference's own output for this fixture.
+format = atom
+version = 1.0
+feed.title = Artificial truth
+feed.feedURL = https://dustri.org/b/atom.xml
+feed.siteURL = https://dustri.org/b/
+feed.description = (empty)
+feed.language = (empty)
+feed.iconURL = (empty)
+feed.ttlMinutes = 0
+entries = 25
+entry.1.title = Using vale with vim
+entry.1.url = https://dustri.org/b/using-vale-with-vim.html
+entry.1.commentsURL = (empty)
+entry.1.author = jvoisin
+entry.1.content.prefix = <p><a href="https://en.wikipedia.org/wiki/LWN.net">LWN</a> recently published an excellent\n(subscriber only) <a href="ht
+entry.1.content.sha256 = c8652b0b5b0fbc51ff22f006b0aefbc9eeb5ee72a5d1526523e2dafb4900d69b
+entry.1.language = (empty)
+entry.1.date = 1710087300 3600
+entry.1.hash = 257072f34a0673aee5715c0f30caed45b3bad02fd9aee432fc27f07f98fdc89d
+entry.1.tags = sysadmin
+entry.16.title = Book review: Locksport - A Hacker’s Guide to Lockpicking, Impressioning, and Safe Cracking
+entry.16.url = https://dustri.org/b/book-review-locksport-a-hackers-guide-to-lockpicking-impressioning-and-safe-cracking.html
+entry.16.commentsURL = (empty)
+entry.16.author = jvoisin
+entry.16.content.prefix = <p><a href="https://nostarch.com/locksport"><img alt="Locksport's cover" src="https://dustri.org/b/images/locksport.png"
+entry.16.content.sha256 = 8ffa9579d9877a6719153ce3e5b15ab154f5c79e0f232e538785cb87eac02f33
+entry.16.language = (empty)
+entry.16.date = 1697817600 7200
+entry.16.hash = 82fc3206ad0ac9fe8d62696f6db2a230f245d20b36975f2877423b66a3fa8ead
+entry.16.tags = book_reviews
