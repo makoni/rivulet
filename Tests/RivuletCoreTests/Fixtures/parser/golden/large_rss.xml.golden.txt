@@ -4,6 +4,7 @@
 # applies cannot be pinned here, because no title in this fixture carries a doubly encoded
 # reference. Entry 1 content is pinned as its first 120 code points and its SHA-256; entry
 # 16 pins the 7200-second offset.
+# Every value below is the reference's own output for this fixture.
 format = rss
 version = (empty)
 feed.title = Artificial truth

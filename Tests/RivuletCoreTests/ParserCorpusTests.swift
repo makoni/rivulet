@@ -15,13 +15,15 @@ import Testing
 /// implementation's, so a failure here is a difference in the implementation under test, and
 /// recording it in `docs/parity.md` is the only way a difference can stay.
 ///
-/// Each golden line pins one value as `path = value`. The paths are the fields the adapters write,
-/// plus `format`, `version` and `entries`. A value that would break a line — content with newlines
-/// in it — is written with `\n`, `\t`, `\r` and `\\`, and an empty value is written as `(empty)`.
-/// For the two fixtures whose content is longer than the golden files keep readable, content is
-/// pinned as its first 120 code points and its SHA-256, which pins the whole of it. The zone name
-/// a date resolved to is not pinned, because the reference reads it through the machine's tzdata;
-/// see `docs/parity.md`.
+/// Each golden line pins one value as `path = value`, and every golden value is the reference's,
+/// never this implementation's. The paths are the fields the adapters write, plus `format`,
+/// `version` and `entries`. A value that would break a line — content with newlines in it — is
+/// written with `\n`, `\t`, `\r` and `\\`, and an empty value is written as `(empty)`. For the two
+/// fixtures whose content is longer than the golden files keep readable, content is pinned as its
+/// first 120 code points of the content as read, plus its SHA-256, which pins the whole of it; the
+/// prefix is taken before the escaping, so a newline inside it is pinned as a newline and written
+/// as `\n`. The zone name a date resolved to is not pinned, because the reference reads it through
+/// the machine's tzdata; see `docs/parity.md`.
 ///
 /// No case reads a clock, a locale or the network. The base URL a case uses is the one its golden
 /// file was written with, stated at the call site, because the feed URL an adapter keeps is the

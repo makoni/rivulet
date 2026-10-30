@@ -4,6 +4,7 @@
 # level decoded. The feed URL is the atom:link with rel=self, not the base URL. Entry 2 pins
 # the RSS comments rule, which the first item does not carry. The hash is the GUID, and the
 # date offset comes from the value itself.
+# Every value below is the reference's own output for this fixture.
 format = rss
 version = (empty)
 feed.title = Golem.de

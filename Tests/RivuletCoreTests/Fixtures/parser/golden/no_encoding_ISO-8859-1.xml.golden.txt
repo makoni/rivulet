@@ -2,6 +2,7 @@
 # characters before tokenizing them and the bytes that are not valid UTF-8 disappear from
 # the text. Entry 4 pins the title falling back to the entry URL, and the hash that follows
 # when the item has no GUID.
+# Every value below is the reference's own output for this fixture.
 format = rss
 version = (empty)
 feed.title = Flux RSS du magazine de psychologie Le Cercle Psy

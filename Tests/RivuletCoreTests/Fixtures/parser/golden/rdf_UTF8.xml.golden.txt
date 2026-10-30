@@ -4,6 +4,7 @@
 # the item link, the date the model starts with when the item has no date — the clock the
 # suite injects, 1700000000 — and the entity decode of a text node, which entry 31 shows in
 # its content.
+# Every value below is the reference's own output for this fixture.
 format = rdf
 version = (empty)
 feed.title = heise online News

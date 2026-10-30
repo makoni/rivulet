@@ -2,6 +2,7 @@
 # Cyrillic. Entry 2 pins that a numeric character reference inside CDATA stays as written,
 # which entry 1 cannot show because its content is escaped text. The hash is the GUID; the
 # date offset comes from the value itself.
+# Every value below is the reference's own output for this fixture.
 format = rss
 version = (empty)
 feed.title = iBash.Org.Ru

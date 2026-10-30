@@ -6,6 +6,7 @@
 # content is longer than the golden files keep readable, so it is pinned as its first 120
 # code points and its SHA-256. Entry 16 pins the offset that comes from the value itself:
 # 7200 seconds where entry 1 has 3600.
+# Every value below is the reference's own output for this fixture.
 format = atom
 version = 1.0
 feed.title = Artificial truth

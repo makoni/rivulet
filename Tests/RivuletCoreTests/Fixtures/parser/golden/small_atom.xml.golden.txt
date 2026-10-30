@@ -3,6 +3,7 @@
 # inside the content, and the media thumbnail becoming an enclosure with the media mime type
 # and no size. Entry 20 pins that the whole document is read, not only the tokens detection
 # looks at.
+# Every value below is the reference's own output for this fixture.
 format = atom
 version = 1.0
 feed.title = Recent Commits to v2:main

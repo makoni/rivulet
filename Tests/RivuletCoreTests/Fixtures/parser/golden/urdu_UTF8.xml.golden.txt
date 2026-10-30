@@ -2,6 +2,7 @@
 # they are. Pins the channel author read through managingEditor and StripTags, the language
 # normalized to lowercase, the TTL the feed declares, the channel image, and the media
 # thumbnail as an enclosure.
+# Every value below is the reference's own output for this fixture.
 format = rss
 version = (empty)
 feed.title = BBC News  اردو - پاکستان کے لیے امریکی امداد کی بہار و خزاں

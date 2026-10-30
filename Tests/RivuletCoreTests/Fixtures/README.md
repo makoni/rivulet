@@ -26,11 +26,12 @@ files. As of the charset, the XML reader and the parser corpus slices, `encoding
 `parser/` are read by tests; `sanitizer/` is staged for the later slices of this stage.
 
 `parser/golden/` is the one directory here that is not a copy of an upstream file: its files are
-the reference's output on the fixtures above, written by running Miniflux v2.3.3 (Go 1.26, the
-version `miniflux/go.mod` pins) with the clock fixed to UTC. They are still not Rivulet's output —
-a golden file records what the reference produces, so a test failing against it is a difference in
-the implementation under test. Each file names the rule its fixture pins and what that fixture
-cannot pin; regenerating a golden file means running the reference again, never running Rivulet.
+the reference's output on the fixtures above — each file says so on its own line — written by
+running Miniflux v2.3.3 (Go 1.26, the version `miniflux/go.mod` pins) with the clock fixed to UTC.
+They are still not Rivulet's output: a golden file records what the reference produces, so a test
+failing against it is a difference in the implementation under test. Each file names the rule its
+fixture pins and what that fixture cannot pin; regenerating a golden file means running the
+reference again, never running Rivulet.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing
 them here; a local edit would silently invalidate the provenance above.

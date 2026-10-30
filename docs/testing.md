@@ -137,16 +137,22 @@ values could not come from a test. They were obtained by running the reference i
 v2.3.3, Go 1.26, the version `miniflux/go.mod` pins — over these bytes with `TZ=UTC`. The run is a
 scratch package inside a verbatim copy of the clone, because the `internal/` packages cannot be
 imported from another module, so nothing in the repository depends on a Go toolchain. Each golden
-file pins one value per line as `path = value`, names the rule its fixture pins, and says what it
-cannot show; a value that would break a line is written escaped, and content longer than the files
-keep readable is pinned as its first 120 code points plus its SHA-256, which pins the whole of it.
-Several values were traced by hand from the fixture bytes, independently of the run: the SHA-256 of
-a GUID, of an entry URL and of an entry ID, the windows-1251 title, a numeric character reference
-kept as written inside CDATA, the epoch a date resolves to, and an entity decoded in a media
-thumbnail URL. The zone name a date resolves to is not pinned, because the reference reads it
-through the machine's tzdata — see `docs/parity.md` — while the epoch and the offset are. Nothing
-in this corpus reads a clock, a locale or the network; the date the RDF items start with is the
-clock the suite injects.
+file pins one value per line as `path = value`, says that its values are the reference's output for
+that fixture, names the rule its fixture pins, and says what it cannot show; a value that would
+break a line is written escaped, and content longer than the files keep readable is pinned as its
+first 120 code points plus its SHA-256, which pins the whole of it.
+
+Only the values named below were traced independently of the run, from the fixture bytes; every
+other pinned value rests on the run, which is why the golden files and the test say plainly that a
+golden value is the reference's output and not Rivulet's. The independent checks are: the SHA-256
+of a GUID, of an entry URL and of an entry ID (`encoding_WINDOWS-1251.xml`, the entry-1 item of
+`no_encoding_ISO-8859-1.xml`, which has no GUID, and `small_atom.xml`), the windows-1251 title,
+the entry-1 content of `no_encoding_ISO-8859-1.xml` — the no-label path drops the bytes that are
+not XML characters — a numeric character reference kept as written inside CDATA, the epoch a date
+resolves to, and an entity decoded in a media thumbnail URL. The zone name a date resolves to is
+not pinned, because the reference reads it through the machine's tzdata — see `docs/parity.md` —
+while the epoch and the offset are. Nothing in this corpus reads a clock, a locale or the network;
+the date the RDF items start with is the clock the suite injects.
 
 The URL layer has no fixture corpus, because the reference has none for it: its cases are the ported
 tables from `internal/urllib/url_test.go` and `internal/reader/urlcleaner/urlcleaner_test.go`, plus
