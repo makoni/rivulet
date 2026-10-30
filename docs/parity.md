@@ -13,8 +13,8 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
   (BSD-3-Clause, attributed in `NOTICE`) — the same data the reference resolves labels against,
   including the aliases the IANA registry gets wrong (`iso-8859-1` → windows-1252, `gb2312` → GBK,
   `utf-16` → little-endian, `iso-2022-kr` and `hz-gb-2312` → replacement). `miniflux/go.mod` pins
-  v0.40.0; the copies read on this machine are the module cache at v0.35.0 and v0.43.0, which hold
-  the same table.
+  v0.40.0, and the 228 labels in the port are checked against the module cache at that pinned
+  version: every label resolves to the encoding the port maps it to.
 - A document that is already valid UTF-8 is never converted, whatever label it declares; a wrong
   prolog cannot double-encode it. An unknown label is only an error when the bytes are not valid
   UTF-8.
@@ -195,16 +195,17 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 **Matching the reference.**
 
 - The sanitizer does not read through SwiftSoup, which the stage 3 plan named for it. The output
-  the reference writes is the string it builds itself — the element name, then the attributes in
-  the order they were read — so attribute order, name lowercasing, entity decoding, the raw-text
-  states and the open-element depth guard have to be the port's own. SwiftSoup does not expose the
-  attributes it parsed (`Node.attributes` is internal to the module), it has no depth guard at all,
-  and its tree builder is not the one the reference's rules are read against. SwiftSoup is still the
-  dependency `EntryText` uses.
+  the reference writes is the string it builds itself — the element name, then the attributes in the
+  order they were read, except for a formatting element, which is the case below — so attribute
+  order, name lowercasing, entity decoding, the raw-text states and the open-element depth guard
+  have to be the port's own. SwiftSoup does not expose the attributes it parsed (`Node.attributes`
+  is internal to the module), it has no depth guard at all, and its tree builder is not the one the
+  reference's rules are read against. SwiftSoup is still the dependency `EntryText` uses.
 - The tokenizer and the insertion modes are traced against `golang.org/x/net/html` (BSD-3-Clause).
-  `miniflux/go.mod` pins v0.57.0, which is what the reference parses with; there is no Go toolchain
-  on this machine, so the rules are read from the source, and the copy read here is the module cache
-  at v0.61.0. `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment
+  `miniflux/go.mod` pins v0.57.0, which is what the reference parses with, and the copy the rules
+  were read from is the module cache at that version, which is also what a corpus value can be
+  checked against, since the reference runs with it.
+  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment
   state is entered only through the two dashes of `<!--`, and a comment closes only after two dashes
   (`-->` or `--!>`), so a `>` inside its data is data; a doctype, a processing instruction and any
   other `<!` or `<?` close at the first `>`. A tag name, an attribute key and an attribute value
@@ -240,6 +241,15 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   tag pops the open section element before the token is read again in the table mode, and the case
   has to open `thead`, because that is a name the renderer writes: `tbody` is not in the allowlist,
   so a case built on `tbody` writes the same string whether the pop happens or not.
+- `addFormattingElement` is the one place the reference reorders the attributes it puts on a node:
+  it sorts them by namespace, then by name, then by value. The port has no namespace, so the name
+  and the value are the whole comparison, and the sort is applied for the names `inBodyIM` answers
+  with that function. `a` is the only one of those names with attributes in the sanitizer's
+  allowlist, so the order shows in the output through an `a`; `img` has two attributes and is not a
+  formatting element, which is the case that keeps the two apart. The rule is pinned by the hostile
+  corpus, and the reference applies it only on the body path — see the foreign-content row below.
+  The same corpus pins the limit of 512 open elements the port models as `Failure`: the reference
+  reaches it by panicking and `html.Parse` recovers that as an error, so both answer with nothing.
 - The srcset descriptor rules are ported, including the two that decide the string written back: the
   density is written with `strconv.FormatFloat(value, 'g', -1, 64)`'s rule — the shortest digits
   that round-trip, the exponent form when the decimal exponent is below -4 or at least 6, and the
@@ -248,7 +258,7 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   64-bit value; only the width is written back, so the height is observable only through the rule
   that makes a height-only descriptor invalid. Both are pinned by `SrcSetParserTests`.
 - The entity table is the data `x/net/html` builds from the HTML5 named character references,
-  generated from the module-cache copy at v0.61.0 (`miniflux/go.mod` pins v0.57.0), and its shape is
+  generated from the module-cache copy at the pinned v0.57.0, and its shape is
   pinned by `HTMLTokenizerTests`. The `entity` map has 2138 entries, 106 of them without a
   semicolon, and every one of those 106 resolves to the value its semicolon form resolves to, so the
   table stores the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries
@@ -269,7 +279,8 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 | Case | Reference (`golang.org/x/net/html`) | Rivulet | Impact |
 | --- | --- | --- | --- |
 | Foster parenting | content the table modes cannot take is attached to the parent of the table, so it is written before the table | the insertion point is the open element, so it is written inside the table | This is the subset boundary: no case in the reference corpus changes what the sanitizer writes because of it, but real feeds can nest content inside a table here where the reference moves it out |
-| Active formatting elements and the adoption agency | a formatting-element list and the adoption agency algorithm, which can move a node into or out of an element | not ported | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in the corpus covers it |
+| Active formatting elements and the adoption agency | a formatting-element list and the adoption agency algorithm, which can move a node into or out of an element | the order rule `addFormattingElement` gives the attributes is ported; the list, the reconstruction and the agency are not | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in the corpus covers it |
+| Attribute order inside `math` or `svg` | the sort belongs to `addFormattingElement`, but content there is inserted through the foreign-content rules, which do not sort | the sort is applied whatever the content is, because the foreign-content mode is not ported | An `a` with more than one attribute inside `math` or `svg` writes its attributes sorted here and as read in the reference; the corpus cannot pin it, so no case asserts it |
 | Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed, and a cell closes for the names `inCellIM` lists | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
 | Text inside a table | only whitespace text is added to the table element; anything else is foster parented | added to the insertion point | Same for whitespace; non-whitespace text can be inside the table here |
 | Comment nodes | kept as nodes in the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the shape the sanitizer sees |
