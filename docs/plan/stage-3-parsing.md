@@ -20,10 +20,11 @@ reference's own output, each with the rule that output pins, and the one rule th
 the port missing — the order a formatting element writes its attributes in. The entity-decoding
 and whitespace items of the normalization URL part closed with it, because the value reaches the
 URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
-The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader
+The tolerance decision table landed as PR #23: 52 inputs read through the reference's reader
 path pinned the four quirk classes and found no divergence, so the table records what the
 reference reports, and the 30 cases that can fail on their rules are committed as a fixture.
-The typed errors land as PR #24: ten inputs read through the reference's parser path pinned
+
+The typed errors landed as PR #24: ten inputs read through the reference's parser path pinned
 the sentinel, the branch the switch takes for it and how the scan ends, and found no
 divergence, so the table there records what the reference reports; the number the cap counts
 is pinned only by the pair whose roots sit on the two sides of the boundary, and the rules no
@@ -253,3 +254,12 @@ Findings from the tolerance decision table review (#23) that do not change behav
   future case with a new message would pass without the mapping being read.
 - The `&copy;` case can only fail on the half its line names that the other table cannot write; the
   table identity is carried by the `NewLine` and `colon` cases, as the fixture's own wording says.
+Findings from the parser error review (#24) that do not change behavior:
+- The commit message of `8dc8ff8` contradicts itself about which number it replaced: it states
+  the mapping produces nine and then describes the sentence it replaced as saying eight, while
+  the sentence it replaced said seven. The docs and the suite state nine, which is what the
+  mapping produces, so this is recorded here rather than corrected in history.
+- The whitespace wording names U+0085 and U+00A0 as the characters above ASCII, which is the
+  whole of what this path can reach because the rule reads single bytes; Go's
+  `unicode.IsSpace` counts more runes above `U+00FF`, so the wording describes the reachable
+  subset rather than the class as Unicode defines it.
