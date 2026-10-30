@@ -15,12 +15,12 @@ feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed ad
 field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20. The
 parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end against the reference's
 own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
-inputs. The hostile sanitizer corpus is merged as PR #22: 139 inputs pinned against the reference's
-own output, and the one rule the corpus found the port missing — the order a formatting element
-writes its attributes in. The entity-decoding and whitespace items of the normalization URL part
-closed with it, because the value reaches the URL layer already decoded by the tokenizer and the URL
-part normalizes no whitespace of its own. The open items are the XML tolerance table and the typed
-errors.
+inputs. The hostile sanitizer corpus is merged as PR #22: 146 inputs pinned against the
+reference's own output, each with the rule that output pins, and the one rule the corpus found
+the port missing — the order a formatting element writes its attributes in. The entity-decoding
+and whitespace items of the normalization URL part closed with it, because the value reaches the
+URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
+The open items are the XML tolerance table and the typed errors.
 
 ## Scope
 
@@ -101,19 +101,23 @@ errors.
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + the hostile corpus (`SanitizerHostileCorpusTests` over
-  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 139 inputs, each with the output the reference
-  produced for it, covering the scheme allowlist, the data-URI prefixes, the mandatory attributes,
-  the pixel tracker, the blocked resources, the hidden check, what a dropped tag leaves of its
-  content, the control bytes the parse refuses but the as-read path does not, the entity lookup
-  inside an attribute value, the srcset whitespace class, and the order a formatting element
-  writes its attributes in. The reference corpus is ported in full except the fuzz target
-  `FuzzSanitizer`, whose expectation is that the output has no more tokens than the input, which
-  needs a fuzz harness and a seed corpus that Swift Testing does not have. The text layer
-  (`StripTags` and `TruncateHTML`) is the suite PR #15 adds. The tokenizer and insertion-mode
-  rules have no reference corpus, so they are pinned through the sanitizer output as traced
-  against `golang.org/x/net/html` — see `docs/parity.md` — except the four the output cannot show,
-  a tag name and an attribute key carrying a NUL, the shape of the entity table, and where comment
-  data ends, which are asserted through the tokenizer itself.
+  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 146 inputs, each with the output the reference
+  produced for it and the rule that output pins, covering the scheme allowlist, the data-URI
+  prefixes, the mandatory attributes, the pixel tracker, the blocked resources, the hidden check,
+  what a dropped tag leaves of its content, the control bytes the parse refuses but the as-read
+  path does not, the entity lookup inside an attribute value, the srcset whitespace class, and the
+  order a formatting element writes its attributes in. Every case can fail on the rule its line
+  names, and the rules an output cannot tell apart are not in the corpus; what the corpus cannot
+  pin at all is stated in the fixture and in `docs/testing.md`, and the 512-open-element limit is
+  pinned by the two cases that mirror `TestDeeplyNestedpage`. The reference corpus is ported in
+  full except the fuzz target `FuzzSanitizer`, whose expectation is that the output has no more
+  tokens than the input, which needs a fuzz harness and a seed corpus that Swift Testing does not
+  have. The text layer (`StripTags` and `TruncateHTML`) is the suite PR #15 adds. The tokenizer
+  and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer
+  output as traced against `golang.org/x/net/html` at the version `miniflux/go.mod` pins, v0.57.0
+  — see `docs/parity.md` — except the four the output cannot show: a NUL in a tag name, a NUL in
+  an attribute key, the shape of the entity table, and where comment data ends, which are asserted
+  through the tokenizer itself.
 
 ### Integration
 

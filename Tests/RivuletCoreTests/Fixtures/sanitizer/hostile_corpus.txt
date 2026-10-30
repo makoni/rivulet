@@ -7,15 +7,23 @@
 # line is the string the reference produced for the input above it, so it is not wrapped here:
 # breaking it would change what it says.
 
-# What the corpus cannot pin: content inside math or svg, which the reference inserts through the
-# foreign-content rules the port does not have, and the 10000-depth guard, which belongs to the
-# tokenizer and is pinned in Tests/RivuletCoreTests/HTMLTokenizerTests.swift.
+# Each rule line names the rule of the case under it, and every case here can fail on that rule: a
+# case is left out when a wrong implementation of the rule it names writes the same output. So the
+# corpus does not pin the raw path of a value already in the canonical encoding, a plus in a query
+# that round-trips to the same string, a percent escape already canonical, the value key of the
+# attribute sort, an attribute allowlist with a single name, or a read order that is already the
+# sorted order.
 
-# An event handler is not in any tag's attribute list
+# What the corpus cannot pin: content inside math or svg, which the reference inserts through the
+# foreign-content rules this port does not have. The limit of 512 open elements in parse.go is
+# pinned by the two cases that mirror TestDeeplyNestedpage: the reference reaches it by panicking,
+# which its own Parse recovers as an error, so a chain one past the limit answers with nothing.
+
+# An event handler is not in the attribute allowlist for p, so only the content is written
 input = <p onerror="alert(1)">x</p>
 output = <p>x</p>
 
-# Obfuscation inside a dropped attribute; the tags in the content survive
+# A tag outside the tag allowlist writes only its content; the em inside it is in the allowlist
 input = <p><span onerror="alert(1)"><em>y</em></span></p>
 output = <p><em>y</em></p>
 
@@ -23,19 +31,11 @@ output = <p><em>y</em></p>
 input = <a href="javascript:alert(1)">x</a>
 output = x
 
-# A reference in an attribute value is decoded before the URL is read
-input = <a href="&#106;avascript:alert(1)">x</a>
-output = x
-
-# A control byte in a value with an http prefix: that path never parses
-input = <a href="java\nscript:alert(1)">x</a>
-output = x
-
-# Both halves of the scheme read through references
+# A reference without its semicolon is resolved in an attribute value, so the scheme is javascript
 input = <a href="&#106;avascript&#58;alert(1)">x</a>
 output = x
 
-# data: is not one of the data-URI prefixes for an href
+# data: is not in the data-URI prefix allowlist for an href
 input = <a href="data:text/html,<script>alert(1)</script>">x</a>
 output = x
 
@@ -51,339 +51,319 @@ output = (empty)
 input = <script>alert(1)</script>
 output = (empty)
 
-# A blocked tag inside a table, written at the insertion point
+# noscript is a blocked tag, so it is dropped with its content
 input = <noscript><p>x</p></noscript>
 output = (empty)
 
-# td outside a table is not an element at all
+# A blocked tag inside a table is dropped, and the table is written
 input = <table><script>alert(1)</script></table>
 output = <table></table>
 
-# img without a usable src has no mandatory attribute
+# td outside a table is not an element at all, so only its content is written
 input = <td><script>alert(1)</script></td>
 output = (empty)
 
-# srcset: a candidate outside the scheme allowlist, and data: is not allowed
+# img without a usable src has no mandatory attribute, so the element is not written at all
 input = <img src="javascript:alert(1)" alt="x">
 output = (empty)
 
-# data:text/html is not one of the prefixes the img path allows
+# data: is not allowed in srcset, and javascript is not in the scheme allowlist
 input = <img srcset="&#106;avascript:alert(1) 1x, data:text/plain;base64,SGVsbG8= 2x" alt="Example">
 output = (empty)
 
-# A prefix in the data-URI allowlist is written as it was read
+# data:text/html is not one of the data-URI prefixes the img path allows
 input = <img src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" alt="x">
 output = (empty)
 
-# A backslash is an ordinary path character, so the value is a path
+# A prefix in the data-URI allowlist is written as it was read, with the attribute the img path adds
 input = <img src="data:image/png;base64,AAAA" alt="x">
 output = <img src="data:image/png;base64,AAAA" alt="x" loading="lazy">
 
-# The two-solidus value is written as https: plus the value as read
+# A backslash is an ordinary path character for the parse, so the value is resolved as a path
 input = <a href="/\\evil.com">x</a>
 output = <a href="http://example.org/%5Cevil.com" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# file is not in the scheme allowlist
+# A value starting with two solidi is written as https: plus the value as read
 input = <a href="//evil.example.org/path">x</a>
 output = <a href="https://evil.example.org/path" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# iframe is written only for a domain in its allowlist
+# file is not in the scheme allowlist
 input = <a href="file:///etc/passwd">x</a>
 output = x
 
-# An event handler on a tag in the allowlist is dropped
+# iframe is written only for a domain in its allowlist, so a javascript src drops the element
 input = <iframe src="javascript:alert(1)"></iframe>
 output = (empty)
 
-# The scheme comparison is case-insensitive
+# An event handler on a tag in the allowlist is dropped, and the rest of the element is written
 input = <a href="https://evil.com/x" onclick="alert(1)">x</a>
 output = <a href="https://evil.com/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# Content inside a kept element keeps the tags in the allowlist
-input = <a href="JavaScript:alert(1)">x</a>
-output = x
-
-# An attribute value that carries markup is written escaped
+# Content inside a kept element is written with the tags inside it that are in the allowlist
 input = <p><a href="javascript:alert(1)"><b>x</b></a></p>
 output = <p><b>x</b></p>
 
-# An ampersand read as part of an absolute value is escaped by the writer
+# td outside a table writes only its content, so the attribute that carries markup is not written
 input = <td rowspan="<b>injection</b>">text</td>
 output = text
 
-# Whitespace around a value is not trimmed
+# An entity in an attribute value is decoded, and the writer escapes the decoded ampersand again
 input = <a href="https://example.org/a&amp;b">x</a>
 output = <a href="https://example.org/a&amp;b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A percent-encoded quote in the path is not decoded by the writer
+# The same decoding in an img src, with the attribute the img path adds
 input = <img src="https://example.org/a&amp;b" alt="x">
 output = <img src="https://example.org/a&amp;b" alt="x" loading="lazy">
 
-# The html parse has no depth limit; the guard is the tokenizer's
+# Whitespace around a value is not trimmed, so the prefix check fails and the value is a path
 input = <a href=" https://example.org/x ">x</a>
 output = x
 
-# feed is in the scheme allowlist
-input = <a href="https://example.org/%22quoted%22">x</a>
-output = <a href="https://example.org/%22quoted%22" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A blocked resource substring is checked on the value as it was read
+# div is not in the tag allowlist, so only its content is written; no depth limit is reached
 input = <div><div><div><div><div><div><div><div><div><div><div><span>x</span></div></div></div></div></div></div></div></div></div></div></div>
 output = x
 
-# A decoded scheme in text is not a URL
+# feed is in the scheme allowlist
 input = <p><a href="feed:https://example.org/">x</a></p>
 output = <p><a href="feed:https://example.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a></p>
 
-# mailto is in the scheme allowlist
+# A blocked resource substring is checked on the value as it was read, spaces included
 input = <img src="https://stats.wordpress.com/b tracker.gif" alt="x">
 output = (empty)
 
-# A space in the path of a value read as absolute is written as read
+# A decoded scheme in text is not a URL, so it is written as text and the ampersand is escaped
+input = <p>&#106;avascript:alert(1)</p>
+output = <p>javascript:alert(1)</p>
+
+# mailto is in the scheme allowlist
+input = <a href="mailto:a@b.c">x</a>
+output = <a href="mailto:a@b.c" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# `TestDeeplyNestedpage`: the limit is 512 open elements, so a chain of 510 is inside it
+input = <div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div>x</div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div>
+output = x
+
+# `TestDeeplyNestedpage`: one past the limit of 512 is a parse failure, and nothing is written
+input = <div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div>x</div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div>
+output = (empty)
+
+# A value already read as absolute is written as it was read, so a space in its path is not escaped
 input = <a href="https://example.org/a b">x</a>
 output = <a href="https://example.org/a b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The raw path form is kept when it is not already the canonical encoding
-input = <a href="https://example.org/a%2Fb">x</a>
-output = <a href="https://example.org/a%2Fb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# The raw form is dropped when it is already the canonical encoding
-input = <a href="https://example.org/a%20b">x</a>
-output = <a href="https://example.org/a%20b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# The query is written as read, so a plus is a plus
-input = <a href="https://example.org/?q=a+b">x</a>
-output = <a href="https://example.org/?q=a+b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# The query is not decoded, so %2B stays %2B
-input = <a href="https://example.org/?q=a%2Bb">x</a>
-output = <a href="https://example.org/?q=a%2Bb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# An invalid escape is not checked on the as-read path
+# An invalid escape in the path is not checked, because the as-read path never parses
 input = <a href="https://example.org/%zz">x</a>
 output = <a href="https://example.org/%zz" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A truncated escape is the same case
+# A truncated escape is the same case, because the as-read path never parses
 input = <a href="https://example.org/a%2">x</a>
 output = <a href="https://example.org/a%2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# Percent escapes in the host are not decoded
+# Percent escapes in the host are not decoded, because the as-read path never parses
 input = <a href="http://foo%c3%a9bar/">x</a>
 output = <a href="http://foo%c3%a9bar/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# Tracking parameters are removed through the query round trip
+# The tracking parameters are removed through the query round trip
 input = <a href="https://example.org/?utm_source=x">x</a>
 output = <a href="https://example.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A semicolon inside a query pair is part of the pair
+# A semicolon inside a query pair is part of the pair, which the cleaner keeps
 input = <a href="https://example.org/?a=b;c=d">x</a>
 output = <a href="https://example.org/?a=b;c=d" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The srcset whitespace class includes 0x0C, so the candidate splits
+# The srcset whitespace class includes 0x0C, so the candidate splits there
 input = <img srcset="https://example.org/a\x0c 1x,https://example.org/b 2x" alt="x">
 output = <img srcset="https://example.org/a 1x, https://example.org/b 2x" alt="x" loading="lazy">
 
-# A decoded tab in a srcset value splits the candidate
+# A decoded tab splits a srcset candidate, because the srcset rules read the decoded value
 input = <img srcset="https://example.org/a&#9; 1x,https://example.org/b 2x" alt="x">
 output = <img srcset="https://example.org/a 1x, https://example.org/b 2x" alt="x" loading="lazy">
 
-# Whitespace before the first candidate is skipped by the srcset rule
+# Whitespace before the first candidate is skipped, which is the srcset rule, not a URL rule
 input = <img srcset="&#9;https://example.org/a 1x" alt="x">
 output = <img srcset="https://example.org/a 1x" alt="x" loading="lazy">
 
-# Candidates are written back joined with a comma and one space
+# The candidates are written back joined with a comma and one space, whatever the input spacing was
 input = <img srcset="https://example.org/a 1x , https://example.org/b 2x" alt="x">
 output = <img srcset="https://example.org/a 1x, https://example.org/b 2x" alt="x" loading="lazy">
 
-# A decoded colon opens the scheme, and ABC is not in the allowlist
+# The same lookup resolves, so the colon opens the scheme and ABC is not in the allowlist
 input = <a href="&#65;BC&#58;//example.org/x">x</a>
 output = x
 
-# A decoded colon in an allowed scheme still resolves
+# A decoded colon opens the scheme, and mailto is in the allowlist, so the value is written as read
 input = <a href="mailto&#58;a@b.c">x</a>
 output = <a href="mailto:a@b.c" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A percent escape in the path is not decoded by the writer
+# The raw path form is kept when it is not the canonical encoding, so %41 is written as read
 input = <a href="https://example.org/%41">x</a>
 output = <a href="https://example.org/%41" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A mixed-case scheme on the as-read path is written as read
+# The prefix check is case-sensitive, so an uppercase scheme is parsed and written as read
 input = <a href="HTTPS://example.org/X">x</a>
 output = <a href="HTTPS://example.org/X" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# One solidus after the scheme leaves the value opaque
-input = <a href="https:/example.org/x">x</a>
-output = <a href="https:/example.org/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A protocol-relative value is resolved against the base URL
+# A value starting with two solidi is written as https: plus the value as read
 input = <a href="//example.org/x">x</a>
 output = <a href="https://example.org/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The prefix check is case-sensitive, and the parse lower-cases the scheme
+# The prefix check is case-sensitive, so an uppercase scheme is parsed and written as read
 input = <a href="HTTP://EXAMPLE.ORG/X">x</a>
 output = <a href="HTTP://EXAMPLE.ORG/X" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# The port is kept as it was read
-input = <a href="https://example.org:8443/x">x</a>
-output = <a href="https://example.org:8443/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
 # An invalid port is not checked on the as-read path
 input = <a href="https://example.org:abc/x">x</a>
 output = <a href="https://example.org:abc/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A bracketed host with no scheme is read as a path
+# A bracketed host without a scheme is read as a path, and no scheme means no attribute
 input = <a href="[::1]/x">x</a>
 output = x
 
-# The fragment is cut before the scheme, so it is written as read
-input = <a href="https://example.org/x#frag">x</a>
-output = <a href="https://example.org/x#frag" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A value ending with the query marker keeps the empty query
+# The round trip keeps the query marker and drops the empty fragment
 input = <a href="https://example.org/?#">x</a>
 output = <a href="https://example.org/?" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# An empty query is written as it was read
-input = <a href="https://example.org/?">x</a>
-output = <a href="https://example.org/?" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A blocked resource drops the attribute; an a writes only its content
+# A blocked resource substring drops the attribute, and an a without href writes only its content
 input = <a href="https://twitter.com/share?url=x">x</a>
 output = x
 
-# A value starting with a hash is an anchor link: no resolve, no rel
+# A value starting with a hash is an anchor link, so no resolve and no added attributes
 input = <a href="#anchor">x</a>
 output = <a href="#anchor">x</a>
 
-# A decoded newline in a value read as absolute is written literally
+# A decoded newline in a value read as absolute is written literally, because that path never parses
 input = <a href="https://example.org/x&#10;">x</a>
 output = <a href="https://example.org/x\n" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A decoded carriage return is written through the writer's escape form
+# A decoded carriage return is written through the escape form the writer uses for it
 input = <a href="https://example.org/x&#13;">x</a>
 output = <a href="https://example.org/x&#13;" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A decoded tab is written literally, not escaped
+# A decoded tab is written literally, which is the writer's rule for the six characters it knows
 input = <a href="https://example.org/x&#9;">x</a>
 output = <a href="https://example.org/x\t" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A blocked resource drops the attribute, and img writes nothing
+# A blocked resource drops the attribute, and img without src writes nothing at all
 input = <img src="https://stats.wordpress.com/b.gif" alt="x">
 output = (empty)
 
-# Leading zeros in a numeric reference still resolve
-input = <a href="&#0000106;avascript:alert(1)">x</a>
-output = x
+# The same as-read rule for a path with two spaces
+input = <a href="https://example.org/a b c">x</a>
+output = <a href="https://example.org/a b c" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A decoded solidus in an img src is not the protocol-relative form
+# A decoded solidus in an img src gives a path of two solidi, not the protocol-relative form
 input = <img src="https://example.org/&#x2F;x" alt="x">
 output = <img src="https://example.org//x" alt="x" loading="lazy">
 
-# The tracking parameter is removed and the other one is kept
+# The tracking parameter is removed and the parameter that is not in the list is kept
 input = <a href="https://example.org/?utm_source=x&keep=1">x</a>
 output = <a href="https://example.org/?keep=1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A scheme in the allowlist inside a kept element, with the a attributes added
+# An invalid escape in the path is written as read, because the as-read path never parses
+input = <a href="https://example.org/a%zzb">x</a>
+output = <a href="https://example.org/a%zzb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# feed is in the scheme allowlist, with the attributes the a path adds, inside a kept element
 input = <p><a href="feed:https://example.org/">x</a></p>
 output = <p><a href="feed:https://example.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a></p>
 
-# A tag outside the allowlist writes only its content
-input = <p><span hidden>x</span><em>y</em></p>
-output = <p><em>y</em></p>
+# A doubled percent is written as read on the as-read path
+input = <a href="https://example.org/a%%b">x</a>
+output = <a href="https://example.org/a%%b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# Cannot pin the order rule: the a in the cell has one attribute
+# td outside a table is not an element, so the a inside the cell is written at the insertion point
 input = <td><a href="https://example.org/x">y</a></td>
 output = <a href="https://example.org/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A relative value goes through the parse, so a space in the path is escaped
+# A tag outside the tag allowlist writes only its content, and the hidden element inside is dropped
+input = <p><span hidden>x</span><em>y</em></p>
+output = <p><em>y</em></p>
+
+# A relative value goes through the parse, so a space in its path is escaped by the rebuild
 input = <a href="/a b">x</a>
 output = <a href="http://example.org/a%20b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# An invalid escape in the path is a parse failure, so the attribute is skipped
+# An invalid escape in the path is an error on the parse path, so the attribute is skipped
 input = <a href="/a%zz">x</a>
 output = x
 
-# The query round trip rebuilds the path, so the space is escaped
+# The query round trip rebuilds the path, so the space is escaped even for a value read as absolute
 input = <a href="/a b?utm_source=x">x</a>
 output = <a href="http://example.org/a%20b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A decoded control byte in a relative value is a parse failure
+# A decoded control byte in a relative value is a parse failure, so the attribute is skipped
 input = <a href="/a&#10;b">x</a>
 output = x
 
-# A decoded tab in a relative value is a parse failure
+# A decoded tab in a relative value is the same parse failure
 input = <a href="/a&#9;b">x</a>
 output = x
 
-# A decoded carriage return in a relative value is a parse failure
+# A decoded carriage return in a relative value is the same parse failure
 input = <a href="/a&#13;b">x</a>
 output = x
 
-# A control byte in an img src leaves the mandatory attribute missing
+# A control byte in an img src leaves the mandatory attribute missing, so nothing is written
 input = <img src="/a&#10;b" alt="x">
 output = (empty)
 
-# A srcset candidate that fails the parse is dropped, the other is resolved
+# A srcset candidate that fails the parse is dropped, and the candidate that does not is resolved
 input = <img srcset="/a&#10;b 1x, /c 2x" alt="x">
 output = <img srcset="http://example.org/c 2x" alt="x" loading="lazy">
 
-# A candidate split by whitespace leaves a descriptor that does not parse
+# A candidate split by whitespace leaves a descriptor that does not parse, so it is dropped
 input = <img srcset="/a b 1x, /c 2x" alt="x">
 output = <img srcset="http://example.org/c 2x" alt="x" loading="lazy">
 
-# The tab between the candidate and its descriptor is the srcset rule
+# The tab between the candidate and its descriptor is the srcset rule, and the candidate is resolved
 input = <img srcset="/a\t1x">
 output = <img srcset="http://example.org/a 1x" loading="lazy">
 
-# A control byte inside a candidate splits it at the whitespace class
+# A decoded entity splits the candidate at the whitespace class, so the descriptor does not parse
 input = <img srcset="/a&#9;b 1x">
 output = (empty)
 
-# A control byte at the end of a candidate is whitespace for srcset
+# Whitespace before the first candidate is skipped by the srcset rules
+input = <img srcset="&#9;/a 1x">
+output = <img srcset="http://example.org/a 1x" loading="lazy">
+
+# A control byte at the end of a candidate is whitespace for the srcset rules
 input = <img srcset="/a&#10; 1x">
 output = <img srcset="http://example.org/a 1x" loading="lazy">
 
-# A control byte after the descriptor is whitespace too
+# A control byte after the descriptor is whitespace too, so the descriptor is read on its own
 input = <img srcset="/a 1x&#10;">
 output = <img srcset="http://example.org/a 1x" loading="lazy">
 
-# A doubled percent in a relative path is an escape failure
+# A doubled percent in a relative path is an escape failure, so the attribute is skipped
 input = <a href="/a%%b">x</a>
 output = x
 
-# The query round trip rebuilds the path but writes the query as read
+# The cleaner keeps the pair that is not in its list, and the rebuild writes the resolved value
+input = <a href="/?utm_source=x&a=b">x</a>
+output = <a href="http://example.org/?a=b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# A value with a query goes through the round trip: the path is escaped, the query written as read
 input = <a href="https://example.org/a b?utm_source=x">x</a>
 output = <a href="https://example.org/a%20b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# An opaque value is written as it was read, spaces included
-input = <a href="mailto:a@b.c ">x</a>
-output = <a href="mailto:a@b.c " rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# An opaque value with no path is written as it was read
-input = <a href="magnet:?xt=urn:btih:abc">x</a>
-output = <a href="magnet:?xt=urn:btih:abc" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A control byte in an opaque value is the parse failure
+# A control byte in an opaque value is the parse failure, so the attribute is skipped
 input = <a href="tel:+1&#10;5">x</a>
 output = x
 
-# A mixed-case scheme is parsed and written as read because it is absolute
+# An uppercase scheme is not the as-read prefix, so the parse keeps the value as read
 input = <a href="HTTPS://example.org/a b">x</a>
 output = <a href="HTTPS://example.org/a b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A relative path already canonical has no raw form to keep
-input = <a href="/a%20b">x</a>
-output = <a href="http://example.org/a%20b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+# An opaque path is written as read, so its space is not escaped
+input = <a href="https:/a b">x</a>
+output = <a href="https:/a b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A relative path keeping its raw form writes it through the rebuild
-input = <a href="/a%2Fb">x</a>
-output = <a href="http://example.org/a%2Fb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
-
-# A protocol-relative value is written as read, so its space is not escaped
+# A protocol-relative value is written as https: plus the value as read, so its space is not escaped
 input = <a href="//example.org/a b">x</a>
 output = <a href="https://example.org/a b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A protocol-relative value is not parsed, so an invalid escape is not an error
+# A protocol-relative value is not parsed, so an invalid escape in it is not an error
 input = <a href="//example.org/a%zz">x</a>
 output = <a href="https://example.org/a%zz" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
@@ -391,71 +371,107 @@ output = <a href="https://example.org/a%zz" rel="noopener noreferrer" referrerpo
 input = <a href="https://example.org/?utm_source=x&#10;">x</a>
 output = <a href="https://example.org/?utm_source=x\n" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# An a in a cell is written at the insertion point and resolved
+# An a in a cell is written at the insertion point, and its relative value is resolved
 input = <td><a href="/x">y</a></td>
 output = <a href="http://example.org/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A parse failure drops the attribute but not the content
+# A parse failure drops the attribute but not the content, so the element is written without it
 input = <p><a href="/a&#10;b">y</a></p>
 output = <p>y</p>
 
-# A data URI is not allowed for a srcset candidate
+# A data URI is not allowed for a srcset candidate, so that candidate is dropped
 input = <img srcset="/a 1x, data:image/png;base64,AAAA 2x" alt="x">
 output = <img srcset="http://example.org/a 1x" alt="x" loading="lazy">
 
-# The ampersand in a value written as read is escaped, the control byte is not
+# The ampersand in a value written as read is escaped by the writer, and the control byte is not
 input = <a href="https://example.org/?utm_source=x&#10;&keep=1">x</a>
 output = <a href="https://example.org/?utm_source=x\n&amp;keep=1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A decoded carriage return in an img src uses the writer's escape form
+# A decoded carriage return in an img src is written through the writer's escape form
 input = <img src="https://example.org/a&#13;b" alt="x">
 output = <img src="https://example.org/a&#13;b" alt="x" loading="lazy">
 
-# Percent escapes in the query are not validated by the parse
+# Percent escapes in the query are not validated by the parse, so the value is written as read
 input = <a href="/?q=%zz">x</a>
 output = <a href="http://example.org/?q=%zz" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The query rebuild writes a decoded space as a plus
+# The same in a query pair with a name and a value
+input = <a href="/?q=a%zzb">x</a>
+output = <a href="http://example.org/?q=a%zzb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# The query rebuild writes a decoded space as a plus, which is the encode rule for a query space
 input = <a href="/?utm_source=x&q=a%20b">x</a>
 output = <a href="http://example.org/?q=a+b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The control check is on the part before the fragment, so a fragment can carry one
+# The same, with the space read as it was written in the input
+input = <a href="/?utm_source=x&q=a b">x</a>
+output = <a href="http://example.org/?q=a+b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# The as-read path never parses, so a control byte in the fragment is written literally
 input = <a href="https://example.org/x#&#10;">x</a>
 output = <a href="https://example.org/x#\n" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A relative path with a space is escaped by the rebuild, the fragment is not
+# A decoded space in the fragment is written as read, which the writer does not escape
+input = <a href="https://example.org/x#&#32;">x</a>
+output = <a href="https://example.org/x# " rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# A relative path with a space is escaped by the rebuild; the fragment here has nothing to escape
 input = <a href="/a b#frag">x</a>
 output = <a href="http://example.org/a%20b#frag" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A control byte attached to the descriptor is the srcset whitespace class
+# The as-read path never parses, so an invalid escape in the opaque part is not an error
+input = <a href="magnet:?xt=urn:btih:%zz">x</a>
+output = <a href="magnet:?xt=urn:btih:%zz" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
+
+# The srcset whitespace class includes 0x0C, so the candidate splits there
+input = <img srcset="https://example.org/a\x0c 1x, https://example.org/b 2x" alt="x">
+output = <img srcset="https://example.org/a 1x, https://example.org/b 2x" alt="x" loading="lazy">
+
+# A control byte attached to the descriptor is whitespace, so the descriptor is read on its own
 input = <img srcset="https://example.org/a\x0c1x, https://example.org/b 2x" alt="x">
 output = <img srcset="https://example.org/a 1x, https://example.org/b 2x" alt="x" loading="lazy">
 
-# A mixed-case scheme through the parse and the query round trip is lower-cased
-input = <a href="//example.org?a=b">x</a>
+# A srcset candidate is written, and the text after the tag is written as content
+input = <img srcset="https://example.org/a\x0c1x">x</a>
+output = <img srcset="https://example.org/a 1x" loading="lazy">x
+
+# An uppercase scheme is not the as-read prefix, so the parse lower-cases it
+input = <a href="HTTPS://example.org?a=b">x</a>
 output = <a href="https://example.org?a=b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A mixed-case scheme is not the as-read prefix, so its control byte fails the parse
+# An invalid escape in a relative path is a parse failure, so the attribute is skipped
+input = <a href="/a%zz?utm_source=x">x</a>
+output = x
+
+# The cleaner removes the tracking parameter and keeps the rest of the query
 input = <a href="https://example.org/?utm_source=x&keep=1">x</a>
 output = <a href="https://example.org/?keep=1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A named reference without its semicolon is resolved only for a name in the table
+# An uppercase scheme is not the as-read prefix, so a control byte in its query is a parse failure
+input = <a href="HTTPS://example.org?a=b&#10;">x</a>
+output = x
+
+# A named reference without its semicolon is not resolved when the run of letters is not a name
 input = <a href="a&ampb">x</a>
 output = <a href="http://example.org/a&amp;ampb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# The same lookup in text
+# The same lookup in text, and the ampersand is escaped again by the writer
 input = <p>a&amplt;b</p>
 output = <p>a&amp;lt;b</p>
 
-# A name in the table is resolved in text without its semicolon
+# A named reference that is a name in the table is resolved in text without its semicolon
 input = <p>&amp</p>
+output = <p>&amp;</p>
+
+# The same name with its semicolon, which is resolved too
+input = <p>&amp;</p>
 output = <p>&amp;</p>
 
 # A numeric reference with its semicolon resolves in an attribute value
 input = <a href="x&#38;y">x</a>
 output = <a href="http://example.org/x&amp;y" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A numeric reference without its semicolon stops at the first non-digit
+# A numeric reference without its semicolon stops at the first character that is not a digit
 input = <a href="x&#38y">x</a>
 output = <a href="http://example.org/x&amp;y" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
@@ -471,43 +487,59 @@ output = <a href="http://example.org/x&amp;y" rel="noopener noreferrer" referrer
 input = <pre>&#38;&#60;</pre>
 output = <pre>&amp;&lt;</pre>
 
-# A decoded ampersand inside a query pair is part of the pair
+# An invalid escape in a relative path is a parse failure, and the decoded space does not help it
+input = <a href="/a%zz&#32;">x</a>
+output = x
+
+# A value with a query goes through the round trip, so the cleaner reads the value as decoded
 input = <p><a href="http://example.org/?utm_source=x&keep=1&#38;">y</a></p>
 output = <p><a href="http://example.org/?keep=1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a></p>
 
-# A blocked tag inside a cell is dropped, and the a after it is written
+# A blocked tag inside a cell is dropped, and the a after it is written at the insertion point
 input = <td><script>alert(1)</script><a href="/x">y</a></td>
 output = <a href="http://example.org/x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A src that fails the parse leaves img without its mandatory attribute
+# A parse failure drops the attribute but not the content, so the element is written without it
+input = <p><a href="/a%zz b">y</a></p>
+output = <p>y</p>
+
+# A src that fails the parse leaves img without its mandatory attribute, so only the text is written
 input = <img src="/a%zz" alt="x">x
 output = x
 
-# A srcset value that fails the parse leaves source without its attribute
+# A srcset value that fails the parse leaves source without its mandatory attribute
 input = <picture><source srcset="/a%zz 1x">fallback</source></picture>
 output = <picture>fallback</picture>
 
-# An ampersand in a relative path is decoded and then escaped
+# An ampersand in a relative path is decoded and then escaped by the writer
 input = <a href="/x&#38;y">y</a>
 output = <a href="http://example.org/x&amp;y" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A control byte in a non-URL attribute value is written literally
-input = <img alt="a&#10;b" src="/x">
-output = <img alt="a\nb" src="http://example.org/x" loading="lazy">
+# A formatting element writes its attributes in the order the parser sorts them, not as read
+input = <a title="a&#10;b" href="/x">y</a>
+output = <a href="http://example.org/x" title="a\nb" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A decoded colon in an href is a scheme, so the attribute is dropped
+# The sort is a formatting-element rule: img is not one, so its attributes are written as read
+input = <img src="https://example.org/x" alt="y">
+output = <img src="https://example.org/x" alt="y" loading="lazy">
+
+# A decoded colon in an href is a scheme, so the attribute is dropped and the content is kept
 input = <p><a href="javascript&#58;alert(1)" title="x">y</a></p>
 output = <p>y</p>
 
-# Whitespace before the scheme means the prefix check fails
+# Whitespace before the scheme means the prefix check fails, and the value is read as a path
 input = <a href=" HTTPS://example.org/x">y</a>
 output = y
 
-# A value that is only a decoded ampersand is read as a path and escaped
+# A value that is only a decoded ampersand is read as a path and escaped again
 input = <a href="&amp;">y</a>
 output = <a href="http://example.org/&amp;" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">y</a>
 
-# A formatting element writes its attributes in the order the parser sorts them
+# An uppercase scheme is not the as-read prefix, so a control byte in its path is a parse failure
+input = <a href="HTTPS://example.org/x&#10;">y</a>
+output = y
+
+# A formatting element writes its attributes in the order the parser sorts them, not as read
 input = <a title="x" href="/y">z</a>
 output = <a href="http://example.org/y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
 
@@ -519,7 +551,7 @@ output = <a href="http://example.org/y" id="x" rel="noopener noreferrer" referre
 input = <a title="x" id="y" href="/z">q</a>
 output = <a href="http://example.org/z" id="y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">q</a>
 
-# The name is lower-cased before the sort
+# The name is lower-cased before the sort, so an uppercase TITLE sorts as title
 input = <p><a TITLE="x" href="/y">z</a></p>
 output = <p><a href="http://example.org/y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a></p>
 
@@ -527,43 +559,47 @@ output = <p><a href="http://example.org/y" title="x" rel="noopener noreferrer" r
 input = <td><a title="x" href="/y">z</a></td>
 output = <a href="http://example.org/y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
 
-# A duplicate name is kept once, at the position of the first one
+# The sort is by name, not by value: href before title whatever the value is
 input = <a title="b" href="/y">z</a>
 output = <a href="http://example.org/y" title="b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
 
-# abbr is not a formatting element, so its attribute is written as read
-input = <abbr title="x">y</abbr>
-output = <abbr title="x">y</abbr>
+# id is not in the attribute allowlist for b, so the element is written with only its content
+input = <b id="x">z</b>
+output = <b>z</b>
 
-# Cannot pin the sort: the order read is already the sorted order
-input = <a href="/y">z</a>
-output = <a href="http://example.org/y" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
+# A duplicate attribute name is kept once, at the position of the first one, by the parser's rule
+input = <a title="x" title="y" href="/z">q</a>
+output = <a href="http://example.org/z" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">q</a>
 
-# A pixel tracker is dropped before the mandatory-attribute check
+# A pixel tracker is dropped before the mandatory-attribute check, so nothing is written
 input = <img src="https://example.org/x.gif" width="1" height="1" alt="x">
 output = (empty)
 
-# One size of 1 is not the pair the pixel-tracker rule needs
+# One size of 1 is not the pair the pixel-tracker rule needs, so the img is written
 input = <img src="https://example.org/x.gif" width="1" alt="x">
 output = <img src="https://example.org/x.gif" width="1" alt="x" loading="lazy">
 
-# A trusted iframe domain with the default options, which the reference reads as empty
+# The youtube default of the config rewrites the domain, with the attributes the iframe path adds
 input = <iframe src="https://www.youtube.com/embed/abc"></iframe>
 output = <iframe src="https://www.youtube-nocookie.com/embed/abc" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 
-# The vimeo rule adds the parameter the reference writes
+# The vimeo rule adds the parameter the reference writes, with the attributes the iframe path adds
 input = <iframe src="https://player.vimeo.com/video/1"></iframe>
 output = <iframe src="https://player.vimeo.com/video/1?dnt=1" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>
 
-# The sort applies to a formatting element inside another formatting element
+# A duplicate name is kept once, and the sort puts href before it
+input = <a title="b" title="a" href="/y">z</a>
+output = <a href="http://example.org/y" title="b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
+
+# The sort applies to an a inside a formatting element that has no attributes in the allowlist
 input = <b><a title="x" href="/y">z</a></b>
 output = <b><a href="http://example.org/y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a></b>
 
-# A decoded character in text is written as the character
+# A decoded character in text is written as the character, not as the reference
 input = <a href="/y">&#106;</a>
 output = <a href="http://example.org/y" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">j</a>
 
-# The apostrophe uses the writer's escape form
+# The apostrophe is written through the escape form the writer uses for it
 input = <img src="https://example.org/x" alt="a&#39;b">
 output = <img src="https://example.org/x" alt="a&#39;b" loading="lazy">
 

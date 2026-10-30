@@ -31,8 +31,10 @@ an upstream file. The golden files are the reference's output on the fixtures ab
 so on its own line — and the corpus is the reference's output on inputs of our own, written by
 running Miniflux v2.3.3 (Go 1.26, the version `miniflux/go.mod` pins) with the clock fixed to UTC.
 Neither is Rivulet's output: both record what the reference produces, so a test failing against them
-is a difference in the implementation under test. Each names the rule its input pins and what that
-input cannot pin; regenerating either means running the reference again, never running Rivulet.
+is a difference in the implementation under test. Each names the rule its input pins, and each says
+what cannot be pinned: the corpus also says that a case is left out when a wrong implementation of
+the rule its line names writes the same output, so a rule that no output can tell apart has no case.
+Regenerating either means running the reference again, never running Rivulet.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing
 them here; a local edit would silently invalidate the provenance above.

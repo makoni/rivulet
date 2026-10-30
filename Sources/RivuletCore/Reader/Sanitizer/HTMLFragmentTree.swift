@@ -98,8 +98,7 @@ final class HTMLFragmentTree {
     /// are the whole comparison. `a` is the only one of them with attributes in the sanitizer's
     /// allowlist, so that is where the order shows in the output.
     static let formattingElementTags: Set<String> = [
-        "a", "b", "big", "code", "em", "font", "i", "ins", "nobr", "s", "small", "strike", "strong",
-        "tt", "u",
+        "a", "b", "big", "code", "em", "font", "i", "nobr", "s", "small", "strike", "strong", "tt", "u",
     ]
 
     private static func sorted(_ attributes: [HTMLAttribute]) -> [HTMLAttribute] {

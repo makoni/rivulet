@@ -202,9 +202,10 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   is internal to the module), it has no depth guard at all, and its tree builder is not the one the
   reference's rules are read against. SwiftSoup is still the dependency `EntryText` uses.
 - The tokenizer and the insertion modes are traced against `golang.org/x/net/html` (BSD-3-Clause).
-  `miniflux/go.mod` pins v0.57.0, which is what the reference parses with; there is no Go toolchain
-  on this machine, so the rules are read from the source, and the copy read here is the module cache
-  at v0.61.0. `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment
+  `miniflux/go.mod` pins v0.57.0, which is what the reference parses with, and the copy the rules
+  were read from is the module cache at that version, which is also what a corpus value can be
+  checked against, since the reference runs with it.
+  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment
   state is entered only through the two dashes of `<!--`, and a comment closes only after two dashes
   (`-->` or `--!>`), so a `>` inside its data is data; a doctype, a processing instruction and any
   other `<!` or `<?` close at the first `>`. A tag name, an attribute key and an attribute value
@@ -244,9 +245,11 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   it sorts them by namespace, then by name, then by value. The port has no namespace, so the name
   and the value are the whole comparison, and the sort is applied for the names `inBodyIM` answers
   with that function. `a` is the only one of those names with attributes in the sanitizer's
-  allowlist, so the order shows in the output through an `a`; `abbr` has a `title` and is not a
+  allowlist, so the order shows in the output through an `a`; `img` has two attributes and is not a
   formatting element, which is the case that keeps the two apart. The rule is pinned by the hostile
   corpus, and the reference applies it only on the body path — see the foreign-content row below.
+  The same corpus pins the limit of 512 open elements the port models as `Failure`: the reference
+  reaches it by panicking and `html.Parse` recovers that as an error, so both answer with nothing.
 - The srcset descriptor rules are ported, including the two that decide the string written back: the
   density is written with `strconv.FormatFloat(value, 'g', -1, 64)`'s rule — the shortest digits
   that round-trip, the exponent form when the decimal exponent is below -4 or at least 6, and the
@@ -255,7 +258,7 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
   64-bit value; only the width is written back, so the height is observable only through the rule
   that makes a height-only descriptor invalid. Both are pinned by `SrcSetParserTests`.
 - The entity table is the data `x/net/html` builds from the HTML5 named character references,
-  generated from the module-cache copy at v0.61.0 (`miniflux/go.mod` pins v0.57.0), and its shape is
+  generated from the module-cache copy at the pinned v0.57.0, and its shape is
   pinned by `HTMLTokenizerTests`. The `entity` map has 2138 entries, 106 of them without a
   semicolon, and every one of those 106 resolves to the value its semicolon form resolves to, so the
   table stores the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries

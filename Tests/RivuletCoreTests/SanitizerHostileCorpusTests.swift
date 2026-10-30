@@ -10,20 +10,21 @@ import Testing
 /// the URL rules the sanitizer reads attribute values through.
 ///
 /// Every expected value is the reference's own output for its input, not this implementation's, so
-/// a failure here is a difference in the port, and recording it in `docs/parity.md` is the only
-/// way a difference can stay. The values were written by running Miniflux v2.3.3 at commit
-/// `c4d54f87` through the reference's test helper options — `OpenLinksInNewTab: true`, base URL
+/// a failure here is a difference in the port, and recording it in `docs/parity.md` is the only way
+/// a difference can stay. The values were written by running Miniflux v2.3.3 at commit `c4d54f87`
+/// through the reference's test helper options — `OpenLinksInNewTab: true`, base URL
 /// `http://example.org/`, `TZ=UTC` — the method recorded in `docs/testing.md`.
 ///
-/// What the corpus cannot pin is stated in the fixture and here: content inside `math` or `svg`,
-/// which the reference inserts through the foreign-content rules this port does not have, and the
-/// 10000-depth guard, which belongs to the tokenizer and is pinned in
-/// `Tests/RivuletCoreTests/HTMLTokenizerTests.swift`. A case whose read order is already the sorted
-/// order cannot pin the formatting-element order rule, and the fixture names those cases.
-///
-/// No case reads a clock, a config, the network or the machine's tzdata. The reference reads
-/// `config.Opts` for the iframe domains, and its default options are empty, which is the
-/// `SanitizerOptions` default the corpus uses.
+/// Each rule line names the rule of the case under it, and every case here can fail on that rule: a
+/// case is left out when a wrong implementation of the rule it names writes the same output, which
+/// is what the fixture says. What the corpus cannot pin is content inside `math` or `svg`, which
+/// the reference inserts through the foreign-content rules this port does not have. The limit of
+/// 512 open elements is pinned by the two cases that mirror `TestDeeplyNestedpage`: the reference
+/// reaches it by panicking and its own parse recovers that as an error, so a chain one past the
+/// limit answers with nothing. No case reads a clock, the network or the machine's tzdata. The
+/// `youtube` iframe case does read an embed value the reference answers from `config.Opts`: the
+/// corpus uses the `SanitizerOptions` defaults, which are the values `config.NewConfigOptions()`
+/// gives.
 @Suite struct SanitizerHostileCorpusTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
     private let baseURL = "http://example.org/"
@@ -42,11 +43,11 @@ import Testing
 
         for c in cases {
             let sanitized = Sanitizer.sanitize(baseURL: baseURL, rawHTML: c.input, options: options)
-            #expect(sanitized == c.output, "case: \(c.rule)")
+            #expect(sanitized == c.output, "case: \(c.rule) input: \(c.input.debugDescription)")
         }
     }
 
-    /// Reads the fixture: a `#` line names the rule the cases under it pin, and each case is an
+    /// Reads the fixture: a `#` line names the rule of the case under it, and each case is an
     /// `input =` line followed by an `output =` line. Control bytes are the escape forms the
     /// fixture writes them as, and `(empty)` is an empty output.
     private func readCorpus() throws -> [Case] {
@@ -67,6 +68,9 @@ import Testing
         return cases
     }
 
+    /// The escape forms the fixture writes control bytes as: the three with a letter of their own,
+    /// and `\x` with the two hex digits of the byte, which is what a control byte without a letter
+    /// of its own has to be written as.
     private func unescape(_ value: String) -> String {
         var out = ""
         var rest = Substring(value)
@@ -81,12 +85,16 @@ import Testing
             case "n": out.append("\n")
             case "t": out.append("\t")
             case "r": out.append("\r")
-            case "x":
-                // `\x0c` is the one escape form with more than the letter, because 0x0C has no
-                // single-letter form of its own.
-                rest.removeFirst(2)
-                out.append(Character(UnicodeScalar(0x0C)))
             case "\\": out.append("\\")
+            case "x":
+                let digits = String(rest.prefix(2))
+                guard let byte = UInt8(digits, radix: 16) else {
+                    out.append("\\")
+                    out.append(next)
+                    continue
+                }
+                rest = rest.dropFirst(2)
+                out.append(Character(UnicodeScalar(byte)))
             default:
                 out.append("\\")
                 out.append(next)

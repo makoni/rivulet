@@ -172,19 +172,20 @@ count per code point rather than per Swift grapheme, the set `unicode.IsSpace` a
 generated table rather than as its comment reads it, and the raw state that ends at its end tag
 because the script escaping states are not ported. The tokenizer and the insertion modes have no
 upstream corpus, so the eight sanitizer suites — the hostile corpus among them — name what is traced
-against `golang.org/x/net/html`
-v0.61.0 — `miniflux/go.mod` pins v0.57.0 — and `docs/parity.md` records where that subset stops.
-Four of those pins cannot be seen through the sanitizer output and are asserted through the
-tokenizer itself: a tag name and an attribute key carrying a NUL, which are never in the allowlist,
-the shape of the entity table, and where comment data ends, because the renderer writes nothing for
-a comment.
+against `golang.org/x/net/html` at the version `miniflux/go.mod` pins, v0.57.0, which is the copy
+the rules were read from, and `docs/parity.md` records where that subset stops. Four of those pins
+cannot be seen through the sanitizer output and are asserted through the tokenizer itself: a NUL in
+a tag name, a NUL in an attribute key — neither is ever in the allowlist — the shape of the entity
+table, and where comment data ends, because the renderer writes nothing for a comment.
 
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
-`Fixtures/sanitizer/hostile_corpus.txt`: 139 inputs that try to make the sanitizer write active
-content, each with the output the reference produced for it. The inputs are ours, not upstream's;
-the outputs were written by running Miniflux v2.3.3 at commit `c4d54f87` with the reference's test
-helper options — `OpenLinksInNewTab: true`, base URL `http://example.org/`, `TZ=UTC` — the same
-method the parser corpus uses, so a failure here is a difference in the port.
+`Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
+content, each with the output the reference produced for it and the rule that output pins. The
+inputs are ours, not upstream's; the outputs were written by running Miniflux v2.3.3 at commit
+`c4d54f87` with the reference's test helper options — `OpenLinksInNewTab: true`, base URL
+`http://example.org/`, `TZ=UTC` — the same method the parser corpus uses, so a failure here is a
+difference in the port. Every case can fail on the rule its line names: a case is not in the corpus
+when a wrong implementation of that rule writes the same output, which is what the fixture says.
 
 What it pins is the rules its cases name: the scheme allowlist, the data-URI prefixes, the mandatory
 attributes, the pixel tracker, the blocked resources, the hidden check, what a dropped tag leaves of
@@ -192,10 +193,14 @@ its content, the control bytes the URL parse refuses while the as-read path does
 lookup inside an attribute value — which is where the URL part's entity decoding happens, because
 the value reaches the URL layer already decoded — the srcset whitespace class, that the URL part
 normalizes no whitespace of its own, and the order a formatting element writes its attributes in.
-Two things it cannot pin: content inside `math` or `svg`, which the reference inserts through the
-foreign-content rules this port does not have, and the 10000-depth guard, which belongs to the
-tokenizer and is pinned in `HTMLTokenizerTests`. A case whose read order is already the sorted order
-cannot pin the order rule either, and the fixture names those cases.
+What it cannot pin is content inside `math` or `svg`, which the reference inserts through the
+foreign-content rules this port does not have, and the rules an output cannot tell apart, such
+as a raw path that is already the canonical encoding, a plus in a query that round-trips to the
+same string, the value key of the sort, an attribute allowlist with a single name, or a read
+order that is already the sorted order. The limit of 512 open elements in `parse.go` is pinned
+by the two cases that mirror `TestDeeplyNestedpage`: the reference reaches it by panicking and
+its own parse recovers that as an error, so a chain one past the limit answers with nothing, and
+the port refuses at the same count.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
 from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what the
