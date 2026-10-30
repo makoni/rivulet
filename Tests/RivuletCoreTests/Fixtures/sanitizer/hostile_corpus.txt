@@ -31,7 +31,7 @@ output = <p><em>y</em></p>
 input = <a href="javascript:alert(1)">x</a>
 output = x
 
-# A reference without its semicolon is resolved in an attribute value, so the scheme is javascript
+# A numeric reference in an attribute value is resolved, so the scheme is javascript
 input = <a href="&#106;avascript&#58;alert(1)">x</a>
 output = x
 

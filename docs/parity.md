@@ -13,8 +13,8 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
   (BSD-3-Clause, attributed in `NOTICE`) — the same data the reference resolves labels against,
   including the aliases the IANA registry gets wrong (`iso-8859-1` → windows-1252, `gb2312` → GBK,
   `utf-16` → little-endian, `iso-2022-kr` and `hz-gb-2312` → replacement). `miniflux/go.mod` pins
-  v0.40.0; the copies read on this machine are the module cache at v0.35.0 and v0.43.0, which hold
-  the same table.
+  v0.40.0, and the 228 labels in the port are checked against the module cache at that pinned
+  version: every label resolves to the encoding the port maps it to.
 - A document that is already valid UTF-8 is never converted, whatever label it declares; a wrong
   prolog cannot double-encode it. An unknown label is only an error when the bytes are not valid
   UTF-8.
