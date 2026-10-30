@@ -179,7 +179,7 @@ a tag name, a NUL in an attribute key — neither is ever in the allowlist — t
 table, and where comment data ends, because the renderer writes nothing for a comment.
 
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
-`Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
+`Fixtures/sanitizer/hostile_corpus.txt`: 145 inputs that try to make the sanitizer write active
 content, each with the output the reference produced for it and the rule that output pins. The
 inputs are ours, not upstream's; the outputs were written by running Miniflux v2.3.3 at commit
 `c4d54f87` with the reference's test helper options — `OpenLinksInNewTab: true`, base URL
@@ -196,11 +196,12 @@ normalizes no whitespace of its own, and the order a formatting element writes i
 What it cannot pin is content inside `math` or `svg`, which the reference inserts through the
 foreign-content rules this port does not have, and the rules an output cannot tell apart, such
 as a raw path that is already the canonical encoding, a plus in a query that round-trips to the
-same string, the value key of the sort, an attribute allowlist with a single name, or a read
-order that is already the sorted order. The limit of 512 open elements in `parse.go` is pinned
-by the two cases that mirror `TestDeeplyNestedpage`: the reference reaches it by panicking and
-its own parse recovers that as an error, so a chain one past the limit answers with nothing, and
-the port refuses at the same count.
+same string, an attribute allowlist with a single name, a read order that is already the sorted
+order, or the sort tie-break by value, which needs two attributes with the same name. The limit
+of 512 open elements in `parse.go` is pinned by the two cases that mirror
+`TestDeeplyNestedpage`: the reference reaches it by panicking and its own parse recovers that as
+an error, so a chain one past the limit answers with nothing, and the port refuses at the same
+count.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
 from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what the

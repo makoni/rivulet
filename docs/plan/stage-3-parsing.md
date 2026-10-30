@@ -15,7 +15,7 @@ feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed ad
 field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20. The
 parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end against the reference's
 own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
-inputs. The hostile sanitizer corpus is merged as PR #22: 146 inputs pinned against the
+inputs. The hostile sanitizer corpus is merged as PR #22: 145 inputs pinned against the
 reference's own output, each with the rule that output pins, and the one rule the corpus found
 the port missing — the order a formatting element writes its attributes in. The entity-decoding
 and whitespace items of the normalization URL part closed with it, because the value reaches the
@@ -101,7 +101,7 @@ The open items are the XML tolerance table and the typed errors.
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + the hostile corpus (`SanitizerHostileCorpusTests` over
-  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 146 inputs, each with the output the reference
+  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 145 inputs, each with the output the reference
   produced for it and the rule that output pins, covering the scheme allowlist, the data-URI
   prefixes, the mandatory attributes, the pixel tracker, the blocked resources, the hidden check,
   what a dropped tag leaves of its content, the control bytes the parse refuses but the as-read

@@ -10,9 +10,9 @@
 # Each rule line names the rule of the case under it, and every case here can fail on that rule: a
 # case is left out when a wrong implementation of the rule it names writes the same output. So the
 # corpus does not pin the raw path of a value already in the canonical encoding, a plus in a query
-# that round-trips to the same string, a percent escape already canonical, the value key of the
-# attribute sort, an attribute allowlist with a single name, or a read order that is already the
-# sorted order.
+# that round-trips to the same string, a percent escape already canonical, an attribute allowlist
+# with a single name, a read order that is already the sorted order, or the sort tie-break by value,
+# which needs two attributes with the same name.
 
 # What the corpus cannot pin: content inside math or svg, which the reference inserts through the
 # foreign-content rules this port does not have. The limit of 512 open elements in parse.go is
@@ -167,7 +167,7 @@ output = <a href="http://foo%c3%a9bar/" rel="noopener noreferrer" referrerpolicy
 input = <a href="https://example.org/?utm_source=x">x</a>
 output = <a href="https://example.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
-# A semicolon inside a query pair is part of the pair, which the cleaner keeps
+# With no tracking parameter, the cleaner answers with the query as read, semicolon included
 input = <a href="https://example.org/?a=b;c=d">x</a>
 output = <a href="https://example.org/?a=b;c=d" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">x</a>
 
@@ -558,10 +558,6 @@ output = <p><a href="http://example.org/y" title="x" rel="noopener noreferrer" r
 # The same sort inside a cell, where the token is read by the rules for the body
 input = <td><a title="x" href="/y">z</a></td>
 output = <a href="http://example.org/y" title="x" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
-
-# The sort is by name, not by value: href before title whatever the value is
-input = <a title="b" href="/y">z</a>
-output = <a href="http://example.org/y" title="b" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">z</a>
 
 # id is not in the attribute allowlist for b, so the element is written with only its content
 input = <b id="x">z</b>
