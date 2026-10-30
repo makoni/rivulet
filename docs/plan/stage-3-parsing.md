@@ -129,7 +129,7 @@ The open items are the XML tolerance table and the typed errors.
 ## Exit criteria
 
 - [ ] The ported Miniflux fixture corpus is green.
-- [ ] Hostile sanitizer corpus produces no active content.
+- [x] Hostile sanitizer corpus produces no active content.
 
 ## Risks
 
@@ -217,11 +217,14 @@ Findings from the sanitizer slice review that do not change behavior:
 
 Findings from the RDF adapter review (#17) that do not change behavior:
 
-- The last-match rule is pinned in `RDFEntryTests`, which is the RDF copy of the helper. Reverting the
-  RSS copy to the first match leaves the suite green, so an RSS case with two same-level `title`
-  elements is what would pin the rule for that format too.
-- `XMLReaderTests.swift` is at 500 lines, which is the cap rather than the aim, so the next case added
-  to it needs its own suite.
+- The last-match rule is pinned in `RDFEntryTests`, which is the RDF copy of the helper. Reverting
+  the RSS copy to the first match leaves the suite green, so an RSS case with two same-level
+  `title` elements is what would pin the rule for that format too.
+- `XMLReaderTests.swift` is at 500 lines, which is the cap rather than the aim, so the next case
+  added to it needs its own suite.
+- The two `sanitizer/` HTML fixtures have no test: upstream reads them only in benchmarks, so no
+  upstream assertion exists to port, and nothing in the corpus is pinned by them. The first exit
+  criterion stays open until the text layer has a case that reads them.
 
 Findings from the Atom adapter review (#18) that do not change behavior:
 - `Atom10Adapter.entry` is 63 lines, above the aim, because the entry chain reads the link, the

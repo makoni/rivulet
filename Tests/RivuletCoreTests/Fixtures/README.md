@@ -24,7 +24,10 @@ The whole corpus is copied in one go so that later slices of stage 3 work on the
 the parser fixtures are used upstream only as benchmark and fuzz inputs — no upstream test
 asserts their parsed output, so the parser tests define their own expected values as golden
 files. As of the charset, the XML reader, the parser corpus and the hostile sanitizer corpus
-slices, `encoding/`, `xml/`, `parser/` and `sanitizer/` are read by tests.
+slices, `encoding/`, `xml/`, `parser/` and `sanitizer/hostile_corpus.txt` are read by tests.
+The two `sanitizer/` HTML files are not: upstream reads them only in `BenchmarkSanitize` and
+`BenchmarkTruncateHTML`, and no upstream test asserts what they produce, so nothing here can
+pin them until the port has a case that reads them.
 
 `parser/golden/` and `sanitizer/hostile_corpus.txt` are the two things here that are not copies of
 an upstream file. The golden files are the reference's output on the fixtures above — each file says

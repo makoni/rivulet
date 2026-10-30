@@ -203,18 +203,19 @@ of 512 open elements in `parse.go` is pinned by the two cases that mirror
 an error, so a chain one past the limit answers with nothing, and the port refuses at the same
 count.
 
-The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
-from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what the
-adapter writes — the feed level, the entry level, the attachments, the identity — plus the pins traced
-against the reference where the corpus does not reach. The RDF suite has no attachment or identity cases
-because the structs this format reads have no such fields, so the two negative pins there are what the
-model starts with. Every traced case states the value the reference produces, and the tree rules the
-adapters read through — `",chardata"` at the element's own level, the CDATA marker inside `Inner`, the
-markup a child contributes to it, and the last match at the element's own level, which is what the
-reference assigns a field — are pinned in `XMLTreeTests` and `RDFEntryTests`, while the default space
-standing in for a name with no prefix is pinned in `RSSFeedTests`. The clock the date fallback reads is
-injected as a parameter, so no case depends on the machine's time; nothing else in this layer reads a
-clock, a locale or the network.
+The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
+cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split
+by what the adapter writes — the feed level, the entry level, the attachments, the identity —
+plus the pins traced against the reference where the corpus does not reach. The RDF suite has no
+attachment or identity cases because the structs this format reads have no such fields, so the
+two negative pins there are what the model starts with. Every traced case states the value the
+reference produces, and the tree rules the adapters read through — `",chardata"` at the
+element's own level, the CDATA marker inside `Inner`, the markup a child contributes to it, and
+the last match at the element's own level, which is what the reference assigns a field — are
+pinned in `XMLTreeTests` and `RDFEntryTests`, while the default space standing in for a name
+with no prefix is pinned in `RSSFeedTests`. The clock the date fallback reads is injected as a
+parameter, so no case depends on the machine's time; nothing else in this layer reads a clock, a
+locale or the network.
 
 Atom is the seven suites `AtomFeedTests`, `AtomEntryTests`, `AtomTextConstructTests`,
 `AtomMediaTests`, `AtomHashTests`, `Atom03Tests` and `AtomLanguageTests`, ported from
