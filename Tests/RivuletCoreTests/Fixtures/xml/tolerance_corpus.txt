@@ -1,0 +1,153 @@
+# The tolerance corpus: the inputs the tolerance decision table rests on, read through the
+# reference's reader path.
+
+# Every stream is the reference's own output for the input above it, produced by running Miniflux
+# v2.3.3 at commit c4d54f87 (Go 1.26.0) through NewXMLDecoder and Token() - the reader path, not
+# Decode - with TZ=UTC. The method is recorded in docs/testing.md. A byte-order mark, a character
+# above the basic plane or a control byte is written as an escape form, and a stream line is the
+# reference's output for the case above it, so it is not wrapped here: breaking it would change
+# what it says.
+
+# Each rule line names the rule of the case under it, and every case here can fail on that rule: a
+# case is left out when a wrong implementation of the rule it names writes the same stream. So the
+# corpus does not pin the production a run of text came from, which Token() reports as character
+# data either way, or a stream that ends at the end of the document inside a CDATA section,
+# because the port reports that as the one failure case it has. It also cannot pin the wording of a
+# failure: it pins the case the message names, which the test that reads this file spells out.
+
+# Two things the comparison treats as equal are recorded in docs/parity.md: the reference reports
+# io.EOF at a clean end of the document, where the port reports its unexpectedEOF case, and the
+# port keeps one case for a failure, so its message is not part of what a pin can compare.
+
+# the byte-order mark is character data before the first element, because this path has no mark
+# rule
+input = \ufeff<note>x</note>
+stream = chardata "\ufeff" | start :note | chardata "x" | end :note | EOF
+
+# the mark is not part of the prolog: the instruction and the run of text are two tokens
+input = <?xml version="1.0"?>\ufeff<note>x</note>
+stream = procinst "xml" "version=\"1.0\"" | chardata "\ufeff" | start :note | chardata "x" | end :note | EOF
+
+# a mark inside text is kept as part of the run
+input = <note>\ufeffx</note>
+stream = start :note | chardata "\ufeffx" | end :note | EOF
+
+# nothing before the prolog is markup, so the mark and the garbage are one run
+input = \ufeffjunk <?xml version="1.0"?><note>x</note>
+stream = chardata "\ufeffjunk " | procinst "xml" "version=\"1.0\"" | start :note | chardata "x" | end :note | EOF
+
+# valid UTF-8 bytes are not decoded through the label, so the mark stays the mark and not the
+# three characters windows-1252 gives for them
+input = \ufeff<?xml version="1.0" encoding="windows-1252"?><note>x</note>
+stream = chardata "\ufeff" | procinst "xml" "version=\"1.0\" encoding=\"windows-1252\"" | start :note | chardata "x" | end :note | EOF
+
+# a document that is only the mark is one run of text
+input = \ufeff
+stream = chardata "\ufeff" | EOF
+
+# the mark is text, and the end tag after it has no element open, so the stream ends with the
+# failure for an end tag with nothing open
+input = \ufeff</b>
+stream = chardata "\ufeff" | error: XML syntax error on line 1: unexpected end element </b>
+
+# U+FEFF is inside the Char production, so the numeric reference resolves and the character is
+# kept
+input = <note>&#xFEFF;</note>
+stream = start :note | chardata "\ufeff" | end :note | EOF
+
+# the reader path reads past the end of the root, so the text after it is a run of its own with
+# the whitespace the input has
+input = <note>&#xFEFF;</note> \ufeff
+stream = start :note | chardata "\ufeff" | end :note | chardata " \ufeff" | EOF
+
+# junk before the prolog is text at the document level, not a failure, because Strict = false
+input = junk before <?xml version="1.0"?><note>x</note>
+stream = chardata "junk before " | procinst "xml" "version=\"1.0\"" | start :note | chardata "x" | end :note | EOF
+
+# text stops at markup: markup before the prolog is read as tokens, and the text between markup
+# is a run of its own
+input = junk <b>x</b> <?xml version="1.0"?><note>y</note>
+stream = chardata "junk " | start :b | chardata "x" | end :b | chardata " " | procinst "xml" "version=\"1.0\"" | start :note | chardata "y" | end :note | EOF
+
+# leading whitespace is a run of text, not tag whitespace, because it is not between parts of a
+# tag
+input =   <?xml version="1.0"?><note>x</note>
+stream = chardata "  " | procinst "xml" "version=\"1.0\"" | start :note | chardata "x" | end :note | EOF
+
+# the table encoding/xml carries resolves copy, which the table the sanitizer reads also
+# resolves
+input = <note>&copy;</note>
+stream = start :note | chardata "©" | end :note | EOF
+
+# NewLine is not in the table encoding/xml carries, so it stays as written, while the table the
+# sanitizer reads resolves it
+input = <note>&NewLine;</note>
+stream = start :note | chardata "&NewLine;" | end :note | EOF
+
+# colon is not in the table encoding/xml carries either, so it stays as written
+input = <note>&colon;</note>
+stream = start :note | chardata "&colon;" | end :note | EOF
+
+# a name that reads a space is not a name, so the reference stays as written
+input = <note>&a b;</note>
+stream = start :note | chardata "&a b;" | end :note | EOF
+
+# a numeric reference that reads no digits stays as written
+input = <note>&#x;</note>
+stream = start :note | chardata "&#x;" | end :note | EOF
+
+# a value past the largest character the reference can write stays as written
+input = <note>&#1114112;</note>
+stream = start :note | chardata "&#1114112;" | end :note | EOF
+
+# the largest character the reference can write resolves, so U+10FFFF is text
+input = <note>&#x10FFFF;</note>
+stream = start :note | chardata "\U0010ffff" | end :note | EOF
+
+# a surrogate resolves to the replacement character, which is inside Char, so the text keeps it
+input = <note>&#xD800;</note>
+stream = start :note | chardata "�" | end :note | EOF
+
+# a resolved character outside Char is the failure for an illegal character code
+input = <note>&#0;</note>
+stream = start :note | error: XML syntax error on line 1: illegal character code U+0000
+
+# a numeric reference resolves as text and not as markup, so a value that reads as the less-than
+# sign is character data
+input = <note>&#60;</note>
+stream = start :note | chardata "<" | end :note | EOF
+
+# a reference without its semicolon stays as written
+input = <note>&amp</note>
+stream = start :note | chardata "&amp" | end :note | EOF
+
+# a CDATA section at the document level is content, which the tree cannot show because it keeps
+# only what is inside an element
+input = <![CDATA[x]]>
+stream = chardata "x" | EOF
+
+# text before a CDATA marker and the section it opens are two runs, because the marker ends the
+# first
+input = x<![CDATA[y]]>
+stream = chardata "x" | chardata "y" | EOF
+
+# references inside a CDATA section are not decoded
+input = <note><![CDATA[a &amp; b]]></note>
+stream = start :note | chardata "a &amp; b" | end :note | EOF
+
+# the terminator ends the run and what follows is a run of its own, so the two cannot be merged
+input = <note><![CDATA[a &amp; b]]>c</note>
+stream = start :note | chardata "a &amp; b" | chardata "c" | end :note | EOF
+
+# a terminator read outside a section is the failure for an unescaped bracket
+input = <note>x]]></note>
+stream = start :note | error: XML syntax error on line 1: unescaped ]]> not in CDATA section
+
+# a marker that is not CDATA is the failure for a malformed section
+input = <note><![BAD]x></note>
+stream = start :note | error: XML syntax error on line 1: invalid <![ sequence
+
+# AutoClose is never set, so an open element is closed by the next end tag and not by the next
+# token
+input = <note><br>x<to>y</note>
+stream = start :note | start :br | chardata "x" | start :to | chardata "y" | end :to | end :br | end :note | EOF

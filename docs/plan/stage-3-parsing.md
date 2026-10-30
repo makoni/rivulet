@@ -20,7 +20,10 @@ reference's own output, each with the rule that output pins, and the one rule th
 the port missing — the order a formatting element writes its attributes in. The entity-decoding
 and whitespace items of the normalization URL part closed with it, because the value reaches the
 URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
-The open items are the XML tolerance table and the typed errors.
+The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader path
+pinned the four quirk classes and found no divergence, so the table records what the reference
+reports, and the 30 cases that can fail on their rules are committed as a fixture. The open item is
+the typed errors.
 
 ## Scope
 
@@ -42,7 +45,10 @@ The open items are the XML tolerance table and the typed errors.
       `NewCharsetReaderFromBytes`) with BOM → content-type → meta prescan (1024 bytes) → UTF-8
       heuristic → `windows-1252` default; output is always UTF-8. Platform decoder gaps (EUC-JP on
       Linux) go through a glibc `iconv` fallback; the deviations are in `docs/parity.md`.
-- [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
+- [x] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus. The
+  table is in `docs/reference-notes.md`, and the rows are pinned by `XMLToleranceTests`; the run read
+  through `NewXMLDecoder` and `Token()` at `go 1.26.0` and found no divergence, so `docs/parity.md`
+  gained no new row there.
 - [x] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer

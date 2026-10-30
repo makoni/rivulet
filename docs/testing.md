@@ -203,6 +203,22 @@ of 512 open elements in `parse.go` is pinned by the two cases that mirror
 an error, so a chain one past the limit answers with nothing, and the port refuses at the same
 count.
 
+The XML tolerance table (`XMLToleranceTests`) is the run the plan's test-plan item asks for: 52
+inputs over the four quirk classes, read through `NewXMLDecoder` and `Token()` — the reader path,
+not `Decode` — with the same reference and the same method the parser corpus uses, comparing the
+token stream and how the stream ends. The run found no divergence, so the table in
+`docs/reference-notes.md` records what the reference reports rather than a difference, and
+`docs/parity.md` gained no new row there beyond the modeling choice for the end of the stream.
+The 30 cases that can fail on the rule they name are committed as the fixture
+`Tests/RivuletCoreTests/Fixtures/xml/tolerance_corpus.txt`; a case is left out when a wrong
+implementation of its rule writes the same stream, so the suite reads the fixture rather than
+carrying the inputs inline. What the corpus cannot pin: the production a run of text came from,
+which `Token()` reports as character data either way, and a stream that ends at the end of the
+document inside a CDATA section, because the port reports that as the one failure case it has. A
+pin cannot fail on the wording of a failure message either, which is why the test compares the case
+the message names, and it cannot tell a clean end of the stream from an end reached inside an
+element, which is the equivalence recorded in `docs/parity.md`.
+
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
 cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split
 by what the adapter writes — the feed level, the entry level, the attachments, the identity —
