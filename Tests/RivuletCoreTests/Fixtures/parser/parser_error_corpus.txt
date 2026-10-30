@@ -1,0 +1,100 @@
+# The parser error corpus: the inputs the typed error and the switch decide on, read through
+# the reference's own path.
+
+# Every value is the reference's own output for the input above it, produced by running
+# Miniflux v2.3.3 at commit c4d54f87 (Go 1.26.0) through DetectFeedFormat and the switch
+# ParseFeed makes, with TZ=UTC. The method is recorded in docs/testing.md. A control byte is
+# written as an escape form, and the decision, the outcome and the end state are the
+# reference's output for the case above it, so they are not wrapped here: breaking them
+# would change what they say.
+
+# A case is included when a wrong implementation of the rule its line names writes a different
+# value for it, and a case is left out when it does not. The number the cap counts is pinned
+# only by the pair whose roots sit on the two sides of the boundary: a cap read as 49 fails
+# the case whose root is read as the 50th token, and a cap read as 60 the case read as the
+# 51st, so neither case pins the number alone, and a case for a root read far past the cap is
+# left out because a wrong number writes the same answer for it. Two rules no case here can
+# fail on: the size of the buffer the JSON rule reads, because a larger buffer writes the same
+# decision for every case, and the characters above ASCII that Go's whitespace class counts,
+# U+0085 and U+00A0, because no case has one. That the rule reads until the first character
+# that is not whitespace is pinned by the case whose whitespace is longer than a 32-byte
+# buffer.
+
+# A pin compares the case a failure names, not its wording, and the outcome line names the
+# branch the switch takes, not which adapter is called, which nothing here observes. Nine of
+# the ten end states map to one case, so those pins fail only on the case the mapping can tell
+# apart, and the three cases that name no root share one answer: they fail only through it.
+
+# Two things the comparison treats as equal are recorded in docs/parity.md: the reference
+# reports io.EOF at a clean end of the document, where the port reports its unexpectedEOF
+# case, and the port keeps one case for a failure, so its message is not part of what a pin
+# can compare.
+
+# the JSON rule answers before any token is read, so a real element after the JSON content
+# is not switched on
+input = {\"a\":1}<rss>x</rss>
+decision = json
+outcome = routed to the json adapter
+end = EOF
+
+# a JSON document whose content is a field named feed is answered JSON, because the switch
+# on the name reads roots and never a field
+input = \n\t{\n\t\t\"version\": \"https://jsonfeed.org/version/1\",\n\t\t\"title\": \"Example\",\n\t\t\"feed\": \"x\"\n\t}\n
+decision = json
+outcome = routed to the json adapter
+end = EOF
+
+# the character that decides the JSON rule is the first one that is not whitespace, so mixed
+# whitespace before the root is read through the buffer
+input = \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  \n\t  {\"version\":\"1\"}
+decision = json
+outcome = routed to the json adapter
+end = EOF
+
+# a document that is only whitespace is answered unknown and reported as the typed error,
+# because the JSON rule finds no character to decide on
+input =  \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d
+decision = unknown
+outcome = parser: unable to detect feed format
+end = EOF
+
+# the token read as the 50th is switched on, so this case fails for a cap below 50
+input = <p><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><rss></rss>
+decision = rss
+outcome = routed to the rss adapter
+end = XML syntax error on line 1: unexpected EOF
+
+# the scan stops at the cap before the switch on the name, so the token read as the 51st is
+# not switched on, and this case fails for a cap above 50
+input = <p><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i>x</i><rss></rss>
+decision = unknown
+outcome = parser: unable to detect feed format
+end = XML syntax error on line 1: unexpected EOF
+
+# the attribute the reference reads is the one whose name is version, whatever prefix it is
+# written with, so a prefixed version attribute decides the version like an unprefixed one
+input = <feed xmlns:a=\"http://purl.org/atom/ns#\" a:version=\"0.3\">
+decision = atom 0.3
+outcome = routed to the atom adapter
+end = XML syntax error on line 1: unexpected EOF
+
+# a scan that fails before a root is read ends it without an answer, and the failure is the
+# case for an angle bracket inside an attribute value
+input = <rss attr=\"<\">x</rss>
+decision = unknown
+outcome = parser: unable to detect feed format
+end = XML syntax error on line 1: unescaped < inside quoted string
+
+# the scan ends with the answer unknown for a document with no root the switch reads, which
+# is the case the typed error is reported for
+input = \n\t<!DOCTYPE html> <html> </html>\n\t
+decision = unknown
+outcome = parser: unable to detect feed format
+end = EOF
+
+# a document that is text only has no root to switch on, so the typed error is reported for
+# it
+input = garbage
+decision = unknown
+outcome = parser: unable to detect feed format
+end = EOF

@@ -13,6 +13,7 @@ implementation under test, never in the input. Directories mirror the upstream
 | --- | --- | --- |
 | `encoding/` | `internal/reader/encoding/testdata` | 11 |
 | `parser/` | `internal/reader/parser/testdata` | 8 |
+| `parser/parser_error_corpus.txt` | not an upstream file — the parser error corpus the plan names, see below | 1 |
 | `parser/golden/` | not an upstream file — the reference's output, see below | 8 |
 | `xml/` | `internal/reader/xml/testdata` | 3 |
 | `sanitizer/` | `internal/reader/sanitizer/testdata` | 2 |
@@ -24,23 +25,25 @@ where a Rivulet test mirrors an upstream assertion, it names the upstream test i
 The whole corpus is copied in one go so that later slices of stage 3 work on the same inputs;
 the parser fixtures are used upstream only as benchmark and fuzz inputs — no upstream test
 asserts their parsed output, so the parser tests define their own expected values as golden
-files. As of the charset, the XML reader, the parser corpus, the hostile sanitizer corpus and the
-tolerance corpus slices, `encoding/`, `xml/` including `xml/tolerance_corpus.txt`, `parser/` and
-`sanitizer/hostile_corpus.txt` are read by tests.
+files. As of the charset, the XML reader, the parser corpus, the hostile sanitizer corpus, the tolerance
+corpus and the parser error corpus slices, `encoding/`, `xml/` including `xml/tolerance_corpus.txt`,
+`parser/` including `parser/parser_error_corpus.txt` and `sanitizer/hostile_corpus.txt` are read by
+tests.
 The two `sanitizer/` HTML files are not: upstream reads them only in `BenchmarkSanitize` and
 `BenchmarkTruncateHTML`, and no upstream test asserts what they produce, so nothing here can
 pin them until the port has a case that reads them.
 
-`parser/golden/`, `sanitizer/hostile_corpus.txt` and `xml/tolerance_corpus.txt` are the three things
-here that are not copies of an upstream file. The golden files are the reference's output on the
-fixtures above — each file says so on its own line — and the two corpora are the reference's output
-on inputs of our own, written by running Miniflux v2.3.3 (Go 1.26, the version `miniflux/go.mod`
-pins) with the clock fixed to UTC. The tolerance corpus was read through `NewXMLDecoder` and
-`Token()`, the reader path, not `Decode`. None of the three is Rivulet's output: they record what
-the reference produces, so a test failing against them is a difference in the implementation under
+`parser/golden/`, `sanitizer/hostile_corpus.txt`, `xml/tolerance_corpus.txt` and
+`parser/parser_error_corpus.txt` are the four things here that are not copies of an upstream file. The
+golden files are the reference's output on the fixtures above — each file says so on its own line — and
+the three corpora are the reference's output on inputs of our own, written by running Miniflux v2.3.3
+(Go 1.26, the version `miniflux/go.mod` pins) with the clock fixed to UTC. The tolerance corpus was read
+through `NewXMLDecoder` and `Token()`, the reader path, and the parser error corpus through
+`DetectFeedFormat` and the switch `ParseFeed` makes. None of the four is Rivulet's output: they record
+what the reference produces, so a test failing against them is a difference in the implementation under
 test. Each names the rule its input pins, and each says what cannot be pinned: the corpora also say
 that a case is left out when a wrong implementation of the rule its line names writes the same
-output, so a rule that no output can tell apart has no case. Regenerating any of the three means
+output, so a rule that no output can tell apart has no case. Regenerating any of the four means
 running the reference again, never running Rivulet.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing

@@ -538,6 +538,41 @@ it is pinned in `XMLTreeTests`.
 | `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | AutoClose is never set, so an open element is closed by the next end tag |
 | A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | the mark is text, and the end tag after it has no element open |
 
+The typed error on the parser path (`parser/parser.go`)
+
+The reference has one error on this path: the sentinel `ErrFeedFormatNotDetected`
+(`internal/reader/parser/parser.go:17`), reported for any document `DetectFeedFormat` answers
+`unknown` for. `ParseFeed` routes the four formats it can decide on to their adapters and
+reports the sentinel for the rest, and the port models the failure as one case,
+`ParserError.feedFormatNotDetected`. The version `DetectFeedFormat` answers is read only by
+the Atom branch: `atom.Parse` calls the parser for Atom 0.3 when the version says `0.3` and
+the one for Atom 1.0 for anything else.
+
+| Case | What the reference reports on this path | Pinned by the corpus case that says |
+| --- | --- | --- |
+| A JSON document whose content is followed by a real element | `json`, decided before any XML token is read | the JSON rule answers before any token is read, so a real element after the JSON content is not switched on |
+| A JSON document whose content is a field named `feed` | `json`, because the switch on the name reads roots and never a field | a JSON document whose content is a field named feed is answered JSON |
+| Whitespace before the JSON root, longer than the 32-byte buffer | `json`: the first character that is not whitespace decides, and the rule reads past the buffer | the character that decides the JSON rule is the first one that is not whitespace |
+| A document that is only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered unknown and reported as the typed error |
+| The token read as the 50th, and the token read as the 51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the switch on the name | the pair whose roots sit on the two sides of the boundary |
+| An Atom root with the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
+| A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
+| A document with no root the switch reads, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no root the switch reads |
+
+The corpus the rows rest on is
+`Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
+`Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
+cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because
+a larger buffer writes the same decision for every case; the characters above ASCII that Go's
+whitespace class counts, U+0085 and U+00A0, because no case here has one; the wording of the
+sentinel, because the port keeps one case for each failure; and which adapter is called, since
+the outcome names the branch the switch takes. The number the cap counts is pinned only by the
+pair whose roots sit on the two sides of the boundary — a cap read as 49 fails the case read
+as the 50th token and a cap read as 60 the case read as the 51st — and a case for a root read
+far past the cap is left out because a wrong number writes the same answer for it. Nine of the
+ten end states map to one case, so those pins fail only on the case the mapping can tell
+apart.
+
 ## Test fixtures in the reference
 
 
