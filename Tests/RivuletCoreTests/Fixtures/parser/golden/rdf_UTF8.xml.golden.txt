@@ -1,0 +1,34 @@
+# RDF, 60 items read at the root level rather than under a channel. The item title is empty
+# here because the default space is the simple 0.9 namespace while the field the reference
+# reads names purl.org/rss/1.0, so the title falls back to the entry URL. Pins the hash of
+# the item link, the date the model starts with when the item has no date — the clock the
+# suite injects, 1700000000 — and the entity decode of a text node, which entry 31 shows in
+# its content.
+format = rdf
+version = (empty)
+feed.title = heise online News
+feed.feedURL = https://example.org/feed.rdf
+feed.siteURL = https://www.heise.de/newsticker/
+feed.description = Nachrichten nicht nur aus der Welt der Computer
+feed.language = (empty)
+feed.iconURL = (empty)
+feed.ttlMinutes = 0
+entries = 60
+entry.1.title = https://www.heise.de/newsticker/meldung/OLED-TVs-Vorsichtsmassnahmen-gegen-Einbrennen-4205274.html?wt_mc=rss.ho.beitrag.rdf
+entry.1.url = https://www.heise.de/newsticker/meldung/OLED-TVs-Vorsichtsmassnahmen-gegen-Einbrennen-4205274.html?wt_mc=rss.ho.beitrag.rdf
+entry.1.commentsURL = (empty)
+entry.1.author = (empty)
+entry.1.content = Wer gerade einen neuen OLED-Fernseher gekauft hat oder sich zu Weihnachten einen zuzulegen möchte, sollte unbedingt ein paar Hinweise beachten.
+entry.1.language = (empty)
+entry.1.date = 1700000000 0
+entry.1.hash = 2eb85dbf0b9295f470f0066b2243a502da04a8058b3eb8b92cbe3b65a598a80e
+entry.1.tags = (empty)
+entry.31.title = https://www.heise.de/newsticker/meldung/Webhosting-und-Cloud-Computing-Aus-1-1-und-ProfitBricks-wird-1-1-Ionos-4205066.html?wt_mc=rss.ho.beitrag.rdf
+entry.31.url = https://www.heise.de/newsticker/meldung/Webhosting-und-Cloud-Computing-Aus-1-1-und-ProfitBricks-wird-1-1-Ionos-4205066.html?wt_mc=rss.ho.beitrag.rdf
+entry.31.commentsURL = (empty)
+entry.31.author = (empty)
+entry.31.content = 1&1 bietet seine Webhosting- und Cloud-Produkte künftig unter dem Namen 1&1 Ionos an. Besserer Service soll Unternehmen den Cloud-Start schmackhaft machen.
+entry.31.language = (empty)
+entry.31.date = 1700000000 0
+entry.31.hash = fcb3873a326194f81b3898eff0047e5845a0c01eefc8a1cf3ca642cd42e7e081
+entry.31.tags = (empty)

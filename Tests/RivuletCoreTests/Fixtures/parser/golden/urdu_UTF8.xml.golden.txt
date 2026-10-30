@@ -1,0 +1,26 @@
+# RSS 2.0, 26 entries, valid UTF-8, so no charset reader is called and the bytes are read as
+# they are. Pins the channel author read through managingEditor and StripTags, the language
+# normalized to lowercase, the TTL the feed declares, the channel image, and the media
+# thumbnail as an enclosure.
+format = rss
+version = (empty)
+feed.title = BBC News  اردو - پاکستان کے لیے امریکی امداد کی بہار و خزاں
+feed.feedURL = https://example.org/feed.xml
+feed.siteURL = http://www.bbcurdu.com
+feed.description = BBC News  اردو - پاکستان کے لیے امریکی امداد کی بہار و خزاں
+feed.language = ur
+feed.iconURL = http://www.bbc.co.uk/urdu/images/gel/rss_logo.gif
+feed.ttlMinutes = 15
+entries = 26
+entry.1.title = امریکی عسکری امداد کی بندش کی وجوہات: انڈیا سے جنگ، جوہری پروگرام اور اب دہشت گردوں کی پشت پناہی
+entry.1.url = http://www.bbc.com/urdu/pakistan-42575603
+entry.1.commentsURL = (empty)
+entry.1.author = urdu@bbc.co.uk
+entry.1.content = امریکہ اور پاکستان کے 70 سالہ تعلقات میں جب بھی زیادہ کشیدگی آتی ہے تو اس میں پہلی تلوار پاکستان کو ملنے والی عسکری امداد پر چلتی ہے۔
+entry.1.language = ur
+entry.1.date = 1515171060 0
+entry.1.hash = c4a3618f3545d8d102c78dc69931bd503684953d147815a47e1ba001c8acf218
+entry.1.tags = (empty)
+entry.1.enclosure.1.mimeType = image/*
+entry.1.enclosure.1.size = 0
+entry.1.enclosure.1.url = http://c.files.bbci.co.uk/A787/production/_99478824_gettyimages-856735580.jpg

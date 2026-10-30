@@ -1,0 +1,32 @@
+# RSS 2.0, 10 entries, no encoding declared, so the reference filters the bytes as XML
+# characters before tokenizing them and the bytes that are not valid UTF-8 disappear from
+# the text. Entry 4 pins the title falling back to the entry URL, and the hash that follows
+# when the item has no GUID.
+format = rss
+version = (empty)
+feed.title = Flux RSS du magazine de psychologie Le Cercle Psy
+feed.feedURL = https://example.org/feed.xml
+feed.siteURL = https://le-cercle-psy.scienceshumaines.com/rss
+feed.description = Flux RSS du magazine de psychologie Le Cercle Psy, le magazine de toutes les psychologies.
+feed.language = (empty)
+feed.iconURL = (empty)
+feed.ttlMinutes = 0
+entries = 10
+entry.1.title = Perturbateurs endocriniens : quels effets sur le cerveau ?
+entry.1.url = https://le-cercle-psy.scienceshumaines.com/perturbateurs-endocriniens-quels-effets-sur-le-cerveau_sh_39995
+entry.1.commentsURL = (empty)
+entry.1.author = (empty)
+entry.1.content = Si leur impact semble discret au premier abord, nombre d'tudes montrent que les perturbateurs endocriniens pourraient tre  l'origine de troubles neuro-dveloppementaux chez l'enfant.
+entry.1.language = (empty)
+entry.1.date = 1539772200 0
+entry.1.hash = df83567d47d2237113ff75fecf403ffb49172babba6fa76c9e38fcfc8b5ad592
+entry.1.tags = (empty)
+entry.4.title = https://le-cercle-psy.scienceshumaines.com/rss
+entry.4.url = https://le-cercle-psy.scienceshumaines.com/rss
+entry.4.commentsURL = (empty)
+entry.4.author = (empty)
+entry.4.content = (empty)
+entry.4.language = (empty)
+entry.4.date = 1539772200 0
+entry.4.hash = 4f212adf3b296b448ca202da319dae4cb24a56ebbdf9c0d0f96a2eaf3958b689
+entry.4.tags = (empty)

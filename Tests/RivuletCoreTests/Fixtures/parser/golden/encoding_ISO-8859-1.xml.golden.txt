@@ -1,0 +1,36 @@
+# RSS 2.0, 40 entries, ISO-8859-1 declared in the prolog over bytes that are not valid
+# UTF-8. Entry 1 pins the label path — the text is transcoded — and the entity decode of a
+# text node: the escaped markup becomes markup, and a doubly encoded reference stays one
+# level decoded. The feed URL is the atom:link with rel=self, not the base URL. Entry 2 pins
+# the RSS comments rule, which the first item does not carry. The hash is the GUID, and the
+# date offset comes from the value itself.
+format = rss
+version = (empty)
+feed.title = Golem.de
+feed.feedURL = https://rss.golem.de/rss.php?feed=RSS2.0
+feed.siteURL = https://www.golem.de/
+feed.description = IT-News fuer Profis
+feed.language = de
+feed.iconURL = https://www.golem.de/staticrl/images/golem-rss.png
+feed.ttlMinutes = 0
+entries = 40
+entry.1.title = Red Dead Redemption 2: Hinweise auf PC-Umsetzung in App von Rockstar Games
+entry.1.url = https://www.golem.de/news/red-dead-redemption-2-hinweise-auf-pc-umsetzung-in-app-von-rockstar-games-1810-137358-rss.html
+entry.1.commentsURL = (empty)
+entry.1.author = (empty)
+entry.1.content.prefix = <img src="https://www.golem.de/1810/137358-177541-177538_rc.jpg" width="140" height="140" vspace="3" hspace="8" align="l
+entry.1.content.sha256 = 2204cac1b21ca3f606d572faa97611ee1179f895bc3455384c6cd8429551444d
+entry.1.language = de
+entry.1.date = 1540730880 3600
+entry.1.hash = beb838d7ba5e687049b68c576ca00f38245879c1000afb36393fdc6cf0253b5c
+entry.1.tags = (empty)
+entry.2.title = Let's Play: Twitch will Streamer zusammen spielen und singen lassen
+entry.2.url = https://www.golem.de/news/let-s-play-twitch-will-streamer-zusammen-spielen-und-singen-lassen-1810-137357-rss.html
+entry.2.commentsURL = https://forum.golem.de/kommentare/games/let-s-play-twitch-will-streamer-zusammen-spielen-und-singen-lassen/121579,list.html
+entry.2.author = (empty)
+entry.2.content.prefix = <img src="https://www.golem.de/1810/137357-177536-177533_rc.jpg" width="140" height="140" vspace="3" hspace="8" align="l
+entry.2.content.sha256 = 8d726c052b2eb7b0f609eaa14ef614e741f9847376a32272054052884c67d3a2
+entry.2.language = de
+entry.2.date = 1540728000 3600
+entry.2.hash = b160d1561faf94fb32cb63cab58e072e415c4989727bacb60632e5a8354a0a7a
+entry.2.tags = (empty)

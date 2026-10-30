@@ -12,9 +12,11 @@ normalized model with the shared primitives and the RSS adapter is merged as PR 
 (RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters are landing one format at a
 time: the JSON reader — our own reader over the bytes, because Miniflux reads a JSON
 feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed adapter — the
-field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20.
-The open items are the XML tolerance table, the hostile sanitizer corpus, and entity decoding
-and whitespace normalization in the normalization URL part.
+field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20. The
+parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end against the reference's
+own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
+inputs. The open items are the XML tolerance table, the hostile sanitizer corpus, and entity
+decoding and whitespace normalization in the normalization URL part.
 
 ## Scope
 
@@ -83,7 +85,10 @@ and whitespace normalization in the normalization URL part.
 - Encoding: every fixture assertion the reference makes is reproduced; the 11 fixture files in
   `Fixtures/encoding/` cover prolog labels, wrong labels over valid UTF-8, KOI8-R feeds, the
   content-type path and the 1024-byte detection window.
-- Parser: 8 fixtures → normalized feed/entry golden outputs.
+- Parser: 8 fixtures → normalized feed/entry golden outputs, landed as PR #21 (`ParserCorpusTests`).
+  No upstream test asserts what a parse produces for these files, so the golden values come from
+  running the reference itself; the method and what each fixture can and cannot pin are in
+  `docs/testing.md`.
 - XML: 3 fixtures.
 - Dates: ported table-driven cases. The "now" fallback belongs to the format adapters, so it is
   covered with them rather than by the date slice.
