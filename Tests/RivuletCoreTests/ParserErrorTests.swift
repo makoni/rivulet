@@ -13,16 +13,28 @@ import Testing
 /// sentinel `ErrFeedFormatNotDetected` (`internal/reader/parser/parser.go:17`), which the port
 /// models as `ParserError.feedFormatNotDetected`.
 ///
-/// What the corpus cannot pin: the wording of a failure, because the port models each failure as
-/// one case, so the test compares the case the message names; the size of the buffer the JSON
-/// rule reads, and that it reads until the first character rather than to the end, since a wrong
-/// implementation of those writes the same decision; and the number the cap counts, because a
-/// root read as the 50th token and one read as the 51st give the same answer — only that the scan
-/// stops before the switch when the count reaches the cap can be pinned. Nothing here reads a
-/// clock, a locale or the network.
+/// The rules each case can fail on, checked by patching the rule and reverting: another case
+/// for the typed error fails the pins that name it; the JSON rule read after the tokens fails
+/// the case whose JSON content is followed by a real element; the first character read as
+/// written, or one buffer read instead of reading until the first character, fails the case
+/// whose whitespace is longer than the buffer; the count checked after the switch on the name
+/// fails the case whose root is read as the 51st token; a version attribute matched only
+/// without a prefix fails the prefixed case; and an angle bracket inside a quoted attribute
+/// value tolerated fails the case that names the failure. The number the cap counts is pinned
+/// only by the pair: a cap read as 49 fails the case read as the 50th token and a cap read as
+/// 60 the case read as the 51st, so neither pins the number alone.
+///
+/// What a pin cannot fail on: the wording of a message, because the port models each failure as
+/// one case; the size of the buffer, because a larger one writes the same decision for every
+/// case; the characters above the basic plane Go's whitespace class counts, because no case
+/// here has one; and which adapter is called, since the outcome compares the branch the switch
+/// takes. Seven of the ten end states map to one case, so those pins fail only on the case the
+/// mapping can tell apart, and the three cases that name no root share one answer and fail only
+/// through it. Nothing here reads a clock, a locale or the network.
 @Suite struct ParserErrorTests {
-    /// One case: the rule it pins, the input as the fixture writes it, the decision the reference
-    /// reported, the outcome of the switch, and the end state, which is not a decision.
+    /// One case: the rule it pins, the input as the fixture writes it, the decision the
+    /// reference reported, the outcome of the switch, and the end state, which is not a
+    /// decision.
     struct Case {
         var rule: String
         var input: String
@@ -40,12 +52,13 @@ import Testing
         #expect(!cases.isEmpty, "the corpus fixture is empty")
 
         for c in cases {
-            #expect(name(of: FeedParser.route(Data(c.input.utf8))) == c.decision,
-                "case: \(c.rule), the decision")
+            let route = FeedParser.route(Data(c.input.utf8))
+            #expect(name(of: route) == c.decision, "case: \(c.rule), the decision")
 
-            // The switch, read as the reference reads it: a case it decides on is routed and the
-            // rest is the typed error. For a routed case the reference's answer is only that no
-            // failure was reported, because reading an adapter would compare the port's output.
+            // The switch, read as the reference reads it: a case it decides on is routed and
+            // the rest is the typed error. For a routed case the reference's answer is only
+            // that no failure was reported, because reading an adapter would compare the port's
+            // output, not the reference's.
             if c.outcome == routedTo(c.decision) {
                 var reportedFailure: ParserError?
                 do {
@@ -75,7 +88,8 @@ import Testing
         "routed to the \(decision.split(separator: " ")[0]) adapter"
     }
 
-    /// A decision as the reference writes it: the format, with the version when the format is Atom.
+    /// A decision as the reference writes it: the format, with the version when the format is
+    /// Atom.
     private func name(of route: FeedFormatRoute) -> String {
         switch route {
         case .atom(let version): return version.isEmpty ? "atom" : "atom \(version)"
@@ -86,9 +100,9 @@ import Testing
         }
     }
 
-    /// The end state as the comparison reads it. A clean end is the documented equivalence recorded
-    /// in `docs/parity.md`, and a failure is the case the reference's message names, which is all a
-    /// pin can compare, because the port keeps one case for each failure.
+    /// The end state as the comparison reads it. A clean end is the documented equivalence
+    /// recorded in `docs/parity.md`, and a failure is the case the reference's message names,
+    /// which is all a pin can compare, because the port keeps one case for each failure.
     private func expectedEnd(_ recorded: String) -> String {
         if recorded.contains("unescaped <") { return "unescapedAngleInAttributeValue" }
         return "unexpectedEOF"
@@ -101,11 +115,11 @@ import Testing
         }
     }
 
-    /// The end the scan reaches, read the way the reference's scan reads it: the bytes are prepared
-    /// first, which is what makes a declared label matter, and then read as tokens until the scan
-    /// ends. A document that cannot be prepared cannot be tokenized either, which is the same end
-    /// as a failure reached inside the scan, because the reference reports no failure to the caller
-    /// on this path.
+    /// The end the scan reaches, read the way the reference's scan reads it: the bytes are
+    /// prepared first, which is what makes a declared label matter, and then read as tokens
+    /// until the scan ends. A document that cannot be prepared cannot be tokenized either,
+    /// which is the same end as a failure reached inside the scan, because the reference
+    /// reports no failure to the caller on this path.
     private func scanEnd(_ data: Data) -> XMLError {
         let tokenizer: XMLTokenizer
         do {
@@ -128,8 +142,8 @@ import Testing
 
     /// Reads the fixture: a `#` line names the rule of the case under it, and each case is an
     /// `input =` line followed by the decision, the outcome and the end state the reference
-    /// reported, in that order. A rule line is the one followed by a case, so the provenance lines
-    /// at the top of the fixture, which name no case, are read as comments and not as a rule.
+    /// reported, in that order. The lines are read whole, keeping the blank ones, because a
+    /// blank line is what tells the rule of a case from the notes written above the corpus.
     private func readCorpus() throws -> [Case] {
         var cases: [Case] = []
         var rule = ""
@@ -137,10 +151,15 @@ import Testing
         var decision = ""
         var outcome = ""
         var pendingRule = ""
-        for line in try Fixtures.lines("parser/parser_error_corpus.txt") {
+        let fixture = String(decoding: try Fixtures.data("parser/parser_error_corpus.txt"),
+            as: UTF8.self)
+        for line in fixture.split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init) {
             if line.hasPrefix("# ") {
                 pendingRule = (pendingRule.isEmpty ? "" : pendingRule + " ")
                     + String(line.dropFirst(2))
+            } else if line.isEmpty {
+                pendingRule = ""
             } else if line.hasPrefix("input = ") {
                 rule = pendingRule
                 pendingRule = ""
@@ -157,9 +176,9 @@ import Testing
         return cases
     }
 
-    /// The escape forms the fixture writes: the control bytes and the form a value needs to be
-    /// written whole. Reading them is the rule the fixture was written with, so the comparison
-    /// reads the fixture the way the reference wrote it.
+    /// The escape forms the fixture writes: the control bytes and the form a value needs to
+    /// be written whole. Reading them is the rule the fixture was written with, so the
+    /// comparison reads the fixture the way the reference wrote it.
     private func unescape(_ value: String) -> String {
         var out = ""
         var rest = Substring(value)
@@ -173,7 +192,6 @@ import Testing
             switch next {
             case "n": out.append("\n")
             case "t": out.append("\t")
-            
             case "\"": out.append("\"")
             case "x": out.append(scalar(rest.prefix(2))); rest = rest.dropFirst(2)
             default: out.append(char); out.append(next)
@@ -182,8 +200,8 @@ import Testing
         return out
     }
 
+    /// A single hexadecimal escape as the fixture writes it.
     private func scalar(_ hex: Substring) -> String {
         String(UnicodeScalar(UInt32(String(hex), radix: 16) ?? 0) ?? " ")
     }
-
 }

@@ -29,7 +29,9 @@ enum FeedParser {
     static func parse(baseURL: String, data: Data, now: ParsedDate) throws -> ParsedFeed {
         switch route(data) {
         case .atom(let version):
-            if version == "0.3" { return try Atom03Adapter.parse(baseURL: baseURL, data: data, now: now) }
+            if version == "0.3" {
+                return try Atom03Adapter.parse(baseURL: baseURL, data: data, now: now)
+            }
             return try Atom10Adapter.parse(baseURL: baseURL, data: data, now: now)
         case .rss: return try RSSAdapter.parse(baseURL: baseURL, data: data, now: now)
         case .rdf: return try RDFAdapter.parse(baseURL: baseURL, data: data, now: now)

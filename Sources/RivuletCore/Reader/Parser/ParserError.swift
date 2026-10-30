@@ -2,8 +2,6 @@
 // failure is the reference's sentinel `ErrFeedFormatNotDetected`
 // (`internal/reader/parser/parser.go:17`).
 
-import Foundation
-
 /// The failure the parser reports for a document it cannot decide on.
 ///
 /// The reference has one error on this path, the sentinel, and reports it for any document its

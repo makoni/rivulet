@@ -8,23 +8,38 @@
 # reference's output for the case above it, so they are not wrapped here: breaking them
 # would change what they say.
 
-# Each rule line names the rule of the case under it, and every case here can fail on that
-# rule: a case is left out when a wrong implementation of the rule it names writes the same
-# values. So this corpus does not pin the size of the buffer the JSON rule reads, or that
-# the rule reads until the first character rather than to the end, because a wrong
-# implementation of those writes the same decision, nor the number the cap counts, since a
-# root read as the 50th token and one read as the 51st give the same answer. It pins only
-# that the scan stops before the switch when the count reaches the cap. It also cannot pin
-# the wording of a failure: it pins the case the message names, which the test that reads
-# this file spells out, and the outcome line names the branch the switch takes, which for a
-# routed case is the reference's answer that no failure was reported.
+# A case is included when a wrong implementation of the rule its line names writes a
+# different value for it, and a case is left out when it does not. The number the cap counts
+# is pinned only by the pair whose roots sit on the two sides of the boundary: a cap read as
+# 49 fails the case whose root is read as the 50th token, and a cap read as 60 the case read
+# as the 51st, so neither case pins the number alone, and a case for a root read far past
+# the cap is left out because a wrong number writes the same answer for it. Two rules no
+# case here can fail on: the size of the buffer the JSON rule reads, because a larger buffer
+# writes the same decision for every case, and the characters above the basic plane Go's
+# whitespace class counts, because no case has one. That the rule reads until the first
+# character that is not whitespace is pinned by the case whose whitespace is longer than a
+# 32-byte buffer.
+
+# A pin compares the case a failure names, not its wording, and the outcome line names the
+# branch the switch takes, not which adapter is called, which nothing here observes. Seven
+# of the ten end states map to one case, so those pins fail only on the case the mapping can
+# tell apart, and the three cases that name no root share one answer: they fail only through
+# it.
 
 # Two things the comparison treats as equal are recorded in docs/parity.md: the reference
 # reports io.EOF at a clean end of the document, where the port reports its unexpectedEOF
 # case, and the port keeps one case for a failure, so its message is not part of what a pin
 # can compare.
-# a JSON document is decided before any XML token is read, so a feed element inside it does
-# not decide the format
+
+# the JSON rule answers before any token is read, so a real element after the JSON content
+# is not switched on
+input = {\"a\":1}<rss>x</rss>
+decision = json
+outcome = routed to the json adapter
+end = EOF
+
+# a JSON document whose content is a field named feed is answered JSON, because the switch
+# on the name reads roots and never a field
 input = \n\t{\n\t\t\"version\": \"https://jsonfeed.org/version/1\",\n\t\t\"title\": \"Example\",\n\t\t\"feed\": \"x\"\n\t}\n
 decision = json
 outcome = routed to the json adapter
@@ -37,16 +52,22 @@ decision = json
 outcome = routed to the json adapter
 end = EOF
 
-# a document that ends without a character is not decided by the JSON rule, because the rule
-# reads to the end
+# a document that is only whitespace is answered unknown and reported as the typed error,
+# because the JSON rule finds no character to decide on
 input =  \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d \t\n\x0d
 decision = unknown
 outcome = parser: unable to detect feed format
 end = EOF
 
-# the scan reaches the cap and stops before the switch on the name, so a root read as the
-# 50th token is not the answer
-input = <p><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i><i>13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i><i>21</i><i>22</i><i>23</i><i>24</i><i>25</i><i>26</i><i>27</i><i>28</i><i>29</i><i>30</i><i>31</i><i>32</i><i>33</i><i>34</i><i>35</i><i>36</i><i>37</i><i>38</i><i>39</i><i>40</i><i>41</i><i>42</i><i>43</i><i>44</i><i>45</i><i>46</i><i>47</i><rss></rss>
+# the token read as the 50th is switched on, so this case fails for a cap below 50
+input = <p><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><rss></rss>
+decision = rss
+outcome = routed to the rss adapter
+end = XML syntax error on line 1: unexpected EOF
+
+# the scan stops at the cap before the switch on the name, so the token read as the 51st is
+# not switched on, and this case fails for a cap above 50
+input = <p><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i>x</i><rss></rss>
 decision = unknown
 outcome = parser: unable to detect feed format
 end = XML syntax error on line 1: unexpected EOF
@@ -65,14 +86,14 @@ decision = unknown
 outcome = parser: unable to detect feed format
 end = XML syntax error on line 1: unescaped < inside quoted string
 
-# the scan ends with the answer unknown for a document with no feed root, which is the case
-# the typed error is reported for
+# the scan ends with the answer unknown for a document with no root the switch reads, which
+# is the case the typed error is reported for
 input = \n\t<!DOCTYPE html> <html> </html>\n\t
 decision = unknown
 outcome = parser: unable to detect feed format
 end = EOF
 
-# a document that is text only has no root to decide on, so the typed error is reported for
+# a document that is text only has no root to switch on, so the typed error is reported for
 # it
 input = garbage
 decision = unknown

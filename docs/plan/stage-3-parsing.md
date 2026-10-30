@@ -23,10 +23,11 @@ URL layer already decoded by the tokenizer and the URL part normalizes no whites
 The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader
 path pinned the four quirk classes and found no divergence, so the table records what the
 reference reports, and the 30 cases that can fail on their rules are committed as a fixture.
-The typed errors land as PR #24: eight inputs read through the reference's parser path pinned
-the sentinel and the branch the switch takes for it and found no divergence, so the table
-there records what the reference reports, and the rules no output can tell apart are named as
-unpinnable.
+The typed errors land as PR #24: ten inputs read through the reference's parser path pinned
+the sentinel, the branch the switch takes for it and how the scan ends, and found no
+divergence, so the table there records what the reference reports; the number the cap counts
+is pinned only by the pair whose roots sit on the two sides of the boundary, and the rules no
+output can tell apart are named as unpinnable.
 
 ## Scope
 

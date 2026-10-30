@@ -220,17 +220,25 @@ the message names, and it cannot tell a clean end of the stream from an end reac
 element, which is the equivalence recorded in `docs/parity.md`.
 
 The typed error on the parser path (`ParserErrorTests`) is read from the same reference, with
-the same method: 8 inputs, each pinned by the rule its line names, comparing what
-`DetectFeedFormat` answers and which branch of `ParseFeed` that answer takes. The run found no
-divergence, so `docs/reference-notes.md` records what the reference reports rather than a
-difference. Every case can fail on the rule it names: an implementation that models the
-failure as another case fails the pins that name the typed error, one that reads the JSON rule
-after the tokens fails only the case whose document is JSON with a feed element inside, and
-one that checks the count after the switch on the name fails only the case whose root is read
-as the 50th token — all three checked by patching the rule and reverting. What the corpus
-cannot pin is recorded in the fixture and in the table: the buffer size, the reading until the
-first character, the number the cap counts, and the wording of the sentinel, which is data the
-pin compares as the case it names.
+the same method: 10 inputs, each with the rule its line names, comparing what
+`DetectFeedFormat` answers, which branch `ParseFeed` takes for that answer, and how the scan
+ends. The run found no divergence, so `docs/reference-notes.md` records what the reference
+reports rather than a difference. Every case can fail on the rule it names, checked by
+patching each rule and reverting: a different case for the typed error fails the five pins
+that name it; the JSON rule read after the tokens fails the case whose JSON content is
+followed by a real element; the first character read as written, or one buffer read instead of
+reading until the first character, fails the case whose whitespace is longer than the buffer;
+the count checked after the switch on the name, or read as 60, fails the case whose root is
+read as the 51st token; a `version` attribute matched only without a prefix fails the prefixed
+case; and an angle bracket inside a quoted attribute value tolerated fails the case that names
+the failure. The number the cap counts is pinned only by the pair whose roots sit on the two
+sides of the boundary — a cap read as 49 fails the case read as the 50th token and a cap read
+as 60 the case read as the 51st — so no case pins it alone, and a case for a root read far
+past the cap is left out because a wrong number writes the same answer for it. What no case
+can pin: the buffer size, because a larger one writes the same decision for every case; the
+characters above the basic plane Go's whitespace class counts, because no case here has one;
+the wording of the sentinel; and which adapter the switch calls, since the outcome compares
+the branch, not a call.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
 cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split

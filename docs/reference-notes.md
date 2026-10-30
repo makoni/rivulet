@@ -550,23 +550,26 @@ the one for Atom 1.0 for anything else.
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A document the JSON rule reads to the end without a character | the answer `unknown`, so the sentinel | a document that ends without a character is not decided by the JSON rule |
-| The first character that is not whitespace before the JSON root | JSON, decided before any XML token is read | the character that decides the JSON rule is the first one that is not whitespace |
-| A JSON document with a feed element inside it | JSON, so the element inside does not decide the format | a JSON document is decided before any XML token is read |
-| The count reaches the cap | the scan stops before the switch on the name, so the answer stays `unknown` | the scan reaches the cap and stops before the switch on the name |
+| A JSON document whose content is followed by a real element | `json`, decided before any XML token is read | the JSON rule answers before any token is read, so a real element after the JSON content is not switched on |
+| A JSON document whose content is a field named `feed` | `json`, because the switch on the name reads roots and never a field | a JSON document whose content is a field named feed is answered JSON |
+| Whitespace before the JSON root, longer than the 32-byte buffer | `json`: the first character that is not whitespace decides, and the rule reads past the buffer | the character that decides the JSON rule is the first one that is not whitespace |
+| A document that is only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered unknown and reported as the typed error |
+| The token read as the 50th, and the token read as the 51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the switch on the name | the pair whose roots sit on the two sides of the boundary |
+| An Atom root with the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
 | A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
-| An Atom root with a prefixed `version` attribute | `0.3`, because the attribute the reference reads is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
-| A document with no feed root, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no feed root |
+| A document with no root the switch reads, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no root the switch reads |
 
 The corpus the rows rest on is
 `Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
 `Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
-cannot pin: the size of the buffer the JSON rule reads, and that the rule reads until the
-first character rather than to the end, because a wrong implementation of those writes the
-same answer; and the number the cap counts, because a root read as the 50th token and one read
-as the 51st give the same answer — only that the scan stops before the switch when the count
-reaches the cap. A pin also cannot fail on the wording of the sentinel: it pins the case, and
-the message is recorded as the reference's data.
+cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because
+a larger buffer writes the same decision for every case; the characters above the basic plane
+Go's whitespace class counts, because no case here has one; the wording of the sentinel,
+because the port keeps one case for each failure; and which adapter is called, since the
+outcome names the branch the switch takes. The number the cap counts is pinned only by the
+pair whose roots sit on the two sides of the boundary — a cap read as 49 fails the case read
+as the 50th token and a cap read as 60 the case read as the 51st — and a case for a root read
+far past the cap is left out because a wrong number writes the same answer for it.
 
 ## Test fixtures in the reference
 

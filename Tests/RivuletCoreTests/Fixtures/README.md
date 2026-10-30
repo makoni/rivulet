@@ -13,7 +13,7 @@ implementation under test, never in the input. Directories mirror the upstream
 | --- | --- | --- |
 | `encoding/` | `internal/reader/encoding/testdata` | 11 |
 | `parser/` | `internal/reader/parser/testdata` | 8 |
-| `parser/parser_error_corpus.txt` | not an upstream file — the parser corpus the plan names, see below | 1 |
+| `parser/parser_error_corpus.txt` | not an upstream file — the parser error corpus the plan names, see below | 1 |
 | `parser/golden/` | not an upstream file — the reference's output, see below | 8 |
 | `xml/` | `internal/reader/xml/testdata` | 3 |
 | `sanitizer/` | `internal/reader/sanitizer/testdata` | 2 |
