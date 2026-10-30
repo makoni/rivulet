@@ -448,11 +448,11 @@ Semantics:
 
 ### Tolerant tokenizer (`encoding/xml`, as the reference configures it)
 
-Verified against `encoding/xml`, which is the decoder Miniflux uses, read from the source rather
-than run — there is no Go toolchain on this machine, so the rules were traced from the module-cache
-copy `golang.org/x/net@v0.52.0/webdav/internal/xml`, an internal copy of the package, while
-`miniflux/go.mod` pins `go 1.26.0` — with the configuration `decoder.go` builds: `Strict = false`
-and `Entity = xml.HTMLEntity`.
+Verified against `encoding/xml`, which is the decoder Miniflux uses, traced from the module-cache
+copy `golang.org/x/net@v0.52.0/webdav/internal/xml` — an internal copy of the package — with the
+configuration `decoder.go` builds: `Strict = false` and `Entity = xml.HTMLEntity`. The rules below
+were then confirmed by running the reference, which is what the decision table after this section
+rests on.
 
 - An attribute name with no `=` after it becomes its own value. An unquoted value is read over the
   characters `attrval` lists — letters, digits, `_`, `:`, `-` — which is not the class `readName`
@@ -501,7 +501,37 @@ and `Entity = xml.HTMLEntity`.
   which is why `rdf:RDF` is `RDF`; a failure ends the scan without an answer, so the answer is
   `unknown`; an Atom root with no `version` attribute reports `1.0`.
 
+### Tolerance decision table (the quirks the plan names)
+
+The rows are the rules the plan's test-plan item names — the byte-order mark, garbage before the
+prolog, character references, `<![CDATA[` — with the two configuration choices that decide them.
+They were confirmed by running the reference: Miniflux v2.3.3 at commit `c4d54f87`, Go 1.26.0, read
+through `NewXMLDecoder` and `Token()` — the reader path, not `Decode` — over 52 inputs, comparing
+the token stream and how the stream ends. The run found no divergence from the port, so the table
+records what the reference reports, and each row is pinned by the suite
+`Tests/RivuletCoreTests/XMLToleranceTests.swift`. The method is in `docs/testing.md`.
+
+| Case | What the reference reports on this path | Pinned by |
+| --- | --- | --- |
+| A byte-order mark at the start of the document | a run of text before the first element: the `Token()` path has no mark rule, so nothing strips it | `leadingBOMIsTextThatNothingStripsOnThisPath` |
+| A mark after the prolog | its own run; the instruction is a token of its own, so the mark is not part of the prolog | `leadingBOMAfterThePrologIsStillText` |
+| A mark inside text | kept, as part of the run | `bomInsideTextIsKept` |
+| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so the mark is not a boundary | `bomAndGarbageBeforeThePrologAreOneRunOfText` |
+| A mark with a declared label while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns valid UTF-8 bytes unchanged, so the mark stays the mark, not `ï»¿` | `bomIsNotDecodedThroughTheDeclaredLabelWhileTheBytesAreValidUTF8` |
+| The numeric reference `&#xFEFF;` | resolves, and U+FEFF is inside the `Char` production, so it is legal text | `numericReferenceForTheMarkResolvesAndIsLegalText` |
+| A mark after the end tag of the root | its own run, which keeps the whitespace before it, because `Token()` reads past the root where `Decode` stops | `markAfterTheRootIsTextToo` |
+| Garbage before the prolog | text at the document level: `Strict = false` does not make it a failure | `garbageBeforeThePrologIsTextAtTheDocumentLevel` |
+| Markup before the prolog | tokens, so a text run stops at it; the text between markup is a run of its own | `markupBeforeThePrologIsMarkupNotText` |
+| The entity table | the 252-entry map `encoding/xml` carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are not, so those two stay as written | `theResolvedTableIsTheSmallOneXMLCarriesNotTheTableTheSanitizerReads` |
+| A numeric reference at the boundary | `&#x110000;` stays as written because it is past the largest character the reference can write, while `&#x1f;` is a failure; `&#xD800;` resolving to U+FFFD is pinned in the reader tests | `aReferenceToTheLargestResolvableCharacterIsTextWhileOnePastItIsNot` |
+| `<![CDATA[` | the characters are read as written, so references inside are not decoded; the run is reported as the production it came from, which the tree needs to write the content back | `aCDATARunIsReportedAsTextAndItsEntitiesAreNotDecoded` |
+| Where a CDATA run ends | `]]>` ends it and what follows is another run, because the marker that started the first is not part of the second | `aCDATARunEndsAtTheFirstCharacterItCannotRead` |
+| A CDATA section at the document level | content, so it appears in the stream; a pin through the tree cannot see it, because the reader keeps only what is inside an element | `CDATAAtTheDocumentLevelIsText` |
+| `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | `noAutoCloseIsSetSoAnOpenElementIsClosedByTheNextEndTagNotByTheNextToken` |
+| A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | `aStreamThatEndsInAFailurePinsTheCaseNotTheMessage` |
+
 ## Test fixtures in the reference
+
 
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files

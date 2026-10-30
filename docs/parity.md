@@ -58,6 +58,13 @@ directive reading, `getc` and `mustgetc`, the namespace scope and the end-of-roo
 reference never reads after a failure. The name classes are the one approximation, recorded in the
 table below. The entity table is transcribed from it and attributed in `NOTICE`.
 
+The four quirk classes — the byte-order mark, garbage before the prolog, character references and
+`<![CDATA[` — were checked by running the reference over 52 inputs through the reader path, and no
+difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
+and the pins name them. The end of the stream is the one thing those pins cannot tell apart, and it
+is already recorded below, where the reference's bare `io.EOF` and its `unexpected EOF` are the same
+case here.
+
 **Known differences.**
 
 | Case | Reference (`encoding/xml`) | Rivulet | Impact |
