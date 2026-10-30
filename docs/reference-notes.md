@@ -559,19 +559,32 @@ the one for Atom 1.0 for anything else.
 | A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
 | A document with no root the switch reads, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no root the switch reads |
 
-The corpus the rows rest on is
-`Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
-`Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
-cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because
-a larger buffer writes the same decision for every case; the characters above the basic plane
-Go's whitespace class counts, because no case here has one; the wording of the sentinel,
-because the port keeps one case for each failure; and which adapter is called, since the
-outcome names the branch the switch takes. The number the cap counts is pinned only by the
-pair whose roots sit on the two sides of the boundary — a cap read as 49 fails the case read
-as the 50th token and a cap read as 60 the case read as the 51st — and a case for a root read
-far past the cap is left out because a wrong number writes the same answer for it.
 
-## Test fixtures in the reference
+The corpus the rows rest on is
+
+`Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
+
+`Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
+
+cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because
+
+a larger buffer writes the same decision for every case; the characters above ASCII that Go's
+
+whitespace class counts, U+0085 and U+00A0, because no case here has one; the wording of the
+
+sentinel, because the port keeps one case for each failure; and which adapter is called,
+
+since the outcome names the branch the switch takes. The number the cap counts is pinned only
+
+by the pair whose roots sit on the two sides of the boundary — a cap read as 49 fails the
+
+case read as the 50th token and a cap read as 60 the case read as the 51st — and a case for a
+
+root read far past the cap is left out because a wrong number writes the same answer for it.
+
+Nine of the ten end states map to one case, so eight of those pins fail only on the case the
+
+mapping can tell apart.## Test fixtures in the reference
 
 
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;

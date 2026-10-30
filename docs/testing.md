@@ -236,9 +236,9 @@ sides of the boundary — a cap read as 49 fails the case read as the 50th token
 as 60 the case read as the 51st — so no case pins it alone, and a case for a root read far
 past the cap is left out because a wrong number writes the same answer for it. What no case
 can pin: the buffer size, because a larger one writes the same decision for every case; the
-characters above the basic plane Go's whitespace class counts, because no case here has one;
-the wording of the sentinel; and which adapter the switch calls, since the outcome compares
-the branch, not a call.
+characters above ASCII that Go's whitespace class counts, U+0085 and U+00A0, because no case
+here has one; the wording of the sentinel; and which adapter the switch calls, since the
+outcome compares the branch, not a call.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
 cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split

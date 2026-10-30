@@ -24,13 +24,14 @@ import Testing
 /// only by the pair: a cap read as 49 fails the case read as the 50th token and a cap read as
 /// 60 the case read as the 51st, so neither pins the number alone.
 ///
-/// What a pin cannot fail on: the wording of a message, because the port models each failure as
-/// one case; the size of the buffer, because a larger one writes the same decision for every
-/// case; the characters above the basic plane Go's whitespace class counts, because no case
-/// here has one; and which adapter is called, since the outcome compares the branch the switch
-/// takes. Seven of the ten end states map to one case, so those pins fail only on the case the
-/// mapping can tell apart, and the three cases that name no root share one answer and fail only
-/// through it. Nothing here reads a clock, a locale or the network.
+/// What a pin cannot fail on: the wording of a message, because the port models each failure
+/// as one case; the size of the buffer, because a larger one writes the same decision for
+/// every case; the characters above ASCII that Go's whitespace class counts, U+0085 and
+/// U+00A0, because no case here has one; and which adapter is called, since the outcome
+/// compares the branch the switch takes. Nine of the ten end states map to one case, so those
+/// pins fail only on the case the mapping can tell apart, and the three cases that name no
+/// root share one answer and fail only through it. Nothing here reads a clock, a locale or the
+/// network.
 @Suite struct ParserErrorTests {
     /// One case: the rule it pins, the input as the fixture writes it, the decision the
     /// reference reported, the outcome of the switch, and the end state, which is not a

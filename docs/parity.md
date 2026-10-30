@@ -63,9 +63,45 @@ The four quirk classes — the byte-order mark, garbage before the prolog, chara
 difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
 and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot
 tell apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
-`unexpected EOF` are the same case here. The parser path was checked the same way over ten inputs — the
-sentinel `ErrFeedFormatNotDetected`, the branch the switch takes for it, and how the scan ends — and
-there too no difference was found, so `docs/reference-notes.md` records the rules as the reference
+`unexpected EOF` are the same case here. 
+The parser path was checked the same way over ten inputs — the sentinel, the branch the
+
+switch takes for it, and how the scan ends — and there too no difference was found, so
+
+`docs/reference-notes.md` records the rules as the reference reports them.
+
+**Known differences.**
+
+| Case | Reference (`x/text`) | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Big5 byte `80` | U+FFFD | U+0080 (ICU/Foundation) | A private byte survives where the reference drops it |
+| Big5 byte `FF` | U+FFFD | U+F8F8 (ICU private use) | An invalid byte becomes a PUA character instead of U+FFFD |
+| Invalid sequences in GBK/GB18030/Big5/Shift_JIS/EUC-KR/ISO-2022-JP | U+FFFD per maximal subpart, which can cover several bytes | platform decoder, then glibc `iconv` (which reports one error per stop), then the UTF-8 replacement rule when the platform has no converter | Corrupt spans can differ in the number and placement of U+FFFD; valid text is unaffected |
+| EUC-JP on Linux | decoded by `x/text` | Foundation returns `nil` for every input, so the glibc `iconv` fallback decodes it | Same result for valid documents; pinned by a test |
+| Single-byte tables | `x/text` `charmap`, so `iso-8859-8-i` keeps its own visual table and `iso-8859-6` its own | CoreFoundation resolves the IANA name, which can map an alias to a different table (for example `iso-8859-8-i`) | Only exotic input differs; no fixture covers it |
+| `<meta>` prescan | full HTML tokenizer, with character references unescaped in attribute values and the vertical tab as whitespace | tag scanner (comments, quoting, attribute order, 1024-byte window) | Malformed markup the tokenizer recovers from can end the scan; a label written as an entity is not resolved |
+| Content-type `charset` parameter | `mime.ParseMediaType` | direct parameter scan | Some malformed headers yield a charset where the reference falls through to detection |
+
+None of these differences is observable on the ported fixture corpus: all fixture assertions the
+reference makes are reproduced. Valid documents in a legacy encoding decode identically.
+
+## XML reader (stage 3)
+
+**Matching the reference.** The buffer rules, `space`, `attrval`, `text`, the comment, CDATA and
+directive reading, `getc` and `mustgetc`, the namespace scope and the end-of-root rule follow
+`encoding/xml` (Go 1.22) line by line, with the configuration Miniflux builds (`Strict = false`,
+`Entity = xml.HTMLEntity`). `ungetc` is an equivalence rather than the same function, since the
+reference never reads after a failure. The name classes are the one approximation, recorded in the
+table below. The entity table is transcribed from it and attributed in `NOTICE`.
+
+The four quirk classes — the byte-order mark, garbage before the prolog, character references and
+`<![CDATA[` — were checked by running the reference over 52 inputs through the reader path, and no
+difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
+and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot
+tell apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
+`unexpected EOF` are the same case here. The parser path was checked the same way over ten inputs
+— the sentinel `ErrFeedFormatNotDetected`, the branch the switch takes for it, and how the scan ends —
+and there too no difference was found, so `docs/reference-notes.md` records the rules as the reference
 reports them.
 
 **Known differences.**

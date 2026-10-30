@@ -8,24 +8,21 @@
 # reference's output for the case above it, so they are not wrapped here: breaking them
 # would change what they say.
 
-# A case is included when a wrong implementation of the rule its line names writes a
-# different value for it, and a case is left out when it does not. The number the cap counts
-# is pinned only by the pair whose roots sit on the two sides of the boundary: a cap read as
-# 49 fails the case whose root is read as the 50th token, and a cap read as 60 the case read
-# as the 51st, so neither case pins the number alone, and a case for a root read far past
-# the cap is left out because a wrong number writes the same answer for it. Two rules no
-# case here can fail on: the size of the buffer the JSON rule reads, because a larger buffer
-# writes the same decision for every case, and the characters above the basic plane Go's
-# whitespace class counts, because no case has one. That the rule reads until the first
-# character that is not whitespace is pinned by the case whose whitespace is longer than a
-# 32-byte buffer.
-
-# A pin compares the case a failure names, not its wording, and the outcome line names the
-# branch the switch takes, not which adapter is called, which nothing here observes. Seven
-# of the ten end states map to one case, so those pins fail only on the case the mapping can
-# tell apart, and the three cases that name no root share one answer: they fail only through
-# it.
-
+# A case is included when a wrong implementation of the rule its line names writes a different
+# value for it, and a case is left out when it does not. The number the cap counts is pinned
+# only by the pair whose roots sit on the two sides of the boundary: a cap read as 49 fails
+# the case whose root is read as the 50th token, and a cap read as 60 the case read as the
+# 51st, so neither case pins the number alone, and a case for a root read far past the cap is
+# left out because a wrong number writes the same answer for it. Two rules no case here can
+# fail on: the size of the buffer the JSON rule reads, because a larger buffer writes the same
+# decision for every case, and the characters above ASCII that Go's whitespace class counts,
+# U+0085 and U+00A0, because no case has one. That the rule reads until the first character
+# that is not whitespace is pinned by the case whose whitespace is longer than a 32-byte
+# buffer.# A pin compares the case a failure names, not its wording, and the outcome line names the
+# branch the switch takes, not which adapter is called, which nothing here observes. Nine of
+# the ten end states map to one case — the six that end cleanly and the three failures the
+# port reads as the same case — so those pins fail only on the case the mapping can tell
+# apart, and the three cases that name no root share one answer: they fail only through it.
 # Two things the comparison treats as equal are recorded in docs/parity.md: the reference
 # reports io.EOF at a clean end of the document, where the port reports its unexpectedEOF
 # case, and the port keeps one case for a failure, so its message is not part of what a pin
