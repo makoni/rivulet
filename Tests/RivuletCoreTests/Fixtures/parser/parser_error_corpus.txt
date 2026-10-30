@@ -18,11 +18,13 @@
 # decision for every case, and the characters above ASCII that Go's whitespace class counts,
 # U+0085 and U+00A0, because no case has one. That the rule reads until the first character
 # that is not whitespace is pinned by the case whose whitespace is longer than a 32-byte
-# buffer.# A pin compares the case a failure names, not its wording, and the outcome line names the
+# buffer.
+
+# A pin compares the case a failure names, not its wording, and the outcome line names the
 # branch the switch takes, not which adapter is called, which nothing here observes. Nine of
-# the ten end states map to one case — the six that end cleanly and the three failures the
-# port reads as the same case — so those pins fail only on the case the mapping can tell
+# the ten end states map to one case, so those pins fail only on the case the mapping can tell
 # apart, and the three cases that name no root share one answer: they fail only through it.
+
 # Two things the comparison treats as equal are recorded in docs/parity.md: the reference
 # reports io.EOF at a clean end of the document, where the port reports its unexpectedEOF
 # case, and the port keeps one case for a failure, so its message is not part of what a pin

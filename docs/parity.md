@@ -63,12 +63,10 @@ The four quirk classes — the byte-order mark, garbage before the prolog, chara
 difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
 and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot
 tell apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
-`unexpected EOF` are the same case here. 
-The parser path was checked the same way over ten inputs — the sentinel, the branch the
-
-switch takes for it, and how the scan ends — and there too no difference was found, so
-
-`docs/reference-notes.md` records the rules as the reference reports them.
+`unexpected EOF` are the same case here. The parser path was checked the same way over ten inputs — the sentinel, the branch the switch
+takes for it, and how the scan ends, where the recorded end states are the reference's own
+messages — and there too no difference was found, so `docs/reference-notes.md` records the
+rules as the reference reports them.
 
 **Known differences.**
 
@@ -99,9 +97,9 @@ The four quirk classes — the byte-order mark, garbage before the prolog, chara
 difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
 and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot
 tell apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
-`unexpected EOF` are the same case here. The parser path was checked the same way over ten inputs
-— the sentinel `ErrFeedFormatNotDetected`, the branch the switch takes for it, and how the scan ends —
-and there too no difference was found, so `docs/reference-notes.md` records the rules as the reference
+`unexpected EOF` are the same case here. The parser path was checked the same way over ten inputs — the
+sentinel `ErrFeedFormatNotDetected`, the branch the switch takes for it, and how the scan ends — and
+there too no difference was found, so `docs/reference-notes.md` records the rules as the reference
 reports them.
 
 **Known differences.**
