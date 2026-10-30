@@ -219,6 +219,19 @@ pin cannot fail on the wording of a failure message either, which is why the tes
 the message names, and it cannot tell a clean end of the stream from an end reached inside an
 element, which is the equivalence recorded in `docs/parity.md`.
 
+The typed error on the parser path (`ParserErrorTests`) is read from the same reference, with
+the same method: 8 inputs, each pinned by the rule its line names, comparing what
+`DetectFeedFormat` answers and which branch of `ParseFeed` that answer takes. The run found no
+divergence, so `docs/reference-notes.md` records what the reference reports rather than a
+difference. Every case can fail on the rule it names: an implementation that models the
+failure as another case fails the pins that name the typed error, one that reads the JSON rule
+after the tokens fails only the case whose document is JSON with a feed element inside, and
+one that checks the count after the switch on the name fails only the case whose root is read
+as the 50th token — all three checked by patching the rule and reverting. What the corpus
+cannot pin is recorded in the fixture and in the table: the buffer size, the reading until the
+first character, the number the cap counts, and the wording of the sentinel, which is data the
+pin compares as the case it names.
+
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
 cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split
 by what the adapter writes — the feed level, the entry level, the attachments, the identity —

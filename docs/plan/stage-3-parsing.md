@@ -20,10 +20,13 @@ reference's own output, each with the rule that output pins, and the one rule th
 the port missing — the order a formatting element writes its attributes in. The entity-decoding
 and whitespace items of the normalization URL part closed with it, because the value reaches the
 URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
-The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader path
-pinned the four quirk classes and found no divergence, so the table records what the reference
-reports, and the 30 cases that can fail on their rules are committed as a fixture. The open item is
-the typed errors.
+The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader
+path pinned the four quirk classes and found no divergence, so the table records what the
+reference reports, and the 30 cases that can fail on their rules are committed as a fixture.
+The typed errors land as PR #24: eight inputs read through the reference's parser path pinned
+the sentinel and the branch the switch takes for it and found no divergence, so the table
+there records what the reference reports, and the rules no output can tell apart are named as
+unpinnable.
 
 ## Scope
 

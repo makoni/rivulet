@@ -538,6 +538,36 @@ it is pinned in `XMLTreeTests`.
 | `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | AutoClose is never set, so an open element is closed by the next end tag |
 | A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | the mark is text, and the end tag after it has no element open |
 
+The typed error on the parser path (`parser/parser.go`)
+
+The reference has one error on this path: the sentinel `ErrFeedFormatNotDetected`
+(`internal/reader/parser/parser.go:17`), reported for any document `DetectFeedFormat` answers
+`unknown` for. `ParseFeed` routes the four formats it can decide on to their adapters and
+reports the sentinel for the rest, and the port models the failure as one case,
+`ParserError.feedFormatNotDetected`. The version `DetectFeedFormat` answers is read only by
+the Atom branch: `atom.Parse` calls the parser for Atom 0.3 when the version says `0.3` and
+the one for Atom 1.0 for anything else.
+
+| Case | What the reference reports on this path | Pinned by the corpus case that says |
+| --- | --- | --- |
+| A document the JSON rule reads to the end without a character | the answer `unknown`, so the sentinel | a document that ends without a character is not decided by the JSON rule |
+| The first character that is not whitespace before the JSON root | JSON, decided before any XML token is read | the character that decides the JSON rule is the first one that is not whitespace |
+| A JSON document with a feed element inside it | JSON, so the element inside does not decide the format | a JSON document is decided before any XML token is read |
+| The count reaches the cap | the scan stops before the switch on the name, so the answer stays `unknown` | the scan reaches the cap and stops before the switch on the name |
+| A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
+| An Atom root with a prefixed `version` attribute | `0.3`, because the attribute the reference reads is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
+| A document with no feed root, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no feed root |
+
+The corpus the rows rest on is
+`Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
+`Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
+cannot pin: the size of the buffer the JSON rule reads, and that the rule reads until the
+first character rather than to the end, because a wrong implementation of those writes the
+same answer; and the number the cap counts, because a root read as the 50th token and one read
+as the 51st give the same answer — only that the scan stops before the switch when the count
+reaches the cap. A pin also cannot fail on the wording of the sentinel: it pins the case, and
+the message is recorded as the reference's data.
+
 ## Test fixtures in the reference
 
 
