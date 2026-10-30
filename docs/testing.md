@@ -208,12 +208,16 @@ inputs over the four quirk classes, read through `NewXMLDecoder` and `Token()` �
 not `Decode` — with the same reference and the same method the parser corpus uses, comparing the
 token stream and how the stream ends. The run found no divergence, so the table in
 `docs/reference-notes.md` records what the reference reports rather than a difference, and
-`docs/parity.md` gained only the modeling choice for the end of the stream. Every pin can fail on
-the rule it names: with an implementation that strips a leading mark only the pins that name a
-leading mark fail, and with the larger entity table only the pins that name the table boundary fail
-— both checked by patching the rule and reverting. A pin cannot fail on the wording of a failure
-message, which is why it compares the case the port models, and it cannot pin whether the stream
-ended cleanly or inside an element, which the port reports as one case.
+`docs/parity.md` gained no new row there beyond the modeling choice for the end of the stream.
+The 30 cases that can fail on the rule they name are committed as the fixture
+`Tests/RivuletCoreTests/Fixtures/xml/tolerance_corpus.txt`; a case is left out when a wrong
+implementation of its rule writes the same stream, so the suite reads the fixture rather than
+carrying the inputs inline. What the corpus cannot pin: the production a run of text came from,
+which `Token()` reports as character data either way, and a stream that ends at the end of the
+document inside a CDATA section, because the port reports that as the one failure case it has. A
+pin cannot fail on the wording of a failure message either, which is why the test compares the case
+the message names, and it cannot tell a clean end of the stream from an end reached inside an
+element, which is the equivalence recorded in `docs/parity.md`.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
 cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split

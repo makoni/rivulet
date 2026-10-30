@@ -506,29 +506,37 @@ rests on.
 The rows are the rules the plan's test-plan item names — the byte-order mark, garbage before the
 prolog, character references, `<![CDATA[` — with the two configuration choices that decide them.
 They were confirmed by running the reference: Miniflux v2.3.3 at commit `c4d54f87`, Go 1.26.0, read
-through `NewXMLDecoder` and `Token()` — the reader path, not `Decode` — over 52 inputs, comparing
-the token stream and how the stream ends. The run found no divergence from the port, so the table
-records what the reference reports, and each row is pinned by the suite
-`Tests/RivuletCoreTests/XMLToleranceTests.swift`. The method is in `docs/testing.md`.
+through `NewXMLDecoder` and `Token()` — the reader path, not `Decode` — with `Strict = false` and
+`Entity = xml.HTMLEntity`, over 52 inputs, comparing the token stream and how the stream ends. The
+run found no divergence from the port, so the table records what the reference reports rather than a
+difference. 30 of those inputs are committed as the fixture
+`Tests/RivuletCoreTests/Fixtures/xml/tolerance_corpus.txt`, which the suite
+`Tests/RivuletCoreTests/XMLToleranceTests.swift` reads; a case is left out when a wrong
+implementation of the rule it names writes the same stream, so the pinned set is smaller than the
+read set. The method is in `docs/testing.md`. The pin compares the stream as `Token()` reports it,
+which carries no label for the production a run came from: the CDATA flag is this port's model, and
+it is pinned in `XMLTreeTests`.
 
-| Case | What the reference reports on this path | Pinned by |
+| Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A byte-order mark at the start of the document | a run of text before the first element: the `Token()` path has no mark rule, so nothing strips it | `leadingBOMIsTextThatNothingStripsOnThisPath` |
-| A mark after the prolog | its own run; the instruction is a token of its own, so the mark is not part of the prolog | `leadingBOMAfterThePrologIsStillText` |
-| A mark inside text | kept, as part of the run | `bomInsideTextIsKept` |
-| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so the mark is not a boundary | `bomAndGarbageBeforeThePrologAreOneRunOfText` |
-| A mark with a declared label while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns valid UTF-8 bytes unchanged, so the mark stays the mark, not `ï»¿` | `bomIsNotDecodedThroughTheDeclaredLabelWhileTheBytesAreValidUTF8` |
-| The numeric reference `&#xFEFF;` | resolves, and U+FEFF is inside the `Char` production, so it is legal text | `numericReferenceForTheMarkResolvesAndIsLegalText` |
-| A mark after the end tag of the root | its own run, which keeps the whitespace before it, because `Token()` reads past the root where `Decode` stops | `markAfterTheRootIsTextToo` |
-| Garbage before the prolog | text at the document level: `Strict = false` does not make it a failure | `garbageBeforeThePrologIsTextAtTheDocumentLevel` |
-| Markup before the prolog | tokens, so a text run stops at it; the text between markup is a run of its own | `markupBeforeThePrologIsMarkupNotText` |
-| The entity table | the 252-entry map `encoding/xml` carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are not, so those two stay as written | `theResolvedTableIsTheSmallOneXMLCarriesNotTheTableTheSanitizerReads` |
-| A numeric reference at the boundary | `&#x110000;` stays as written because it is past the largest character the reference can write, while `&#x1f;` is a failure; `&#xD800;` resolving to U+FFFD is pinned in the reader tests | `aReferenceToTheLargestResolvableCharacterIsTextWhileOnePastItIsNot` |
-| `<![CDATA[` | the characters are read as written, so references inside are not decoded; the run is reported as the production it came from, which the tree needs to write the content back | `aCDATARunIsReportedAsTextAndItsEntitiesAreNotDecoded` |
-| Where a CDATA run ends | `]]>` ends it and what follows is another run, because the marker that started the first is not part of the second | `aCDATARunEndsAtTheFirstCharacterItCannotRead` |
-| A CDATA section at the document level | content, so it appears in the stream; a pin through the tree cannot see it, because the reader keeps only what is inside an element | `CDATAAtTheDocumentLevelIsText` |
-| `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | `noAutoCloseIsSetSoAnOpenElementIsClosedByTheNextEndTagNotByTheNextToken` |
-| A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | `aStreamThatEndsInAFailurePinsTheCaseNotTheMessage` |
+| A byte-order mark at the start of the document | a run of text before the first element: the `Token()` path has no mark rule, so nothing strips it | the mark is character data before the first element, because this path has no mark rule |
+| A mark after the prolog | its own run; the instruction is a token of its own, so the mark is not part of the prolog | the mark is not part of the prolog |
+| A mark inside text | kept, as part of the run | a mark inside text is kept as part of the run |
+| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so the mark is not a boundary | the mark and the garbage are one run |
+| A mark with a declared label while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns valid UTF-8 bytes unchanged, so the mark stays the mark, not the three characters windows-1252 gives for them | valid UTF-8 bytes are not decoded through the label |
+| A document that is only the mark | one run of text | a document that is only the mark is one run of text |
+| Garbage before the prolog | text at the document level: `Strict = false` does not make it a failure | junk before the prolog is text at the document level, not a failure |
+| Markup before the prolog | tokens, so a text run stops at it; the text between markup is a run of its own | text stops at markup |
+| Leading whitespace before the prolog | a run of text, not tag whitespace, because it is not between parts of a tag | leading whitespace is a run of text |
+| The entity table | the 252-entry map `encoding/xml` carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are not, so those two stay as written | `NewLine` is not in the table encoding/xml carries, so it stays as written |
+| A numeric reference at the boundary | `&#x10FFFF;` — the largest character the reference can write — resolves, while `&#1114112;` past it stays as written | the largest character the reference can write resolves, so U+10FFFF is text |
+| A resolved character outside the `Char` production | the failure for an illegal character code, which the pins compare as the case the message names, not the wording | a resolved character outside Char is the failure for an illegal character code |
+| `<![CDATA[` | the characters are read as written, so references inside are not decoded | references inside a CDATA section are not decoded |
+| Where a CDATA run ends | `]]>` ends it and what follows is another run, because the marker that started the first is not part of the second | the terminator ends the run and what follows is a run of its own |
+| A CDATA section at the document level | content, so it appears in the stream, which a pin through the tree cannot see because the reader keeps only what is inside an element | a CDATA section at the document level is content |
+| Text before a CDATA marker | the marker ends the run, so the two are runs of their own | text before a CDATA marker and the section it opens are two runs |
+| `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | AutoClose is never set, so an open element is closed by the next end tag |
+| A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | the mark is text, and the end tag after it has no element open |
 
 ## Test fixtures in the reference
 

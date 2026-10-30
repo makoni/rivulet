@@ -2,52 +2,88 @@ import Foundation
 import Testing
 @testable import RivuletCore
 
-/// The tolerance decision table for the XML quirks the plan names: the byte-order mark, garbage
-/// before the prolog, character references, and `<![CDATA[`, with the two configuration choices
-/// that decide them — `Strict = false` with no `AutoClose`, and `Entity = xml.HTMLEntity`.
+/// The tolerance corpus: the inputs the decision table in `docs/reference-notes.md` rests on,
+/// read through the reference's reader path.
 ///
-/// The values are the reference's own, from running Miniflux v2.3.3 with the decoder that package
-/// builds (`internal/reader/xml/decoder.go`: `Strict = false`, `Entity = xml.HTMLEntity`, no
-/// `AutoClose`). Each row of the table in `docs/reference-notes.md` is pinned here, and every pin
-/// compares the token stream the reference reports, so it can fail on the rule it names: a reader
-/// that stripped the mark, resolved the larger HTML table, or applied `AutoClose` would report a
-/// different stream. What a pin cannot pin is recorded with the table.
+/// Every expected value is the reference's own output for its input, not this implementation's,
+/// so a failure here is a difference in the port, and recording it in `docs/parity.md` is the
+/// only way a difference can stay. The values were written by running Miniflux v2.3.3 at commit
+/// `c4d54f87` (Go 1.26.0) through `NewXMLDecoder` and `Token()` — the reader path, not `Decode`
+/// — with `TZ=UTC`, the method recorded in `docs/testing.md`.
+///
+/// The comparison reads the stream as the reference reports it, so it cannot show the production
+/// a run of text came from: `Token()` reports a CDATA run as character data like any other run,
+/// and the flag this port keeps for it is pinned in `XMLTreeTests`. It cannot show the wording of
+/// a failure either: the reference gives a message and the port models each failure as one case,
+/// so the test compares the case the message names, and a wrong implementation reports another
+/// case. The end of the stream is the same modeling choice recorded in `docs/parity.md`: the
+/// reference reports `io.EOF` at a clean end, where this port reports `unexpectedEOF` for a clean
+/// end and for an end reached inside an element alike. Nothing here reads a clock, a locale or the
+/// network.
 @Suite struct XMLToleranceTests {
-    private let bom = "\u{FEFF}"
-    private let prolog = "<?xml version=\"1.0\"?>"
+    /// One case: the rule it pins, the input as the fixture writes it, the stream the reference
+    /// reported, and its end state, which is not a token so it is kept apart from the parts.
+    struct Case {
+        var rule: String
+        var input: String
+        var parts: [String]
+        var end: String
+    }
 
-    /// The tokens in the order the reference reports them, read through the path `decoder.go`
-    /// builds, which is what makes a declared label matter.
-    ///
-    /// The stream ends where the reference's stream ends, and the end is not a token: the reference
-    /// reports `io.EOF` there, while this port reports the same failure as ``XMLError``
-    /// `unexpectedEOF` for a clean end and for an end reached inside an element alike. So the pins
-    /// compare the tokens only, and the failures they name are the ones a stream can end with.
-    private func stream(_ input: String) throws -> [String] {
-        var values: [String] = []
+    @Test func corpusCaseWritesTheReferenceStream() throws {
+        let cases = try readCorpus()
+        #expect(!cases.isEmpty, "the corpus fixture is empty")
+
+        for c in cases {
+            let (parts, end) = try stream(c.input)
+            #expect(parts == c.parts, "case: \(c.rule), input: \(c.input.debugDescription)")
+            #expect(end == expectedEnd(c.end), "case: \(c.rule), end state")
+        }
+    }
+
+    /// The stream this port reports for an input, read the way the reference reads it: the bytes
+    /// are prepared first, which is what makes a declared label matter, and then read as tokens.
+    /// The parts are written in the shape the fixture writes them, so the comparison is the stream
+    /// as such.
+    private func stream(_ input: String) throws -> ([String], String) {
+        var parts: [String] = []
         let tokenizer = XMLTokenizer(try XMLReader.prepared(Data(input.utf8)))
         while true {
             let token: XMLToken?
             do {
                 token = try tokenizer.nextToken()
             } catch let failure as XMLError {
-                if failure == .unexpectedEOF { return values }
-                return values + ["error:\(name(of: failure))"]
+                return (parts, name(of: failure))
             } catch {
-                return values + ["error:other"]
+                return (parts, "other")
             }
-            guard let token else { return values }
+            guard let token else { return (parts, "EOF") }
             switch token {
-            case .startElement(let name, _): values.append("start \(name.namespace):\(name.local)")
-            case .endElement(let name): values.append("end \(name.namespace):\(name.local)")
-            case .characterData(let value, let isCDATA):
-                values.append("\(isCDATA ? "cdata" : "text") \(value)")
+            case .startElement(let name, _): parts.append("start \(key(name))")
+            case .endElement(let name): parts.append("end \(key(name))")
+            case .characterData(let value, _): parts.append("chardata \"\(escaped(value))\"")
             case .processingInstruction(let target, let content):
-                values.append("procinst \(target) \(content)")
-            case .comment(let content): values.append("comment \(content)")
-            case .directive(let content): values.append("directive \(content)")
+                parts.append("procinst \"\(escaped(target))\" \"\(escaped(content))\"")
+            case .comment(let content): parts.append("comment \"\(escaped(content))\"")
+            case .directive(let content): parts.append("directive \"\(escaped(content))\"")
             }
         }
+    }
+
+    /// A name as the reference writes it: the space and the local name, with an empty space
+    /// written as nothing before the colon.
+    private func key(_ name: XMLName) -> String { "\(name.namespace):\(name.local)" }
+
+    /// The end state as the comparison reads it. A clean end is the documented equivalence
+    /// recorded in `docs/parity.md`, and a failure is the case the reference's message names,
+    /// which is all a pin can compare, because the port keeps one case for each failure.
+    private func expectedEnd(_ recorded: String) -> String {
+        if recorded == "EOF" { return "unexpectedEOF" }
+        if recorded.contains("unexpected end element") { return "unexpectedEndElement" }
+        if recorded.contains("illegal character code") { return "illegalCharacterCode" }
+        if recorded.contains("unescaped ]]") { return "unescapedBracketInText" }
+        if recorded.contains("invalid <![") { return "malformedCDATA" }
+        return "unexpectedEOF"
     }
 
     private func name(of failure: XMLError) -> String {
@@ -71,168 +107,75 @@ import Testing
         }
     }
 
-    // MARK: - The byte-order mark
-
-    @Test func leadingBOMIsTextThatNothingStripsOnThisPath() throws {
-         // The reference has no byte-order mark rule on the `Token()` path: the bytes of the mark
-         // are
-        // a run of text before the first element. A reader that skipped a mark, the way an HTML
-        // tokenizer or a UTF-16 decoder does, would report no run here.
-        let want = ["text \(bom)", "start :note", "text x", "end :note"]
-        #expect(try stream("\(bom)<note>x</note>") == want)
+    /// Reads the fixture: a `#` line names the rule of the case under it, and each case is an
+    /// `input =` line followed by a `stream =` line, whose last part is the end state.
+    private func readCorpus() throws -> [Case] {
+        var cases: [Case] = []
+        var rule = ""
+        var input = ""
+        for line in try Fixtures.lines("xml/tolerance_corpus.txt") {
+            if line.hasPrefix("# ") {
+                rule = (rule.isEmpty ? "" : rule + " ") + String(line.dropFirst(2))
+            } else if line.hasPrefix("input = ") {
+                input = unescape(String(line.dropFirst(8)))
+            } else if line.hasPrefix("stream = ") {
+                let parts = String(line.dropFirst(9)).split(separator: " | ").map(String.init)
+                let end = parts.last ?? "EOF"
+                let streamParts = parts.isEmpty ? [] : Array(parts[0..<parts.count - 1])
+                cases.append(Case(rule: rule, input: input, parts: streamParts, end: end))
+            }
+        }
+        return cases
     }
 
-    @Test func leadingBOMAfterThePrologIsStillText() throws {
-        // The mark is not part of the prolog, so the instruction and the run are two tokens.
-        let want = ["procinst xml version=\"1.0\"", "text \(bom)",
-            "start :note", "text x", "end :note"]
-        #expect(try stream("\(prolog)\(bom)<note>x</note>") == want)
+    /// The escape forms the fixture writes: the byte-order mark, the characters above the basic
+    /// plane, the control bytes, and the two forms a value needs to be written whole. Reading and
+    /// writing them is the same rule, so the comparison reads the fixture and writes the port's
+    /// stream the same way.
+    private func escaped(_ value: String) -> String {
+        var out = ""
+        for scalar in value.unicodeScalars {
+            switch scalar.value {
+            case 0x0A: out.append("\\n")
+            case 0x09: out.append("\\t")
+            case 0x22: out.append("\\\"")
+            case 0xFEFF: out.append("\\ufeff")
+            case let c where c < 0x20 || c == 0x7F: out.append("\\x" + hex(c, 2))
+            case let c where c > 0xFFFF: out.append("\\U" + hex(c, 8))
+            default: out.append(String(scalar))
+            }
+        }
+        return out
     }
 
-    @Test func bomInsideTextIsKept() throws {
-        let want = ["start :note", "text \(bom)x", "end :note"]
-        #expect(try stream("<note>\(bom)x</note>") == want)
+    private func unescape(_ value: String) -> String {
+        var out = ""
+        var rest = Substring(value)
+        while !rest.isEmpty {
+            let char = rest.removeFirst()
+            guard char == "\\", !rest.isEmpty else {
+                out.append(char)
+                continue
+            }
+            let next = rest.removeFirst()
+            switch next {
+            case "n": out.append("\n")
+            case "t": out.append("\t")
+            case "\"": out.append("\"")
+            case "x": out.append(scalar(rest.prefix(2))); rest = rest.dropFirst(2)
+            case "u": out.append(scalar(rest.prefix(4))); rest = rest.dropFirst(4)
+            case "U": out.append(scalar(rest.prefix(8))); rest = rest.dropFirst(8)
+            default: out.append(char); out.append(next)
+            }
+        }
+        return out
     }
 
-    @Test func bomAndGarbageBeforeThePrologAreOneRunOfText() throws {
-        // The mark is not a boundary: the garbage and the mark are one run, because nothing before
-        // the prolog is markup. A reader that skipped the pre-prolog text would report no run.
-        let want = ["text \(bom)junk ", "procinst xml version=\"1.0\"",
-            "start :note", "text x", "end :note"]
-        #expect(try stream("\(bom)junk \(prolog)<note>x</note>") == want)
+    private func scalar(_ hex: Substring) -> String {
+        String(UnicodeScalar(UInt32(String(hex), radix: 16) ?? 0) ?? " ")
     }
 
-    @Test func bomIsNotDecodedThroughTheDeclaredLabelWhileTheBytesAreValidUTF8() throws {
-         // The label is consulted only when the bytes are not valid UTF-8, so the mark stays the
-         // mark.
-        // A reader that decoded these bytes as windows-1252 would write "ï»¿" instead.
-        let want = ["text \(bom)", "procinst xml version=\"1.0\" encoding=\"windows-1252\"",
-            "start :note", "text x", "end :note"]
-        let input = "\(bom)<?xml version=\"1.0\" encoding=\"windows-1252\"?><note>x</note>"
-        #expect(try stream(input) == want)
-    }
-
-    @Test func numericReferenceForTheMarkResolvesAndIsLegalText() throws {
-         // U+FEFF is inside XML's `Char` production, so the reference resolves the reference and
-         // keeps
-        // the character. Only characters the production does not allow are a failure, which is the
-        // case the reader tests pin (`&#0;` and `&#x1;`).
-        let want = ["start :note", "text \(bom)", "end :note"]
-        #expect(try stream("<note>&#xFEFF;</note>") == want)
-    }
-
-    @Test func markAfterTheRootIsTextToo() throws {
-        // The mark is not only a leading thing: after the end tag of the root it is its own run,
-        // because `Token()` reads past the root, where `Decode` stops. That run keeps the space the
-        // input has after the end tag, so the pin shows two spaces between `text` and the mark.
-        let want = ["start :note", "text \(bom)", "end :note", "text  \(bom)"]
-        #expect(try stream("<note>&#xFEFF;</note> \(bom)") == want)
-    }
-
-    // MARK: - Garbage before the prolog
-
-    @Test func garbageBeforeThePrologIsTextAtTheDocumentLevel() throws {
-        // Non-strict mode: junk before the prolog is not a failure, it is a run. The reader tests
-        // pin that the run is not part of the root; here the run itself is the value, so a reader
-        // that dropped non-markup text would report an empty stream.
-        let want = ["text junk before ", "procinst xml version=\"1.0\"",
-            "start :note", "text x", "end :note"]
-        #expect(try stream("junk before \(prolog)<note>x</note>") == want)
-    }
-
-    @Test func markupBeforeThePrologIsMarkupNotText() throws {
-        // The garbage is text only where it is not markup: an element before the prolog is read as
-        // tokens, so the run stops at it, and the single space between markup is a run of its own.
-        let want = ["text junk ", "start :b", "text x", "end :b", "text  ",
-            "procinst xml version=\"1.0\"", "start :note", "text y", "end :note"]
-        #expect(try stream("junk <b>x</b> \(prolog)<note>y</note>") == want)
-    }
-
-    // MARK: - Character references
-
-    @Test func theResolvedTableIsTheSmallOneXMLCarriesNotTheTableTheSanitizerReads() throws {
-         // `Entity = xml.HTMLEntity` is the 252-entry map `encoding/xml` carries, which has `copy`
-         // but
-         // not `NewLine` or `colon`, while the table the sanitizer reads resolves both. A reader
-         // that
-         // used the larger table would write a line feed here, so these pins can fail on the
-         // boundary.
-        let copyRow = ["start :note", "text \u{00A9}", "end :note"]
-        let newlineRow = ["start :note", "text &NewLine;", "end :note"]
-        let colonRow = ["start :note", "text &colon;", "end :note"]
-        #expect(try stream("<note>&copy;</note>") == copyRow)
-        #expect(try stream("<note>&NewLine;</note>") == newlineRow)
-        #expect(try stream("<note>&colon;</note>") == colonRow)
-    }
-
-    @Test func aReferenceToTheLargestResolvableCharacterIsTextWhileOnePastItIsNot() throws {
-        // U+10FFFF is the largest character the reference can write, so `&#x110000;` stays as
-         // written: it cannot be resolved to anything. Pins for `&#xD800;` (U+FFFD) and for a
-         // failure
-        // are in the reader tests; the boundary between text and failure is what this row adds.
-        let resolves = ["start :note", "text &#x110000;", "end :note"]
-        let fails = ["start :note", "error:illegalCharacterCode"]
-        #expect(try stream("<note>&#x110000;</note>") == resolves)
-        #expect(try stream("<note>&#x1f;</note>") == fails)
-    }
-
-    // MARK: - CDATA
-
-    @Test func aCDATARunIsReportedAsTextAndItsEntitiesAreNotDecoded() throws {
-         // Inside `<![CDATA[` the characters are read as they are written, which is what makes the
-         // run
-         // a `cdata` production here rather than plain text: a reader that resolved references
-         // inside
-        // the section would write "a & b".
-        let want = ["start :note", "cdata a &amp; b", "end :note"]
-        #expect(try stream("<note><![CDATA[a &amp; b]]></note>") == want)
-    }
-
-    @Test func aCDATARunEndsAtTheFirstCharacterItCannotRead() throws {
-        // `]]>` ends the run and what follows is another run: the two cannot be one, because the
-        // marker that started the first is not part of the second.
-        let want = ["start :note", "cdata a &amp; b", "text c", "end :note"]
-        #expect(try stream("<note><![CDATA[a &amp; b]]>c</note>") == want)
-    }
-
-    @Test func CDATAAtTheDocumentLevelIsText() throws {
-        // Outside an element the section is still content, so the run appears in the stream. A pin
-         // through the tree could not see it, because the reader keeps only what is inside an
-         // element.
-        let want = ["text \(bom)", "start :note", "cdata x", "end :note"]
-        #expect(try stream("\(bom)<note><![CDATA[x]]></note>") == want)
-    }
-
-    // MARK: - AutoClose
-
-    @Test func noAutoCloseIsSetSoAnOpenElementIsClosedByTheNextEndTagNotByTheNextToken() throws {
-         // `AutoClose` is never set by the reference, so `br` is not closed at the token after it;
-         // it
-        // is closed by the end tag the mismatch path invents, which comes after `to` is closed. A
-        // reader that applied `xml.HTMLAutoClose` would write `end br` before `start to`.
-        let want = ["start :note", "start :br", "text x", "start :to", "text y",
-            "end :to", "end :br", "end :note"]
-        #expect(try stream("<note><br>x<to>y</note>") == want)
-    }
-
-    // MARK: - What the pins cannot pin
-
-    @Test func aStreamThatEndsInAFailurePinsTheCaseNotTheMessage() throws {
-        // The reference's failure is a message ("illegal character code U+001F", "unescaped ]]> not
-        // in CDATA section"); the port models each as one `XMLError` case, and the case is what can
-         // fail. So a pin here compares the case: it pins the class of failure the table records,
-         // not
-         // the wording, and it cannot pin whether the end of the stream was clean or reached inside
-         // an
-        // element, which the reference tells apart only in its message.
-        let bracketRow = ["start :note", "error:unescapedBracketInText"]
-        let cdataRow = ["start :note", "error:malformedCDATA"]
-        let commentRow = ["error:malformedComment"]
-        let namespaceRow = ["start x:y", "error:endTagNamespaceMismatch"]
-        #expect(try stream("<note>x]]></note>") == bracketRow)
-        #expect(try stream("<note><![BAD]x></note>") == cdataRow)
-        #expect(try stream("<!-- a -- b --><note>x</note>") == commentRow)
-        #expect(try stream("<x:y></y>") == namespaceRow)
+    private func hex(_ value: UInt32, _ digits: Int) -> String {
+        String(format: "%0*x", digits, value)
     }
 }
-

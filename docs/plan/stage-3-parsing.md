@@ -22,7 +22,8 @@ and whitespace items of the normalization URL part closed with it, because the v
 URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
 The tolerance decision table lands as PR #23: 52 inputs read through the reference's reader path
 pinned the four quirk classes and found no divergence, so the table records what the reference
-reports. The open item is the typed errors.
+reports, and the 30 cases that can fail on their rules are committed as a fixture. The open item is
+the typed errors.
 
 ## Scope
 
