@@ -244,3 +244,8 @@ Findings from the Atom adapter review (#18) that do not change behavior:
   named helpers.
 - Prose that predates this stage and is over the width: `docs/testing.md` 157-166, and this file
   at 39, 169 and 172.
+Findings from the tolerance decision table review (#23) that do not change behavior:
+- `XMLToleranceTests.expectedEnd` falls back to `unexpectedEOF` for a message it has not mapped, so a
+  future case with a new message would pass without the mapping being read.
+- The `&copy;` case can only fail on the half its line names that the other table cannot write; the
+  table identity is carried by the `NewLine` and `colon` cases, as the fixture's own wording says.
