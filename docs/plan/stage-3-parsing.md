@@ -15,8 +15,12 @@ feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed ad
 field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20. The
 parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end against the reference's
 own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
-inputs. The open items are the XML tolerance table, the hostile sanitizer corpus, and entity
-decoding and whitespace normalization in the normalization URL part.
+inputs. The hostile sanitizer corpus is merged as PR #22: 139 inputs pinned against the reference's
+own output, and the one rule the corpus found the port missing — the order a formatting element
+writes its attributes in. The entity-decoding and whitespace items of the normalization URL part
+closed with it, because the value reaches the URL layer already decoded by the tokenizer and the URL
+part normalizes no whitespace of its own. The open items are the XML tolerance table and the typed
+errors.
 
 ## Scope
 
@@ -39,17 +43,18 @@ decoding and whitespace normalization in the normalization URL part.
       heuristic → `windows-1252` default; output is always UTF-8. Platform decoder gaps (EUC-JP on
       Linux) go through a glibc `iconv` fallback; the deviations are in `docs/parity.md`.
 - [ ] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus.
-- [ ] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
+- [x] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
       subset and fragment tree rather than through SwiftSoup — the decision and the reason are in
-      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged, and so
-      is the text layer it reads through (`StripTags` and `TruncateHTML`, which the format adapters
-      call); the format adapters are next.
+      `docs/parity.md`, and SwiftSoup stays the dependency `EntryText` uses. The core is merged as
+      PR #13 with the findings from its review as #14, the text layer it reads through (`StripTags`
+      and `TruncateHTML`, which the format adapters call) as #15, and the hostile corpus as #22.
 - [x] Normalization, URL part: relative URL resolution against the feed/site URL, ported from
       `internal/urllib` and the `net/url` subset it reads through (parse order, raw path, host
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
-      Entity decoding and whitespace normalization are still open.
+      decoding happens in the tokenizer, before the URL part reads the value, and the URL part
+      normalizes no whitespace of its own; both are pinned by the hostile corpus, PR #22.
 - [ ] Feed metadata: title, site URL, description, icon link; typed errors ("not a feed",
       "feed not found", too large).
 - [x] Fixtures ported to `Tests/RivuletCoreTests/Fixtures/<area>/` with a provenance `README.md`
@@ -95,15 +100,20 @@ decoding and whitespace normalization in the normalization URL part.
 - URL: the ported tables from `internal/urllib/url_test.go` and
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
-- Sanitizer: ported rules + a hostile corpus (script tags, `onerror`, `javascript:` URLs, nested
-  obfuscation). The reference corpus is ported in full except the fuzz target `FuzzSanitizer`, whose
-  expectation is that the output has no more tokens than the input, which needs a fuzz harness and a
-  seed corpus that Swift Testing does not have. The text layer (`StripTags` and `TruncateHTML`) is
-  the suite this PR adds. The tokenizer and insertion-mode rules have no reference corpus, so they
-  are pinned through the sanitizer output as traced against `golang.org/x/net/html` — see
-  `docs/parity.md` — except the four the output cannot show, a tag name and an attribute key
-  carrying a NUL, the shape of the entity table, and where comment data ends, which are asserted
-  through the tokenizer itself.
+- Sanitizer: ported rules + the hostile corpus (`SanitizerHostileCorpusTests` over
+  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 139 inputs, each with the output the reference
+  produced for it, covering the scheme allowlist, the data-URI prefixes, the mandatory attributes,
+  the pixel tracker, the blocked resources, the hidden check, what a dropped tag leaves of its
+  content, the control bytes the parse refuses but the as-read path does not, the entity lookup
+  inside an attribute value, the srcset whitespace class, and the order a formatting element
+  writes its attributes in. The reference corpus is ported in full except the fuzz target
+  `FuzzSanitizer`, whose expectation is that the output has no more tokens than the input, which
+  needs a fuzz harness and a seed corpus that Swift Testing does not have. The text layer
+  (`StripTags` and `TruncateHTML`) is the suite PR #15 adds. The tokenizer and insertion-mode
+  rules have no reference corpus, so they are pinned through the sanitizer output as traced
+  against `golang.org/x/net/html` — see `docs/parity.md` — except the four the output cannot show,
+  a tag name and an attribute key carrying a NUL, the shape of the entity table, and where comment
+  data ends, which are asserted through the tokenizer itself.
 
 ### Integration
 

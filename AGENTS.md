@@ -16,13 +16,14 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 3 — Parsing & sanitization** (charset, XML reader, date parser, the URL layer
-the sanitizer resolves through, the sanitizer core and its text layer (`StripTags`, `TruncateHTML`)
-merged, the normalized model with the shared primitives and the RSS, RDF and Atom adapters merged,
-and the format adapters landing one format at a time, the JSON reader layer and the JSON Feed
-adapter merged, and the parser fixture corpus pinned against the reference's own output. Stage 2 is
-merged, with one exit criterion deferred to the refresh path; see its stage file. Keep this line and
-the plan's status table in sync.
+Current focus: **Stage 3 — Parsing & sanitization** (charset, XML reader, date parser, the URL
+layer the sanitizer resolves through, the sanitizer core and its text layer (`StripTags`,
+`TruncateHTML`) merged, the normalized model with the shared primitives and the RSS, RDF and
+Atom adapters merged, and the format adapters landing one format at a time, the JSON reader
+layer and the JSON Feed adapter merged, and the parser fixture corpus and the hostile sanitizer
+corpus pinned against the reference's own output. Stage 2 is merged, with one exit criterion
+deferred to the refresh path; see its stage file. Keep this line and the plan's status table in
+sync.
 
 ## Toolchain
 

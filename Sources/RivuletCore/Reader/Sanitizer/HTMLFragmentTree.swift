@@ -15,9 +15,11 @@ import Foundation
 /// on the tree with nothing in it, and the depth limit the reference refuses.
 ///
 /// Where the subset stops, recorded in `docs/parity.md`: foster parenting, the active formatting
-/// elements, the adoption agency, the caption and column-group modes, nested tables, the scope
-/// markers, the ancestor loops the start tags run for `li`, `dd` and `dt`, the raw-text
-/// leading-newline mode and the foreign-content self-closing pop. None of them changes what the
+/// elements — the order rule `addFormattingElement` gives them is ported, because that one changes
+/// what the sanitizer writes, while the list itself is not — the adoption agency, the caption and
+/// column-group modes, nested tables, the scope markers, the ancestor loops the start tags run for
+/// `li`, `dd` and `dt`, the raw-text leading-newline mode and the foreign-content self-closing pop.
+/// None of those changes what the
 /// sanitizer writes for a case in the reference corpus, but a real feed can nest content
 /// differently here, so the tree is built as if the insertion point were the open element, which is
 /// what the modes answer with for the tags in the corpus.
@@ -89,6 +91,20 @@ final class HTMLFragmentTree {
     static let cellStartTags: Set<String> = [
         "caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr",
     ]
+
+    /// The names `inBodyIM` answers with `addFormattingElement`, which is the one place the
+    /// reference reorders the attributes it puts on a node: by name, then by value for a tie. The
+    /// port has no namespace, which is the first key `attrCompare` reads, so the name and the value
+    /// are the whole comparison. `a` is the only one of them with attributes in the sanitizer's
+    /// allowlist, so that is where the order shows in the output.
+    static let formattingElementTags: Set<String> = [
+        "a", "b", "big", "code", "em", "font", "i", "ins", "nobr", "s", "small", "strike", "strong",
+        "tt", "u",
+    ]
+
+    private static func sorted(_ attributes: [HTMLAttribute]) -> [HTMLAttribute] {
+        attributes.sorted { ($0.name, $0.value) < ($1.name, $1.value) }
+    }
 
     struct Failure: Error, Equatable {}
 
@@ -359,7 +375,7 @@ final class HTMLFragmentTree {
     @discardableResult
     private func insertElement(name: String, attributes: [HTMLAttribute]) throws -> HTMLNode {
         let node = HTMLNode(kind: .element, name: name)
-        node.attributes = attributes
+        node.attributes = Self.formattingElementTags.contains(name) ? Self.sorted(attributes) : attributes
         (open.last ?? root).appendChild(node)
         open.append(node)
         if open.count > Self.maxOpenElements { throw Failure() }

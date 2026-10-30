@@ -8,7 +8,7 @@ afterthought — they run in CI together with unit tests.
 | Level | Location | Scope |
 | --- | --- | --- |
 | Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
-| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output |
+| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the hostile sanitizer corpus, whose outputs are the reference's |
 | Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
 | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic diff against real Miniflux in Docker |
 
@@ -158,7 +158,11 @@ The URL layer has no fixture corpus, because the reference has none for it: its 
 tables from `internal/urllib/url_test.go` and `internal/reader/urlcleaner/urlcleaner_test.go`, plus
 pins traced against Go's `net/url` source, so each suite says which pins come from the upstream
 corpus and which are traced from the source, and `docs/parity.md` records where the traced subset
-stops. Nothing in it reads a clock, a locale or the network.
+stops. Nothing in it reads a clock, a locale or the network. The URL rules the sanitizer reads
+attribute values through — that a value already read as absolute is written as it was read, that the
+control-byte check is the parse's and not the writer's, that the query is not decoded, and that the
+entity decoding happens in the tokenizer before the URL part sees the value — are pinned by the
+hostile corpus below, which is where the plan's open entity-decoding and whitespace items closed.
 
 The sanitizer's upstream corpus is ported in full except the fuzz target `FuzzSanitizer`, whose
 expectation is that the sanitized output has no more tokens than the input, which needs a fuzz
@@ -167,13 +171,31 @@ harness and a seed corpus that Swift Testing has neither. The two text-layer sui
 count per code point rather than per Swift grapheme, the set `unicode.IsSpace` answers with as its
 generated table rather than as its comment reads it, and the raw state that ends at its end tag
 because the script escaping states are not ported. The tokenizer and the insertion modes have no
-upstream corpus, so the seven sanitizer suites name what is traced against `golang.org/x/net/html`
+upstream corpus, so the eight sanitizer suites — the hostile corpus among them — name what is traced
+against `golang.org/x/net/html`
 v0.61.0 — `miniflux/go.mod` pins v0.57.0 — and `docs/parity.md` records where that subset stops.
 Four of those pins cannot be seen through the sanitizer output and are asserted through the
 tokenizer itself: a tag name and an attribute key carrying a NUL, which are never in the allowlist,
 the shape of the entity table, and where comment data ends, because the renderer writes nothing for
-a comment. The hostile corpus the plan names is the case that writes no active content: an event
-handler, a `javascript:` URL, and obfuscation nested inside a tag that is dropped.
+a comment.
+
+The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
+`Fixtures/sanitizer/hostile_corpus.txt`: 139 inputs that try to make the sanitizer write active
+content, each with the output the reference produced for it. The inputs are ours, not upstream's;
+the outputs were written by running Miniflux v2.3.3 at commit `c4d54f87` with the reference's test
+helper options — `OpenLinksInNewTab: true`, base URL `http://example.org/`, `TZ=UTC` — the same
+method the parser corpus uses, so a failure here is a difference in the port.
+
+What it pins is the rules its cases name: the scheme allowlist, the data-URI prefixes, the mandatory
+attributes, the pixel tracker, the blocked resources, the hidden check, what a dropped tag leaves of
+its content, the control bytes the URL parse refuses while the as-read path does not, the entity
+lookup inside an attribute value — which is where the URL part's entity decoding happens, because
+the value reaches the URL layer already decoded — the srcset whitespace class, that the URL part
+normalizes no whitespace of its own, and the order a formatting element writes its attributes in.
+Two things it cannot pin: content inside `math` or `svg`, which the reference inserts through the
+foreign-content rules this port does not have, and the 10000-depth guard, which belongs to the
+tokenizer and is pinned in `HTMLTokenizerTests`. A case whose read order is already the sorted order
+cannot pin the order rule either, and the fixture names those cases.
 
 The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
 from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what the

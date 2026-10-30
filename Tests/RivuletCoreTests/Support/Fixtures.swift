@@ -13,6 +13,14 @@ enum Fixtures {
         return try Data(contentsOf: url)
     }
 
+    /// Reads a fixture as lines, which is how a corpus file is read. The trailing newline does not
+    /// make an empty last line.
+    static func lines(_ relativePath: String) throws -> [String] {
+        String(data: try data(relativePath), encoding: .utf8).map {
+            $0.split(separator: "\n").map { String($0) }
+        } ?? []
+    }
+
     /// Reads the bytes as UTF-8 for an assertion, without checking that they are valid UTF-8;
     /// the tests that mirror an upstream assertion also check validity, as upstream does.
     static func utf8(_ data: Data) -> String {
