@@ -16,10 +16,14 @@ whole stage.
 
 ## Scope
 
-- [ ] Refresh pipeline per feed: fetch → parse → normalize → sanitize → merge → store in one
-      write transaction, then update feed state.
+- [x] Refresh pipeline per feed: fetch → parse → normalize → sanitize → merge → store in one
+      write transaction, then update feed state. Landed as PR #25; the transaction boundary
+      itself is what no test can pin, so it is stated in `docs/parity.md`.
 - [ ] Merge semantics: new entries inserted; changed entries only update content — user state
-      (read/starred) is never touched; entries missing upstream are kept locally.
+      (read/starred) is never touched; entries missing upstream are kept locally. The upsert half
+      is pinned in stage 1, where status and starred survive an update, and the pipeline pins the
+      branch that updates a known entry and that a second identical refresh writes nothing; no
+      case shows an entry the upstream document no longer declares.
 - [ ] Tombstones are honored end-to-end: a cleaned-up, tombstoned entry never resurfaces through
       refresh. The repository refuses a tombstoned `(feed_id, hash)` pair, which stage 1 pins, and the
       pipeline reads that outcome as no write; no case drives a tombstoned entry through a refresh.
