@@ -17,7 +17,8 @@ import Testing
 /// the hash taken before the cleaner runs, the validator storage on each of the three paths, the
 /// error counter on both sides, the conditional-hit rule, the schedule computed before the answer
 /// is read, the delay that wins over the interval, the source of the interval, the force-refresh
-/// rule, the entry-update branch, the user scope, the date fallback, the stored site URL, and that
+/// rule, the entry-update branch, the stored feed URL in the outbound rule, the user scope, the
+/// date fallback, the stored site URL, and that
 /// the failure record is committed rather than rolled back with the entry batch.  What they cannot
 /// fail on: the wording of a recorded message, because Rivulet has no locale keys, so a pin
 /// compares the error case and the counter, not the text; the single write transaction itself,
@@ -122,14 +123,35 @@ import Testing
         }
     }
 
+    @Test func theOutboundRuleComparesAgainstTheStoredFeedURLNotTheParsedOne() async throws {
+        try await withCase(behaviors: ["/feed": answer(rss(
+            [("<p>A</p>", "https://example.org/a?ref=127.0.0.1&x=1")],
+            selfLink: "https://self.example/feed.xml"
+        ))]) { _, storage, userID, feedID, pipeline in
+            // The channel `atom:link` with `rel="self"` makes the parse report a feed URL on one
+            // host, the stored row holds another, and the stored site URL is a third. The
+            // reference compares the entry query against the host of the stored feed URL, so the
+            // `ref` pair is dropped, and an implementation that read the parse's feed URL would
+            // keep it. The host is the stub server's, so the value can only match the row.
+            try await setSiteURL(storage, feedID: feedID, value: "https://site.example")
+            _ = try await pipeline.refresh(userID: userID, feedID: feedID)
+
+            let row = try #require(await storedRows(storage, feedID: feedID).first)
+            #expect(row.url == "https://example.org/a?x=1")
+        }
+    }
+
     @Test func theStoredTitleSurvivesARefreshAndAnEmptySiteURLFallsBackToTheFeedURL() async throws {
         try await withCase(behaviors: ["/feed": answer(rss(
-            [("<p>A</p>", "https://example.org/a")], link: ""
+            [("<p>A</p>", "https://example.org/a")], link: "https://parsed.example/"
         ))]) { server, storage, userID, feedID, pipeline in
             _ = try await pipeline.refresh(userID: userID, feedID: feedID)
 
             // `RefreshFeed` writes the title the row already held, not the one the parse produced,
-            // and `CheckedNow` puts the feed URL in place of an empty site URL.
+            // and `CheckedNow` puts the feed URL in place of the empty site URL the row holds. The
+            // channel link here is not empty, so the fallback answer can be told from the parsed
+            // one: an implementation that stored the parse's site URL would answer
+            // `https://parsed.example/`.
             let stored = try #require(await storedFeed(storage, feedID: feedID))
             #expect(stored.title == "")
             #expect(stored.siteURL == server.url("/feed").absoluteString)
@@ -229,8 +251,9 @@ import Testing
         try await withCase(behaviors: ["/feed": answer(rss([
             ("<p>A</p>", "https://example.org/a"),
         ]))]) { _, storage, userID, feedID, pipeline in
-            // The reference stores a per-feed interval it never reads on this path, so a stored
-            // value that disagrees with the policy must not decide the schedule.
+            // Rivulet stores a per-feed interval the reference model does not have, recorded in
+            // `docs/parity.md`, and the reference starts from the configured minimum every time,
+            // so a stored value that disagrees with the policy must not decide the schedule here.
             try await setCheckInterval(storage, feedID: feedID, value: 240)
 
             let outcome = try await pipeline.refresh(userID: userID, feedID: feedID)
@@ -284,13 +307,18 @@ import Testing
                 headers: ["ETag": "\"stub-etag\""]),
             "/maxage": answer(rss([("<p>A</p>", "https://example.org/a")], ttl: 30),
                 headers: ["ETag": "\"stub-etag\"", "Cache-Control": "max-age=7200"]),
+            "/expires": answer(rss([("<p>A</p>", "https://example.org/a")], ttl: 30),
+                headers: ["ETag": "\"stub-etag\"", "Expires": "Tue, 14 Nov 2023 23:43:20 GMT"]),
         ]) { server, storage, userID, _, pipeline in
-            // The delay is the largest of the three sources, and the interval wins when it is
-            // larger: the reference takes `max(ttl, max-age, expires)` and then `max(interval,
-            // delay)`. The three paths answer different minutes, so the outcome cannot be right on
-            // all three unless each source is read and the interval can win.
+            // The delay is the largest of the sources, and the interval wins when it is larger:
+            // the reference takes `max(ttl, max-age, expires)` and then `max(interval, delay)`.
+            // The four paths answer four different numbers, so the outcome cannot be right on all
+            // four unless each source is read and the interval can win. The `Expires` header is the
+            // injected instant plus ninety minutes, and the reference adds the current minute to
+            // `Until(now).Truncate(minute)`, which is how `FetchResponse.expires` reads it.
             let categoryID = try await existingCategory(storage, userID: userID, title: "Tech")
-            for (path, minutes) in [("/ttl", 90), ("/short", 60), ("/maxage", 120)] {
+            for (path, minutes) in [("/ttl", 90), ("/short", 60), ("/maxage", 120),
+                ("/expires", 91)] {
                 let feedID = try await seedFeedOn(storage, server.url(path).absoluteString,
                     userID: userID, categoryID: categoryID)
                 let outcome = try await pipeline.refresh(userID: userID, feedID: feedID)
@@ -327,11 +355,16 @@ import Testing
 
     /// One RSS document with the entries as the test names them, in the order the document declares
     /// them. The entry text is written as escaped text, which is what the reference's reader
-    /// reports as content.
+    /// reports as content. A `selfLink` writes the `atom:link` with `rel="self"`, which the RSS
+    /// adapter reads for the feed URL itself.
     private func rss(_ entries: [(content: String, url: String)],
-        link: String = "https://example.org/", ttl: Int = 0) -> String {
-        var document = "<rss version=\"2.0\"><channel><title>Parsed Title</title>"
-        document += "<link>\(link)</link>"
+        link: String = "https://example.org/", ttl: Int = 0, selfLink: String = "") -> String {
+        var document = "<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">"
+        document += "<channel><title>Parsed Title</title><link>\(link)</link>"
+        if ttl > 0 { document += "<ttl>\(ttl)</ttl>" }
+        if !selfLink.isEmpty {
+            document += "<atom:link rel=\"self\" href=\"\(selfLink)\"></atom:link>"
+        }
         if ttl > 0 { document += "<ttl>\(ttl)</ttl>" }
         for entry in entries {
             let text = entry.content.replacing("<", with: "&lt;").replacing(">", with: "&gt;")
@@ -379,6 +412,16 @@ import Testing
             feed.etag = etag
             feed.lastModified = lastModified
             feed.parsingErrorCount = errorCount
+            try await feed.update(on: connection)
+        }
+    }
+
+    /// Writes a stored site URL on a host the feed URL does not have, for the case that needs the
+    /// two halves of the outbound rule to name different hosts.
+    private func setSiteURL(_ storage: SQLiteStorage, feedID: Int, value: String) async throws {
+        try await storage.withConnection { connection in
+            let feed = try #require(await FeedRepository(connection).fetch(id: feedID))
+            feed.siteURL = value
             try await feed.update(on: connection)
         }
     }

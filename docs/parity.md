@@ -484,6 +484,10 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - The reference gates the entry-update branch on `crawler` and `ignore_entry_updates`, columns
   Rivulet does not have. With both absent the gate is open on every path, so a known entry is
   updated whenever the branch runs; nothing can pin the two flags, because nothing can set them.
+- Rivulet's feed row carries a per-feed `check_interval` column, which the reference's `model.Feed`
+  does not have. Nothing on the refresh path reads it: the reference starts from the configured
+  minimum on every call, so the pins assert that a stored interval disagreeing with the policy must
+  not decide the schedule. It is a port-only column, not a place where behavior diverges.
 - The feed row's parsed language, the icon checker, the duplicate-feed check, the entry reading
   time and the user rules in the reference's processor — filters, rewrite, scraping — are not
   ported yet; they land with the later stages. The entry-frequency mode of `ScheduleNextCheck` is

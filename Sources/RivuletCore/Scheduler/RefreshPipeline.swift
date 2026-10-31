@@ -72,7 +72,7 @@ public struct RefreshPipeline: Sendable {
         let checkedAt = clock.now()
         // `CheckedNow`: the check time, and the feed URL in place of an empty site URL.
         let siteURL = feed.siteURL.isEmpty ? feed.url : feed.siteURL
-        var nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelayMinutes: 0)
+        var nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelay: .zero)
 
         guard let url = URL(string: feed.url) else {
             let error = FetchError.invalidURL(feed.url)
@@ -98,8 +98,8 @@ public struct RefreshPipeline: Sendable {
         // The reference recomputes the schedule for a rate-limited answer before it reports the
         // failure, so the `Retry-After` delay can move the schedule on the failure path.
         if response.isRateLimited {
-            let delay = wholeMinutes(response.retryAfter(now: checkedAt))
-            nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelayMinutes: delay)
+            nextCheckAt = nextCheck.nextCheckAt(now: checkedAt,
+                refreshDelay: response.retryAfter(now: checkedAt))
         }
         if let error = response.error() {
             try await recordFailure(feeds, feedID, error, nextCheckAt, checkedAt)
@@ -107,16 +107,19 @@ public struct RefreshPipeline: Sendable {
         }
         if forceRefresh || response.isModified(against: state) {
             return try await processModified(connection, feeds, state, response, userID, feedID,
-                siteURL, nextCheckAt, checkedAt)
+                siteURL, feed.url, nextCheckAt, checkedAt)
         }
         return try await processHit(feeds, feed, response, feedID, siteURL, nextCheckAt, checkedAt)
     }
 
     /// The parse-and-store branch, in the reference's order: parse, take the delay the answer
-    /// carries, process the entries, then store the validators the response produced.
+    /// carries, process the entries, then store the validators the response produced. The delay is
+    /// compared as a `Duration`, as the reference does, so a value that is not a whole number of
+    /// minutes keeps its seconds; the comparison itself is pinned in ``NextCheckPolicy``.
+    /// `feedURL` is the value the row holds, which is what the reference's processor parses.
     private func processModified(_ connection: any Database, _ feeds: FeedRepository,
         _ state: FeedFetchState, _ response: FetchResponse, _ userID: Int, _ feedID: Int,
-        _ siteURL: String, _ nextCheckAt: Int, _ checkedAt: Int) async throws
+        _ siteURL: String, _ feedURL: String, _ nextCheckAt: Int, _ checkedAt: Int) async throws
         -> TransactionResult {
         let parsed: ParsedFeed
         do {
@@ -127,10 +130,10 @@ public struct RefreshPipeline: Sendable {
             return .recorded(error)
         }
 
-        let delay = max(parsed.ttlMinutes, wholeMinutes(response.cacheControlMaxAge),
-            wholeMinutes(response.expires(now: checkedAt)))
-        let nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelayMinutes: delay)
-        let hashes = try await processEntries(parsed, connection, userID, feedID, siteURL)
+        let delay = max(max(Duration.seconds(parsed.ttlMinutes * 60), response.cacheControlMaxAge),
+            response.expires(now: checkedAt))
+        let nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelay: delay)
+        let hashes = try await processEntries(parsed, connection, userID, feedID, siteURL, feedURL)
 
         try await feeds.recordFetch(feedID: feedID, etag: response.etag,
             lastModified: response.lastModified, nextCheckAt: nextCheckAt, checkedAt: checkedAt,
@@ -155,14 +158,16 @@ public struct RefreshPipeline: Sendable {
 
     /// The entry loop, in the reference's order. The entries are processed oldest first, so the row
     /// created first is the one the document declares last. The parsed URLs are read once, before
-    /// the loop, as the reference's processor does; a URL the cleaner cannot read stays as the feed
-    /// wrote it. The hash is the adapter's, taken before the cleaner ran. The user rules are later
-    /// stages.
+    /// the loop, as the reference's processor does, and the feed half is the URL the stored row
+    /// holds, which is what the reference's processor parses, not the URL the parse produced. A URL
+    /// the cleaner cannot read stays as the feed wrote it. The hash is the adapter's, taken before
+    /// the cleaner ran. The user rules are later stages.
     private func processEntries(_ parsed: ParsedFeed, _ connection: any Database, _ userID: Int,
-        _ feedID: Int, _ siteURL: String) async throws -> (new: [String], updated: [String]) {
+        _ feedID: Int, _ siteURL: String, _ feedURL: String) async throws
+        -> (new: [String], updated: [String]) {
         let entries = EntryRepository(connection)
         let siteParsed = try? ParsedURL.parse(siteURL)
-        let feedParsed = try? ParsedURL.parse(parsed.feedURL)
+        let feedParsed = try? ParsedURL.parse(feedURL)
         var new: [String] = []
         var updated: [String] = []
 
@@ -200,11 +205,6 @@ public struct RefreshPipeline: Sendable {
         _ error: any Error & Sendable, _ nextCheckAt: Int, _ checkedAt: Int) async throws {
         try await feeds.recordParsingError(feedID: feedID, message: String(describing: error),
             nextCheckAt: nextCheckAt, checkedAt: checkedAt)
-    }
-
-    /// A `time.Duration` read as whole minutes, which is how the reference compares it here.
-    private func wholeMinutes(_ duration: Duration) -> Int {
-        Int(duration.components.seconds / 60)
     }
 
     /// The clock instant as the adapters read it: the date the parse resolves to when an entry has

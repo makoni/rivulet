@@ -25,19 +25,19 @@ import Testing
     @Test func theDefaultIntervalIsTheReferenceDefault() {
         // `TestFeedScheduleNextCheckRoundRobinDefault`: no delay, so the policy interval answers.
         #expect(defaultPolicy.minIntervalMinutes == 60)
-        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelayMinutes: 0)
+        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelay: .zero)
             == 1_700_000_000 + 3600)
     }
 
     @Test func aDelayAboveTheDefaultIntervalWins() {
         // `TestFeedScheduleNextCheckRoundRobinWithRefreshDelayAboveMinInterval`.
-        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelayMinutes: 90)
+        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelay: .seconds(5400))
             == 1_700_000_000 + 5400)
     }
 
     @Test func aDelayBelowTheDefaultIntervalDoesNotWin() {
         // `TestFeedScheduleNextCheckRoundRobinWithRefreshDelayBelowMinInterval`.
-        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelayMinutes: 30)
+        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelay: .seconds(1800))
             == 1_700_000_000 + 3600)
     }
 
@@ -46,14 +46,23 @@ import Testing
         // reference reads as a cap on the interval, so a case that cannot cross the cap pins
         // nothing.
         #expect(defaultPolicy.maxIntervalMinutes == 1440)
-        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelayMinutes: 1470)
+        #expect(defaultPolicy.nextCheckAt(now: 1_700_000_000, refreshDelay: .seconds(88200))
             == 1_700_000_000 + 86400)
     }
 
     @Test func aConfiguredMinimumIsUsedWhenTheDelayIsBelowIt() {
         // `TestFeedScheduleNextCheckRoundRobinMinInterval`, read with the env value that test sets.
         let policy = NextCheckPolicy(minIntervalMinutes: 1, maxIntervalMinutes: 1440)
-        #expect(policy.nextCheckAt(now: 1_700_000_000, refreshDelayMinutes: 0)
+        #expect(policy.nextCheckAt(now: 1_700_000_000, refreshDelay: .zero)
             == 1_700_000_000 + 60)
+    }
+
+    @Test func aDelayThatIsNotWholeMinutesAddsAsTheReferenceAddsIt() {
+        // The reference adds a `time.Duration` to the clock without rounding, so a delay of a
+        // minute and a half past the minimum schedules the half-minute as well. A comparison
+        // rounded to whole minutes answers the minute and fails here.
+        let policy = NextCheckPolicy(minIntervalMinutes: 1, maxIntervalMinutes: 1440)
+        #expect(policy.nextCheckAt(now: 1_700_000_000, refreshDelay: .seconds(90))
+            == 1_700_000_000 + 90)
     }
 }

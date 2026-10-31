@@ -31,10 +31,12 @@ public struct NextCheckPolicy: Sendable {
     }
 
     /// The instant the next check falls on: `max(interval, delay)`, capped by the maximum, added to
-    /// `now`. A delay below the minimum cannot shorten the interval; a delay above the maximum is
-    /// capped.
-    public func nextCheckAt(now: Int, refreshDelayMinutes: Int) -> Int {
-        let interval = min(max(minIntervalMinutes, refreshDelayMinutes), maxIntervalMinutes)
-        return now + interval * 60
+    /// `now`. The reference compares `time.Duration`s, so the delay keeps the seconds it carries: a
+    /// delay below the minimum cannot shorten the interval, a delay above the maximum is capped,
+    /// and a delay that is not a whole number of minutes still adds as it is.
+    public func nextCheckAt(now: Int, refreshDelay: Duration) -> Int {
+        let interval = min(max(Duration.seconds(minIntervalMinutes * 60), refreshDelay),
+            Duration.seconds(maxIntervalMinutes * 60))
+        return now + Int(interval.components.seconds)
     }
 }
