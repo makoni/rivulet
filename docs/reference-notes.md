@@ -49,6 +49,29 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   the feed is excluded from batches until a forced refresh succeeds and resets the counter.
 - Worker pool: `WORKER_POOL_SIZE` (default 16).
 
+### The refresh path (`RefreshFeed`, `internal/reader/handler/handler.go`, commit `c4d54f87`)
+
+- The row is read through the user-scoped `FeedByID`; the not-found case returns before anything is
+  stamped or fetched.
+- Order: `CheckedNow` stamps the check time and puts the feed URL in place of an empty site URL,
+  and `ScheduleNextCheck(weekly_count, 0)` fixes the schedule before the request is built. A `429`
+  recomputes the schedule from `Retry-After` before the failure is reported. The failure is
+  recorded through `UpdateFeedError`, which writes `parsing_error_msg`, `parsing_error_count`,
+  `checked_at` and `next_check_at` only: no conditional-GET header is written on this path.
+- Conditional headers are not sent on the forced path: the handler treats `forceRefresh` as
+  `IgnoreHTTPCache`.
+- A conditional hit stores `Last-Modified` only when the response carries a value, as RFC9111
+  sections 3.2 and 4.3.4 read it; the stored `EtagHeader` stays as the row held it. Both branches
+  end with `ResetErrorCounter`, so the hit path resets the error state.
+- The modified branch stores the response's validators, recomputes the schedule from
+  `max(ttl, max-age, expires)`, and writes the row through `UpdateFeed`, which carries the title
+  the row already held: the parsed title is never copied on this path.
+- `ProcessFeedEntries` iterates `slices.Backward`, so entries are processed oldest first and the
+  row written first is the item the document declares last. The cleaner replaces an entry URL only
+  when the URL parses — Go's `url.Parse` fails on an unclosed bracket host, so that URL is stored
+  as the feed wrote it — and the hash is the adapter's, taken before the cleaner ran. The
+  entry-update branch is gated by `forceRefresh || (!crawler && !ignore_entry_updates)`.
+
 ## Retention ("archiving")
 
 - `internal/cli/cleanup_tasks.go` runs on the reference's own scheduler every

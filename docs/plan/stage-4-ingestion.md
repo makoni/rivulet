@@ -1,7 +1,16 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** not started. **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — the first slice landed (PR #25). **Effort:** M. **Depends on:** Stage 3
+and Stage 1.
+
+The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
+the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
+request, the failure and the conditional-hit paths, the entry loop with the cleaner and the
+sanitizer, and the injected `Clock` seam, pinned end to end against the reference by
+`RefreshPipelineTests` and `NextCheckPolicyTests`. The tick loop, the entry-frequency mode, the
+manual `rivulet refresh` path, retention and the soak artifact follow. The status stays in
+progress until the exit criteria below cover the whole stage.
 
 ## Scope
 
@@ -62,3 +71,20 @@
       snapshots (stage 4 ships the minimal feed-state `status --json`; stage 6 extends it) show
       `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached to the stage
       status.
+
+Findings from the review runs on PR #25 that do not change behavior:
+- `recordFetch` and `recordParsingError` are keyed by the feed id, where the reference's statements
+  add `WHERE user_id`; the pipeline resolves the user-scoped row before calling them, so the write
+  is scoped in practice, and no pin can show the difference.
+- The port reads the clock once per refresh, where the reference calls `time.Now()` twice, once in
+  `CheckedNow` and once in `ScheduleNextCheck`; an injected clock answers one instant, so no pin can
+  tell the two reads apart.
+- The conditional-hit pin reads the half where the response carries a `Last-Modified`; the reference
+  keeps the stored value when the header is empty, and no case here has an empty one.
+- The invalid-URL branch is recorded but not pinned, and the reference records a different class
+  there: the fetcher's own error from the request.
+- The single write transaction spans the HTTP fetch, which the reference's does not, and the
+  transaction boundary itself is what no test here can pin.
+- `docs/parity.md` says the cache lifetime is read as minutes, which is true of `<ttl>`; the policy
+  compares the three delay sources as durations, so the row should separate the read from the
+  comparison.

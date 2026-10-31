@@ -2,18 +2,14 @@
 import Foundation
 import FluentKit
 
-/// Creates, lists and deletes feeds, and records their fetch state.
-///
-/// `recordFetch` and `recordParsingError` mirror the reference refresh path,
-/// where the last check time and the next-check schedule are fixed before the
-/// fetch and persisted with its outcome: a successful fetch stores the
-/// conditional-GET headers and the next check time, stamps the last check
-/// time and resets the parsing failure state; a failure increments the
-/// failure counter, keeps the latest error message and persists the last
-/// check time and the rescheduled check.
-///
-/// - See: ``SQLiteStorage/withConnection(_:)`` — the repository takes the
-///   checked-out connection and lives inside that checkout.
+/// Creates, lists and deletes feeds, and records their fetch state.  `recordFetch` and
+/// `recordParsingError` mirror the reference refresh path, where the last check time and the next-
+/// check schedule are fixed before the fetch and persisted with its outcome: a successful fetch
+/// stores the conditional-GET headers and the next check time, stamps the last check time and
+/// resets the parsing failure state; a failure increments the failure counter, keeps the latest
+/// error message and persists the last check time and the rescheduled check.  - See:
+/// ``SQLiteStorage/withConnection(_:)`` — the repository takes the checked-out connection and lives
+/// inside that checkout.
 public struct FeedRepository {
     private let database: any Database
 
@@ -22,9 +18,8 @@ public struct FeedRepository {
         self.database = database
     }
 
-    /// Creates a feed with the reference defaults: empty strings, a 60-minute
-    /// polling interval, no parsing errors, enabled, and due for the first
-    /// check immediately.
+    /// Creates a feed with the reference defaults: empty strings, a 60-minute polling interval, no
+    /// parsing errors, enabled, and due for the first check immediately.
     public func create(userID: Int, categoryID: Int, url: String) async throws -> Feed {
         let now = Int(Date.now.timeIntervalSince1970)
         let feed = Feed()
@@ -57,6 +52,16 @@ public struct FeedRepository {
         try await Feed.query(on: database).filter(\Feed.$id == id).first()
     }
 
+    /// Returns the feed of `userID` with `id`, or `nil` (upstream `FeedByID`).  The refresh path
+    /// reads the row through this scope, so a feed of another user is not found and nothing is
+    /// written for it.
+    public func fetch(userID: Int, id: Int) async throws -> Feed? {
+        try await Feed.query(on: database)
+            .filter(\Feed.$userID == userID)
+            .filter(\Feed.$id == id)
+            .first()
+    }
+
     /// Returns the feed of `userID` with `url`, or `nil`.
     public func fetch(userID: Int, url: String) async throws -> Feed? {
         try await Feed.query(on: database)
@@ -78,42 +83,42 @@ public struct FeedRepository {
         try await Feed.query(on: database).filter(\Feed.$id == id).delete()
     }
 
-    /// Records a successful fetch: stores the conditional-GET headers and the
-    /// next check time, stamps `fetched_at`, and resets the parsing failure
-    /// state.
-    ///
-    /// - Throws: ``StorageError/feedNotFound(id:)`` if the feed does not exist.
-    public func recordFetch(feedID: Int, etag: String, lastModified: String, nextCheckAt: Int) async throws {
+    /// Records a successful fetch (upstream `UpdateFeed`): stores the conditional-GET headers, the
+    /// site URL the caller resolved, the next check time and the check time the caller read from
+    /// its clock, and resets the parsing failure state. The title stays as the row held it, as the
+    /// reference leaves it on this path.  - Throws: ``StorageError/feedNotFound(id:)`` if the feed
+    /// does not exist.
+    public func recordFetch(feedID: Int, etag: String, lastModified: String, nextCheckAt: Int,
+        checkedAt: Int, siteURL: String) async throws {
         guard let feed = try await fetch(id: feedID) else {
             throw StorageError.feedNotFound(id: feedID)
         }
-        let now = Int(Date.now.timeIntervalSince1970)
         feed.etag = etag
         feed.lastModified = lastModified
         feed.nextCheckAt = nextCheckAt
-        feed.fetchedAt = now
+        feed.siteURL = siteURL
+        feed.fetchedAt = checkedAt
         feed.parsingErrorCount = 0
         feed.parsingErrorMessage = ""
-        feed.updatedAt = now
+        feed.updatedAt = checkedAt
         try await feed.update(on: database)
     }
 
-    /// Records a failed refresh (upstream `UpdateFeedError`): increments the
-    /// consecutive-failure counter, keeps the latest error message, and
-    /// persists the last check time and the rescheduled check computed by the
-    /// caller.
-    ///
-    /// - Throws: ``StorageError/feedNotFound(id:)`` if the feed does not exist.
-    public func recordParsingError(feedID: Int, message: String, nextCheckAt: Int) async throws {
+    /// Records a failed refresh (upstream `UpdateFeedError`): increments the consecutive-failure
+    /// counter, keeps the latest error message, and persists the check time and the rescheduled
+    /// check the caller computed. The conditional-GET headers are not touched, as the reference
+    /// writes only these columns on the failure path.  - Throws: ``StorageError/feedNotFound(id:)``
+    /// if the feed does not exist.
+    public func recordParsingError(feedID: Int, message: String, nextCheckAt: Int, checkedAt: Int)
+        async throws {
         guard let feed = try await fetch(id: feedID) else {
             throw StorageError.feedNotFound(id: feedID)
         }
-        let now = Int(Date.now.timeIntervalSince1970)
         feed.parsingErrorCount += 1
         feed.parsingErrorMessage = message
-        feed.fetchedAt = now
+        feed.fetchedAt = checkedAt
         feed.nextCheckAt = nextCheckAt
-        feed.updatedAt = now
+        feed.updatedAt = checkedAt
         try await feed.update(on: database)
     }
 }

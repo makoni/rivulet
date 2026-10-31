@@ -296,6 +296,24 @@ failure is recorded in, because the reference has no code of its own for them. O
 asserts a deviation recorded in `docs/parity.md` — the name match is exact, where `foldName`
 would also fold — so it states what this layer does rather than what the reference does.
 
+The refresh pipeline suite (`RefreshPipelineTests`) is the integration suite where the fetcher, the
+parser, the sanitizer and the storage layer meet: each case runs the pipeline against the stub
+server and reads what landed in the database through its own checkout. The pipeline opens the
+single write transaction it owns, so a test must not hold a connection across `refresh`: the SQLite
+driver keeps one pooled connection per event loop and a nested checkout would wait for it forever.
+The clock is the injected seam (`Support/TestClock.swift`), so every stamp a pin reads is the
+instant the test supplied, which the process clock could not produce; `SystemClockTests` pins the
+other side of the seam, that the production clock answers Unix seconds.
+`NextCheckPolicyTests` pins that the delay is added to the clock with the reference's second
+precision, which no integration case can show because its delay sources answer whole minutes.
+Entry order is pinned
+through insertion order read by `ORDER BY id`, not through `created_at`, because the storage clock
+is not a seam there. Pins compare the typed error case, not the message wording, because Rivulet
+has no locale layer. What the suite cannot pin is stated in the file: the single transaction
+itself, because nothing can make one statement inside it fail while the others succeed; the two
+columns the reference gates the entry-update branch on, which the schema does not have; and the
+rules the plan leaves for the later stages.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
