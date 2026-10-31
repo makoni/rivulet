@@ -38,7 +38,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off). Both zeros are switches: the error
   condition and the `LIMIT` clause are added only for a positive number, so a batch size of 0 adds
   no clause and an error limit of 0 excludes nothing. The per-host limit applies while the rows are
-  iterated, after the `LIMIT`, so it caps the rows read, not the jobs kept, and the host is
+  iterated, after the `LIMIT`, so a row it skips still uses one of the `LIMIT` slots, and the host
+  is
   `urllib.Domain` — the parsed host with its port, the input as written when the URL does not
   parse, no `www.` strip. `feedScheduler` passes neither a user nor a category, so the batch is not
   scoped. Upstream has no test for the builder; the port pins each rule in `SchedulerBatchTests`.

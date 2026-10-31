@@ -4,31 +4,39 @@ import Testing
 @testable import RivuletCore
 
 /// The due-batch selection the tick reads, from `internal/storage/batch.go` at commit `c4d54f87`.
-/// Upstream has no test for this builder, so these pins are the port's own defense. What they can
-/// fail on, each checked by patching the rule and reverting: the strict `next_check_at < now()`
-/// comparison, the `ORDER BY next_check_at ASC`, the injected instant being the one compared (the
-/// stored values are after the process clock, so a pin can tell them apart), the error condition
-/// appended only for a positive limit and comparing strictly, the disabled gate, the `LIMIT` clause
-/// added only for a positive batch size, the per-host cap counting the rows read before the filter
-/// rather than the jobs kept, the host taken as the parsed `Host` with its port and without the
-/// `www.` strip, an unparseable URL counted as the string as written, the batch not being
-/// user-scoped, and the job carrying the stored feed URL rather than the site URL. What they cannot
-/// fail on: the `IS false` form of the disabled gate, which the NOT NULL column makes equal to
-/// `= 0`; the order of rows sharing one `next_check_at`, which SQL does not define; the PostgreSQL
-/// placeholder style the builder writes; and the log lines it emits, because RivuletCore has no
-/// logging layer. Nothing sleeps here: the tests read the batch through the repository directly.
+/// Upstream has no test for this builder, so these pins are the port's own defense.
+/// What they can fail on, each checked by patching the rule and reverting: the strict
+/// `next_check_at < now()` comparison, the direction of the `ORDER BY next_check_at ASC` — the
+/// rows are seeded out of that order so the pin does not pass on insertion order —, the injected
+/// instant being the one compared (it is 2065 and the stored schedule 2062, both after the process
+/// clock, so a pin can tell the two clocks apart), the error condition appended only for a
+/// positive limit and comparing strictly, the disabled gate, the `LIMIT` clause added only for a
+/// positive batch size, the host limit off when it is zero, the host filter running only on the
+/// rows the `LIMIT` read — a row it skips still uses one of the `LIMIT` slots — rather than on all
+/// rows the conditions match, the host taken as the parsed `Host` with its port and without the
+/// `www.` strip, two unparseable URLs counted as the two strings as written, which fails when the
+/// error branch collapses them into one host or reads the bracketed host instead, the batch not
+/// being user-scoped, and the job carrying the stored feed URL rather than the site URL.
+/// What they cannot fail on: the `IS false` form of the disabled gate, which the NOT NULL column
+/// makes equal to `= 0`; dropping the ordering clause, because the schema's index on
+/// `next_check_at` reads the rows in the order the clause asks for; the order of rows sharing one
+/// `next_check_at`, which SQL does not define; the PostgreSQL placeholder style the builder
+/// writes; and the log lines it emits, because RivuletCore has no logging layer.
+/// Nothing sleeps here: the tests read the batch through the repository.
 @Suite struct SchedulerBatchTests {
-    /// The instant every pin passes. It is after the process clock, so the stored schedule read by
-    /// the pins can only be due relative to this one.
-    private let now = 2_000_000_000
+    /// The instant every pin passes. It is after the process clock until 2065, so the stored
+    /// schedule read by the pins can only be due relative to this one.
+    private let now = 3_000_000_000
 
     @Test func theBatchIsStrictlyDueAndOrderedByNextCheckAgainstTheInjectedInstant() async throws {
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
-            let early = try await seedRow(storage, graph, url: "http://host.test/early",
-                nextCheckAt: 1_800_000_000)
+            // Seeded out of the clause order, so an implementation that drops the ordering cannot
+            // pass on insertion order.
             let later = try await seedRow(storage, graph, url: "http://host.test/later",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
+            let early = try await seedRow(storage, graph, url: "http://host.test/early",
+                nextCheckAt: 2_900_000_000)
             // Exactly the injected instant: the strict comparison excludes it; a `<=` would keep
             // it. The other two rows are after the process clock, so only the injected instant can
             // make them due.
@@ -46,9 +54,9 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let below = try await seedRow(storage, graph, url: "http://host.test/below",
-                nextCheckAt: 1_800_000_000, errorCount: 2)
+                nextCheckAt: 2_900_000_000, errorCount: 2)
             let atLimit = try await seedRow(storage, graph, url: "http://host.test/at-limit",
-                nextCheckAt: 1_900_000_000, errorCount: 3)
+                nextCheckAt: 2_900_000_001, errorCount: 3)
 
             // Strict `<` at the default limit: a row exactly at the limit is out.
             #expect(try await batch(storage, now: now, options: .defaults) ==
@@ -70,9 +78,9 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let enabled = try await seedRow(storage, graph, url: "http://host.test/enabled",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let disabled = try await seedRow(storage, graph, url: "http://host.test/disabled",
-                nextCheckAt: 1_900_000_000, disabled: true)
+                nextCheckAt: 2_900_000_001, disabled: true)
 
             let jobs = try await batch(storage, now: now, options: .defaults)
             #expect(jobs == [job(enabled, graph, "http://host.test/enabled")])
@@ -84,11 +92,11 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let first = try await seedRow(storage, graph, url: "http://host.test/first",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let second = try await seedRow(storage, graph, url: "http://host.test/second",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
             let third = try await seedRow(storage, graph, url: "http://host.test/third",
-                nextCheckAt: 1_900_000_001)
+                nextCheckAt: 2_900_000_002)
 
             // Zero is the switch, not a cap: an implementation that reads it as a value writes
             // `LIMIT 0` and answers with nothing.
@@ -108,20 +116,20 @@ import Testing
         }
     }
 
-    @Test func theHostCapCountsTheRowsReadBeforeTheFilterNotTheJobsKept() async throws {
+    @Test func theHostFilterRunsOnlyOnTheRowsTheLimitReadAndNotOnAllRowsMatched() async throws {
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let onFirstHost = try await seedRow(storage, graph, url: "http://first.test/a",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             _ = try await seedRow(storage, graph, url: "http://first.test/b",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
             _ = try await seedRow(storage, graph, url: "http://first.test/c",
-                nextCheckAt: 1_900_000_001)
+                nextCheckAt: 2_900_000_002)
             // The fourth row is past the cap: `LIMIT 3` reads only the three first rows, all on the
             // first host, so the host filter runs on those and skips two. An implementation that
             // filters before the limit would keep this row too.
             let onSecondHost = try await seedRow(storage, graph, url: "http://second.test/d",
-                nextCheckAt: 1_900_000_002)
+                nextCheckAt: 2_900_000_003)
 
             let capped = options(batchSize: 3, workerPoolSize: 16, parsingErrorLimit: 3,
                 limitPerHost: 1)
@@ -131,15 +139,35 @@ import Testing
         }
     }
 
+    @Test func thePerHostLimitIsOffWhenItIsZero() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let first = try await seedRow(storage, graph, url: "http://one.test/a",
+                nextCheckAt: 2_900_000_000)
+            let second = try await seedRow(storage, graph, url: "http://one.test/b",
+                nextCheckAt: 2_900_000_001)
+
+            // The reference applies the filter only when the limit is above zero, so both rows are
+            // kept. An implementation that reads zero as a value compares `hosts[h] >= 0` and
+            // selects nothing.
+            let off = options(batchSize: 100, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 0)
+            #expect(try await batch(storage, now: now, options: off) == [
+                job(first, graph, "http://one.test/a"),
+                job(second, graph, "http://one.test/b"),
+            ])
+        }
+    }
+
     @Test func theHostIsTheParsedHostWithItsPortAndTheWwwPrefixIsNotStripped() async throws {
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let www = try await seedRow(storage, graph, url: "http://www.example.org/a",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let bare = try await seedRow(storage, graph, url: "http://example.org/b",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
             let withPort = try await seedRow(storage, graph, url: "http://example.org:8080/c",
-                nextCheckAt: 1_900_000_001)
+                nextCheckAt: 2_900_000_002)
 
             // Three rows, one per host as `urllib.Domain` reads it. Stripping `www.` would make the
             // first equal the second, and reading the port-less `Hostname` would make the second
@@ -159,17 +187,22 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             // Go's parse fails on the unclosed bracket host, so `Domain` answers with the string as
-            // it was written. An implementation that read the bracketed host instead would make the
-            // two rows share one host, and the limit of 1 would skip the second.
+            // it was written. The two unparseable rows are distinct strings that any parse-then-
+            // normalize fallback would collapse to the same host — the bracketed host, or a value
+            // that drops the query — and the third row's parsed host is `[::1]`. All three survive
+            // the limit of 1 only while the fallback answers with the string as written.
             let unparseable = try await seedRow(storage, graph,
-                url: "https://[::1?utm_source=mail", nextCheckAt: 1_800_000_000)
+                url: "https://[::1?utm_source=mail", nextCheckAt: 2_900_000_000)
+            let unparseableToo = try await seedRow(storage, graph, url: "https://[::1",
+                nextCheckAt: 2_900_000_001)
             let bracketed = try await seedRow(storage, graph, url: "https://[::1]/feed",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_002)
 
             let capped = options(batchSize: 100, workerPoolSize: 16, parsingErrorLimit: 3,
                 limitPerHost: 1)
             #expect(try await batch(storage, now: now, options: capped) == [
                 job(unparseable, graph, "https://[::1?utm_source=mail"),
+                job(unparseableToo, graph, "https://[::1"),
                 job(bracketed, graph, "https://[::1]/feed"),
             ])
         }
@@ -180,9 +213,9 @@ import Testing
             let alice = try await seedGraph(storage, username: "alice")
             let bob = try await seedGraph(storage, username: "bob")
             let aliceFeed = try await seedRow(storage, alice, url: "http://host.test/alice",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let bobFeed = try await seedRow(storage, bob, url: "http://host.test/bob",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
 
             // `feedScheduler` calls no `WithUserID`, so each job carries the user of its own row.
             #expect(try await batch(storage, now: now, options: .defaults) == [
@@ -196,7 +229,7 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let feedID = try await seedRow(storage, graph, url: "http://host.test/feed",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
 
             // The builder selects the `url` column; the site URL the row holds after a parse
             // names a different host, so the expected job can tell the two readings apart.
@@ -221,7 +254,7 @@ import Testing
             limitPerHost: limitPerHost)
     }
 
-    /// The expected job for a row, in the order the reference's `model.Job` names its fields.
+    /// The expected job for a row, in the order the batch query scans the reference's `model.Job`.
     private func job(_ feedID: Int, _ graph: (userID: Int, categoryID: Int), _ url: String)
         -> RefreshJob {
         RefreshJob(feedID: feedID, userID: graph.userID, feedURL: url)

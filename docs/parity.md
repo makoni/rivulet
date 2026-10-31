@@ -510,9 +510,10 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 
 **What differs.**
 
-- The reference logs the outcome of every job (`internal/worker/worker.go`). RivuletCore has no
-  logging layer, so `tick()` answers with one outcome per job, and the pins compare the typed
-  error case, not the wording.
+- The reference logs that a worker received a job and reports a status to the metrics collector
+  (`internal/worker/worker.go`); it never reports the outcome of the run. RivuletCore has neither
+  layer, so `tick()` answers with one outcome per job, and the pins compare the typed error case,
+  not the wording.
 - The reference pushes the batch to the channel and does not await it, so a slow batch can overlap
   the next tick there; here `tick()` runs the whole batch before it returns. The loop that makes
   the two shapes meet lands with `rivulet serve`.
@@ -523,5 +524,13 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - The due rule compares the instant the caller passes instead of SQL `now()`; this is the injected
   clock the pipeline section already records, and the pins read only instants after the process
   clock, so the two cannot be confused.
+
+**What cannot be pinned.**
+
 - `IS false` on the disabled column answers the same as `= 0` here because the column is NOT NULL,
-  and the order of rows sharing one `next_check_at` is undefined in SQL; neither can be pinned.
+  and the order of rows sharing one `next_check_at` is undefined in SQL. Neither can be pinned, and
+  neither is the PostgreSQL placeholder style the builder writes, which the port does not
+  reproduce. The ordering clause itself cannot be pinned either: the pin shows its direction, while
+  dropping the clause reads the rows through the schema's index on `next_check_at`, in the same
+  order the clause asks for.
+

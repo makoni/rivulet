@@ -6,10 +6,13 @@ import Foundation
 ///
 /// The defaults are the reference's, from `internal/config/options.go` at commit `c4d54f87`. The
 /// reference reads them through `config.Opts`; this port takes them as a value so a test can drive
-/// the tick with its own numbers. Two of the defaults are switches, not values: the batch builder
-/// appends the host condition and the `LIMIT` clause only for a positive number, so those zeros are
-/// pinned where they change the query, in `SchedulerBatchTests`. `pollingFrequency` is the cadence
-/// the loop runs on; `tick()` does not read it, and the loop lands with `rivulet serve`.
+/// the tick with its own numbers. Three of them are read as switches rather than as numbers: the
+/// builder appends the error condition only for a positive limit and the `LIMIT` clause only for a
+/// positive batch size, and it applies the host filter only when the per-host limit is positive —
+/// the per-host limit is not a SQL condition at all, it is applied while the rows are iterated.
+/// Those readings are pinned in `SchedulerBatchTests`, where a switch changes the query or the
+/// scan. `pollingFrequency` is the cadence the loop runs on; `tick()` does not read it, and the
+/// loop lands with `rivulet serve`.
 public struct SchedulerOptions: Sendable, Equatable {
     /// The cadence the loop runs on (`POLLING_FREQUENCY`): 60 minutes by the reference.
     public let pollingFrequency: Duration

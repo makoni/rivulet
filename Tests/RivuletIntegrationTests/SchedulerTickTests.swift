@@ -14,16 +14,18 @@ import Testing
 /// and that the schedule the pipeline wrote is the one the next tick reads. What they cannot fail
 /// on: the pool-size cap itself, because pinning a cap would need a timed wait, which the
 /// determinism rule forbids, so the pins show only that every job runs once; the order the
-/// outcomes arrive in, which concurrency does not fix; the reference's logging, because
-/// RivuletCore has no logging layer and `tick()` answers with outcomes instead; and that the
+/// outcomes arrive in, which concurrency does not fix; the reference's log lines and the metrics
+/// status the worker records, because RivuletCore has neither layer and `tick()` answers with
+/// outcomes instead; and that the
 /// reference pushes jobs to a channel without awaiting the batch, so a slow batch can overlap the
 /// next tick there and not here — both recorded in `docs/parity.md`. The recorder runner stands in
 /// for the pipeline in the selection pins, which therefore pin the selection and the outcome
 /// mapping, not the fetch path; the pipeline path is pinned by the last test.
 @Suite struct SchedulerTickTests {
-    /// The injected instant, after the process clock, so a pin can tell the clock it was given from
-    /// the process one.
-    private let now = 2_000_000_000
+    /// The injected instant: 2065, after the process clock, so a pin can tell the clock it was
+    /// given from the process one. The schedule the pins read is 2062, so the two clocks cannot
+    /// answer the same batch.
+    private let now = 3_000_000_000
     private let options = SchedulerOptions.defaults
 
     @Test func tickRunsEveryJobOfTheSelectedBatchExactlyOnceAndNothingElse() async throws {
@@ -31,17 +33,17 @@ import Testing
             let alice = try await seedGraph(storage, username: "alice")
             let bob = try await seedGraph(storage, username: "bob")
             let firstDue = try await seedRow(storage, alice, url: "http://host.test/first",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let secondDue = try await seedRow(storage, bob, url: "http://host.test/second",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
 
             // The three controls are selected out by the batch rules the batch suite pins; here
             // they pin that the tick runs what the batch answered with, not the whole table.
             _ = try await seedRow(storage, alice, url: "http://host.test/equal", nextCheckAt: now)
             _ = try await seedRow(storage, alice, url: "http://host.test/disabled",
-                nextCheckAt: 1_900_000_001, disabled: true)
+                nextCheckAt: 2_900_000_002, disabled: true)
             _ = try await seedRow(storage, alice, url: "http://host.test/at-limit",
-                nextCheckAt: 1_900_000_002, errorCount: 3)
+                nextCheckAt: 2_900_000_003, errorCount: 3)
 
             let runner = RecorderRunner()
             let scheduler = Scheduler(storage: storage, clock: FixedClock(now: now),
@@ -62,7 +64,7 @@ import Testing
             let graph = try await seedGraph(storage, username: "alice")
             // Not due relative to the injected instant, so the batch is empty.
             _ = try await seedRow(storage, graph, url: "http://host.test/not-due",
-                nextCheckAt: 2_100_000_000)
+                nextCheckAt: 3_100_000_000)
 
             let runner = RecorderRunner()
             let scheduler = Scheduler(storage: storage, clock: FixedClock(now: now),
@@ -78,9 +80,9 @@ import Testing
         try await withMigratedStorage { _, storage in
             let graph = try await seedGraph(storage, username: "alice")
             let failing = try await seedRow(storage, graph, url: "http://host.test/failing",
-                nextCheckAt: 1_800_000_000)
+                nextCheckAt: 2_900_000_000)
             let succeeding = try await seedRow(storage, graph, url: "http://host.test/succeeding",
-                nextCheckAt: 1_900_000_000)
+                nextCheckAt: 2_900_000_001)
 
             let runner = RecorderRunner(failures: [failing: FetchError.status(500)])
             let scheduler = Scheduler(storage: storage, clock: FixedClock(now: now),
@@ -115,7 +117,7 @@ import Testing
                     let graph = try await seedGraph(storage, username: "alice")
                     let feedURL = server.url("/feed").absoluteString
                     let feedID = try await seedRow(storage, graph, url: feedURL,
-                        nextCheckAt: 1_800_000_000)
+                        nextCheckAt: 2_900_000_000)
                     try await storeValidators(storage, feedID: feedID, etag: "\"stored-etag\"",
                         lastModified: "Fri, 16 Oct 2026 09:00:00 GMT")
 
@@ -190,7 +192,7 @@ import Testing
         }
     }
 
-    /// The expected job for a row, in the order the reference's `model.Job` names its fields.
+    /// The expected job for a row, in the order the batch query scans the reference's `model.Job`.
     private func job(_ feedID: Int, _ graph: (userID: Int, categoryID: Int), _ url: String)
         -> RefreshJob {
         RefreshJob(feedID: feedID, userID: graph.userID, feedURL: url)

@@ -10,9 +10,9 @@ extension FeedRepository {
     /// the limit is positive, so the default zero means "no filter" rather than "cap at zero"; the
     /// disabled gate excludes a disabled feed; the rows are ordered by `next_check_at` ascending;
     /// the `LIMIT` clause is added only for a positive batch size; and the per-host limit applies
-    /// while the rows are iterated — after the `LIMIT`, so it caps the rows read, not the jobs
-    /// kept, and a smaller per-host count cannot pull in a row the `LIMIT` had already cut. The
-    /// host is `urllib.Domain`: the parsed host with its port, the string as written when Go's
+    /// while the rows are iterated — after the `LIMIT`, so a row the filter skips still uses one of
+    /// the `LIMIT` slots, and a smaller per-host count cannot pull in a row the `LIMIT` had already
+    /// cut. The host is `urllib.Domain`: the parsed host with its port, the string as written when
     /// parse fails, and no `www.` strip. The builder can also scope the batch to a user or a
     /// category; `feedScheduler` calls neither, so the batch is not user-scoped and each job
     /// carries the user of its own row.

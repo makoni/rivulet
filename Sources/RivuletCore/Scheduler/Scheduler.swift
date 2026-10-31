@@ -25,10 +25,11 @@ private actor JobQueue: Sendable {
 /// awaiting the batch. This type is one tick without the loop, because nothing can pin a sleeping
 /// loop: `docs/plan/stage-4-ingestion.md` asks tests to drive the scheduler with explicit `tick()`
 /// calls, and the loop itself lands with `rivulet serve`. The pool is the same shape as the
-/// reference's: `workerPoolSize` workers reading the queue; the cap itself cannot be pinned
-/// without a timed wait, which `docs/testing.md` forbids, so the pins state it honestly. A job
-/// that fails is reported as the failed outcome and does not stop the rest, which is the worker's
-/// rule: it logs the error and keeps reading the channel.
+/// reference's: workers reading the queue, one per slot the batch can use, which is what
+/// `workerPoolSize` goroutines over one channel do there; the cap itself cannot be pinned without a
+/// timed wait, which `docs/testing.md` forbids, so the pins state it honestly. A job that fails is
+/// reported as the failed outcome and does not stop the rest, which is the worker's rule: it keeps
+/// reading the channel after a job that failed.
 public actor Scheduler {
     private let storage: SQLiteStorage
     private let clock: any Clock
@@ -46,7 +47,7 @@ public actor Scheduler {
 
     /// Runs one tick on the clock it was given.
     /// - Returns: One outcome per job of the batch, in the order the workers finished, which
-    ///   concurrency does not fix; a pin reads them sorted by the job.
+    ///   concurrency does not fix; a pin reads the outcome for each job instead.
     /// - Throws: The storage failure the batch read reported. A failure inside one run is not an
     ///   error here: it becomes the failed outcome, as the worker reports it.
     public func tick() async throws -> [JobOutcome] {
@@ -58,8 +59,8 @@ public actor Scheduler {
         var outcomes: [JobOutcome] = []
         await withTaskGroup(of: [JobOutcome].self) { group in
             let queue = JobQueue(jobs)
-            // One worker per slot of the pool, as the reference starts `workerPoolSize` goroutines
-            // over one channel. A worker runs nothing when the queue is empty, so a positive pool
+            // One worker per slot the batch can use. The reference starts the whole pool over one
+            // channel and every worker runs nothing when the channel is empty, so a positive pool
             // never runs a job twice.
             for _ in 0..<min(self.options.workerPoolSize, jobs.count) {
                 group.addTask {

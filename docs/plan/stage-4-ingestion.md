@@ -34,13 +34,16 @@ progress until the exit criteria below cover the whole stage.
 - [ ] Icons: take the feed/website icon, download within size caps, store bytes + hash
       (dedupe) + mime + random `external_id`, link to the feed.
 - [ ] Scheduler actor with **reference semantics** (no jitter, no backoff — parity, see
-      `docs/reference-notes.md`). The batch selection and the pool landed as PR #26, every rule of
-      the builder pinned: strict `next_check_at < now()` ordered by `next_check_at`, size
-      `BATCH_SIZE` (default 100), worker pool `WORKER_POOL_SIZE` (default 16), error limit
-      `POLLING_PARSING_ERROR_LIMIT` (default 3) excluding a feed from batches until a forced
-      refresh resets it, the disabled gate, and optional `POLLING_LIMIT_PER_HOST` counting the rows
-      read. Still open: the `POLLING_FREQUENCY` cadence (60m), which lands with `rivulet serve`,
-      and the entry-frequency mode of `ScheduleNextCheck`.
+      `docs/reference-notes.md`). The batch selection landed as PR #26 with every rule of the
+      builder pinned: strict `next_check_at < now()`, the direction of the `next_check_at` ordering,
+      size `BATCH_SIZE`
+      (default 100), error limit `POLLING_PARSING_ERROR_LIMIT` (default 3) excluding a feed from
+      batches until a forced refresh resets it, the disabled gate, and optional
+      `POLLING_LIMIT_PER_HOST`, which runs only on the rows the `LIMIT` read. The pool runs each
+      selected job once; `WORKER_POOL_SIZE` (default 16) is pinned as a value in
+      `SchedulerOptionsTests`, while the cap itself is not. Still open: the `POLLING_FREQUENCY`
+      cadence (60m), which lands with `rivulet serve`, and the entry-frequency mode of
+      `ScheduleNextCheck`.
 - [ ] Manual refresh: `rivulet refresh [feed-id|all]` — the "forced" path that also resets error
       counters.
 - [ ] Retention job (daily): the stage-1 cleanup with tombstones + periodic `VACUUM`.
@@ -80,7 +83,7 @@ progress until the exit criteria below cover the whole stage.
 - A scheduler tick refreshes only due feeds (others untouched). Pinned by `SchedulerTickTests`:
   the pool is handed exactly the jobs the batch answered with, and the control rows — not due,
   disabled, at the limit — reach no run. The pool-size cap itself is not pinned, as the suite
-  header states.
+  header states, and the completion order is not asserted because concurrency does not fix it.
 - Retention deletes only expired entries (boundary cases) and writes tombstones.
 
 ## Exit criteria
@@ -106,3 +109,13 @@ Findings from the review runs on PR #25 that do not change behavior:
 - `docs/parity.md` says the cache lifetime is read as minutes, which is true of `<ttl>`; the policy
   compares the three delay sources as durations, so the row should separate the read from the
   comparison.
+
+
+## Backlog
+
+Findings from review run 1 on PR #26 that do not change behavior:
+- `JobQueue` is a second type in `Scheduler.swift`, whose primary type is `Scheduler`; the one
+  primary type per file rule asks to split it when the file grows.
+- The due pins read a stored schedule of 2062 against an injected instant of 2065; both are after
+  the process clock, which is what makes the injected clock distinguishable, and that argument stops
+  holding after 2062.
