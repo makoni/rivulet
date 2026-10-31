@@ -8,19 +8,21 @@ import Testing
 /// `docs/parity.md` is the only way a difference can stay. Five of the cases are the round-robin
 /// cases `internal/model/feed_test.go` asserts (`TestFeedScheduleNextCheckRoundRobinDefault`,
 /// `...WithRefreshDelayAboveMinInterval`, `...BelowMinInterval`, `...AboveMaxInterval`,
-/// `...RoundRobinMinInterval`), read at the reference commit `c4d54f87` with `TZ=UTC`; the sixth is
-/// traced from the rule the reference applies, because the upstream corpus has no case with a delay
-/// that is not a whole number of minutes. The reference compares against its own `time.Now()`, so
-/// its assertions are ranges; here the clock is the injected one, so each case pins the exact
-/// instant the reference's rule produces, which is the same rule.  What these cases can fail on:
-/// the cap, because a delay above it pins the cap and a delay below it pins the max of the two;
-/// the default interval, because a delay below it pins the interval while a delay above it pins
-/// the delay; the configured minimum, because a delay below that pins the configured number rather
-/// than the default; and the precision, because a delay that is not a whole number of minutes is
-/// added as the reference's `time.Duration` would add it, which a comparison rounded to whole
-/// minutes drops.  What they cannot fail on: the entry-frequency mode, which this slice does not
-/// read — it needs the weekly entry count, so it lands with the refresh loop — and the source of
-/// the interval, which is the pipeline's choice, pinned in `RefreshPipelineTests`.
+/// `...RoundRobinMinInterval`), read at the reference commit `c4d54f87` with `TZ=UTC`. The sixth is
+/// traced from the rule the reference applies: the corpus passes delays with a sub-minute part, but
+/// it asserts ranges against its own `time.Now()`, so a sub-minute delay there can only trip the
+/// lower bound of the range, and no exact instant can be ported from it. Here the clock is the
+/// injected one, so each case pins the exact instant the reference's rule produces, which is the
+/// same rule.  What these cases can fail on: the cap, because a delay above it pins the cap and a
+/// delay below it pins the max of the two; the default interval, because a delay below it pins the
+/// interval while a delay above it pins the delay; the configured minimum, because a delay below
+/// that pins the configured number rather than the default; and the precision, because a delay of a
+/// minute and a half past a one-minute minimum is added as the reference adds it, which a
+/// comparison rounded to whole minutes drops.  What they cannot fail on: the entry-frequency mode,
+/// which this slice does not read — it needs the weekly entry count, so it lands with the refresh
+/// loop — the source of the interval, which is the pipeline's choice, pinned in
+/// `RefreshPipelineTests`, and the part of a delay below a second, because the clock answers Unix
+/// seconds, which is the unit the stored timestamps use.
 @Suite struct NextCheckPolicyTests {
     /// The reference's defaults, from `internal/config/options.go` at `c4d54f87`.
     private let defaultPolicy = NextCheckPolicy()
