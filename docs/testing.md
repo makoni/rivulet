@@ -346,6 +346,18 @@ robin mode reads the count for nothing; the shape of the ceiling, because exact 
 answers the same value as `CEIL` of the reference's real division for every case these pins read;
 and the transaction the count read runs inside.
 
+The merge and tombstone half (`PipelineMergeAndTombstoneTests`) pins what the entry loop does not
+write: an entry the document no longer declares is left in place, and a tombstoned `(feed_id,
+hash)` pair is refused by the insert guard once the entry loop runs on a forced refresh, which is
+what makes sure the answer is not a conditional hit. Both pins read the rows through their own
+checkout, and the archive runs inside `withTransaction`, because the delete and the tombstone
+insert are one atomic step only there. What these pins cannot fail on is stated in the suite
+header: the age boundary, the batch limit and the starred rule of the archive, which
+`RetentionTests` pins, because the pin that runs the archive runs it on an instant past every
+stored row and on a single row; the atomicity itself; the user state an update must not touch,
+which the storage suite pins; and the reference's return value, which counts the tombstone rows it
+inserted rather than the rows it deleted.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.

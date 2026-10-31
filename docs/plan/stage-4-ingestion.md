@@ -1,9 +1,9 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — three slices merged: the pipeline (PR #25), the tick's batch
-selection with the worker pool (PR #26), and the entry-frequency mode with the weekly count
-(PR #27). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — four slices merged: the pipeline (PR #25), the tick's batch selection
+with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), and what
+the entry loop does not write (PR #28). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
@@ -17,46 +17,27 @@ job not stopping the rest, and the non-forced path the worker takes, pinned by `
 and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop — and lands
 with `rivulet serve`; tests drive the scheduler with explicit `tick()` calls. The entry-frequency
 mode and the weekly count it divides the week by landed as PR #27, pinned by `WeeklyEntryCountTests`
-and read through the pipeline by `EntryFrequencyPipelineTests`; the manual `rivulet refresh` path,
-retention and the soak artifact follow. The status stays in progress until the exit criteria below
-cover the whole stage.
+and read through the pipeline by `EntryFrequencyPipelineTests`. The fourth slice is what the entry
+loop does not write: an entry the parsed document no longer declares stays in place with the state
+it had, and a tombstoned `(feed_id, hash)` pair is refused by the insert guard on the forced path,
+pinned by `PipelineMergeAndTombstoneTests`. The manual `rivulet refresh` path, retention and the
+soak artifact follow. The status stays in progress until the exit criteria below cover the whole
+stage.
 
 ## Scope
 
 - [x] Refresh pipeline per feed: fetch → parse → normalize → sanitize → merge → store in one
       write transaction, then update feed state. Landed as PR #25; the transaction boundary
       itself is what no test can pin, so it is stated in `docs/parity.md`.
-- [ ] Merge semantics: new entries inserted; changed entries only update content — user state
-      (read/starred) is never touched; entries missing upstream are kept locally. The upsert half
-      is pinned in stage 1, where status and starred survive an update, and the pipeline pins the
-      branch that updates a known entry and that a second identical refresh writes nothing; no
-      case shows an entry the upstream document no longer declares.
-- [ ] Tombstones are honored end-to-end: a cleaned-up, tombstoned entry never resurfaces through
-      refresh. The repository refuses a tombstoned `(feed_id, hash)` pair, which stage 1 pins,
-      and the
-      pipeline reads that outcome as no write; no case drives a tombstoned entry through a refresh.
-- [ ] Icons: take the feed/website icon, download within size caps, store bytes + hash
-      (dedupe) + mime + random `external_id`, link to the feed.
-- [ ] Scheduler actor with **reference semantics** (no jitter, no backoff — parity, see
-      `docs/reference-notes.md`). The batch selection landed as PR #26 with every rule of the
-      builder pinned: strict `next_check_at < now()`, the direction of the `next_check_at` ordering,
-      size `BATCH_SIZE`
-      (default 100), error limit `POLLING_PARSING_ERROR_LIMIT` (default 3) excluding a feed from
-      batches until a forced refresh resets it, the disabled gate, and optional
-      `POLLING_LIMIT_PER_HOST`, which runs only on the rows the `LIMIT` read. The pool runs each
-      selected job once; `WORKER_POOL_SIZE` (default 16) is pinned as a value in
-      `SchedulerOptionsTests`, while the cap itself is not. Still open: the `POLLING_FREQUENCY`
-      cadence (60m), which lands with `rivulet serve`. Both modes of `ScheduleNextCheck` landed: the
-      round-robin pair, the entry-frequency `7d / (weekly_entries × factor)` with the cap then the
-      floor, the zero count answering the maximum, and the weekly count itself, read through the
-      pipeline.
-- [ ] Manual refresh: `rivulet refresh [feed-id|all]` — the "forced" path that also resets error
-      counters.
-- [ ] Retention job (daily): the stage-1 cleanup with tombstones + periodic `VACUUM`.
-- [x] Deterministic testing: an injectable `Clock` abstraction; tests drive the scheduler with
-      explicit `tick()` calls — no sleeping. The seam is pinned from both sides (`SystemClockTests`
-      for the production clock, the injected one for the pipeline and the tick), and the tick suite
-      drives the scheduler through `tick()` without sleeping.
+- [x] Merge semantics: new entries inserted; changed entries only update content — user
+      state (read/starred) is never touched; entries missing upstream are kept locally. The
+      upsert half is pinned in stage 1, where status and starred survive an update, and the
+      pipeline pins the branch that updates a known entry and that a second identical
+      refresh writes nothing. The upstream-removed half is pinned by
+      `PipelineMergeAndTombstoneTests`: the row the document no longer declares stays, and a
+      patch that deletes the feed's rows not in the parsed document fails that pin. The
+      status read there is the one the case seeded, so the pin shows the row survived, not
+      that an update left user state alone.
 
 ## Implementation notes
 
@@ -86,6 +67,9 @@ cover the whole stage.
   answering `304` stores nothing new. Pinned by the first slice.
 - Feed updated upstream → new entries added, existing read state preserved.
 - Entry removed upstream → it stays locally; a deleted + tombstoned entry is never re-inserted.
+  Both halves are pinned by `PipelineMergeAndTombstoneTests`, which reads the rows through its own
+  checkout and runs the archive inside `withTransaction`, because the delete and the tombstone
+  insert are one atomic step only there.
 - Fetch error → error counter increments; at the limit the feed is excluded from ticks; a forced
   refresh resets it. The increment and both resets are pinned by the first slice; the exclusion is
   the batch query, pinned by PR #26.
@@ -128,3 +112,9 @@ Findings from review run 1 on PR #26 that do not change behavior:
 - The due pins read a stored schedule of 2061 against an injected instant of 2065; both are after
   the process clock, which is what makes the injected clock distinguishable, and that argument stops
   holding after 2061.
+
+Findings from review run 1 on PR #28 that do not change behavior: - `EntryRepository.archive`
+returns the number of rows it deleted, where `ArchiveEntries` returns the number of rows it
+inserted into `entry_tombstones`; the two disagree for a skipped empty hash and for a `(feed_id,
+hash)` conflict. The pins cannot show it, and a live entry can never have a tombstone, so in
+practice the counts agree.
