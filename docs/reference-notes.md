@@ -35,7 +35,13 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
 - Batch selection: `internal/storage/batch.go` — `next_check_at < now() AND parsing_error_count <
   limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE` (default 100); optional
-  per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off).
+  per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off). Both zeros are switches: the error
+  condition and the `LIMIT` clause are added only for a positive number, so a batch size of 0 adds
+  no clause and an error limit of 0 excludes nothing. The per-host limit applies while the rows are
+  iterated, after the `LIMIT`, so it caps the rows read, not the jobs kept, and the host is
+  `urllib.Domain` — the parsed host with its port, the input as written when the URL does not
+  parse, no `www.` strip. `feedScheduler` passes neither a user nor a category, so the batch is not
+  scoped. Upstream has no test for the builder; the port pins each rule in `SchedulerBatchTests`.
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when

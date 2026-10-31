@@ -1,0 +1,262 @@
+import Foundation
+import SQLKit
+import Testing
+@testable import RivuletCore
+
+/// The due-batch selection the tick reads, from `internal/storage/batch.go` at commit `c4d54f87`.
+/// Upstream has no test for this builder, so these pins are the port's own defense. What they can
+/// fail on, each checked by patching the rule and reverting: the strict `next_check_at < now()`
+/// comparison, the `ORDER BY next_check_at ASC`, the injected instant being the one compared (the
+/// stored values are after the process clock, so a pin can tell them apart), the error condition
+/// appended only for a positive limit and comparing strictly, the disabled gate, the `LIMIT` clause
+/// added only for a positive batch size, the per-host cap counting the rows read before the filter
+/// rather than the jobs kept, the host taken as the parsed `Host` with its port and without the
+/// `www.` strip, an unparseable URL counted as the string as written, the batch not being
+/// user-scoped, and the job carrying the stored feed URL rather than the site URL. What they cannot
+/// fail on: the `IS false` form of the disabled gate, which the NOT NULL column makes equal to
+/// `= 0`; the order of rows sharing one `next_check_at`, which SQL does not define; the PostgreSQL
+/// placeholder style the builder writes; and the log lines it emits, because RivuletCore has no
+/// logging layer. Nothing sleeps here: the tests read the batch through the repository directly.
+@Suite struct SchedulerBatchTests {
+    /// The instant every pin passes. It is after the process clock, so the stored schedule read by
+    /// the pins can only be due relative to this one.
+    private let now = 2_000_000_000
+
+    @Test func theBatchIsStrictlyDueAndOrderedByNextCheckAgainstTheInjectedInstant() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let early = try await seedRow(storage, graph, url: "http://host.test/early",
+                nextCheckAt: 1_800_000_000)
+            let later = try await seedRow(storage, graph, url: "http://host.test/later",
+                nextCheckAt: 1_900_000_000)
+            // Exactly the injected instant: the strict comparison excludes it; a `<=` would keep
+            // it. The other two rows are after the process clock, so only the injected instant can
+            // make them due.
+            let equal = try await seedRow(storage, graph, url: "http://host.test/equal",
+                nextCheckAt: now)
+
+            let jobs = try await batch(storage, now: now, options: .defaults)
+            #expect(jobs == [job(early, graph, "http://host.test/early"),
+                job(later, graph, "http://host.test/later")])
+            #expect(!jobs.contains(where: { $0.feedID == equal }))
+        }
+    }
+
+    @Test func theErrorConditionIsAppendedOnlyForAPositiveLimitAndComparesStrictly() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let below = try await seedRow(storage, graph, url: "http://host.test/below",
+                nextCheckAt: 1_800_000_000, errorCount: 2)
+            let atLimit = try await seedRow(storage, graph, url: "http://host.test/at-limit",
+                nextCheckAt: 1_900_000_000, errorCount: 3)
+
+            // Strict `<` at the default limit: a row exactly at the limit is out.
+            #expect(try await batch(storage, now: now, options: .defaults) ==
+                [job(below, graph, "http://host.test/below")])
+
+            // The condition is appended only when the limit is positive. With 0 the row at the same
+            // count is selected: an implementation that reads zero as a value appends `< 0` and
+            // selects nothing.
+            let noLimit = options(batchSize: 100, workerPoolSize: 16, parsingErrorLimit: 0,
+                limitPerHost: 0)
+            #expect(try await batch(storage, now: now, options: noLimit) == [
+                job(below, graph, "http://host.test/below"),
+                job(atLimit, graph, "http://host.test/at-limit"),
+            ])
+        }
+    }
+
+    @Test func disabledFeedsAreExcludedAndEnabledOnesSelected() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let enabled = try await seedRow(storage, graph, url: "http://host.test/enabled",
+                nextCheckAt: 1_800_000_000)
+            let disabled = try await seedRow(storage, graph, url: "http://host.test/disabled",
+                nextCheckAt: 1_900_000_000, disabled: true)
+
+            let jobs = try await batch(storage, now: now, options: .defaults)
+            #expect(jobs == [job(enabled, graph, "http://host.test/enabled")])
+            #expect(!jobs.contains(where: { $0.feedID == disabled }))
+        }
+    }
+
+    @Test func aZeroBatchSizeAddsNoLimitAndAPositiveOneCapsTheRowsRead() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let first = try await seedRow(storage, graph, url: "http://host.test/first",
+                nextCheckAt: 1_800_000_000)
+            let second = try await seedRow(storage, graph, url: "http://host.test/second",
+                nextCheckAt: 1_900_000_000)
+            let third = try await seedRow(storage, graph, url: "http://host.test/third",
+                nextCheckAt: 1_900_000_001)
+
+            // Zero is the switch, not a cap: an implementation that reads it as a value writes
+            // `LIMIT 0` and answers with nothing.
+            let noCap = options(batchSize: 0, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 0)
+            #expect(try await batch(storage, now: now, options: noCap) == [
+                job(first, graph, "http://host.test/first"),
+                job(second, graph, "http://host.test/second"),
+                job(third, graph, "http://host.test/third"),
+            ])
+
+            // A positive size caps the rows read, in the order the clause puts them.
+            let capped = options(batchSize: 1, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 0)
+            #expect(try await batch(storage, now: now, options: capped) ==
+                [job(first, graph, "http://host.test/first")])
+        }
+    }
+
+    @Test func theHostCapCountsTheRowsReadBeforeTheFilterNotTheJobsKept() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let onFirstHost = try await seedRow(storage, graph, url: "http://first.test/a",
+                nextCheckAt: 1_800_000_000)
+            _ = try await seedRow(storage, graph, url: "http://first.test/b",
+                nextCheckAt: 1_900_000_000)
+            _ = try await seedRow(storage, graph, url: "http://first.test/c",
+                nextCheckAt: 1_900_000_001)
+            // The fourth row is past the cap: `LIMIT 3` reads only the three first rows, all on the
+            // first host, so the host filter runs on those and skips two. An implementation that
+            // filters before the limit would keep this row too.
+            let onSecondHost = try await seedRow(storage, graph, url: "http://second.test/d",
+                nextCheckAt: 1_900_000_002)
+
+            let capped = options(batchSize: 3, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 1)
+            let jobs = try await batch(storage, now: now, options: capped)
+            #expect(jobs == [job(onFirstHost, graph, "http://first.test/a")])
+            #expect(!jobs.contains(where: { $0.feedID == onSecondHost }))
+        }
+    }
+
+    @Test func theHostIsTheParsedHostWithItsPortAndTheWwwPrefixIsNotStripped() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let www = try await seedRow(storage, graph, url: "http://www.example.org/a",
+                nextCheckAt: 1_800_000_000)
+            let bare = try await seedRow(storage, graph, url: "http://example.org/b",
+                nextCheckAt: 1_900_000_000)
+            let withPort = try await seedRow(storage, graph, url: "http://example.org:8080/c",
+                nextCheckAt: 1_900_000_001)
+
+            // Three rows, one per host as `urllib.Domain` reads it. Stripping `www.` would make the
+            // first equal the second, and reading the port-less `Hostname` would make the second
+            // equal the third. With a per-host limit of 1, all three survive only when the three
+            // hosts are distinct.
+            let capped = options(batchSize: 100, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 1)
+            #expect(try await batch(storage, now: now, options: capped) == [
+                job(www, graph, "http://www.example.org/a"),
+                job(bare, graph, "http://example.org/b"),
+                job(withPort, graph, "http://example.org:8080/c"),
+            ])
+        }
+    }
+
+    @Test func anUnparseableURLCountsAsTheStringAsWritten() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            // Go's parse fails on the unclosed bracket host, so `Domain` answers with the string as
+            // it was written. An implementation that read the bracketed host instead would make the
+            // two rows share one host, and the limit of 1 would skip the second.
+            let unparseable = try await seedRow(storage, graph,
+                url: "https://[::1?utm_source=mail", nextCheckAt: 1_800_000_000)
+            let bracketed = try await seedRow(storage, graph, url: "https://[::1]/feed",
+                nextCheckAt: 1_900_000_000)
+
+            let capped = options(batchSize: 100, workerPoolSize: 16, parsingErrorLimit: 3,
+                limitPerHost: 1)
+            #expect(try await batch(storage, now: now, options: capped) == [
+                job(unparseable, graph, "https://[::1?utm_source=mail"),
+                job(bracketed, graph, "https://[::1]/feed"),
+            ])
+        }
+    }
+
+    @Test func theBatchIsNotScopedToTheUser() async throws {
+        try await withMigratedStorage { _, storage in
+            let alice = try await seedGraph(storage, username: "alice")
+            let bob = try await seedGraph(storage, username: "bob")
+            let aliceFeed = try await seedRow(storage, alice, url: "http://host.test/alice",
+                nextCheckAt: 1_800_000_000)
+            let bobFeed = try await seedRow(storage, bob, url: "http://host.test/bob",
+                nextCheckAt: 1_900_000_000)
+
+            // `feedScheduler` calls no `WithUserID`, so each job carries the user of its own row.
+            #expect(try await batch(storage, now: now, options: .defaults) == [
+                job(aliceFeed, alice, "http://host.test/alice"),
+                job(bobFeed, bob, "http://host.test/bob"),
+            ])
+        }
+    }
+
+    @Test func theJobCarriesTheStoredFeedURLAndNotTheSiteURL() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let feedID = try await seedRow(storage, graph, url: "http://host.test/feed",
+                nextCheckAt: 1_800_000_000)
+
+            // The builder selects the `url` column; the site URL the row holds after a parse
+            // names a different host, so the expected job can tell the two readings apart.
+            try await storage.withConnection { connection in
+                try await sqlDatabase(connection).raw("""
+                    UPDATE feeds SET site_url = \(bind: "https://site.test")
+                    WHERE id = \(bind: feedID)
+                    """).run()
+            }
+
+            #expect(try await batch(storage, now: now, options: .defaults) ==
+                [job(feedID, graph, "http://host.test/feed")])
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func options(batchSize: Int, workerPoolSize: Int, parsingErrorLimit: Int,
+        limitPerHost: Int) -> SchedulerOptions {
+        SchedulerOptions(pollingFrequency: .seconds(60), batchSize: batchSize,
+            workerPoolSize: workerPoolSize, parsingErrorLimit: parsingErrorLimit,
+            limitPerHost: limitPerHost)
+    }
+
+    /// The expected job for a row, in the order the reference's `model.Job` names its fields.
+    private func job(_ feedID: Int, _ graph: (userID: Int, categoryID: Int), _ url: String)
+        -> RefreshJob {
+        RefreshJob(feedID: feedID, userID: graph.userID, feedURL: url)
+    }
+
+    private func seedGraph(_ storage: SQLiteStorage, username: String) async throws
+        -> (userID: Int, categoryID: Int) {
+        try await storage.withConnection { connection in
+            let userID = try await seedUser(connection, username: username)
+            let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
+            return (userID, categoryID)
+        }
+    }
+
+    /// Seeds one feed row with the values the batch reads. The row is created due at the process
+    /// clock, so every pin that reads due-ness sets its own schedule through the same checkout.
+    private func seedRow(_ storage: SQLiteStorage, _ graph: (userID: Int, categoryID: Int),
+        url: String, nextCheckAt: Int, errorCount: Int = 0, disabled: Bool = false) async throws
+        -> Int {
+        try await storage.withConnection { connection in
+            let feedID = try await seedFeed(connection, userID: graph.userID,
+                categoryID: graph.categoryID, url: url)
+            try await sqlDatabase(connection).raw("""
+                UPDATE feeds SET next_check_at = \(bind: nextCheckAt),
+                    parsing_error_count = \(bind: errorCount), disabled = \(bind: disabled)
+                WHERE id = \(bind: feedID)
+                """).run()
+            return feedID
+        }
+    }
+
+    private func batch(_ storage: SQLiteStorage, now: Int, options: SchedulerOptions)
+        async throws -> [RefreshJob] {
+        try await storage.withConnection { connection in
+            try await FeedRepository(connection).dueBatch(now: now, options: options)
+        }
+    }
+}

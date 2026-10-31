@@ -1,8 +1,8 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — the first slice merged (PR #25). **Effort:** M. **Depends on:** Stage 3
-and Stage 1.
+**Status:** in progress — two slices merged: the pipeline (PR #25) and the tick's batch selection
+with the worker pool (PR #26). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
@@ -10,9 +10,13 @@ request, the fetch, the `429` reschedule, the failure and the conditional-hit pa
 with the cleaner and the sanitizer, and the injected `Clock` seam, pinned end to end against the
 reference by `RefreshPipelineTests` and `NextCheckPolicyTests`. It also closes the stage 2 criterion
 that was deferred to the refresh path: the pipeline is the caller that stores the validators and the
-error state. The tick loop, the entry-frequency mode, the manual `rivulet refresh` path, retention
-and the soak artifact follow. The status stays in progress until the exit criteria below cover the
-whole stage.
+error state. The second slice is the tick's due-batch selection and the bounded worker pool: the
+builder's rules pinned through the repository, the pool running each selected job once, one failing
+job not stopping the rest, and the non-forced path the worker takes, pinned by `SchedulerBatchTests`
+and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop — and lands
+with `rivulet serve`; tests drive the scheduler with explicit `tick()` calls. The entry-frequency
+mode, the manual `rivulet refresh` path, retention and the soak artifact follow. The status stays in
+progress until the exit criteria below cover the whole stage.
 
 ## Scope
 
@@ -30,21 +34,20 @@ whole stage.
 - [ ] Icons: take the feed/website icon, download within size caps, store bytes + hash
       (dedupe) + mime + random `external_id`, link to the feed.
 - [ ] Scheduler actor with **reference semantics** (no jitter, no backoff — parity, see
-      `docs/reference-notes.md`):
-      tick every `POLLING_FREQUENCY` (default 60m); due batch `next_check_at < now()` ordered by
-      `next_check_at`, size `BATCH_SIZE` (default 100); worker pool `WORKER_POOL_SIZE` (default 16);
-      next interval via `ScheduleNextCheck` — round-robin mode 60–1440m (default), entry-frequency
-      mode 5–1440m, `max(interval, refreshDelay)` where `refreshDelay` comes from RSS `<ttl>`,
-      `Retry-After` (429), `Cache-Control: max-age` or `Expires`; error limit
-      `POLLING_PARSING_ERROR_LIMIT` (default 3) excludes a feed from batches until a forced
-      refresh resets it; optional `POLLING_LIMIT_PER_HOST`.
+      `docs/reference-notes.md`). The batch selection and the pool landed as PR #26, every rule of
+      the builder pinned: strict `next_check_at < now()` ordered by `next_check_at`, size
+      `BATCH_SIZE` (default 100), worker pool `WORKER_POOL_SIZE` (default 16), error limit
+      `POLLING_PARSING_ERROR_LIMIT` (default 3) excluding a feed from batches until a forced
+      refresh resets it, the disabled gate, and optional `POLLING_LIMIT_PER_HOST` counting the rows
+      read. Still open: the `POLLING_FREQUENCY` cadence (60m), which lands with `rivulet serve`,
+      and the entry-frequency mode of `ScheduleNextCheck`.
 - [ ] Manual refresh: `rivulet refresh [feed-id|all]` — the "forced" path that also resets error
       counters.
 - [ ] Retention job (daily): the stage-1 cleanup with tombstones + periodic `VACUUM`.
-- [ ] Deterministic testing: an injectable `Clock` abstraction; tests drive the scheduler with
-      explicit `tick()` calls — no sleeping. The seam landed with the first slice and is pinned from
-      both sides (`SystemClockTests` for the production clock, the injected one for the pipeline); the
-      explicit `tick()` calls come with the loop.
+- [x] Deterministic testing: an injectable `Clock` abstraction; tests drive the scheduler with
+      explicit `tick()` calls — no sleeping. The seam is pinned from both sides (`SystemClockTests`
+      for the production clock, the injected one for the pipeline and the tick), and the tick suite
+      drives the scheduler through `tick()` without sleeping.
 
 ## Implementation notes
 
@@ -61,7 +64,9 @@ whole stage.
 
 - Merge decisions: new / updated / unchanged / upstream-removed / tombstoned.
 - Interval selection: round-robin and entry-frequency modes, clamps, `refreshDelay` from TTL and
-  HTTP headers; due-set selection; error-limit behavior.
+  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`;
+  the two rules that read a zero as a switch are pinned where they change the query, in the batch
+  suite, because a switch is only observable through the query it writes.
 
 ### Integration
 
@@ -71,8 +76,11 @@ whole stage.
 - Entry removed upstream → it stays locally; a deleted + tombstoned entry is never re-inserted.
 - Fetch error → error counter increments; at the limit the feed is excluded from ticks; a forced
   refresh resets it. The increment and both resets are pinned by the first slice; the exclusion is
-  the batch query, which comes with the loop.
-- A scheduler tick refreshes only due feeds (others untouched).
+  the batch query, pinned by PR #26.
+- A scheduler tick refreshes only due feeds (others untouched). Pinned by `SchedulerTickTests`:
+  the pool is handed exactly the jobs the batch answered with, and the control rows — not due,
+  disabled, at the limit — reach no run. The pool-size cap itself is not pinned, as the suite
+  header states.
 - Retention deletes only expired entries (boundary cases) and writes tombstones.
 
 ## Exit criteria

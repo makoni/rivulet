@@ -16,14 +16,13 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 4 — Ingestion & scheduling** (the first slice landed: the per-feed refresh
-pipeline — fetch, parse, sanitize, merge, store in one write transaction — with the round-robin
-next-check policy, the injected `Clock` seam and the user-scoped feed lookup, pinned end to end
-against the reference; the scheduler tick loop, the entry-frequency mode and the manual refresh
-path follow). Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit
-criterion open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and
-the exit criterion it deferred to the refresh path is met by the pipeline. Keep this line and the
-plan's status table in sync.
+Current focus: **Stage 4 — Ingestion & scheduling** (the per-feed refresh pipeline and the tick's
+due-batch selection with the bounded worker pool landed, pinned end to end against the reference;
+the cadence loop, the entry-frequency mode, the manual refresh path, icons and retention follow).
+Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
+open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
+criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's
+status table in sync.
 
 ## Toolchain
 
