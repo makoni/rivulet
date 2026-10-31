@@ -44,8 +44,18 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   scoped. Upstream has no test for the builder; the port pins each rule in `SchedulerBatchTests`.
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
-  - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m]; when
-    `weekly_entries ≤ 0` the interval is the maximum (1440m);
+  - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m] — the cap first,
+    then the floor — and when `weekly_entries ≤ 0` the interval is the maximum (1440m), because the
+    division has no divisor. `weekly_entries` is `WeeklyFeedEntryCount`
+    (`internal/storage/feed.go`), which upstream has no test for: the week rounded up over the
+    average gap between the entries of one feed inside one week, where the gap is the span over
+    `count - 1` — the reference's division keeps its fraction, because PostgreSQL divides an
+    interval by a scalar, so a span of 15 over two gaps is 7.5 and the rule answers 80640 — guarded
+    by `NULLIF` for a single entry and by `COALESCE` for an empty result, read for the rows of one
+    user inside the window, and read only for the entry-frequency mode. The port computes the same
+    value with exact integer arithmetic, because this SQLite driver has no `CEIL` at runtime, and
+    pins each half in `WeeklyEntryCountTests` and the mode in `NextCheckPolicyTests` and
+    `EntryFrequencyPipelineTests`.
   - `interval = max(interval, refreshDelay)`, where `refreshDelay` comes from the RSS `<ttl>`,
     `Retry-After` (429), `Cache-Control: max-age` or `Expires`
     (`internal/reader/handler/handler.go`);
@@ -350,7 +360,8 @@ Semantics:
 - Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
   (`HTTP_CLIENT_MAX_BODY_SIZE`), a redirect cap of 10 requests (`CheckRedirect` refuses the 10th, so
   at most 9 are followed — see the deviation below), `Connection: close`, and the `Accept` value
-  `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+json,text/html,*/*;q=0.9`.
+  `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+j
+  son,text/html,*/*;q=0.9`.
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
   - Rivulet has no connect-time hook, so the private-network check runs on the answers the resolver
     seam returns for a named host, or on the address itself when the URL already carries one and no
@@ -548,24 +559,43 @@ it is pinned in `XMLTreeTests`.
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A byte-order mark at the start of the document | a run of text before the first element: the `Token()` path has no mark rule, so nothing strips it | the mark is character data before the first element, because this path has no mark rule |
-| A mark after the prolog | its own run; the instruction is a token of its own, so the mark is not part of the prolog | the mark is not part of the prolog |
+| A byte-order mark at the start of the document | a run of text before the first element: the
+`Token()` path has no mark rule, so nothing strips it | the mark is character data before the first
+element, because this path has no mark rule | | A mark after the prolog | its own run; the
+instruction is a token of its own, so the mark is not part of the prolog | the mark is not part of
+the prolog |
 | A mark inside text | kept, as part of the run | a mark inside text is kept as part of the run |
-| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so the mark is not a boundary | the mark and the garbage are one run |
-| A mark with a declared label while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns valid UTF-8 bytes unchanged, so the mark stays the mark, not the three characters windows-1252 gives for them | valid UTF-8 bytes are not decoded through the label |
-| A document that is only the mark | one run of text | a document that is only the mark is one run of text |
-| Garbage before the prolog | text at the document level: `Strict = false` does not make it a failure | junk before the prolog is text at the document level, not a failure |
-| Markup before the prolog | tokens, so a text run stops at it; the text between markup is a run of its own | text stops at markup |
-| Leading whitespace before the prolog | a run of text, not tag whitespace, because it is not between parts of a tag | leading whitespace is a run of text |
-| The entity table | the 252-entry map `encoding/xml` carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are not, so those two stay as written | `NewLine` is not in the table encoding/xml carries, so it stays as written |
-| A numeric reference at the boundary | `&#x10FFFF;` — the largest character the reference can write — resolves, while `&#1114112;` past it stays as written | the largest character the reference can write resolves, so U+10FFFF is text |
-| A resolved character outside the `Char` production | the failure for an illegal character code, which the pins compare as the case the message names, not the wording | a resolved character outside Char is the failure for an illegal character code |
-| `<![CDATA[` | the characters are read as written, so references inside are not decoded | references inside a CDATA section are not decoded |
-| Where a CDATA run ends | `]]>` ends it and what follows is another run, because the marker that started the first is not part of the second | the terminator ends the run and what follows is a run of its own |
-| A CDATA section at the document level | content, so it appears in the stream, which a pin through the tree cannot see because the reader keeps only what is inside an element | a CDATA section at the document level is content |
-| Text before a CDATA marker | the marker ends the run, so the two are runs of their own | text before a CDATA marker and the section it opens are two runs |
-| `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | AutoClose is never set, so an open element is closed by the next end tag |
-| A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | the mark is text, and the end tag after it has no element open |
+| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so
+the mark is not a boundary | the mark and the garbage are one run | | A mark with a declared label
+while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns
+valid UTF-8 bytes unchanged, so the mark stays the mark, not the three characters windows-1252 gives
+for them | valid UTF-8 bytes are not decoded through the label | | A document that is only the mark
+| one run of text | a document that is only the mark is one run of text | | Garbage before the
+prolog | text at the document level: `Strict = false` does not make it a failure | junk before the
+prolog is text at the document level, not a failure | | Markup before the prolog | tokens, so a text
+run stops at it; the text between markup is a run of its own | text stops at markup | | Leading
+whitespace before the prolog | a run of text, not tag whitespace, because it is not between parts of
+a tag | leading whitespace is a run of text | | The entity table | the 252-entry map `encoding/xml`
+carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are
+not, so those two stay as written | `NewLine` is not in the table encoding/xml carries, so it stays
+as written | | A numeric reference at the boundary | `&#x10FFFF;` — the largest character the
+reference can write — resolves, while `&#1114112;` past it stays as written | the largest character
+the reference can write resolves, so U+10FFFF is text | | A resolved character outside the `Char`
+production | the failure for an illegal character code, which the pins compare as the case the
+message names, not the wording | a resolved character outside Char is the failure for an illegal
+character code | | `<![CDATA[` | the characters are read as written, so references inside are not
+decoded | references inside a CDATA section are not decoded | | Where a CDATA run ends | `]]>` ends
+it and what follows is another run, because the marker that started the first is not part of the
+second | the terminator ends the run and what follows is a run of its own | | A CDATA section at the
+document level | content, so it appears in the stream, which a pin through the tree cannot see
+because the reader keeps only what is inside an element | a CDATA section at the document level is
+content | | Text before a CDATA marker | the marker ends the run, so the two are runs of their own |
+text before a CDATA marker and the section it opens are two runs | | `AutoClose` | never set by the
+reference, so an open element is closed by the next end tag, not by the next token | AutoClose is
+never set, so an open element is closed by the next end tag | | A stream that ends in a failure | a
+message naming the failure, which the port models as one case, so the pins compare the case and
+cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element |
+the mark is text, and the end tag after it has no element open |
 
 The typed error on the parser path (`parser/parser.go`)
 
@@ -579,14 +609,23 @@ the one for Atom 1.0 for anything else.
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A JSON document whose content is followed by a real element | `json`, decided before any XML token is read | the JSON rule answers before any token is read, so a real element after the JSON content is not switched on |
-| A JSON document whose content is a field named `feed` | `json`, because the switch on the name reads roots and never a field | a JSON document whose content is a field named feed is answered JSON |
-| Whitespace before the JSON root, longer than the 32-byte buffer | `json`: the first character that is not whitespace decides, and the rule reads past the buffer | the character that decides the JSON rule is the first one that is not whitespace |
-| A document that is only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered unknown and reported as the typed error |
-| The token read as the 50th, and the token read as the 51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the switch on the name | the pair whose roots sit on the two sides of the boundary |
-| An Atom root with the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
-| A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
-| A document with no root the switch reads, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no root the switch reads |
+| A JSON document whose content is followed by a real element | `json`, decided before any XML token
+is read | the JSON rule answers before any token is read, so a real element after the JSON content
+is not switched on | | A JSON document whose content is a field named `feed` | `json`, because the
+switch on the name reads roots and never a field | a JSON document whose content is a field named
+feed is answered JSON | | Whitespace before the JSON root, longer than the 32-byte buffer | `json`:
+the first character that is not whitespace decides, and the rule reads past the buffer | the
+character that decides the JSON rule is the first one that is not whitespace | | A document that is
+only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered
+unknown and reported as the typed error | | The token read as the 50th, and the token read as the
+51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the
+switch on the name | the pair whose roots sit on the two sides of the boundary | | An Atom root with
+the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose
+name is `version` whatever prefix it is written with | the attribute the reference reads is the one
+whose name is version | | A scan that fails before a root is read | `unknown`, with the failure for
+an angle bracket inside an attribute value | a scan that fails before a root is read ends it without
+an answer | | A document with no root the switch reads, or text only | `unknown`, so the sentinel |
+the scan ends with the answer unknown for a document with no root the switch reads |
 
 The corpus the rows rest on is
 `Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by

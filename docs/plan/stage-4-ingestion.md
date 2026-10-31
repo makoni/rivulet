@@ -1,8 +1,9 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — two slices merged: the pipeline (PR #25) and the tick's batch selection
-with the worker pool (PR #26). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — three slices merged: the pipeline (PR #25), the tick's batch
+selection with the worker pool (PR #26), and the entry-frequency mode with the weekly count
+(PR #27). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
@@ -15,8 +16,10 @@ builder's rules pinned through the repository, the pool running each selected jo
 job not stopping the rest, and the non-forced path the worker takes, pinned by `SchedulerBatchTests`
 and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop — and lands
 with `rivulet serve`; tests drive the scheduler with explicit `tick()` calls. The entry-frequency
-mode, the manual `rivulet refresh` path, retention and the soak artifact follow. The status stays in
-progress until the exit criteria below cover the whole stage.
+mode and the weekly count it divides the week by landed as PR #27, pinned by `WeeklyEntryCountTests`
+and read through the pipeline by `EntryFrequencyPipelineTests`; the manual `rivulet refresh` path,
+retention and the soak artifact follow. The status stays in progress until the exit criteria below
+cover the whole stage.
 
 ## Scope
 
@@ -29,7 +32,8 @@ progress until the exit criteria below cover the whole stage.
       branch that updates a known entry and that a second identical refresh writes nothing; no
       case shows an entry the upstream document no longer declares.
 - [ ] Tombstones are honored end-to-end: a cleaned-up, tombstoned entry never resurfaces through
-      refresh. The repository refuses a tombstoned `(feed_id, hash)` pair, which stage 1 pins, and the
+      refresh. The repository refuses a tombstoned `(feed_id, hash)` pair, which stage 1 pins,
+      and the
       pipeline reads that outcome as no write; no case drives a tombstoned entry through a refresh.
 - [ ] Icons: take the feed/website icon, download within size caps, store bytes + hash
       (dedupe) + mime + random `external_id`, link to the feed.
@@ -42,8 +46,10 @@ progress until the exit criteria below cover the whole stage.
       `POLLING_LIMIT_PER_HOST`, which runs only on the rows the `LIMIT` read. The pool runs each
       selected job once; `WORKER_POOL_SIZE` (default 16) is pinned as a value in
       `SchedulerOptionsTests`, while the cap itself is not. Still open: the `POLLING_FREQUENCY`
-      cadence (60m), which lands with `rivulet serve`, and the entry-frequency mode of
-      `ScheduleNextCheck`.
+      cadence (60m), which lands with `rivulet serve`. Both modes of `ScheduleNextCheck` landed: the
+      round-robin pair, the entry-frequency `7d / (weekly_entries × factor)` with the cap then the
+      floor, the zero count answering the maximum, and the weekly count itself, read through the
+      pipeline.
 - [ ] Manual refresh: `rivulet refresh [feed-id|all]` — the "forced" path that also resets error
       counters.
 - [ ] Retention job (daily): the stage-1 cleanup with tombstones + periodic `VACUUM`.
@@ -67,9 +73,12 @@ progress until the exit criteria below cover the whole stage.
 
 - Merge decisions: new / updated / unchanged / upstream-removed / tombstoned.
 - Interval selection: round-robin and entry-frequency modes, clamps, `refreshDelay` from TTL and
-  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`;
-  the two rules that read a zero as a switch are pinned where they change the query, in the batch
-  suite, because a switch is only observable through the query it writes.
+  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`; the
+  two rules that read a zero as a switch are pinned where they change the query, in the batch suite,
+  because a switch is only observable through the query it writes; the mode, its clamps, the zero
+  count and the weekly count the mode divides the week by are pinned in `NextCheckPolicyTests` and
+  `WeeklyEntryCountTests`, and the count reaching the schedule through the pipeline is pinned by
+  `EntryFrequencyPipelineTests`.
 
 ### Integration
 

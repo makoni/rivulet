@@ -72,7 +72,13 @@ public struct RefreshPipeline: Sendable {
         let checkedAt = clock.now()
         // `CheckedNow`: the check time, and the feed URL in place of an empty site URL.
         let siteURL = feed.siteURL.isEmpty ? feed.url : feed.siteURL
-        var nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelay: .zero)
+        // The reference reads the weekly count before the schedule, and only for the mode that
+        // divides by it, so the other mode passes 0 and the number reads nothing.
+        let weeklyCount = nextCheck.mode == .entryFrequency
+            ? try await feeds.weeklyEntryCount(userID: userID, feedID: feedID, now: checkedAt)
+            : 0
+        var nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, weeklyCount: weeklyCount,
+            refreshDelay: .zero)
 
         guard let url = URL(string: feed.url) else {
             let error = FetchError.invalidURL(feed.url)
@@ -98,7 +104,7 @@ public struct RefreshPipeline: Sendable {
         // The reference recomputes the schedule for a rate-limited answer before it reports the
         // failure, so the `Retry-After` delay can move the schedule on the failure path.
         if response.isRateLimited {
-            nextCheckAt = nextCheck.nextCheckAt(now: checkedAt,
+            nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, weeklyCount: weeklyCount,
                 refreshDelay: response.retryAfter(now: checkedAt))
         }
         if let error = response.error() {
@@ -107,7 +113,7 @@ public struct RefreshPipeline: Sendable {
         }
         if forceRefresh || response.isModified(against: state) {
             return try await processModified(connection, feeds, state, response, userID, feedID,
-                siteURL, feed.url, nextCheckAt, checkedAt)
+                weeklyCount, siteURL, feed.url, nextCheckAt, checkedAt)
         }
         return try await processHit(feeds, feed, response, feedID, siteURL, nextCheckAt, checkedAt)
     }
@@ -116,11 +122,12 @@ public struct RefreshPipeline: Sendable {
     /// carries, process the entries, then store the validators the response produced. The delay is
     /// compared as a `Duration`, as the reference does, so a value that is not a whole number of
     /// minutes keeps its seconds; the comparison itself is pinned in ``NextCheckPolicy``.
-    /// `feedURL` is the value the row holds, which is what the reference's processor parses.
+    /// `feedURL` is the value the row holds, which is what the reference's processor parses, and
+    /// `weeklyCount` is the number read before the fetch, which is what the schedule is built from.
     private func processModified(_ connection: any Database, _ feeds: FeedRepository,
         _ state: FeedFetchState, _ response: FetchResponse, _ userID: Int, _ feedID: Int,
-        _ siteURL: String, _ feedURL: String, _ nextCheckAt: Int, _ checkedAt: Int) async throws
-        -> TransactionResult {
+        _ weeklyCount: Int, _ siteURL: String, _ feedURL: String, _ nextCheckAt: Int,
+        _ checkedAt: Int) async throws -> TransactionResult {
         let parsed: ParsedFeed
         do {
             parsed = try FeedParser.parse(baseURL: response.effectiveURL.absoluteString,
@@ -132,7 +139,8 @@ public struct RefreshPipeline: Sendable {
 
         let delay = max(max(Duration.seconds(parsed.ttlMinutes * 60), response.cacheControlMaxAge),
             response.expires(now: checkedAt))
-        let nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, refreshDelay: delay)
+        let nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, weeklyCount: weeklyCount,
+            refreshDelay: delay)
         let hashes = try await processEntries(parsed, connection, userID, feedID, siteURL, feedURL)
 
         try await feeds.recordFetch(feedID: feedID, etag: response.etag,
