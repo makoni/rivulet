@@ -39,13 +39,17 @@ output can tell apart are named as unpinnable.
 
 ## Scope
 
-- [ ] Parser layer, written by us — no external feed library, decided in the
+- [x] Parser layer, written by us — no external feed library, decided in the
       [stage 3 spike](spike-3-parser.md): RSS 2.0 (+ 0.91/0.92 to be tested), RDF (RSS 1.0/0.90),
       Atom 1.0 and 0.3, JSON Feed; a tree reader fills `ParsedFeed` and `ParsedEntry` directly.
       Atom 0.3 `issued`/`modified` and the version attribute are in scope, which an external model
-      layer could not express.
-- [ ] Entry identity fallback chains and SHA-256 hashing, exactly as the reference does
-      (per-format rules in `docs/reference-notes.md`).
+      layer could not express. Every format named there has its adapter. RSS 0.91 and 0.92 reach the
+      RSS adapter through the same root name, which the detection suite pins; no fixture of those
+      versions of its own is in the corpus, which the backlog records.
+- [x] Entry identity fallback chains and SHA-256 hashing, exactly as the reference does
+      (per-format rules in `docs/reference-notes.md`). The chains are the adapters' helpers, and each
+      format pins its own branch of them; the corpus goldens pin them end to end, and the refresh
+      path pins that the identity is taken before the cleaner runs.
 - [x] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
       interpreted as local time, 209 layouts after normalization (3 in the local-time group and 206
       in the list), PST/PDT workaround, UTC-offset clamping; adapters fall back to "now" when
