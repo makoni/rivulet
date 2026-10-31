@@ -458,3 +458,33 @@ corpus reports no difference; a difference can only enter it by being recorded h
   taken on the whole content, so the whole of it is pinned but not the shape of the middle.
 
 Each golden file names the rule its fixture pins and what that fixture cannot pin.
+
+## Refresh pipeline (stage 4)
+
+**Matching the reference.**
+
+- The pipeline runs `RefreshFeed`'s order (`internal/reader/handler/handler.go` at commit
+  `c4d54f87`): the user-scoped lookup, the check stamp, the schedule fixed before the request, the
+  fetch, the `429` reschedule before the failure is reported, then the failure record or the
+  parse-and-store path. The verified rules are in `docs/reference-notes.md`; the pins read the
+  reference's values, not this implementation's.
+
+**What differs.**
+
+- The reference opens one transaction per entry, in `RefreshFeedEntries`, and writes the failure
+  record as its own statement. Rivulet keeps every write of one refresh in a single write
+  transaction, as the project conventions require, and the failure record is committed inside it
+  before the error leaves, so the row the reference would write is still stored when the caller
+  sees the error.
+- The reference reads `time.Now()` inside `CheckedNow` and `ScheduleNextCheck`. The port reads the
+  clock through an injected seam, which `docs/plan/stage-4-ingestion.md` asks for; the rule applied
+  to the value is the same, and the seam is what lets a test pin the stamp.
+- The recorded message is a locale string upstream. Rivulet has no locale layer, so the column
+  carries the typed error's description, and the pins compare the error case, not the wording.
+- The reference gates the entry-update branch on `crawler` and `ignore_entry_updates`, columns
+  Rivulet does not have. With both absent the gate is open on every path, so a known entry is
+  updated whenever the branch runs; nothing can pin the two flags, because nothing can set them.
+- The feed row's parsed language, the icon checker, the duplicate-feed check, the entry reading
+  time and the user rules in the reference's processor — filters, rewrite, scraping — are not
+  ported yet; they land with the later stages. The entry-frequency mode of `ScheduleNextCheck` is
+  not modelled either: it reads the weekly entry count, so it lands with the scheduler loop.

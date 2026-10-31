@@ -1,7 +1,16 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** not started. **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — the first slice landed (PR #25). **Effort:** M. **Depends on:** Stage 3
+and Stage 1.
+
+The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
+the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
+request, the failure and the conditional-hit paths, the entry loop with the cleaner and the
+sanitizer, and the injected `Clock` seam, pinned end to end against the reference by
+`RefreshPipelineTests` and `NextCheckPolicyTests`. The tick loop, the entry-frequency mode, the
+manual `rivulet refresh` path, retention and the soak artifact follow. The status stays in
+progress until the exit criteria below cover the whole stage.
 
 ## Scope
 

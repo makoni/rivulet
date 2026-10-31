@@ -86,7 +86,8 @@ import Testing
                 let categoryID = try #require(category.id)
 
                 do {
-                    _ = try await feeds.create(userID: userID, categoryID: categoryID, url: "https://example.com/feed.xml")
+                    _ = try await feeds.create(userID: userID, categoryID: categoryID,
+                        url: "https://example.com/feed.xml")
                     Issue.record("expected the duplicate (user, url) pair to be rejected")
                 } catch {
                     // UNIQUE(user_id, url) violation; driver error type is not promised.
@@ -100,7 +101,8 @@ import Testing
                 let bobID = try #require(bob.id)
                 let bobCategory = try await categories.create(userID: bobID, title: "B")
                 let bobCategoryID = try #require(bobCategory.id)
-                _ = try await feeds.create(userID: bobID, categoryID: bobCategoryID, url: "https://example.com/feed.xml")
+                _ = try await feeds.create(userID: bobID, categoryID: bobCategoryID,
+                    url: "https://example.com/feed.xml")
                 #expect(try await feeds.list(userID: bobID).count == 1)
             }
         }
@@ -117,7 +119,9 @@ import Testing
                 #expect(try await feeds.fetch(id: feedID)?.url == "https://example.com/feed.xml")
                 #expect(try await feeds.fetch(userID: userID, url: feed.url)?.id == feedID)
                 #expect(try await feeds.fetch(id: 999) == nil)
-                #expect(try await feeds.fetch(userID: userID, url: "https://unknown.example/x") == nil)
+                let missed = try await feeds.fetch(userID: userID,
+                    url: "https://unknown.example/x")
+                #expect(missed == nil)
             }
         }
     }
@@ -128,7 +132,8 @@ import Testing
                 let users = UserRepository(connection)
                 let categories = CategoryRepository(connection)
                 let feeds = FeedRepository(connection)
-                let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
+                let alice = try await users.create(username: "alice", passwordHash: "a",
+                    isAdmin: false)
                 let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
                 let aliceID = try #require(alice.id)
                 let bobID = try #require(bob.id)
@@ -159,24 +164,29 @@ import Testing
                 let feeds = FeedRepository(connection)
                 let feed = try await seedFeed(connection).2
                 let feedID = try #require(feed.id)
-                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one", nextCheckAt: nowInSeconds())
-                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two", nextCheckAt: nowInSeconds())
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one",
+                    nextCheckAt: nowInSeconds(), checkedAt: 1_700_000_000)
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two",
+                    nextCheckAt: nowInSeconds(), checkedAt: 1_700_000_000)
                 let nextCheckAt = nowInSeconds() + 600
-                let before = nowInSeconds()
                 _ = try await feeds.recordFetch(
                     feedID: feedID,
                     etag: "etag-1",
                     lastModified: "Fri, 01 Jan 2026 00:00:00 GMT",
-                    nextCheckAt: nextCheckAt
+                    nextCheckAt: nextCheckAt,
+                    checkedAt: 1_700_000_060,
+                    siteURL: "https://example.org"
                 )
-                let after = nowInSeconds()
 
                 let refreshed = try await feeds.fetch(id: feedID)
                 #expect(refreshed?.etag == "etag-1")
                 #expect(refreshed?.lastModified == "Fri, 01 Jan 2026 00:00:00 GMT")
                 #expect(refreshed?.nextCheckAt == nextCheckAt)
-                #expect((refreshed?.fetchedAt ?? -1) >= before)
-                #expect((refreshed?.fetchedAt ?? -1) <= after)
+                // The check time and the site URL are values the caller resolves from its clock, so
+                // the stored row must show the values that were passed rather than a process-clock
+                // read, which is what a wrong implementation would store here.
+                #expect(refreshed?.fetchedAt == 1_700_000_060)
+                #expect(refreshed?.siteURL == "https://example.org")
                 #expect(refreshed?.parsingErrorCount == 0)
                 #expect(refreshed?.parsingErrorMessage == "")
             }
@@ -189,18 +199,17 @@ import Testing
                 let feeds = FeedRepository(connection)
                 let feed = try await seedFeed(connection).2
                 let feedID = try #require(feed.id)
-                let before = nowInSeconds()
-                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one", nextCheckAt: before)
-                let secondCheck = nowInSeconds()
-                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two", nextCheckAt: secondCheck)
-                let after = nowInSeconds()
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom one",
+                    nextCheckAt: 1_700_000_000, checkedAt: 1_700_000_000)
+                _ = try await feeds.recordParsingError(feedID: feedID, message: "boom two",
+                    nextCheckAt: 1_700_000_600, checkedAt: 1_700_000_900)
 
                 let refreshed = try await feeds.fetch(id: feedID)
                 #expect(refreshed?.parsingErrorCount == 2)
                 #expect(refreshed?.parsingErrorMessage == "boom two")
-                #expect(refreshed?.nextCheckAt == secondCheck)
-                #expect((refreshed?.fetchedAt ?? -1) >= before)
-                #expect((refreshed?.fetchedAt ?? -1) <= after)
+                #expect(refreshed?.nextCheckAt == 1_700_000_600)
+                // The stored check time is the value the caller passed, not a process-clock read.
+                #expect(refreshed?.fetchedAt == 1_700_000_900)
             }
         }
     }
@@ -215,7 +224,9 @@ import Testing
                         feedID: 999,
                         etag: "",
                         lastModified: "",
-                        nextCheckAt: 1
+                        nextCheckAt: 1,
+                        checkedAt: 1,
+                        siteURL: ""
                     )
                     Issue.record("expected recordFetch to fail for a missing feed")
                 } catch let error as StorageError {
@@ -223,7 +234,8 @@ import Testing
                 }
 
                 do {
-                    _ = try await feeds.recordParsingError(feedID: 999, message: "boom", nextCheckAt: 1)
+                    _ = try await feeds.recordParsingError(feedID: 999, message: "boom",
+                        nextCheckAt: 1, checkedAt: 1)
                     Issue.record("expected recordParsingError to fail for a missing feed")
                 } catch let error as StorageError {
                     #expect(error == .feedNotFound(id: 999))
