@@ -1,9 +1,9 @@
 # Stage 3 — Parsing & sanitization
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
-**Status:** implementation in progress: the charset slice is merged (labels, detection and
-transcoding, fixture corpus) and so is the XML reader slice (tokenizer, lexical scanner, entity
-table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
+**Status:** implementation merged, open on one exit criterion (the fixture corpus): the charset
+slice is merged (labels, detection and transcoding, fixture corpus) and so is the XML reader slice
+(tokenizer, lexical scanner, entity table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
 layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
 resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
 tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
