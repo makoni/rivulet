@@ -314,6 +314,20 @@ itself, because nothing can make one statement inside it fail while the others s
 columns the reference gates the entry-update branch on, which the schema does not have; and the
 rules the plan leaves for the later stages.
 
+The scheduler suites (`SchedulerBatchTests`, `SchedulerTickTests`, `SchedulerOptionsTests`) pin the
+tick's batch selection against the builder, because upstream has no test for it: each rule can fail
+on its own — strict due-ness, the direction of the ordering, the three rules that read a zero as a
+switch (the error limit, the batch size and the host limit), the disabled gate, the host filter
+running only on the rows the `LIMIT` read, the host as `Domain` reads it, the missing user scope,
+and the feed URL in the job. The tick pins read what the pool was handed and what it reported for
+each run, with a recorder runner standing in for the pipeline in the selection pins and the real
+pipeline pinned on the worker's non-forced path in the last one, including that the schedule the
+pipeline wrote is the one the next tick reads. The pool size is not pinned — a cap cannot be
+asserted without a timed wait, which the determinism rules forbid — and the suite header states it;
+the order of the outcomes is not asserted either, because concurrency does not fix it. The due pins
+read only instants after the process clock — 2065 against a stored schedule of 2061 — so the
+injected instant and the process one cannot answer the same batch.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.

@@ -492,3 +492,45 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   time and the user rules in the reference's processor — filters, rewrite, scraping — are not
   ported yet; they land with the later stages. The entry-frequency mode of `ScheduleNextCheck` is
   not modelled either: it reads the weekly entry count, so it lands with the scheduler loop.
+
+## Scheduler tick (stage 4)
+
+**Matching the reference.**
+
+- Every rule of the batch builder is the reference's (`internal/storage/batch.go` at commit
+  `c4d54f87`), pinned one by one because upstream has no test for this builder: strict
+  `next_check_at < now()`, the error condition appended only for a positive limit, the disabled
+  gate, `ORDER BY next_check_at ASC`, `LIMIT` only for a positive batch size, the per-host limit
+  applied while the rows are iterated — after the `LIMIT`, so it caps the rows read, not the jobs
+  kept — and the host as `urllib.Domain` reads it: the parsed host with its port, no `www.` strip,
+  the string as written when Go's parse fails. The scheduler calls the builder without a user or a
+  category, so the batch is not scoped to the user. A failing run does not stop the batch: the
+  reference worker keeps reading the channel, here the worker keeps pulling from the queue. Each
+  job runs exactly once.
+
+**What differs.**
+
+- The reference logs that a worker received a job and reports a status to the metrics collector
+  (`internal/worker/worker.go`); it never reports the outcome of the run. RivuletCore has neither
+  layer, so `tick()` answers with one outcome per job, and the pins compare the typed error case,
+  not the wording.
+- The reference pushes the batch to the channel and does not await it, so a slow batch can overlap
+  the next tick there; here `tick()` runs the whole batch before it returns. The loop that makes
+  the two shapes meet lands with `rivulet serve`.
+- The pool is workers reading a queue instead of goroutines reading a channel. The toolchain has
+  no bounded `withTaskGroup` overload, so the window is kept by hand; the cap itself is not pinned
+  — pinning a cap would need a timed wait, which `docs/testing.md` forbids — and the suite header
+  states it honestly.
+- The due rule compares the instant the caller passes instead of SQL `now()`; this is the injected
+  clock the pipeline section already records, and the pins read only instants after the process
+  clock, so the two cannot be confused.
+
+**What cannot be pinned.**
+
+- `IS false` on the disabled column answers the same as `= 0` here because the column is NOT NULL,
+  and the order of rows sharing one `next_check_at` is undefined in SQL, so neither can be pinned.
+  The same is true of the PostgreSQL placeholder style the builder writes, which the port does not
+  reproduce, and of the ordering clause itself: the pin shows its direction, while a patch that
+  drops the clause reads the rows through the schema's index on `next_check_at`, in the same order
+  the clause asks for.
+

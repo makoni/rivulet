@@ -11,7 +11,9 @@ import FluentKit
 /// ``SQLiteStorage/withConnection(_:)`` — the repository takes the checked-out connection and lives
 /// inside that checkout.
 public struct FeedRepository {
-    private let database: any Database
+    // Internal, not private: the batch extension lives in its own file, as the entry query
+    // extension does.
+    let database: any Database
 
     /// Creates the repository around a checked-out connection.
     public init(_ database: any Database) {
