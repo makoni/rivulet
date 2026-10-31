@@ -71,3 +71,20 @@ progress until the exit criteria below cover the whole stage.
       snapshots (stage 4 ships the minimal feed-state `status --json`; stage 6 extends it) show
       `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached to the stage
       status.
+
+Findings from the review runs on PR #25 that do not change behavior:
+- `recordFetch` and `recordParsingError` are keyed by the feed id, where the reference's statements
+  add `WHERE user_id`; the pipeline resolves the user-scoped row before calling them, so the write
+  is scoped in practice, and no pin can show the difference.
+- The port reads the clock once per refresh, where the reference calls `time.Now()` twice, once in
+  `CheckedNow` and once in `ScheduleNextCheck`; an injected clock answers one instant, so no pin can
+  tell the two reads apart.
+- The conditional-hit pin reads the half where the response carries a `Last-Modified`; the reference
+  keeps the stored value when the header is empty, and no case here has an empty one.
+- The invalid-URL branch is recorded but not pinned, and the reference records a different class
+  there: the fetcher's own error from the request.
+- The single write transaction spans the HTTP fetch, which the reference's does not, and the
+  transaction boundary itself is what no test here can pin.
+- `docs/parity.md` says the cache lifetime is read as minutes, which is true of `<ttl>`; the policy
+  compares the three delay sources as durations, so the row should separate the read from the
+  comparison.

@@ -303,7 +303,10 @@ single write transaction it owns, so a test must not hold a connection across `r
 driver keeps one pooled connection per event loop and a nested checkout would wait for it forever.
 The clock is the injected seam (`Support/TestClock.swift`), so every stamp a pin reads is the
 instant the test supplied, which the process clock could not produce; `SystemClockTests` pins the
-other side of the seam, that the production clock answers Unix seconds. Entry order is pinned
+other side of the seam, that the production clock answers Unix seconds.
+`NextCheckPolicyTests` pins that the delay is added to the clock with the reference's second
+precision, which no integration case can show because its delay sources answer whole minutes.
+Entry order is pinned
 through insertion order read by `ORDER BY id`, not through `created_at`, because the storage clock
 is not a seam there. Pins compare the typed error case, not the message wording, because Rivulet
 has no locale layer. What the suite cannot pin is stated in the file: the single transaction

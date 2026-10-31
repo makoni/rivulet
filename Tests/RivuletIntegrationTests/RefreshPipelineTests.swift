@@ -18,8 +18,8 @@ import Testing
 /// error counter on both sides, the conditional-hit rule, the schedule computed before the answer
 /// is read, the delay that wins over the interval, the source of the interval, the force-refresh
 /// rule, the entry-update branch, the stored feed URL in the outbound rule, the user scope, the
-/// date fallback, the stored site URL, and that
-/// the failure record is committed rather than rolled back with the entry batch.  What they cannot
+/// date fallback, the stored site URL, and that the failure record is committed rather than
+/// rolled back with the entry batch.  What they cannot
 /// fail on: the wording of a recorded message, because Rivulet has no locale keys, so a pin
 /// compares the error case and the counter, not the text; the single write transaction itself,
 /// because nothing here can make one statement inside it fail while the others succeed; the
@@ -365,7 +365,6 @@ import Testing
         if !selfLink.isEmpty {
             document += "<atom:link rel=\"self\" href=\"\(selfLink)\"></atom:link>"
         }
-        if ttl > 0 { document += "<ttl>\(ttl)</ttl>" }
         for entry in entries {
             let text = entry.content.replacing("<", with: "&lt;").replacing(">", with: "&gt;")
             document += "<item><title>Entry</title><link>\(entry.url)</link>"
