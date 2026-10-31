@@ -20,9 +20,10 @@ Current focus: **Stage 4 — Ingestion & scheduling** (the first slice landed: t
 pipeline — fetch, parse, sanitize, merge, store in one write transaction — with the round-robin
 next-check policy, the injected `Clock` seam and the user-scoped feed lookup, pinned end to end
 against the reference; the scheduler tick loop, the entry-frequency mode and the manual refresh
-path follow). Stage 3 is merged, with its remaining findings in its stage-file backlog. Stage 2 is
-merged, with one exit criterion deferred to the refresh path; see its stage file. Keep this line
-and the plan's status table in sync.
+path follow). Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit
+criterion open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and
+the exit criterion it deferred to the refresh path is met by the pipeline. Keep this line and the
+plan's status table in sync.
 
 ## Toolchain
 

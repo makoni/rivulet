@@ -1,8 +1,10 @@
 # Stage 2 — Feed fetching (HTTP)
 
 **Goal:** robust conditional HTTP fetching of feed documents.
-**Status:** the fetcher is merged. The stage is not closed: the exit criterion that persists
-validators and error state into feed state is not met, because nothing calls the repository yet.
+**Status:** done. The fetcher is merged, and the criterion that was open — persisting the validators
+and the error state into feed state — is met by stage 4's refresh pipeline (PR #25), which is the
+caller that writes them. What is still open is the error-limit exclusion, which the tick loop reads
+on batch selection; it belongs to stage 4.
 **Effort:** M. **Depends on:** Stage 1.
 
 ## Scope
@@ -14,11 +16,13 @@ validators and error state into feed state is not met, because nothing calls the
       reference sends `br,gzip`).
 - [x] Conditional requests: send `If-None-Match`/`If-Modified-Since` from feed state; handle
       `304` (no body, no error, no re-parse).
-- [ ] Error recording with reference semantics: a failed fetch increments `parsing_error_count`
+- [x] Error recording with reference semantics: a failed fetch increments `parsing_error_count`
       and stores the message; there is **no backoff and no jitter** (parity — see
-      `docs/reference-notes.md`); at the error limit the scheduler excludes the feed until a forced
-      refresh succeeds. The repository side exists (stage 1); the wiring belongs to the refresh
-      path, which needs parsing.
+      `docs/reference-notes.md`). The wiring landed with stage 4's pipeline (PR #25), which records
+      the failure inside its own write transaction before the error leaves, and resets the counter
+      on the success and the conditional-hit paths. The other half — the scheduler excluding a feed
+      at the limit until a forced refresh succeeds — is the batch query, which lands with the tick
+      loop.
 - [x] Per-feed overrides: custom user agent, "ignore HTTP cache", proxy. The application proxy
       is attached only to feeds that ask for it (`fetch_via_proxy`), as upstream does; a per-feed
       proxy URL and the proxy list are deferred.
@@ -66,7 +70,8 @@ validators and error state into feed state is not met, because nothing calls the
   429 and a connection it closes, the other status wordings are pinned by the unit test; what fails
   before anything connects (a scheme the client refuses when the URL is turned into a request) is
   mapped like any other client error. The counter and the message are recorded through
-  `FeedRepository.recordParsingError` (the refresh path wires them together).
+  `FeedRepository.recordParsingError`, and stage 4's pipeline is the caller that wires them, which
+  is what `RefreshPipelineTests` pins.
 - SSRF guard: private targets refused unless explicitly allowed — both halves of the switch are
   tested; the pinned address is used without a second lookup; every direct redirect hop goes through
   the resolver seam before connecting — the test proves the seam is consulted for the hop and that a
@@ -83,6 +88,6 @@ validators and error state into feed state is not met, because nothing calls the
 ## Exit criteria
 
 - [x] Fetch matrix green.
-- [ ] Fetch results persist validators and error state into feed state. The fetcher returns both;
-      the repository side writes them, but no caller wires them yet, and that is the refresh path,
-      which needs parsing and scheduling.
+- [x] Fetch results persist validators and error state into feed state: stage 4's pipeline is the
+      caller, and `RefreshPipelineTests` pins the validators on the success and the conditional-hit
+      paths, and the failure record, which is committed before its error leaves.

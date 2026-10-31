@@ -1,16 +1,18 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — the first slice landed (PR #25). **Effort:** M. **Depends on:** Stage 3
+**Status:** in progress — the first slice merged (PR #25). **Effort:** M. **Depends on:** Stage 3
 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
-request, the failure and the conditional-hit paths, the entry loop with the cleaner and the
-sanitizer, and the injected `Clock` seam, pinned end to end against the reference by
-`RefreshPipelineTests` and `NextCheckPolicyTests`. The tick loop, the entry-frequency mode, the
-manual `rivulet refresh` path, retention and the soak artifact follow. The status stays in
-progress until the exit criteria below cover the whole stage.
+request, the fetch, the `429` reschedule, the failure and the conditional-hit paths, the entry loop
+with the cleaner and the sanitizer, and the injected `Clock` seam, pinned end to end against the
+reference by `RefreshPipelineTests` and `NextCheckPolicyTests`. It also closes the stage 2 criterion
+that was deferred to the refresh path: the pipeline is the caller that stores the validators and the
+error state. The tick loop, the entry-frequency mode, the manual `rivulet refresh` path, retention
+and the soak artifact follow. The status stays in progress until the exit criteria below cover the
+whole stage.
 
 ## Scope
 
@@ -19,7 +21,8 @@ progress until the exit criteria below cover the whole stage.
 - [ ] Merge semantics: new entries inserted; changed entries only update content — user state
       (read/starred) is never touched; entries missing upstream are kept locally.
 - [ ] Tombstones are honored end-to-end: a cleaned-up, tombstoned entry never resurfaces through
-      refresh.
+      refresh. The repository refuses a tombstoned `(feed_id, hash)` pair, which stage 1 pins, and the
+      pipeline reads that outcome as no write; no case drives a tombstoned entry through a refresh.
 - [ ] Icons: take the feed/website icon, download within size caps, store bytes + hash
       (dedupe) + mime + random `external_id`, link to the feed.
 - [ ] Scheduler actor with **reference semantics** (no jitter, no backoff — parity, see
@@ -35,7 +38,9 @@ progress until the exit criteria below cover the whole stage.
       counters.
 - [ ] Retention job (daily): the stage-1 cleanup with tombstones + periodic `VACUUM`.
 - [ ] Deterministic testing: an injectable `Clock` abstraction; tests drive the scheduler with
-      explicit `tick()` calls — no sleeping.
+      explicit `tick()` calls — no sleeping. The seam landed with the first slice and is pinned from
+      both sides (`SystemClockTests` for the production clock, the injected one for the pipeline); the
+      explicit `tick()` calls come with the loop.
 
 ## Implementation notes
 
@@ -57,11 +62,12 @@ progress until the exit criteria below cover the whole stage.
 ### Integration
 
 - End-to-end (stub server + temp database): initial refresh stores N entries; a second refresh
-  answering `304` stores nothing new.
+  answering `304` stores nothing new. Pinned by the first slice.
 - Feed updated upstream → new entries added, existing read state preserved.
 - Entry removed upstream → it stays locally; a deleted + tombstoned entry is never re-inserted.
 - Fetch error → error counter increments; at the limit the feed is excluded from ticks; a forced
-  refresh resets it.
+  refresh resets it. The increment and both resets are pinned by the first slice; the exclusion is
+  the batch query, which comes with the loop.
 - A scheduler tick refreshes only due feeds (others untouched).
 - Retention deletes only expired entries (boundary cases) and writes tombstones.
 

@@ -24,6 +24,13 @@ The tolerance decision table landed as PR #23: 52 inputs read through the refere
 path pinned the four quirk classes and found no divergence, so the table records what the
 reference reports, and the 30 cases that can fail on their rules are committed as a fixture.
 
+The integration items below are pinned by stage 4's refresh pipeline (`RefreshPipelineTests`,
+PR #25), which is the first caller that reads these layers end to end: entries land sanitized
+through the stub server and are written once, a `304` writes nothing, and a document the parser
+cannot decide on yields its typed error, and the validators the row held are not overwritten. The
+stage stays open on one exit criterion: the two `sanitizer/` HTML fixtures still have no case that
+reads them.
+
 The typed errors landed as PR #24: ten inputs read through the reference's parser path pinned
 the sentinel, the branch the switch takes for it and how the scan ends, and found no
 divergence, so the table there records what the reference reports; the number the cap counts
@@ -66,8 +73,11 @@ output can tell apart are named as unpinnable.
       class, `ResolveReference`), with the URI-scheme allowlist and the tracking-parameter cleaner.
       decoding happens in the tokenizer, before the URL part reads the value, and the URL part
       normalizes no whitespace of its own; both are pinned by the hostile corpus, PR #22.
-- [ ] Feed metadata: title, site URL, description, icon link; typed errors ("not a feed",
-      "feed not found", too large).
+- [x] Feed metadata: title, site URL, description, icon link; typed errors ("not a feed",
+      "feed not found", too large). The fields are what the adapters fill, and the refresh path pins
+      which of them the stored row keeps; downloading the icon itself is stage 4. The three typed
+      errors are one per layer: the parser's is PR #24, "feed not found" is the storage layer's case
+      and "too large" the fetcher's, and each is pinned where its layer reads it.
 - [x] Fixtures ported to `Tests/RivuletCoreTests/Fixtures/<area>/` with a provenance `README.md`
       (upstream commit, license, copied vs regenerated); `NOTICE` updated when they land.
 
@@ -248,6 +258,11 @@ Findings from the Atom adapter review (#18) that do not change behavior:
 Findings from the tolerance decision table review (#23) that do not change behavior:
 - The `&copy;` case can only fail on the half its line names that the other table cannot write; the
   table identity is carried by the `NewLine` and `colon` cases, as the fixture's own wording says.
+Findings from the parser layer that do not change behavior:
+- No fixture in the corpus is a 0.91 or a 0.92 document. Those versions reach the RSS adapter
+  through the same root name, and the detection suite pins that the version attribute decides
+  nothing for this format, so the route is pinned and the older versions themselves are not.
+
 Findings from the parser error review (#24) that do not change behavior:
 - The commit message of `8dc8ff8` contradicts itself about which number it replaced: it states
   the mapping produces nine and then describes the sentence it replaced as saying eight, while
