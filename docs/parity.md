@@ -732,3 +732,33 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   order of the two cannot be pinned either. The count read is scoped to the user inside the same
   write transaction the refresh uses, and the transaction boundary is what no test here can show.
 
+
+## Icon finder (stage 4)
+
+**Matching the reference.**
+
+- The selector is the reference's four branches (`internal/reader/icon/finder.go` at commit
+  `c4d54f87`): `link[rel='icon' i][href]`, `link[rel='shortcut icon' i]`, `link[rel='icon shortcut'
+  i]` and `link[rel='apple-touch-icon'][href]`. Only the three `icon` branches carry the
+  case-insensitive flag, every branch compares the whole value, the attribute name is compared
+  lower-cased, the href must be present and not whitespace-only, and the order is document order.
+  The document bytes go through the charset layer, which answers unchanged for bytes that are
+  already valid UTF-8, a value the URL parse cannot read is skipped rather than reported, which is
+  the reference's warning-and-continue, and each href is written through the URL layer's escaping.
+  The `data:` rules are the reference's regexp productions and its three encodings, including Go's
+  `QueryUnescape` for the empty one, which reads a `+` as a space.
+
+**What differs.**
+
+- The selection walks tokens, not a document tree. For the cases the suite reads the answer is the
+  same, because the tokenizer lower-cases attribute names and reads a raw-text element's content as
+  data, so a `link` inside `title` is text rather than an element. What no test can show is the
+  selector's test that the `href` attribute exists at all: a missing attribute reads as the empty
+  value on this path, so the pins assert the value is not empty, not that the attribute was there.
+- Go's base64 decoder accepts a value whose last quantum is not padded — two or three characters
+  left — and ignores CR and LF inside the value; Swift's `Data(base64Encoded:)` refuses both, so a
+  value Go would decode is an error here. No case in `IconDataURLTests` reads either, so the
+  difference is recorded rather than pinned.
+- The reference reports these failures as messages and logs each step of the discovery. RivuletCore
+  has no logging layer, so the data-URL failures are typed cases and the pins compare the case, not
+  the wording.

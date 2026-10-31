@@ -1,9 +1,10 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — four slices merged: the pipeline (PR #25), the tick's batch selection
-with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), and what
-the entry loop does not write (PR #28). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — five slices merged: the pipeline (PR #25), the tick's batch selection
+with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), what the
+entry loop does not write (PR #28), and the icon selector with the data-URL rules (PR #29).
+**Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
@@ -20,9 +21,11 @@ mode and the weekly count it divides the week by landed as PR #27, pinned by `We
 and read through the pipeline by `EntryFrequencyPipelineTests`. The fourth slice is what the entry
 loop does not write: an entry the parsed document no longer declares stays in place with the state
 it had, and a tombstoned `(feed_id, hash)` pair is refused by the insert guard on the forced path,
-pinned by `PipelineMergeAndTombstoneTests`. The manual `rivulet refresh` path, retention and the
-soak artifact follow. The status stays in progress until the exit criteria below cover the whole
-stage.
+pinned by `PipelineMergeAndTombstoneTests`. The fifth slice is the half of the icon finder that
+reads no network: which `link` elements a document offers, and how a `data:` URL is read, pinned by
+`IconDocumentLinksTests` and `IconDataURLTests`. The manual `rivulet refresh` path, the icon
+download half, retention and the soak artifact follow. The status stays in progress until the exit
+criteria below cover the whole stage.
 
 ## Scope
 
@@ -38,12 +41,22 @@ stage.
       patch that deletes the feed's rows not in the parsed document fails that pin. The
       status read there is the one the case seeded, so the pin shows the row survived, not
       that an update left user state alone.
+- [ ] Icon finder: the selector half is pinned by PR #29 — the four `link` branches, which of them
+      fold case, the href rules, document order, and the `data:` URL shape with its three encodings.
+      The download half is not: the size cap, the hash from the bytes, MIME normalization, dedupe,
+      `external_id` and the link to the feed follow. Image resizing is not ported, because it needs
+      an image-decoding dependency that has not been approved, so the deviation is recorded in
+      `docs/parity.md`.
 
 ## Implementation notes
 
 - Reference: `internal/cli/scheduler.go` (tick loop), `internal/model/feed.go`
   (`ScheduleNextCheck`), `internal/storage/batch.go` (due-set query),
   `internal/reader/handler/handler.go` (refresh delay from TTL/headers).
+- Icon half: `internal/reader/icon/finder.go` (the selector and the data URL),
+  `internal/reader/icon/checker.go` (the download path), `internal/storage/icon.go` (store, dedupe
+  by hash, orphan cleanup). The scan reads through the port's tokenizer subset, which is the
+  precedent stage 3 set for the sanitizer, rather than building a document tree.
 - No external cron: the scheduler runs in-process inside `rivulet serve`.
 - Target: refreshing a 100-feed database must not block API reads (WAL + short write
   transactions).
@@ -60,6 +73,13 @@ stage.
   or the rows it scans; the mode, its clamps, the zero count and the weekly count the mode divides
   the week by are pinned in `NextCheckPolicyTests` and `WeeklyEntryCountTests`, and the count
   reaching the schedule through the pipeline is pinned by `EntryFrequencyPipelineTests`.
+- Icon selection: the four `link` branches — only the three `icon` ones fold case, and a `rel` is
+  compared as a whole value — the href rules, document order, and the two facts the reference's tree
+  gives it, read here through the tokenizer subset: content inside a raw-text element is text, and a
+  self-closing element is the self-closing start tag token. The charset layer and the escaped path
+  are pinned as rules the icon scan reads through, not as the rules of their own suites. The `data:`
+  URL shape and its three encodings are pinned by `IconDataURLTests`. The selector's test that the
+  `href` attribute is present at all is not pinnable in this port, as the suite header states.
 
 ### Integration
 
