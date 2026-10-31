@@ -23,7 +23,7 @@ import Testing
 /// mapping, not the fetch path; the pipeline path is pinned by the last test.
 @Suite struct SchedulerTickTests {
     /// The injected instant: 2065, after the process clock, so a pin can tell the clock it was
-    /// given from the process one. The schedule the pins read is 2062, so the two clocks cannot
+    /// given from the process one. The schedule the pins read is 2061, so the two clocks cannot
     /// answer the same batch.
     private let now = 3_000_000_000
     private let options = SchedulerOptions.defaults

@@ -8,7 +8,7 @@ import Testing
 /// What they can fail on, each checked by patching the rule and reverting: the strict
 /// `next_check_at < now()` comparison, the direction of the `ORDER BY next_check_at ASC` — the
 /// rows are seeded out of that order so the pin does not pass on insertion order —, the injected
-/// instant being the one compared (it is 2065 and the stored schedule 2062, both after the process
+/// instant being the one compared (it is 2065 and the stored schedule 2061, both after the process
 /// clock, so a pin can tell the two clocks apart), the error condition appended only for a
 /// positive limit and comparing strictly, the disabled gate, the `LIMIT` clause added only for a
 /// positive batch size, the host limit off when it is zero, the host filter running only on the

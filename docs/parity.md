@@ -528,9 +528,9 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 **What cannot be pinned.**
 
 - `IS false` on the disabled column answers the same as `= 0` here because the column is NOT NULL,
-  and the order of rows sharing one `next_check_at` is undefined in SQL. Neither can be pinned, and
-  neither is the PostgreSQL placeholder style the builder writes, which the port does not
-  reproduce. The ordering clause itself cannot be pinned either: the pin shows its direction, while
-  dropping the clause reads the rows through the schema's index on `next_check_at`, in the same
-  order the clause asks for.
+  and the order of rows sharing one `next_check_at` is undefined in SQL, so neither can be pinned.
+  The same is true of the PostgreSQL placeholder style the builder writes, which the port does not
+  reproduce, and of the ordering clause itself: the pin shows its direction, while a patch that
+  drops the clause reads the rows through the schema's index on `next_check_at`, in the same order
+  the clause asks for.
 

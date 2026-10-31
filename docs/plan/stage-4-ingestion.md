@@ -116,6 +116,6 @@ Findings from the review runs on PR #25 that do not change behavior:
 Findings from review run 1 on PR #26 that do not change behavior:
 - `JobQueue` is a second type in `Scheduler.swift`, whose primary type is `Scheduler`; the one
   primary type per file rule asks to split it when the file grows.
-- The due pins read a stored schedule of 2062 against an injected instant of 2065; both are after
+- The due pins read a stored schedule of 2061 against an injected instant of 2065; both are after
   the process clock, which is what makes the injected clock distinguishable, and that argument stops
-  holding after 2062.
+  holding after 2061.
