@@ -37,7 +37,7 @@ is inside the MVP.
 | 1 | [Storage layer](stage-1-storage.md) | done | M |
 | 2 | [Feed fetching](stage-2-fetching.md) | done — the deferred criterion is met by stage 4's pipeline | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | merged — every format has its adapter and its corpus, and the integration items are pinned by stage 4's pipeline; one exit criterion is open, because the two sanitizer HTML fixtures have no case that reads them | XL |
-| 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline, the tick's batch selection with the worker pool, and both modes of `ScheduleNextCheck` with the weekly count are merged; the cadence loop, the manual refresh path, icons, retention and the soak artifact follow | M |
+| 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline, the tick's batch selection with the worker pool, both modes of `ScheduleNextCheck` with the weekly count, and the merge and tombstone halves of the entry loop are merged; the cadence loop, the manual refresh path, icons, retention and the soak artifact follow | M |
 | 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |
 | 7 | [Acceptance & hardening](stage-7-acceptance.md) | not started | M |
