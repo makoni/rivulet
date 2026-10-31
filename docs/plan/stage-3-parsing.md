@@ -51,9 +51,9 @@ output can tell apart are named as unpinnable.
       heuristic → `windows-1252` default; output is always UTF-8. Platform decoder gaps (EUC-JP on
       Linux) go through a glibc `iconv` fallback; the deviations are in `docs/parity.md`.
 - [x] XML quirks: BOM/leading garbage, invalid entities, CDATA; decision table from the corpus. The
-  table is in `docs/reference-notes.md`, and the rows are pinned by `XMLToleranceTests`; the run read
-  through `NewXMLDecoder` and `Token()` at `go 1.26.0` and found no divergence, so `docs/parity.md`
-  gained no new row there.
+  table is in `docs/reference-notes.md`, and the rows are pinned by `XMLToleranceTests`; the run
+  read through `NewXMLDecoder` and `Token()` at `go 1.26.0` and found no divergence, so
+  `docs/parity.md` gained no new row there.
 - [x] Sanitizer: allowlist of tags/attributes ported from `internal/reader/sanitizer` (media:
       `img/video/audio/source`, `iframe` with a domain allowlist); strips scripts, styles, event
       handlers, `javascript:` URLs; deterministic output. It reads through our own HTML tokenizer
@@ -245,13 +245,7 @@ Findings from the Atom adapter review (#18) that do not change behavior:
   so those rows cannot fail on the point their comment names — that the reader does not resolve
   inside a CDATA section. `theTwoEntryPointsDoNotAgreeOnCDATA` is the pair that pins the two entry
   points, so the rows should carry `&#8220;` and `&lt;tag&gt;` as the upstream corpus writes them.
-- `RSSAdapter.parse` is 51 lines, above the aim, so the enclosure and the identity halves need
-  named helpers.
-- Prose that predates this stage and is over the width: `docs/testing.md` 157-166, and this file
-  at 39, 169 and 172.
 Findings from the tolerance decision table review (#23) that do not change behavior:
-- `XMLToleranceTests.expectedEnd` falls back to `unexpectedEOF` for a message it has not mapped, so a
-  future case with a new message would pass without the mapping being read.
 - The `&copy;` case can only fail on the half its line names that the other table cannot write; the
   table identity is carried by the `NewLine` and `colon` cases, as the fixture's own wording says.
 Findings from the parser error review (#24) that do not change behavior:

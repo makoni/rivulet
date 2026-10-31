@@ -16,10 +16,11 @@ import Testing
 /// and the flag this port keeps for it is pinned in `XMLTreeTests`. It cannot show the wording of
 /// a failure either: the reference gives a message and the port models each failure as one case,
 /// so the test compares the case the message names, and a wrong implementation reports another
-/// case. The end of the stream is the same modeling choice recorded in `docs/parity.md`: the
-/// reference reports `io.EOF` at a clean end, where this port reports `unexpectedEOF` for a clean
-/// end and for an end reached inside an element alike. Nothing here reads a clock, a locale or the
-/// network.
+/// case. A message the mapping has not read fails on the mapping itself, so a case with a new
+/// message cannot pass on a fallback. The end of the stream is the same modeling choice recorded
+/// in `docs/parity.md`: the reference reports `io.EOF` at a clean end, where this port reports
+/// `unexpectedEOF` for a clean end and for an end reached inside an element alike. Nothing here
+/// reads a clock, a locale or the network.
 @Suite struct XMLToleranceTests {
     /// One case: the rule it pins, the input as the fixture writes it, the stream the reference
     /// reported, and its end state, which is not a token so it is kept apart from the parts.
@@ -37,7 +38,9 @@ import Testing
         for c in cases {
             let (parts, end) = try stream(c.input)
             #expect(parts == c.parts, "case: \(c.rule), input: \(c.input.debugDescription)")
-            #expect(end == expectedEnd(c.end), "case: \(c.rule), end state")
+            let mapped = try #require(expectedEnd(c.end),
+                "case: \(c.rule), end message \(c.end.debugDescription) is not mapped")
+            #expect(end == mapped, "case: \(c.rule), end state")
         }
     }
 
@@ -76,14 +79,16 @@ import Testing
 
     /// The end state as the comparison reads it. A clean end is the documented equivalence
     /// recorded in `docs/parity.md`, and a failure is the case the reference's message names,
-    /// which is all a pin can compare, because the port keeps one case for each failure.
-    private func expectedEnd(_ recorded: String) -> String {
+    /// which is all a pin can compare, because the port keeps one case for each failure. A
+    /// message the mapping does not name answers nil, so a case with a message this mapping has
+    /// not read fails on the mapping rather than passing on a fallback to the clean-end case.
+    private func expectedEnd(_ recorded: String) -> String? {
         if recorded == "EOF" { return "unexpectedEOF" }
         if recorded.contains("unexpected end element") { return "unexpectedEndElement" }
         if recorded.contains("illegal character code") { return "illegalCharacterCode" }
         if recorded.contains("unescaped ]]") { return "unescapedBracketInText" }
         if recorded.contains("invalid <![") { return "malformedCDATA" }
-        return "unexpectedEOF"
+        return nil
     }
 
     private func name(of failure: XMLError) -> String {
