@@ -37,7 +37,7 @@ is inside the MVP.
 | 1 | [Storage layer](stage-1-storage.md) | done | M |
 | 2 | [Feed fetching](stage-2-fetching.md) | done — the deferred criterion is met by stage 4's pipeline | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | merged — every format has its adapter and its corpus, and the integration items are pinned by stage 4's pipeline; one exit criterion is open, because the two sanitizer HTML fixtures have no case that reads them | XL |
-| 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline and the tick's batch selection with the worker pool merged; the cadence loop, the entry-frequency mode, the manual refresh path, icons, retention and the soak artifact follow | M |
+| 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline, the tick's batch selection with the worker pool, and both modes of `ScheduleNextCheck` with the weekly count are merged; the cadence loop, the manual refresh path, icons, retention and the soak artifact follow | M |
 | 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |
 | 7 | [Acceptance & hardening](stage-7-acceptance.md) | not started | M |
@@ -75,9 +75,17 @@ work — stages 3 and 5 dominate). Stage 9 is opportunistic.
 
 | Risk | Where | Mitigation |
 | --- | --- | --- |
-| Feed parser fidelity: FeedKit covers RSS 2.0/0.90-0.92, RDF, Atom 1.0, JSON Feed — but **not Atom 0.3**, and older formats are untested | Stage 3 | Spike matrix (Atom 0.3, RSS 0.91/0.92, JSON Feed 1.1) with wrap/patch/manual-fallback decisions; deviations recorded in `docs/parity.md` |
-| Per-connection pragmas (`busy_timeout`, `synchronous`) are not managed by sqlite-kit — only `foreign_keys` is | Stages 0–1 | Storage wrapper applies pragmas on every pooled connection checkout, and the contract values are pinned as literals; `busy_timeout` absorbs short lock contention, which the suite does not test with timed waits |
-| FTS5 ranking differs from PostgreSQL `tsvector` | Stage 1 | Rank sanity tests, not exact-score tests; tune `bm25()` weights |
-| Client dialects vary; upstream Fever has **no tests** — the code is the spec | Stages 5, 7 | Contract matrix derived from the reference handler (`docs/reference-notes.md`), golden tests, replay of captured client requests, manual checklist |
-| SQLite write contention under refresh load | Stages 1, 4 | WAL + `busy_timeout`; one write transaction per feed refresh; batch inserts |
-| Static Linux (musl) build of the full Vapor + SQLite stack unproven end-to-end | Stage 8 | Spike the static build early — the toolchain SDK is installed and a hello-world static build was verified during planning |
+| Feed parser fidelity: FeedKit covers RSS 2.0/0.90-0.92, RDF, Atom 1.0, JSON Feed — but **not Atom
+0.3**, and older formats are untested | Stage 3 | Spike matrix (Atom 0.3, RSS 0.91/0.92, JSON Feed
+1.1) with wrap/patch/manual-fallback decisions; deviations recorded in `docs/parity.md` | | Per-
+connection pragmas (`busy_timeout`, `synchronous`) are not managed by sqlite-kit — only
+`foreign_keys` is | Stages 0–1 | Storage wrapper applies pragmas on every pooled connection
+checkout, and the contract values are pinned as literals; `busy_timeout` absorbs short lock
+contention, which the suite does not test with timed waits | | FTS5 ranking differs from PostgreSQL
+`tsvector` | Stage 1 | Rank sanity tests, not exact-score tests; tune `bm25()` weights | | Client
+dialects vary; upstream Fever has **no tests** — the code is the spec | Stages 5, 7 | Contract
+matrix derived from the reference handler (`docs/reference-notes.md`), golden tests, replay of
+captured client requests, manual checklist | | SQLite write contention under refresh load | Stages
+1, 4 | WAL + `busy_timeout`; one write transaction per feed refresh; batch inserts | | Static Linux
+(musl) build of the full Vapor + SQLite stack unproven end-to-end | Stage 8 | Spike the static build
+early — the toolchain SDK is installed and a hello-world static build was verified during planning |

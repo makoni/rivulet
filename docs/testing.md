@@ -7,10 +7,14 @@ afterthought — they run in CI together with unit tests.
 
 | Level | Location | Scope |
 | --- | --- | --- |
-| Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
-| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the hostile sanitizer corpus, whose outputs are the reference's |
-| Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
-| Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic diff against real Miniflux in Docker |
+| Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset,
+sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting | | Fixture/golden |
+`Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora:
+encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the
+hostile sanitizer corpus, whose outputs are the reference's | | Integration |
+`Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor
+app over real HTTP | | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
+diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests
 speak to a real socket through Vapor's client).
@@ -327,6 +331,20 @@ asserted without a timed wait, which the determinism rules forbid — and the su
 the order of the outcomes is not asserted either, because concurrency does not fix it. The due pins
 read only instants after the process clock — 2065 against a stored schedule of 2061 — so the
 injected instant and the process one cannot answer the same batch.
+
+The entry-frequency half (`NextCheckPolicyTests`, `WeeklyEntryCountTests`,
+`EntryFrequencyPipelineTests`) pins the mode the reference's `PollingScheduler()` selects and the
+count the storage layer answers for it: the rounding up, the gap kept whole, the week window, the
+user scope, the empty result, the zero count answering the maximum, and through the pipeline that
+the
+count is read before the entries land. What cannot be pinned there: the order of the two
+entry-frequency clamps, because for a pair the reference's validator accepts they commute and for
+the
+pair it would reject the mode's cap is applied again after the delay; the `NULLIF` guard, because
+SQLite answers a division by zero as null, which `COALESCE` turns into the same 0; the mode gate in
+the pipeline, because the round-robin mode reads the count for nothing; the shape of the ceiling,
+because whole arithmetic answers the same number for a whole gap; and the transaction the count read
+runs inside.
 
 ## Running
 

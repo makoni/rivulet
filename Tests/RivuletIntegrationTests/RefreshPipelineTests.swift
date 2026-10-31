@@ -23,7 +23,8 @@ import Testing
 /// fail on: the wording of a recorded message, because Rivulet has no locale keys, so a pin
 /// compares the error case and the counter, not the text; the single write transaction itself,
 /// because nothing here can make one statement inside it fail while the others succeed; the
-/// entry-frequency scheduler, which this slice does not read; the two columns the reference gates
+/// entry-frequency scheduler, which this suite runs with the round-robin policy and which
+/// `EntryFrequencyPipelineTests` pins on its own; the two columns the reference gates
 /// the entry-update branch on, which the schema does not have; the user rules the reference applies
 /// in its processor — filters, rewrite, scraping — which the plan puts in later stages; and the
 /// duplicate check, the icon checker and the reading time, which land with those stages. Nothing

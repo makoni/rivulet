@@ -38,13 +38,22 @@ something we choose not to copy. Stage 7 consolidates and re-checks these notes.
 
 | Case | Reference (`x/text`) | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Big5 byte `80` | U+FFFD | U+0080 (ICU/Foundation) | A private byte survives where the reference drops it |
-| Big5 byte `FF` | U+FFFD | U+F8F8 (ICU private use) | An invalid byte becomes a PUA character instead of U+FFFD |
-| Invalid sequences in GBK/GB18030/Big5/Shift_JIS/EUC-KR/ISO-2022-JP | U+FFFD per maximal subpart, which can cover several bytes | platform decoder, then glibc `iconv` (which reports one error per stop), then the UTF-8 replacement rule when the platform has no converter | Corrupt spans can differ in the number and placement of U+FFFD; valid text is unaffected |
-| EUC-JP on Linux | decoded by `x/text` | Foundation returns `nil` for every input, so the glibc `iconv` fallback decodes it | Same result for valid documents; pinned by a test |
-| Single-byte tables | `x/text` `charmap`, so `iso-8859-8-i` keeps its own visual table and `iso-8859-6` its own | CoreFoundation resolves the IANA name, which can map an alias to a different table (for example `iso-8859-8-i`) | Only exotic input differs; no fixture covers it |
-| `<meta>` prescan | full HTML tokenizer, with character references unescaped in attribute values and the vertical tab as whitespace | tag scanner (comments, quoting, attribute order, 1024-byte window) | Malformed markup the tokenizer recovers from can end the scan; a label written as an entity is not resolved |
-| Content-type `charset` parameter | `mime.ParseMediaType` | direct parameter scan | Some malformed headers yield a charset where the reference falls through to detection |
+| Big5 byte `80` | U+FFFD | U+0080 (ICU/Foundation) | A private byte survives where the reference
+drops it | | Big5 byte `FF` | U+FFFD | U+F8F8 (ICU private use) | An invalid byte becomes a PUA
+character instead of U+FFFD | | Invalid sequences in GBK/GB18030/Big5/Shift_JIS/EUC-KR/ISO-2022-JP |
+U+FFFD per maximal subpart, which can cover several bytes | platform decoder, then glibc `iconv`
+(which reports one error per stop), then the UTF-8 replacement rule when the platform has no
+converter | Corrupt spans can differ in the number and placement of U+FFFD; valid text is unaffected
+| | EUC-JP on Linux | decoded by `x/text` | Foundation returns `nil` for every input, so the glibc
+`iconv` fallback decodes it | Same result for valid documents; pinned by a test | | Single-byte
+tables | `x/text` `charmap`, so `iso-8859-8-i` keeps its own visual table and `iso-8859-6` its own |
+CoreFoundation resolves the IANA name, which can map an alias to a different table (for example
+`iso-8859-8-i`) | Only exotic input differs; no fixture covers it | | `<meta>` prescan | full HTML
+tokenizer, with character references unescaped in attribute values and the vertical tab as
+whitespace | tag scanner (comments, quoting, attribute order, 1024-byte window) | Malformed markup
+the tokenizer recovers from can end the scan; a label written as an entity is not resolved | |
+Content-type `charset` parameter | `mime.ParseMediaType` | direct parameter scan | Some malformed
+headers yield a charset where the reference falls through to detection |
 
 None of these differences is observable on the ported fixture corpus: all fixture assertions the
 reference makes are reproduced. Valid documents in a legacy encoding decode identically.
@@ -74,20 +83,59 @@ rules as the reference reports them.
 
 | Case | Reference (`encoding/xml`) | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Name classes | two explicit `unicode.RangeTable`s (`first`, `second`), a transcription of an older Unicode version | Swift Unicode properties: letter, number and grapheme-extend, plus the ASCII name bytes and `-`, `.`, `·` | Go's tables omit letters Swift reports as letters (`ª`, `µ`, `º`, the ligature and digraph forms) and most characters above the BMP, so Rivulet accepts names the reference rejects. No fixture covers it |
-| `text` rejects invalid UTF-8 | reports `invalid UTF-8` for a rune it cannot decode | not modeled: invalid sequences are removed before the document is read, so the check is reached only when the label is never resolved, which is the case in the next row | The reference fails such a document, Rivulet filters it; pinned by a test |
-| Label | `procInst` is applied to an instruction token, so the label is the one carried by the first instruction whose target is `xml`; Miniflux decides the path from the first `encoding=` of the whole document, which is not the same lookup | the same, with the two lookups kept apart: the path is decided by the first `encoding=` anywhere, the label is read from the first instruction with the target `xml` | A body `encoding=` decides the path but is never resolved, so such a document fails in the reference and is filtered here; pinned by a test |
-| Instruction start | `procInst` is reached at a token boundary, so a `<?` inside a comment, a CDATA section or a quoted attribute value is not an instruction | the label scan reads `<?` occurrences in the bytes, so one inside markup counts | A Latin-1 document whose only `encoding=` is inside a comment converts here and fails in the reference; pinned by a test |
-| Where the conversion applies | `switchToReader` converts from the instruction on, so bytes read before it are not converted | the label is applied to the whole document | Bytes before a late `xml` instruction that are not valid UTF-8 fail in the reference and are decoded here; pinned by a test |
-| End of document inside a name or an unquoted value | fails, because `mustgetc` cannot read past the end | fails as `unexpectedEOF` | Same result; the difference is only in the message, which is not modeled |
-| Error reporting | `SyntaxError` with a line number and a message | typed `XMLError` cases, no line numbers | Callers match on the case, not on the text |
-| Bare `io.EOF` | returned as it is when the stack is empty, such as after a comment at the top level, or when it is at the record `pushEOF` put; `Token` converts it otherwise, and `mustgetc` converts it on every read that finds it | the same `unexpectedEOF` case, because the port keeps one failure | Only the message differs; the reader reports it as one failure |
-| `translate`'s `DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix, which the reference sets to `rss` for this format (`internal/reader/rss/parser.go`) | the same, as the match takes a default space: `XMLName.matches(local:namespace:defaultSpace:)`. A declared default namespace wins, because `translate` substitutes only for a name that had no prefix | A feed with a declared default namespace reads empty in both, which is pinned as a test |
-| `AutoClose` | a list the reference can be given, which invents end tags for unclosed elements | not ported, because the reference never sets it | None |
-| `pushEOF` and `popEOF` | used by `unmarshalInterface`, so only for values whose type implements `UnmarshalXML`; Miniflux implements it for two types (`internal/reader/rss/rss.go:210`, `internal/reader/opml/opml.go:75`) | not ported, because this layer reads tokens and not values; the marker marks where `unmarshal` stops for a value read as a plain struct | The reference fails a value implementing `UnmarshalXML` that stops before its end tag (Go's `read.go:218-220`); nothing here checks that, because there is no value layer |
-| `Inner` (`",innerxml"`) | the bytes the tokenizer read, so a run inside it keeps the entities as they were written, and a comment, a directive or an instruction inside the element is part of it | a reconstruction from the tokens: the markup plus the text, with the text already decoded, and with comment, directive and instruction tokens kept out of the content | `rssAuthor.Inner` decides its branch on `<![CDATA[`, which the flag on the text run carries, so the branch is the reference's rule; the text inside a reconstruction differs by the decode. Pinned by a test |
-| Names inside a reconstruction | as written, because the bytes are the ones read | as the tokenizer resolved them, because the tree keeps the resolved name | A document with an aliased prefix writes the resolved namespace here; no fixture covers it |
-| The two ways of reading an element | `",chardata"` is the character data at the element's own level, while `innerContent` (Miniflux's own type, `internal/reader/xml/decoder.go`) collects every character token, including the ones inside a child | the same two, kept apart as `XMLElement.text` and `XMLElement.innerContent`, which is why content is stored in document order | None; the difference between the two is pinned by a test |
+| Name classes | two explicit `unicode.RangeTable`s (`first`, `second`), a transcription of an older
+Unicode version | Swift Unicode properties: letter, number and grapheme-extend, plus the ASCII name
+bytes and `-`, `.`, `·` | Go's tables omit letters Swift reports as letters (`ª`, `µ`, `º`, the
+ligature and digraph forms) and most characters above the BMP, so Rivulet accepts names the
+reference rejects. No fixture covers it | | `text` rejects invalid UTF-8 | reports `invalid UTF-8`
+for a rune it cannot decode | not modeled: invalid sequences are removed before the document is
+read, so the check is reached only when the label is never resolved, which is the case in the next
+row | The reference fails such a document, Rivulet filters it; pinned by a test | | Label |
+`procInst` is applied to an instruction token, so the label is the one carried by the first
+instruction whose target is `xml`; Miniflux decides the path from the first `encoding=` of the whole
+document, which is not the same lookup | the same, with the two lookups kept apart: the path is
+decided by the first `encoding=` anywhere, the label is read from the first instruction with the
+target `xml` | A body `encoding=` decides the path but is never resolved, so such a document fails
+in the reference and is filtered here; pinned by a test | | Instruction start | `procInst` is
+reached at a token boundary, so a `<?` inside a comment, a CDATA section or a quoted attribute value
+is not an instruction | the label scan reads `<?` occurrences in the bytes, so one inside markup
+counts | A Latin-1 document whose only `encoding=` is inside a comment converts here and fails in
+the reference; pinned by a test | | Where the conversion applies | `switchToReader` converts from
+the instruction on, so bytes read before it are not converted | the label is applied to the whole
+document | Bytes before a late `xml` instruction that are not valid UTF-8 fail in the reference and
+are decoded here; pinned by a test | | End of document inside a name or an unquoted value | fails,
+because `mustgetc` cannot read past the end | fails as `unexpectedEOF` | Same result; the difference
+is only in the message, which is not modeled | | Error reporting | `SyntaxError` with a line number
+and a message | typed `XMLError` cases, no line numbers | Callers match on the case, not on the text
+| | Bare `io.EOF` | returned as it is when the stack is empty, such as after a comment at the top
+level, or when it is at the record `pushEOF` put; `Token` converts it otherwise, and `mustgetc`
+converts it on every read that finds it | the same `unexpectedEOF` case, because the port keeps one
+failure | Only the message differs; the reader reports it as one failure | | `translate`'s
+`DefaultSpace` | falls back to the decoder's `DefaultSpace` for a name with no prefix, which the
+reference sets to `rss` for this format (`internal/reader/rss/parser.go`) | the same, as the match
+takes a default space: `XMLName.matches(local:namespace:defaultSpace:)`. A declared default
+namespace wins, because `translate` substitutes only for a name that had no prefix | A feed with a
+declared default namespace reads empty in both, which is pinned as a test | | `AutoClose` | a list
+the reference can be given, which invents end tags for unclosed elements | not ported, because the
+reference never sets it | None | | `pushEOF` and `popEOF` | used by `unmarshalInterface`, so only
+for values whose type implements `UnmarshalXML`; Miniflux implements it for two types
+(`internal/reader/rss/rss.go:210`, `internal/reader/opml/opml.go:75`) | not ported, because this
+layer reads tokens and not values; the marker marks where `unmarshal` stops for a value read as a
+plain struct | The reference fails a value implementing `UnmarshalXML` that stops before its end tag
+(Go's `read.go:218-220`); nothing here checks that, because there is no value layer | | `Inner`
+(`",innerxml"`) | the bytes the tokenizer read, so a run inside it keeps the entities as they were
+written, and a comment, a directive or an instruction inside the element is part of it | a
+reconstruction from the tokens: the markup plus the text, with the text already decoded, and with
+comment, directive and instruction tokens kept out of the content | `rssAuthor.Inner` decides its
+branch on `<![CDATA[`, which the flag on the text run carries, so the branch is the reference's
+rule; the text inside a reconstruction differs by the decode. Pinned by a test | | Names inside a
+reconstruction | as written, because the bytes are the ones read | as the tokenizer resolved them,
+because the tree keeps the resolved name | A document with an aliased prefix writes the resolved
+namespace here; no fixture covers it | | The two ways of reading an element | `",chardata"` is the
+character data at the element's own level, while `innerContent` (Miniflux's own type,
+`internal/reader/xml/decoder.go`) collects every character token, including the ones inside a child
+| the same two, kept apart as `XMLElement.text` and `XMLElement.innerContent`, which is why content
+is stored in document order | None; the difference between the two is pinned by a test |
 
 ## Date parsing (stage 3)
 
@@ -138,13 +186,35 @@ rules as the reference reports them.
 
 **Known differences.**
 
-| Case | Reference (Go 1.22 `time`, the version these notes were traced against) | Rivulet | Impact |
+| Case | Reference (Go 1.22 `time`, the version these notes were traced against) | Rivulet | Impact
+|
 | --- | --- | --- | --- |
-| Zone abbreviations | `lookupName` asks the machine's local `Location`, so the offset depends on the instant and on tzdata; the reference's `PST`/`PDT` and `EST`/`EDT` names resolve through Los Angeles and New York at the parsed instant | a fixed table: `PST` −28800, `PDT` −25200, `EST` −18000, `EDT` −14400, `UTC` and `GMT` 0, `GMT±hh` from the name, and the documented fallback 0 for everything else | An abbreviation the machine's zone knows resolves to a different offset here, and a name read inside a daylight-saving period keeps the standard offset instead of the daylight one. A value that reads no zone is not affected, because both read it as UTC |
-| Zone name | `Zone()` reports the name of the resolved `*Location`: the machine's zone when it was in effect at the parsed instant, otherwise a fabricated zone named by the name as read | the name as read, which for a bare numeric offset is the empty string | Upstream assertions on `Location().String()` cannot be reproduced; the names are pinned as read, and the two agree when Go fabricates the zone, or when the machine's abbreviation at that instant is the name as read |
-| Version of `time` | the reference is Miniflux v2.3.3, whose `go.mod` declares Go 1.26; a current `time` accepts a literal `Z` for all five ISO patterns and rejects an offset hour above 24, an offset minute above 60 or an offset second above 60 | Go 1.22 `time/format.go`, which these notes were traced against: `Z` for the three patterns that carry no seconds, and no range check inside a numeric offset | `+25:00`, `+01:61` and `+01:00:61` match here and are rejected by a current Go, while `+24:00`, `+01:60` and `+01:00:60` match in both because those checks use `>` rather than `>=`. A 1.22-only match outside `checkTimezoneRange`'s −12:00 to +14:00 is reported as UTC with the instant preserved, while `+01:61` is inside the range and keeps its offset. The `Z` half cannot be reached through the catalog, whose 209 layouts have no seconds-bearing ISO pattern |
-| Trimming | `strings.TrimSpace`, which also trims Unicode whitespace | Go's `asciiSpace` set | Input that starts or ends with a non-ASCII space is trimmed there and left as it is here |
-| A layout that does not match | a `ParseError` naming the layout, the layout element and the value element | no match, because the reference only cares whether a layout matched; the entry point reports the failure after the last layout | The text differs; which layout matched, and the value it read, are the same |
+| Zone abbreviations | `lookupName` asks the machine's local `Location`, so the offset depends on
+the instant and on tzdata; the reference's `PST`/`PDT` and `EST`/`EDT` names resolve through Los
+Angeles and New York at the parsed instant | a fixed table: `PST` −28800, `PDT` −25200, `EST`
+−18000, `EDT` −14400, `UTC` and `GMT` 0, `GMT±hh` from the name, and the documented fallback 0 for
+everything else | An abbreviation the machine's zone knows resolves to a different offset here, and
+a name read inside a daylight-saving period keeps the standard offset instead of the daylight one. A
+value that reads no zone is not affected, because both read it as UTC | | Zone name | `Zone()`
+reports the name of the resolved `*Location`: the machine's zone when it was in effect at the parsed
+instant, otherwise a fabricated zone named by the name as read | the name as read, which for a bare
+numeric offset is the empty string | Upstream assertions on `Location().String()` cannot be
+reproduced; the names are pinned as read, and the two agree when Go fabricates the zone, or when the
+machine's abbreviation at that instant is the name as read | | Version of `time` | the reference is
+Miniflux v2.3.3, whose `go.mod` declares Go 1.26; a current `time` accepts a literal `Z` for all
+five ISO patterns and rejects an offset hour above 24, an offset minute above 60 or an offset second
+above 60 | Go 1.22 `time/format.go`, which these notes were traced against: `Z` for the three
+patterns that carry no seconds, and no range check inside a numeric offset | `+25:00`, `+01:61` and
+`+01:00:61` match here and are rejected by a current Go, while `+24:00`, `+01:60` and `+01:00:60`
+match in both because those checks use `>` rather than `>=`. A 1.22-only match outside
+`checkTimezoneRange`'s −12:00 to +14:00 is reported as UTC with the instant preserved, while
+`+01:61` is inside the range and keeps its offset. The `Z` half cannot be reached through the
+catalog, whose 209 layouts have no seconds-bearing ISO pattern | | Trimming | `strings.TrimSpace`,
+which also trims Unicode whitespace | Go's `asciiSpace` set | Input that starts or ends with a non-
+ASCII space is trimmed there and left as it is here | | A layout that does not match | a
+`ParseError` naming the layout, the layout element and the value element | no match, because the
+reference only cares whether a layout matched; the entry point reports the failure after the last
+layout | The text differs; which layout matched, and the value it read, are the same |
 
 ## URL layer (stage 3)
 
@@ -195,12 +265,24 @@ rules as the reference reports them.
 
 | Case | Reference (`net/url`) | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Bracketed host | must be a valid IP literal — `netip.ParseAddr` over the unescaped name, with an IPv4 inside brackets refused, and a zone identifier read through its own mode | the bracketed name is read through the host mode and decoded, but only the port after it is checked | A bracketed host that is not an address parses here, so the reader resolves it as a name and the fetcher's address policy sees a host to look up instead of a value it would refuse |
-| Percent escapes of bytes that are not valid UTF-8 | the bytes are kept as they are, since a Go string can hold them | a Swift string is valid UTF-8, so a decoded byte that is not a valid sequence becomes U+FFFD | Only an escape of bytes that are not a valid UTF-8 sequence differs; a host can carry such an escape, because the host mode allows an escape of a byte at or above DEL |
-| Query parameter count | `ParseQuery` refuses a query above its limit | no limit | A query with more pairs than the limit is parsed here |
-| The `*` path | `EscapedPath` returns `*` unescaped | escaped as `%2A` | Only the request-URI form, which the reader never resolves |
-| Authority user part | `Userinfo` keeps the username and password decoded separately and re-escapes them when the string is rebuilt | the user part is kept as it was read | The rebuilt string can differ for an escaped user part; nothing in the reader uses the split |
-| Error wording | sentences such as `invalid port %q after host` and `missing protocol scheme` | cases naming the offending character, port or escape, with the escape named as Go names it — at most three bytes of it | The text differs; which value fails is the same, and the reader acts on the failure, not on the text |
+| Bracketed host | must be a valid IP literal — `netip.ParseAddr` over the unescaped name, with an
+IPv4 inside brackets refused, and a zone identifier read through its own mode | the bracketed name
+is read through the host mode and decoded, but only the port after it is checked | A bracketed host
+that is not an address parses here, so the reader resolves it as a name and the fetcher's address
+policy sees a host to look up instead of a value it would refuse | | Percent escapes of bytes that
+are not valid UTF-8 | the bytes are kept as they are, since a Go string can hold them | a Swift
+string is valid UTF-8, so a decoded byte that is not a valid sequence becomes U+FFFD | Only an
+escape of bytes that are not a valid UTF-8 sequence differs; a host can carry such an escape,
+because the host mode allows an escape of a byte at or above DEL | | Query parameter count |
+`ParseQuery` refuses a query above its limit | no limit | A query with more pairs than the limit is
+parsed here | | The `*` path | `EscapedPath` returns `*` unescaped | escaped as `%2A` | Only the
+request-URI form, which the reader never resolves | | Authority user part | `Userinfo` keeps the
+username and password decoded separately and re-escapes them when the string is rebuilt | the user
+part is kept as it was read | The rebuilt string can differ for an escaped user part; nothing in the
+reader uses the split | | Error wording | sentences such as `invalid port %q after host` and
+`missing protocol scheme` | cases naming the offending character, port or escape, with the escape
+named as Go names it — at most three bytes of it | The text differs; which value fails is the same,
+and the reader acts on the failure, not on the text |
 
 ## HTML sanitizer (stage 3)
 
@@ -290,27 +372,70 @@ rules as the reference reports them.
 
 | Case | Reference (`golang.org/x/net/html`) | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Foster parenting | content the table modes cannot take is attached to the parent of the table, so it is written before the table | the insertion point is the open element, so it is written inside the table | This is the subset boundary: no case in the reference corpus changes what the sanitizer writes because of it, but real feeds can nest content inside a table here where the reference moves it out |
-| Active formatting elements and the adoption agency | a formatting-element list and the adoption agency algorithm, which can move a node into or out of an element | the order rule `addFormattingElement` gives the attributes is ported; the list, the reconstruction and the agency are not | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in the corpus covers it |
-| Attribute order inside `math` or `svg` | the sort belongs to `addFormattingElement`, but content there is inserted through the foreign-content rules, which do not sort | the sort is applied whatever the content is, because the foreign-content mode is not ported | An `a` with more than one attribute inside `math` or `svg` writes its attributes sorted here and as read in the reference; the corpus cannot pin it, so no case asserts it |
-| Caption, column-group and nested-table modes, and the scope markers | each mode has its own rules, including the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext` answers for, with the implied `tbody` and `tr`; a section start tag pops the open `tbody`/`thead`/`tfoot` before it is reprocessed, and a cell closes for the names `inCellIM` lists | A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is attached to the insertion point instead |
-| Text inside a table | only whitespace text is added to the table element; anything else is foster parented | added to the insertion point | Same for whitespace; non-whitespace text can be inside the table here |
-| Comment nodes | kept as nodes in the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the shape the sanitizer sees |
-| A heading start tag | pops an open `h1`–`h6` before the new heading is inserted | only the `p` pop is ported | `<h1>a<h1>b</h1>` nests the second heading inside the first here |
-| `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p` pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the first here; the end tag for `li` is ported and uses `listItemScope` |
-| A second `form` start tag | ignored while `p.form` is still set | inserted | None, because `form` is not in the allowlist and only its content is written; the string is the same either way |
-| The leading newline of raw text | `textIM` drops it for `textarea` and `title` | dropped for `pre` and `listing` only | `<textarea>\nx` keeps the newline here |
-| A self-closing start tag in foreign content | pops the element it opened | the token kind is read, the insertion effect is not | `<math/>x` nests here instead of closing `math`; the check also compares against the last *saved* attribute, where the port tracks every value read |
-| A `<![CDATA[` | a CDATA token inside foreign content only, which `AllowCDATA` answers for | a bogus comment that closes at the first `>` | `<math><![CDATA[x]]>` writes `x` in the reference and nothing here |
-| Script escaping states | the script data can end at a different position through the escaping states, which can pass a `</script>` as data | the raw state ends at the end tag | The renderer writes nothing for `script`, but the text layer writes the content of a raw state, so the difference is observable there: for `<script><!--<script </script>x</script>` the reference writes `<!--<script </script>x` and the port writes `<!--<script x`, which `StripTagsTests` pins |
-| Content in `head` | read through the insertion mode for the head, so markup there is not part of the node the renderer walks | `html` and `head` do not put a node on the tree, so it is read in the body | `<head><title>x</title></head>` writes `x` here and nothing in the reference |
-| Implied end tags | `generateImpliedEndTags` pops `p`, `li`, `dd` and `dt` before `hr` and `button` in some cases | the open `p` is popped, which is the same answer while the stack is well formed | A list item or definition inside a `p` nests through the ancestor loop, which is the row above |
-| Positions and counts | the tokenizer measures bytes and the character walks count runes | `Character` graphemes, except the text layer, which walks the scalars so the count is per code point | A combining sequence or a ZWJ sequence is one position here where the reference counts more; the `&#13;&#10;` pair is one instance of that |
-| The reader error `stripIter` reports | `StripTags` and `TruncateHTML` write nothing when the reader reports an error | no equivalent, because the input is a string and the walk always completes | Nothing differs for an input that is already a string; the path is only reachable through a reader |
-| A byte that is not valid UTF-8 | counted as one against the limit and written as the byte it was read as | a Swift string cannot hold it, so the value is U+FFFD | Only for input that is not valid UTF-8, which the reader never produces, because its output is always UTF-8 |
-| NUL in comment and doctype data | the flag is set only for CDATA and the raw-text state, and `Text()` converts a comment through its own check, so a doctype keeps the NUL | converted in both | A comment and a doctype are not written, and `stripIter` skips those kinds, so this cannot be observed |
-| The Vimeo `dnt=1` append | the link is written as it was read | rebuilt from the parsed parts | A query that is not already in the canonical form is re-encoded, so the string differs; one that is, is written the same |
-| `escape` and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode | the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
+| Foster parenting | content the table modes cannot take is attached to the parent of the table, so
+it is written before the table | the insertion point is the open element, so it is written inside
+the table | This is the subset boundary: no case in the reference corpus changes what the sanitizer
+writes because of it, but real feeds can nest content inside a table here where the reference moves
+it out | | Active formatting elements and the adoption agency | a formatting-element list and the
+adoption agency algorithm, which can move a node into or out of an element | the order rule
+`addFormattingElement` gives the attributes is ported; the list, the reconstruction and the agency
+are not | Markup such as `<p><em>x</p>y</em>` nests differently, so the output differs; nothing in
+the corpus covers it | | Attribute order inside `math` or `svg` | the sort belongs to
+`addFormattingElement`, but content there is inserted through the foreign-content rules, which do
+not sort | the sort is applied whatever the content is, because the foreign-content mode is not
+ported | An `a` with more than one attribute inside `math` or `svg` writes its attributes sorted
+here and as read in the reference; the corpus cannot pin it, so no case asserts it | | Caption,
+column-group and nested-table modes, and the scope markers | each mode has its own rules, including
+the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext`
+answers for, with the implied `tbody` and `tr`; a section start tag pops the open
+`tbody`/`thead`/`tfoot` before it is reprocessed, and a cell closes for the names `inCellIM` lists |
+A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is
+attached to the insertion point instead | | Text inside a table | only whitespace text is added to
+the table element; anything else is foster parented | added to the insertion point | Same for
+whitespace; non-whitespace text can be inside the table here | | Comment nodes | kept as nodes in
+the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the
+shape the sanitizer sees | | A heading start tag | pops an open `h1`–`h6` before the new heading is
+inserted | only the `p` pop is ported | `<h1>a<h1>b</h1>` nests the second heading inside the first
+here | | `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p`
+pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the
+first here; the end tag for `li` is ported and uses `listItemScope` | | A second `form` start tag |
+ignored while `p.form` is still set | inserted | None, because `form` is not in the allowlist and
+only its content is written; the string is the same either way | | The leading newline of raw text |
+`textIM` drops it for `textarea` and `title` | dropped for `pre` and `listing` only |
+`<textarea>\nx` keeps the newline here | | A self-closing start tag in foreign content | pops the
+element it opened | the token kind is read, the insertion effect is not | `<math/>x` nests here
+instead of closing `math`; the check also compares against the last *saved* attribute, where the
+port tracks every value read | | A `<![CDATA[` | a CDATA token inside foreign content only, which
+`AllowCDATA` answers for | a bogus comment that closes at the first `>` | `<math><![CDATA[x]]>`
+writes `x` in the reference and nothing here | | Script escaping states | the script data can end at
+a different position through the escaping states, which can pass a `</script>` as data | the raw
+state ends at the end tag | The renderer writes nothing for `script`, but the text layer writes the
+content of a raw state, so the difference is observable there: for `<script><!--<script
+</script>x</script>` the reference writes `<!--<script </script>x` and the port writes `<!--<script
+x`, which `StripTagsTests` pins | | Content in `head` | read through the insertion mode for the
+head, so markup there is not part of the node the renderer walks | `html` and `head` do not put a
+node on the tree, so it is read in the body | `<head><title>x</title></head>` writes `x` here and
+nothing in the reference | | Implied end tags | `generateImpliedEndTags` pops `p`, `li`, `dd` and
+`dt` before `hr` and `button` in some cases | the open `p` is popped, which is the same answer while
+the stack is well formed | A list item or definition inside a `p` nests through the ancestor loop,
+which is the row above | | Positions and counts | the tokenizer measures bytes and the character
+walks count runes | `Character` graphemes, except the text layer, which walks the scalars so the
+count is per code point | A combining sequence or a ZWJ sequence is one position here where the
+reference counts more; the `&#13;&#10;` pair is one instance of that | | The reader error
+`stripIter` reports | `StripTags` and `TruncateHTML` write nothing when the reader reports an error
+| no equivalent, because the input is a string and the walk always completes | Nothing differs for
+an input that is already a string; the path is only reachable through a reader | | A byte that is
+not valid UTF-8 | counted as one against the limit and written as the byte it was read as | a Swift
+string cannot hold it, so the value is U+FFFD | Only for input that is not valid UTF-8, which the
+reader never produces, because its output is always UTF-8 | | NUL in comment and doctype data | the
+flag is set only for CDATA and the raw-text state, and `Text()` converts a comment through its own
+check, so a doctype keeps the NUL | converted in both | A comment and a doctype are not written, and
+`stripIter` skips those kinds, so this cannot be observed | | The Vimeo `dnt=1` append | the link is
+written as it was read | rebuilt from the parsed parts | A query that is not already in the
+canonical form is re-encoded, so the string differs; one that is, is written the same | | `escape`
+and `unescape` | `&#34;`, `&#39;` and `&#13;`, and the no-semicolon fallback outside attribute mode
+| the same, pinned by tests, for a lone CR | A decoded `&#13;&#10;` is one `Character` grapheme in
+Swift, so the pair is written raw where the reference writes `&#13;` and a newline |
 ## Format adapters (stage 3)
 
 **Matching the reference.** An adapter fills the normalized model by matching the tree against the
@@ -327,14 +452,35 @@ adapters do not sanitize content — sanitization is the layer after this one.
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| The clock the date fallback reads | `time.Now()` for a value that is empty or cannot be parsed | the clock is a parameter of `parse`, so the suite is deterministic; the parser itself reads no clock in either | Only the injected value differs |
-| A value read through a field tag | the decoder keeps the character data as the tokens read it, because `copyValue` assigns a string without trimming, so the trim is the adapter's own | the same split, as `XMLElement.text` plus a trim where the adapter applies one | None; the places where the reference does not trim before using the value — the content, the hash inputs, and the author branch that chooses before it strips — are pinned by tests |
-| The name the root must have | `Unmarshal` fails when the root name or its namespace is not the one the `XMLName` field tag names (`encoding/xml/read.go`), and the RDF struct has such a field | not ported, because this layer reads tokens and not values, so an adapter fills the model from whatever root it read | Reachable through the parser, because detection matches the root on its local name only: a root with the local name `RDF` in another namespace is routed to the RDF adapter, where the reference fails and this reads the feed |
-| A field tag with no namespace | matches any namespace, because `finfo.xmlns` is empty | the same, as a match with an empty namespace | None |
-| The cache lifetime | `time.Duration`, read back as minutes | minutes, because the reference only ever reads it as minutes | None |
-| The relation fold | `strings.EqualFold` takes the ASCII fast path and folds the rest through `unicode.SimpleFold`, so `aℓternate` — with U+2113, which folds to `l` — matches `alternate` there | the ASCII path only, so such a relation does not match here | A relation written with a letter that folds to an ASCII letter is read as an alternate link in the reference and not here; the ASCII path is pinned by a test |
-| Entry identity with a repeated GUID | the first occurrence keeps `SHA256(guid)`, a later one uses the entry URL, and the position only when the entry has no URL at all, which needs a base URL nothing can be resolved against | the same, in the same order | The position branch is reached only by the traced case with an empty base URL; with an absolute one the URL wins, which `TestParseEntriesWithDuplicateGUIDAndNoLink` pins |
-| The key the media attachments are deduplicated against | the Atom media thumbnails test the map on the URL as the element carries it, before the reference resolves it, so two spellings of one file stay two attachments; every other group tests the resolved value, as the RSS thumbnails do | the same split, as the key flag on `MediaRules.Candidate` that the format sets for its thumbnails | None; both orders are pinned, in `AtomMediaTests` and `RSSMediaTests` |
+| The clock the date fallback reads | `time.Now()` for a value that is empty or cannot be parsed |
+the clock is a parameter of `parse`, so the suite is deterministic; the parser itself reads no clock
+in either | Only the injected value differs | | A value read through a field tag | the decoder keeps
+the character data as the tokens read it, because `copyValue` assigns a string without trimming, so
+the trim is the adapter's own | the same split, as `XMLElement.text` plus a trim where the adapter
+applies one | None; the places where the reference does not trim before using the value — the
+content, the hash inputs, and the author branch that chooses before it strips — are pinned by tests
+| | The name the root must have | `Unmarshal` fails when the root name or its namespace is not the
+one the `XMLName` field tag names (`encoding/xml/read.go`), and the RDF struct has such a field |
+not ported, because this layer reads tokens and not values, so an adapter fills the model from
+whatever root it read | Reachable through the parser, because detection matches the root on its
+local name only: a root with the local name `RDF` in another namespace is routed to the RDF adapter,
+where the reference fails and this reads the feed | | A field tag with no namespace | matches any
+namespace, because `finfo.xmlns` is empty | the same, as a match with an empty namespace | None | |
+The cache lifetime | `time.Duration`, read back as minutes | minutes, because the reference only
+ever reads it as minutes | None | | The relation fold | `strings.EqualFold` takes the ASCII fast
+path and folds the rest through `unicode.SimpleFold`, so `aℓternate` — with U+2113, which folds to
+`l` — matches `alternate` there | the ASCII path only, so such a relation does not match here | A
+relation written with a letter that folds to an ASCII letter is read as an alternate link in the
+reference and not here; the ASCII path is pinned by a test | | Entry identity with a repeated GUID |
+the first occurrence keeps `SHA256(guid)`, a later one uses the entry URL, and the position only
+when the entry has no URL at all, which needs a base URL nothing can be resolved against | the same,
+in the same order | The position branch is reached only by the traced case with an empty base URL;
+with an absolute one the URL wins, which `TestParseEntriesWithDuplicateGUIDAndNoLink` pins | | The
+key the media attachments are deduplicated against | the Atom media thumbnails test the map on the
+URL as the element carries it, before the reference resolves it, so two spellings of one file stay
+two attachments; every other group tests the resolved value, as the RSS thumbnails do | the same
+split, as the key flag on `MediaRules.Candidate` that the format sets for its thumbnails | None;
+both orders are pinned, in `AtomMediaTests` and `RSSMediaTests` |
 
 ### The Atom Text construct
 
@@ -393,14 +539,43 @@ reports are the opcodes `scanObjectKey` and `scanObjectValue`/`scanArrayValue`, 
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| The path that reads the document | `Decode` — the path the reference's JSON adapter takes — reads one value and breaks at the first `scanEnd`, so nothing after the top-level value is examined; `Unmarshal`, which validates the whole document with `checkValid` first, does examine it and reports the failure at the first byte after the value | the `Decode` path: for a container the byte that closes it is the last byte read, because `readValue` tests `scanEnd` against an invented space, and for a scalar the byte that ends the literal is read, because it is what decides whether the literal had ended, but `stateEndTop` reports `scanEnd` for whatever it is, so the machine stops there | `1garbage`, `1 2` and `{"a":1}garbage` read here without a failure. `Unmarshal` reports `invalid character 'g' after top-level value` for `1garbage` and the same for the other two, and `Decode` reports no syntax error at all for them |
-| An empty document | `Decode` reports `io.EOF` when nothing was read and `io.ErrUnexpectedEOF` when a value is left open; `checkValid` reports both as `unexpected end of JSON input` | one failure, `unexpectedEnd`, for the two | Only the error identity separates them in the reference, and nothing in the port reads the message |
-| Input that ends where a state still needs a byte | `readValue` uses the invented space only to decide whether to break, so it reports `io.ErrUnexpectedEOF` there, while `checkValid` reports that space as invalid in the state's context — `invalid character ' ' in numeric literal` for `{"a":-` | the end of input, `unexpectedEnd`, which is what `readValue` reports; the context the state names is not kept | None on the `Decode` path; a reader that validated the whole document would name the state |
-| Invalid UTF-8 inside a string | `unquoteBytes` coerces the bytes to well-formed UTF-8, one U+FFFD per byte that is not a valid encoding, because `utf8.DecodeRune` reports one byte at a time and rejects an overlong form, an encoding of a surrogate and a form above U+10FFFF | the same checks, written out rather than left to Swift's UTF-8 decoder, so the one-byte-at-a-time rule is the reader's own | None; Swift's decoder answers the same for the cases pinned, so the difference is which code keeps the rule |
-| The order an object keeps | `map[string]any` keeps no order and one value per key, so a repeated key is folded and the value it holds is the last assignment | the tree keeps the members as the document wrote them, so a repeated key stays two members; the last-wins rule is pinned in `JSONFieldReadTests` | Order is what the field read walks, which the reference could not pin |
-| The name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it, so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the reference and not here; pinned in `JSONFieldReadTests` |
-| A number | `Number` keeps the literal, and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with `null` setting a map or a slice to zero while leaving a primitive or a string as it was | the tree keeps the literal as the machine read it and the field read converts it per target, which is what `int64` and `int` mean there | None; the conversion and the `null` per target are pinned in `JSONFieldReadTests` |
-| Depth | `pushParseState` reports `exceeded max depth` at the byte that goes past 10000 | the same limit, reported as `maxDepthExceeded` | None |
+| The path that reads the document | `Decode` — the path the reference's JSON adapter takes — reads
+one value and breaks at the first `scanEnd`, so nothing after the top-level value is examined;
+`Unmarshal`, which validates the whole document with `checkValid` first, does examine it and reports
+the failure at the first byte after the value | the `Decode` path: for a container the byte that
+closes it is the last byte read, because `readValue` tests `scanEnd` against an invented space, and
+for a scalar the byte that ends the literal is read, because it is what decides whether the literal
+had ended, but `stateEndTop` reports `scanEnd` for whatever it is, so the machine stops there |
+`1garbage`, `1 2` and `{"a":1}garbage` read here without a failure. `Unmarshal` reports `invalid
+character 'g' after top-level value` for `1garbage` and the same for the other two, and `Decode`
+reports no syntax error at all for them | | An empty document | `Decode` reports `io.EOF` when
+nothing was read and `io.ErrUnexpectedEOF` when a value is left open; `checkValid` reports both as
+`unexpected end of JSON input` | one failure, `unexpectedEnd`, for the two | Only the error identity
+separates them in the reference, and nothing in the port reads the message | | Input that ends where
+a state still needs a byte | `readValue` uses the invented space only to decide whether to break, so
+it reports `io.ErrUnexpectedEOF` there, while `checkValid` reports that space as invalid in the
+state's context — `invalid character ' ' in numeric literal` for `{"a":-` | the end of input,
+`unexpectedEnd`, which is what `readValue` reports; the context the state names is not kept | None
+on the `Decode` path; a reader that validated the whole document would name the state | | Invalid
+UTF-8 inside a string | `unquoteBytes` coerces the bytes to well-formed UTF-8, one U+FFFD per byte
+that is not a valid encoding, because `utf8.DecodeRune` reports one byte at a time and rejects an
+overlong form, an encoding of a surrogate and a form above U+10FFFF | the same checks, written out
+rather than left to Swift's UTF-8 decoder, so the one-byte-at-a-time rule is the reader's own |
+None; Swift's decoder answers the same for the cases pinned, so the difference is which code keeps
+the rule | | The order an object keeps | `map[string]any` keeps no order and one value per key, so a
+repeated key is folded and the value it holds is the last assignment | the tree keeps the members as
+the document wrote them, so a repeated key stays two members; the last-wins rule is pinned in
+`JSONFieldReadTests` | Order is what the field read walks, which the reference could not pin | | The
+name a struct field matches | `Unmarshal` prefers an exact name match and also accepts a case-
+insensitive one through `foldName` | not ported: the tree keeps the key as the machine decoded it,
+so the adapter matches the name as the document wrote it | `{"Title": …}` matches `title` in the
+reference and not here; pinned in `JSONFieldReadTests` | | A number | `Number` keeps the literal,
+and the conversion is a property of the target type (`ParseInt`, `ParseFloat`, overflow), with
+`null` setting a map or a slice to zero while leaving a primitive or a string as it was | the tree
+keeps the literal as the machine read it and the field read converts it per target, which is what
+`int64` and `int` mean there | None; the conversion and the `null` per target are pinned in
+`JSONFieldReadTests` | | Depth | `pushParseState` reports `exceeded max depth` at the byte that goes
+past 10000 | the same limit, reported as `maxDepthExceeded` | None |
 
 ## JSON Feed adapter (stage 3)
 
@@ -425,8 +600,15 @@ reports is the first member the field's type cannot accept, not the first field 
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| The name a field matches | `foldName` also accepts a case-insensitive name, as the reader section records | not ported: the walk matches the name as the document wrote it | `{"Title": "x"}` matches `title` in the reference and not here; pinned by `JSONFieldReadTests.nameMatchIsExact` |
-| `UnmarshalTypeError` | keeps the value word, the type and the byte offset, and the message is built from them: `json: cannot unmarshal number into Go value of type string` | the two words are the case's values — the kind the literal is, and Go's rendering of the field type (`json.JSONFeed`, `json.JSONAuthor`, `json.JSONHub`, `[]json.JSONItem`, `[]json.JSONAttachment`, `[]string`, `int64`, `int`, `bool`, `string`) — and the offset is not modelled | None, because nothing in the port reads the message; the pins name the two words |
+| The name a field matches | `foldName` also accepts a case-insensitive name, as the reader section
+records | not ported: the walk matches the name as the document wrote it | `{"Title": "x"}` matches
+`title` in the reference and not here; pinned by `JSONFieldReadTests.nameMatchIsExact` | |
+`UnmarshalTypeError` | keeps the value word, the type and the byte offset, and the message is built
+from them: `json: cannot unmarshal number into Go value of type string` | the two words are the
+case's values — the kind the literal is, and Go's rendering of the field type (`json.JSONFeed`,
+`json.JSONAuthor`, `json.JSONHub`, `[]json.JSONItem`, `[]json.JSONAttachment`, `[]string`, `int64`,
+`int`, `bool`, `string`) — and the offset is not modelled | None, because nothing in the port reads
+the message; the pins name the two words |
 
 ## Parser fixture corpus (stage 3)
 
@@ -490,8 +672,7 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   not decide the schedule. It is a port-only column, not a place where behavior diverges.
 - The feed row's parsed language, the icon checker, the duplicate-feed check, the entry reading
   time and the user rules in the reference's processor — filters, rewrite, scraping — are not
-  ported yet; they land with the later stages. The entry-frequency mode of `ScheduleNextCheck` is
-  not modelled either: it reads the weekly entry count, so it lands with the scheduler loop.
+  ported yet; they land with the later stages.
 
 ## Scheduler tick (stage 4)
 
@@ -524,6 +705,19 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - The due rule compares the instant the caller passes instead of SQL `now()`; this is the injected
   clock the pipeline section already records, and the pins read only instants after the process
   clock, so the two cannot be confused.
+- The weekly entry count, which the entry-frequency mode divides the week by, is a value the policy
+  is handed here, while the reference reads it inside `ScheduleNextCheck` through the storage layer;
+  the read itself is pinned by `WeeklyEntryCountTests`, and the pipeline takes it before the fetch,
+  as the reference does. The reference reads the count only for the entry-frequency mode, and the
+  port keeps that gate, which is what `docs/reference-notes.md` records.
+- The reference writes the count rule with `CEIL`, which these SQLite builds do not answer. The port
+  keeps the same value with whole arithmetic — `(week + gap - 1) / gap` — which is the same number
+  for a whole gap, so the shape cannot be pinned; what is pinned is that the rule rounds up, and
+  that
+  the gap stays whole.
+- A span of 0 with more than one entry makes the reference's division raise in PostgreSQL; SQLite
+  answers null and `COALESCE` turns it into 0. No case here can pin that, because the reference's
+  half is a runtime error, not a value.
 
 **What cannot be pinned.**
 
@@ -532,5 +726,8 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   The same is true of the PostgreSQL placeholder style the builder writes, which the port does not
   reproduce, and of the ordering clause itself: the pin shows its direction, while a patch that
   drops the clause reads the rows through the schema's index on `next_check_at`, in the same order
-  the clause asks for.
+  the clause asks for. The entry-frequency clamps commute for a pair the reference's validator
+  accepts, and for the pair it would reject the mode's cap is applied again after the delay, so the
+  order of the two cannot be pinned either. The count read is scoped to the user inside the same
+  write transaction the refresh uses, and the transaction boundary is what no test here can show.
 
