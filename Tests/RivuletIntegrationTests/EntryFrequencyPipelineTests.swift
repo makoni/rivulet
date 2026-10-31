@@ -3,26 +3,23 @@ import SQLKit
 import Testing
 @testable import RivuletCore
 
-/// The entry-frequency mode read through the pipeline, so the count the storage layer
-/// value the schedule is built from, not the number a test hands to the policy. The order is the
-/// reference's (`RefreshFeed` at commit `c4d54f87`): the count is read at the start of the refresh,
-/// before the fetch and before any entry is written, and the schedule is fixed from it before the
-/// answer is read. The clock is injected, so every instant this pin reads is the injected one. What
-/// this can fail on, checked by patching the rule and reverting: that the count is read at all — an
-/// implementation that passes 0 schedules the maximum, 86400, where this pin expects the division,
-/// 50400 — and that the read happens before the entries land: the entry this refresh writes is
-/// published at the injected instant, so a read after the entry batch sees 13 rows and answers 14,
-/// which schedules 43200. What it cannot fail on: that the count is read only for the
-/// entry-frequency mode, because in the round-robin mode the count answers nothing — the
-/// mode itself is pinned in `NextCheckPolicyTests` — and that the read runs inside the
-/// write transaction, which is what no test here can pin. Nothing here sleeps.
-/// mode, because in the round-robin mode the count answers nothing — the mode itself is pinned in
-/// `NextCheckPolicyTests` — and that the read runs inside the write transaction, which is what no
-/// test here can pin. Nothing here sleeps.
+/// The entry-frequency mode read through the pipeline, so the count the storage layer answers
+/// is the value the schedule is built from, not the number a test hands to the policy. The
+/// order is the reference's (`RefreshFeed` at commit `c4d54f87`): the count is read at the
+/// start of the refresh, before the fetch and before any entry is written, and the schedule is
+/// fixed from it before the answer is read. The clock is injected, so every instant this pin
+/// reads is the injected one. What this can fail on, checked by patching the rule and
+/// reverting: that the count is read at all — an implementation that passes 0 schedules the
+/// maximum, 86400, where this pin expects the division, 50400 — and that the read happens
+/// before the entries land: the entry this refresh writes is published at the injected instant,
+/// so a read after the entry batch sees 13 rows and answers 14, which schedules 43200. What it
+/// cannot fail on: that the count is read only for the entry-frequency mode, because in the
+/// round-robin mode the count answers nothing — the mode itself is pinned in
+/// `NextCheckPolicyTests` — and that the read runs inside the write transaction, which is what
+/// no test here can pin. Nothing here sleeps.
 @Suite struct EntryFrequencyPipelineTests {
     /// The injected instant: 2065, after the process clock, so a pin can tell the clock it
-    /// was given
-    /// from the process one.
+    /// was given from the process one.
     private let now = 3_000_000_000
 
     @Test func theScheduleComesFromTheWeeklyCountThePipelineRead() async throws {
@@ -36,10 +33,11 @@ import Testing
                     let feedID = try await seedRow(storage, graph, url: feedURL)
 
                     // Twelve stored entries inside the week, 50400 seconds
-                    // apart: the span is 554400,
-                    // the average gap 50400, and the rule answers 12, which
-                    // the default clamps keep,
-                    // so the interval is 604800 / 12 = 50400.
+                    // apart: the span is 554400, the average gap 50400, so
+                    // the rule answers 12, which the default clamps keep,
+                    // and the week over the count is 604800 / 12 = 50400.
+                    // The entry this refresh writes falls on the injected
+                    // instant, inside the same window.
                     for offset in stride(from: 554_400, through: 0, by: -50_400) {
                         try await putEntry(storage, graph, feedID: feedID,
                             publishedAt: now - offset)
@@ -55,7 +53,7 @@ import Testing
                     #expect(outcome.nextCheckAt == now + 50400)
 
                     // The same value is what the row stores, so the schedule is written from the
-                    // count read, not only reported by the outcome.
+                    // count read before the fetch, not only reported by the outcome.
                     #expect(try await storedSchedule(storage, feedID: feedID) == now + 50400)
                 }
             }
@@ -83,7 +81,7 @@ import Testing
 
     private func putEntry(_ storage: SQLiteStorage,
         _ graph: (userID: Int, categoryID: Int), feedID: Int, publishedAt: Int) async throws {
-        try await storage.withConnection { connection in
+        _ = try await storage.withConnection { connection in
             try await seedEntry(connection, userID: graph.userID, feedID: feedID,
                 hash: "e\(publishedAt)", publishedAt: publishedAt)
         }

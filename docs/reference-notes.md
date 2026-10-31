@@ -47,12 +47,14 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m] — the cap first,
     then the floor — and when `weekly_entries ≤ 0` the interval is the maximum (1440m), because the
     division has no divisor. `weekly_entries` is `WeeklyFeedEntryCount`
-    (`internal/storage/feed.go`),
-    which upstream has no test for: the average gap between the entries of one feed inside one week,
-    taken as whole division of the span by `count - 1` and the week rounded up over it, guarded by
-    `NULLIF` for a single entry and by `COALESCE` for an empty result, read for the rows of one user
-    inside the window, and read only for the entry-frequency mode. The port pins each half in
-    `WeeklyEntryCountTests` and the mode in `NextCheckPolicyTests` and
+    (`internal/storage/feed.go`), which upstream has no test for: the week rounded up over the
+    average gap between the entries of one feed inside one week, where the gap is the span over
+    `count - 1` — the reference's division keeps its fraction, because PostgreSQL divides an
+    interval by a scalar, so a span of 15 over two gaps is 7.5 and the rule answers 80640 — guarded
+    by `NULLIF` for a single entry and by `COALESCE` for an empty result, read for the rows of one
+    user inside the window, and read only for the entry-frequency mode. The port computes the same
+    value with exact integer arithmetic, because this SQLite driver has no `CEIL` at runtime, and
+    pins each half in `WeeklyEntryCountTests` and the mode in `NextCheckPolicyTests` and
     `EntryFrequencyPipelineTests`.
   - `interval = max(interval, refreshDelay)`, where `refreshDelay` comes from the RSS `<ttl>`,
     `Retry-After` (429), `Cache-Control: max-age` or `Expires`

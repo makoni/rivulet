@@ -6,25 +6,28 @@ import Testing
 /// The weekly entry count the entry-frequency mode divides the week by, from
 /// `internal/storage/feed.go` (`WeeklyFeedEntryCount`) at commit `c4d54f87`, which upstream has no
 /// test for.
-/// The rule is the average gap between the entries of one feed inside one week, taken as whole
-/// division of the span by `count - 1`, and the week rounded up over that gap, over the rows of
-/// one user, with `COALESCE(..., 0)` so an empty feed answers 0 and a single entry answers 0 as
-/// well, because the average gap is undefined when `count - 1` is 0. Every expected value is the
-/// reference's rule computed by hand, not this implementation's.
-/// What these cases can fail on: the rounding up, because 604800 over a gap of 20000 is 30.24, so
-/// the rule answers 31 where a plain whole division answers 30; the division that keeps the gap
-/// whole, because a span of 15 over two gaps answers 7 and the week over it 86400, where a gap
-/// read as 7.5 answers 80640; the week window, because the row exactly on the boundary answers 2
-/// with the three rows counted and 7 when the boundary reads as exclusive; the user scope, because
-/// the same rows read without it answer 61; and the empty result, because `COALESCE` answers 0
-/// where reading the null directly would fail the read.
-/// What they cannot fail on: the `NULLIF(count - 1, 0)` guard for a single entry, because without
-/// it SQLite divides by zero and answers null, which `COALESCE` turns into the same 0; the SQL
-/// `now()` the reference compares the window against, which here is the instant the caller passes
-/// — the injected clock the pipeline section already records; the log lines and the error wrapping
-/// the storage layer adds, because RivuletCore has neither a logging nor a locale layer; and the
-/// transaction the read runs inside, which is what no test here can pin. Nothing sleeps here, and
-/// the read goes through the repository on a checked-out connection.
+/// The rule is the week rounded up over the average gap between the entries of one feed inside one
+/// week — `CEIL(week / (span / (count - 1)))` — read for the rows of one user, with
+/// `COALESCE(..., 0)` so an empty feed answers 0 and a single entry answers 0 as well, because
+/// the average gap is undefined when `count - 1` is 0. The reference's inner division is a real
+/// one: PostgreSQL divides an interval by a scalar, so a gap keeps its fraction. Every expected
+/// value is the reference's rule computed by hand, not this implementation's. What these cases
+/// can fail on: the rounding up, because 604800 over a gap of 20000 is 30.24, so the rule
+/// answers 31 where whole division answers 30; the gap keeping its fraction, because a span of
+/// 15 over two gaps is 7.5 and the week over it answers 80640, where whole division of the gap
+/// answers 86400; the week window, because the row exactly on the boundary answers 2 with the
+/// three rows counted and 7 when the boundary reads as exclusive; the user scope, because the
+/// same rows read without it answer 61; and the empty result, because `COALESCE` answers 0
+/// where reading the null directly would fail the read. What they cannot fail on: the
+/// `NULLIF(count - 1, 0)` guard for a single entry, because without it SQLite divides by zero
+/// and answers null, which `COALESCE` turns into the same 0; the shape of the ceiling, because
+/// whole arithmetic answers the same number as `CEIL` of a real division for every value these
+/// pins read; the SQL `now()` the reference compares the window against, which here is the
+/// instant the caller passes — the injected clock the pipeline section already records; the log
+/// lines and the error wrapping the storage layer adds, because RivuletCore has neither a
+/// logging nor a locale layer; and the transaction the read runs inside, which is what no test
+/// here can pin. Nothing sleeps here, and the read goes through the repository on a checked-out
+/// connection.
 @Suite struct WeeklyEntryCountTests {
     /// The instant the window is read from: 2065, after the process clock, so a pin can tell the
     /// injected clock from the process one.
@@ -56,12 +59,29 @@ import Testing
             let graph = try await seedGraph(storage, username: "alice")
             let feedID = try await seedRow(storage, graph, url: "http://host.test/feed")
             // Three entries spanning 40000 seconds: the average gap is 20000, the week over it is
-            // 30.24, and the ceiling answers 31. An integer division, or a comparison that
-            // truncates, answers 30 here.
+            // 30.24, and the rule answers 31. A rule that truncates instead of rounding up answers
+            // 30 here.
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 40_000)
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 20_000)
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now)
             #expect(try await count(storage, userID: graph.userID, feedID: feedID, now: now) == 31)
+        }
+    }
+
+    @Test func theAverageGapKeepsItsFractionAsTheReferenceDivisionKeepsIt() async throws {
+        try await withMigratedStorage { _, storage in
+            let graph = try await seedGraph(storage, username: "alice")
+            let feedID = try await seedRow(storage, graph, url: "http://host.test/feed")
+            // Three entries spanning 15 seconds: the reference divides the span by
+            // `count - 1` as an interval by a scalar, which keeps the fraction — 7.5
+            // — and the week over it answers 80640. An implementation that divides
+            // the gap as whole seconds answers 7 and 86400, so this case is the only
+            // one that can tell the two divisions apart.
+            try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 15)
+            try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 8)
+            try await putEntry(storage, graph, feedID: feedID, publishedAt: now)
+            #expect(try await count(storage, userID: graph.userID, feedID: feedID,
+                now: now) == 80640)
         }
     }
 
@@ -71,9 +91,9 @@ import Testing
             let feedID = try await seedRow(storage, graph, url: "http://host.test/feed")
             // The reference compares `published_at >= now() - interval '1 week'`, so
             // the row exactly on the boundary is inside: the span is the whole week,
-            // the average gap 302400, and the
-            // ceiling answers 2. A boundary read as exclusive leaves two rows 100000 apart, which
-            // the rule answers as 7.
+            // the average gap 302400, and the rule answers 2. A boundary read as
+            // exclusive drops that row and answers 7 for the two rows left, 100000
+            // apart.
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 604_800)
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now - 100_000)
             try await putEntry(storage, graph, feedID: feedID, publishedAt: now)
@@ -88,8 +108,7 @@ import Testing
             let feedID = try await seedRow(storage, alice, url: "http://host.test/feed")
             // Alice's two rows are 40000 apart, which the rule answers as 16. Bob's
             // rows on the same feed are inside the window too, so reading the count
-            // without the user filter would put
-            // five rows 40000 apart and answer 61.
+            // without the user filter would put five rows 40000 apart and answer 61.
             try await putEntry(storage, alice, feedID: feedID, publishedAt: now - 40_000)
             try await putEntry(storage, alice, feedID: feedID, publishedAt: now)
             try await putEntry(storage, bob, feedID: feedID, publishedAt: now - 30_000)
@@ -129,7 +148,7 @@ import Testing
     /// One stored entry through the repository, so the read sees the rows the rule counts.
     private func putEntry(_ storage: SQLiteStorage,
         _ graph: (userID: Int, categoryID: Int), feedID: Int, publishedAt: Int) async throws {
-        try await storage.withConnection { connection in
+        _ = try await storage.withConnection { connection in
             try await seedEntry(connection, userID: graph.userID, feedID: feedID,
                 hash: "e\(publishedAt)", publishedAt: publishedAt)
         }

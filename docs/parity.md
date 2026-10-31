@@ -710,11 +710,12 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   the read itself is pinned by `WeeklyEntryCountTests`, and the pipeline takes it before the fetch,
   as the reference does. The reference reads the count only for the entry-frequency mode, and the
   port keeps that gate, which is what `docs/reference-notes.md` records.
-- The reference writes the count rule with `CEIL`, which these SQLite builds do not answer. The port
-  keeps the same value with whole arithmetic — `(week + gap - 1) / gap` — which is the same number
-  for a whole gap, so the shape cannot be pinned; what is pinned is that the rule rounds up, and
-  that
-  the gap stays whole.
+- The reference writes the count rule with `CEIL`, which this SQLite driver has no equivalent of at
+  runtime. The port keeps the same value with exact integer arithmetic — `(week × (count - 1) + span
+  - 1) / span`, the ceiling of the reference's real division written as integers. The shape itself
+  cannot be pinned: an implementation that computes the same rounding a different way answers the
+  same value for every case here, so what is pinned is the rounding and that the gap keeps its
+  fraction, which is what the reference's division does.
 - A span of 0 with more than one entry makes the reference's division raise in PostgreSQL; SQLite
   answers null and `COALESCE` turns it into 0. No case here can pin that, because the reference's
   half is a runtime error, not a value.

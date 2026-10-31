@@ -84,10 +84,11 @@ public struct NextCheckPolicy: Sendable {
     ///   - now: The instant the schedule is built from, which is the injected clock's value.
     ///   - weeklyCount: The count the storage layer answered for the feed. A count of 0 or below
     ///     answers the entry-frequency maximum, because the division has no divisor; the reference
-    ///     reads the count only for that mode, so the round-robin mode passes 0 and the
-    /// number reads     nothing.   - refreshDelay: The delay the answer carries — `<ttl>`,
-    /// `Retry-After`, `Cache-Control:     max-age` or `Expires` — as a `Duration`, which
-    /// keeps its seconds. - Returns: The instant the next check falls on.
+    ///     reads the count only for that mode, so the round-robin mode passes 0 and the number
+    ///     reads nothing.
+    ///   - refreshDelay: The delay the answer carries — `<ttl>`, `Retry-After`,
+    ///     `Cache-Control: max-age` or `Expires` — as a `Duration`, which keeps its seconds.
+    /// - Returns: The instant the next check falls on.
     public func nextCheckAt(now: Int, weeklyCount: Int, refreshDelay: Duration) -> Int {
         // The reference starts from the round-robin minimum and only the selected mode changes it.
         var interval = Duration.seconds(roundRobinMinIntervalMinutes * 60)

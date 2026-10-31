@@ -1,8 +1,9 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — two slices merged: the pipeline (PR #25) and the tick's batch selection
-with the worker pool (PR #26). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
+**Status:** in progress — three slices merged: the pipeline (PR #25), the tick's batch
+selection with the worker pool (PR #26), and the entry-frequency mode with the weekly count
+(PR #27). **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
 the user-scoped lookup, the check stamp and the site-URL fallback, the schedule fixed before the
@@ -72,9 +73,12 @@ cover the whole stage.
 
 - Merge decisions: new / updated / unchanged / upstream-removed / tombstoned.
 - Interval selection: round-robin and entry-frequency modes, clamps, `refreshDelay` from TTL and
-  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`;
-  the two rules that read a zero as a switch are pinned where they change the query, in the batch
-  suite, because a switch is only observable through the query it writes.
+  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`; the
+  two rules that read a zero as a switch are pinned where they change the query, in the batch suite,
+  because a switch is only observable through the query it writes; the mode, its clamps, the zero
+  count and the weekly count the mode divides the week by are pinned in `NextCheckPolicyTests` and
+  `WeeklyEntryCountTests`, and the count reaching the schedule through the pipeline is pinned by
+  `EntryFrequencyPipelineTests`.
 
 ### Integration
 

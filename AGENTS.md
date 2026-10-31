@@ -16,12 +16,11 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 4 — Ingestion & scheduling** (the per-feed refresh pipeline and the tick's
-due-batch selection with the bounded worker pool landed, pinned end to end against the reference
-except the pool cap, which no test can assert without a timed wait. Both modes of
-`ScheduleNextCheck`
-landed with the weekly count the entry-frequency mode divides the week by; the cadence loop, the
-manual refresh path, icons and retention follow).
+Current focus: **Stage 4 — Ingestion & scheduling** (the per-feed refresh pipeline, the tick's due-
+batch selection with the bounded worker pool, and both modes of `ScheduleNextCheck` with the weekly
+count the entry-frequency mode divides the week by, pinned end to end against the reference except
+the pool cap, which no test can assert without a timed wait; the cadence loop, the manual refresh
+path, icons and retention follow).
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
 criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's

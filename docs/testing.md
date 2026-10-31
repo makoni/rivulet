@@ -334,17 +334,16 @@ injected instant and the process one cannot answer the same batch.
 
 The entry-frequency half (`NextCheckPolicyTests`, `WeeklyEntryCountTests`,
 `EntryFrequencyPipelineTests`) pins the mode the reference's `PollingScheduler()` selects and the
-count the storage layer answers for it: the rounding up, the gap kept whole, the week window, the
-user scope, the empty result, the zero count answering the maximum, and through the pipeline that
-the
-count is read before the entries land. What cannot be pinned there: the order of the two
-entry-frequency clamps, because for a pair the reference's validator accepts they commute and for
-the
-pair it would reject the mode's cap is applied again after the delay; the `NULLIF` guard, because
-SQLite answers a division by zero as null, which `COALESCE` turns into the same 0; the mode gate in
-the pipeline, because the round-robin mode reads the count for nothing; the shape of the ceiling,
-because whole arithmetic answers the same number for a whole gap; and the transaction the count read
-runs inside.
+count the storage layer answers for it: the rounding up, the gap keeping its fraction as the
+reference's division does, the week window at its boundary, the user scope, the empty result, the
+zero count answering the maximum, and through the pipeline that the count is read before the
+entries land. What cannot be pinned there: the order of the two entry-frequency clamps, because for
+a pair the reference's validator accepts they commute and for the pair it would reject the mode's
+cap is applied again after the delay; the `NULLIF` guard, because SQLite answers a division by zero
+as null, which `COALESCE` turns into the same 0; the mode gate in the pipeline, because the round-
+robin mode reads the count for nothing; the shape of the ceiling, because exact integer arithmetic
+answers the same value as `CEIL` of the reference's real division for every case these pins read;
+and the transaction the count read runs inside.
 
 ## Running
 
