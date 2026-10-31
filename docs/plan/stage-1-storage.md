@@ -9,8 +9,9 @@ tombstones.
 - [x] Repository API over Fluent + SQLKit for every table (users, categories, feeds, entries,
       tombstones, enclosures, icons).
 - [x] Entry lifecycle: statuses `unread`/`read` and `starred`; an upsert that preserves user
-      state; deletion is a real `DELETE` + tombstone. Hash generation with the per-format
-      fallback rules (see `docs/reference-notes.md`) lands with the parsers in stage 3.
+            state; deletion is a real `DELETE` + tombstone. Hash generation with the per-
+      format fallback rules (see `docs/reference-notes.md`) landed with the parsers in stage
+      3, pinned by `HashTests` and the per-format hash suites.
 - [x] Tombstones: inserted when cleanup deletes entries (skip empty hashes, `ON CONFLICT DO
       NOTHING`); inserts/updates must refuse a tombstoned `(feed_id, hash)`.
 - [x] Queries: entry listing with filters (unread/starred/category/feed), pagination, unread

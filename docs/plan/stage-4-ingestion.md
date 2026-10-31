@@ -73,12 +73,12 @@ cover the whole stage.
 
 - Merge decisions: new / updated / unchanged / upstream-removed / tombstoned.
 - Interval selection: round-robin and entry-frequency modes, clamps, `refreshDelay` from TTL and
-  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`; the
-  two rules that read a zero as a switch are pinned where they change the query, in the batch suite,
-  because a switch is only observable through the query it writes; the mode, its clamps, the zero
-  count and the weekly count the mode divides the week by are pinned in `NextCheckPolicyTests` and
-  `WeeklyEntryCountTests`, and the count reaching the schedule through the pipeline is pinned by
-  `EntryFrequencyPipelineTests`.
+  HTTP headers. The reference defaults of the tick values are pinned in `SchedulerOptionsTests`;
+  the three rules that read a zero as a switch are pinned in the batch suite — the error limit, the
+  batch size and the host limit — because a switch is only observable through the query it writes
+  or the rows it scans; the mode, its clamps, the zero count and the weekly count the mode divides
+  the week by are pinned in `NextCheckPolicyTests` and `WeeklyEntryCountTests`, and the count
+  reaching the schedule through the pipeline is pinned by `EntryFrequencyPipelineTests`.
 
 ### Integration
 

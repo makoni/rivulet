@@ -11,15 +11,16 @@ afterthought — they run in CI together with unit tests.
 sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting | | Fixture/golden |
 `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora:
 encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the
-hostile sanitizer corpus, whose outputs are the reference's | | Integration |
+three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML
+tolerance table and the parser error corpus | | Integration |
 `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor
 app over real HTTP | | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
 diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests
 speak to a real socket through Vapor's client).
-Fixture files will be target resources (`resources: [.copy("Fixtures")]`, read via `Bundle.module`)
-when stage 3 ports them.
+Fixture files are target resources (`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as
+stage 3 landed them.
 
 ## Workflow (TDD)
 

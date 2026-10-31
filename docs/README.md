@@ -22,5 +22,7 @@ documentation and tutorials are built with DocC and published later (stage 8).
 
 ## Plan at a glance
 
-Ten stages, from foundation to post-MVP backlog. Stages 0 (foundation) and 1 (storage) are done;
-the MVP is stages 0–8. See [plan/README.md](plan/README.md) for the full table.
+Ten stages, from foundation to post-MVP backlog. Stages 0 (foundation), 1 (storage) and 2
+(fetching) are done, stage 3 (parsing) is merged with one exit criterion open, and stage 4
+(ingestion and scheduling) is in progress; the MVP is stages 0–8. See
+[plan/README.md](plan/README.md) for the full table.

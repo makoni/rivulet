@@ -1,10 +1,10 @@
 # Stage 2 — Feed fetching (HTTP)
 
 **Goal:** robust conditional HTTP fetching of feed documents.
-**Status:** done. The fetcher is merged, and the criterion that was open — persisting the validators
-and the error state into feed state — is met by stage 4's refresh pipeline (PR #25), which is the
-caller that writes them. What is still open is the error-limit exclusion, which the tick loop reads
-on batch selection; it belongs to stage 4.
+**Status:** done. The fetcher is merged, and both criteria that were open are met by stage 4:
+persisting the validators and the error state into feed state is the refresh pipeline (PR #25),
+which is the caller that writes them, and the error-limit exclusion on batch selection is the batch
+query (PR #26).
 **Effort:** M. **Depends on:** Stage 1.
 
 ## Scope
@@ -19,10 +19,10 @@ on batch selection; it belongs to stage 4.
 - [x] Error recording with reference semantics: a failed fetch increments `parsing_error_count`
       and stores the message; there is **no backoff and no jitter** (parity — see
       `docs/reference-notes.md`). The wiring landed with stage 4's pipeline (PR #25), which records
-      the failure inside its own write transaction before the error leaves, and resets the counter
-      on the success and the conditional-hit paths. The other half — the scheduler excluding a feed
-      at the limit until a forced refresh succeeds — is the batch query, which lands with the tick
-      loop.
+            the failure inside its own write transaction before the error leaves, and resets the
+      counter on the success and the conditional-hit paths. The other half — the scheduler
+      excluding a feed at the limit until a forced refresh succeeds — is the batch query,
+      pinned in `SchedulerBatchTests` as PR #26.
 - [x] Per-feed overrides: custom user agent, "ignore HTTP cache", proxy. The application proxy
       is attached only to feeds that ask for it (`fetch_via_proxy`), as upstream does; a per-feed
       proxy URL and the proxy list are deferred.
