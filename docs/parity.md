@@ -767,8 +767,9 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   those variables is stage 6 work.
 - The reference CLI is a flag (`--refresh-feeds`) on one binary; here it is the `refresh`
   subcommand, which is the CLI shape `docs/plan/README.md` chose. The reference also checks that
-  the schema is up to date before any command and exits when it is not; this port does not port
-  that check, so a pin can only show that the flag gates this command.
+  the schema is up to date, and that check sits on the daemon path — after the migrations and
+  before the branch that runs the pass, so it covers this pass but not the flags that return
+  earlier. This port does not port that check, so a pin can only show the flag gates this command.
 
 **What cannot be pinned.**
 
@@ -776,6 +777,47 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   the loop `serve` runs. The pool cap, the closing of the fetcher the command created, and the
   words of the console report are the findings the suite header states.
 
+
+## Status contract (stage 4)
+
+**Matching the reference.**
+
+- There is nothing to match here: the reference has no status command. `internal/cli/cli.go` at
+  commit `c4d54f87` takes flags rather than subcommands, and none of them reports the feed state:
+  the closest are `--info` (build information) and `--healthcheck` (a request to an endpoint). The
+  command, its `--json` document and its console form are the port's own, and
+  `docs/plan/stage-6-cli.md` keeps the document stable for monitoring and for the stage-4 soak.
+- What the document reports is read through the rules the reference does have: the batch builder's
+  pick answers `due`, and the columns of the `feeds` row answer the rest. The keys mirror the
+  column names — `id`, `user_id`, `title`, `url`, `site_url`, `fetched_at`, `next_check_at`,
+  `parsing_error_count`, `parsing_error_message` — because a contract a script compares between
+  two runs must not rename what it reports. The one key that is not a column is `enabled`, which
+  reports the `disabled` column as its positive form.
+
+**What differs.**
+
+- An absent stamp is reported as `null` rather than dropped: `JSONEncoder` omits a nil property by
+  default, so this contract writes the key explicitly, which is what a script reading two runs
+  needs.
+- The rows are listed in id order, which the reference never answers for a batch: its builder
+  orders by `next_check_at`. The counts read every row whatever its state, where the reference's
+  builder answers only the rows its conditions keep.
+- `at_error_limit` is counted only for a positive limit, because for the switch that reads zero as
+  off there is no filter a row could be at.
+- The snapshot is not scoped to a user, as the batch is not. The reference checks that the schema
+  is up to date on the daemon path, after the migrations and before the branch that runs the
+  refresh pass, and this port ports neither that check nor any gating beyond `RUN_MIGRATIONS`.
+- Without `--json` the same values print as console lines, one per row, and the wording of those
+  lines is the port's own, so the tests read the values on the line rather than the words.
+
+**What cannot be pinned.**
+
+- That the command fetches nothing and sleeps nothing; which clock it is built with, since a pin
+  can only read the instant that clock answers; the order of the JSON keys, which a
+  machine-readable contract does not promise; the wording of the human lines; which number on a
+  human line belongs to which field, since the pin reads them as a set; and the order a table scan
+  answers without the ordering clause, which for the rows these pins seed is already the id order.
+  These are the findings the two suite headers state.
 
 ## Icon finder (stage 4)
 
@@ -868,7 +910,8 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   it was read, so `HTTPS://` is refused upstream and accepted here; the reference's builder checks
   nothing and fails at the client with a different class, so the guard is the port's own rule,
   recorded in `docs/reference-notes.md`.
-- The checker half (`internal/reader/icon/checker.go`) reads the mapping through `HasFeedIcon`, which
+- The checker half (`internal/reader/icon/checker.go`) reads the mapping through `HasFeedIcon`,
+  which
   answers `false` when its scan reports nothing because it does not look at the error the scan gives
   it; this port answers `false` the same way for a read that reports nothing, and for a feed with no
   row at all, so the pins cannot tell a failing read from an empty one.
@@ -884,7 +927,8 @@ failure
   ends inside the checker without a record: the pins can read only that the call completes and
   nothing was written.
 - The checker hands the builder the user agent as the value the feed row carries, which is the
-  `WithUserAgent` precedence the port's builder already implements. The reference reads the value from
+  `WithUserAgent` precedence the port's builder already implements. The reference reads the value
+  from
   the feed model and the port takes it as an argument, so the pin can fail only on the checker
   handing
   it on, not on which value wins when it is empty.

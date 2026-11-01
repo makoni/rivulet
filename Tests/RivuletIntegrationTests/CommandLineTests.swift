@@ -80,7 +80,6 @@ import RivuletCore
             ("list", 6),
             ("import", 5),
             ("export", 5),
-            ("status", 4),
             ("integration-credentials", 5),
             ("backup", 6),
             ("vacuum", 6),
@@ -139,7 +138,7 @@ import RivuletCore
         let invocations: [(arguments: [String], stage: Int)] = [
             (["add", "https://example.com/feed"], 6),
             (["import", "feeds.opml"], 5),
-            (["status", "--json"], 4),
+            (["export", "feeds.opml"], 5),
         ]
 
         for (arguments, stage) in invocations {

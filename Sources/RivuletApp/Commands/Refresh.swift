@@ -22,9 +22,9 @@ extension RivuletCLI {
     /// reference reports the size of the whole batch, which counts a job it could not
     /// refresh; this report counts what ran without a failure, so the two numbers differ
     /// when a batch has one. A batch read that fails is logged and returned there; here the
-    /// error leaves the command. The reference checks that the schema is up to date before
-    /// it runs any command; this port runs the migrations when `RUN_MIGRATIONS` is on, as
-    /// `serve` does, and does not port that check.
+    /// error leaves the command. The reference checks that the schema is up to date on the daemon
+    /// path, after the migrations and before the branch that runs the pass, which this port does
+    /// not port; it runs the migrations when `RUN_MIGRATIONS` is on, as `serve` does.
     struct Refresh: AsyncCommand {
         struct Signature: CommandSignature {
             init() {}

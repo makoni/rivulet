@@ -353,6 +353,27 @@ on is stated in the header: that the pass is one pass (a patch that looped would
 rather than fail it), the pool cap, the closing of the fetcher the command created, and the
 reference's check that the schema is up to date, which this port does not port.
 
+The status contract (`StatusSnapshotTests`, `StatusCommandTests`) pins the minimal feed-state
+document the soak reads, which is the port's own shape because the reference has no status command.
+The storage half pins that each field is the value the row holds - the pin seeds values that are not
+the schema defaults, because a pin reading an empty column can only show that an empty column reads
+as `""` rather than as `nil` - and that an absent stamp is read as `nil`; the rows are listed in id
+order, which the pins show against the orders the storage would give by reading another column,
+because the scan order for these rows is already the id order; the counts read every row whatever
+its state; and `due` is the batch's pick, pinned on the values that make each of its rules
+falsifiable: a row scheduled at exactly the instant for the strict comparison, a disabled row for
+the gate, a batch size of zero for the switch that adds no `LIMIT`, and a window smaller than the
+matching rows for the host filter running only on the rows the window read. The command half pins
+that `--json` selects the document, that the whole output is the document, that the keys are the
+documented ones, that an absent stamp stays `null` rather than becoming `0`, that the human form
+carries the row's values as the numbers on its line - read as a set, so the pins cannot tell which
+number belongs to which field - that the environment values reach the totals through the command,
+that the due count is read against the process clock, and that `RUN_MIGRATIONS` gates the migrations
+this command runs. What no pin can show is stated in the headers: that the command fetches nothing
+and does not sleep, which clock it is built with, the order of the JSON keys, the order of the
+numbers on a human line, the order of rows sharing one `next_check_at`, the closing of the storage
+the command opened, and the wording of the human lines, which is the port's own.
+
 The entry-frequency half (`NextCheckPolicyTests`, `WeeklyEntryCountTests`,
 `EntryFrequencyPipelineTests`) pins the mode the reference's `PollingScheduler()` selects and the
 count the storage layer answers for it: the rounding up, the gap keeping its fraction as the

@@ -39,7 +39,7 @@ Sources/
 │   │                       # charset, sanitizer, OPML
 │   └── Scheduler/          # refresh loop; retention runs as a storage-layer job
 ├── RivuletApp/             # application layer — the only target that knows Vapor
-│   ├── Commands/           # serve, migrate, version, refresh + registered stubs for the final CLI
+│   ├── Commands/           # serve, migrate, version, refresh, status + registered CLI stubs
 │   ├── Logging/            # text/JSON swift-log bootstrap
 │   └── Routes/             # /healthz now; client APIs arrive in stage 5
 └── rivulet/                # executable: entry point only
@@ -94,9 +94,14 @@ non-zero exit status — everything else lives in `RivuletApp`.
   configuration gives the builder, each job runs once through the worker's path, a job that fails is
   reported without stopping the rest, and the pass prints what it ran. Migrations run when the flag
   is on, as `serve` has them gated, and this command does not run them when it is off.
+- `status` — the feed state, then exit: each row with its last fetch, errors and next check, plus
+  the counts, read through the storage layer; nothing is fetched and nothing sleeps. `--json`
+  selects the machine-readable document the stage-4 soak reads, whose keys are the column names —
+  with `enabled`, the positive form of the `disabled` column — and without the flag the same values
+  print as console lines. Migrations run when the flag is on, as `serve` has them gated.
 - Every other command of the final surface (`create-admin`, `add`, `remove`, `list`, `import`,
-  `export`, `status`, `integration-credentials`, `backup`, `vacuum`) is a registered stub that
-  reports the stage implementing it.
+  `export`, `integration-credentials`, `backup`, `vacuum`) is a registered stub that reports the
+  stage implementing it.
 
 `--help` lists every command and, like `version`, works without configuration.
 

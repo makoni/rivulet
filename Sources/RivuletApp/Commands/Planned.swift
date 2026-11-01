@@ -17,7 +17,7 @@ extension RivuletCLI {
 
         // Entry point of `AnyAsyncCommand`, overriding the default `AsyncCommand`
         // implementation: that one rejects leftover input, but natural invocations —
-        // `rivulet add <url>`, `rivulet status --json` — must still report the stage.
+        // `rivulet add <url>`, `rivulet export feeds.opml` — must still report the stage.
         func run(using context: inout CommandContext) async throws {
             try await run(using: context, signature: Signature())
         }
@@ -37,7 +37,6 @@ extension RivuletCLI.Planned {
         .init(name: "list", stage: 6),
         .init(name: "import", stage: 5),
         .init(name: "export", stage: 5),
-        .init(name: "status", stage: 4),
         .init(name: "integration-credentials", stage: 5),
         .init(name: "backup", stage: 6),
         .init(name: "vacuum", stage: 6),

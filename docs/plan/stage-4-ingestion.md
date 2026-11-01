@@ -1,13 +1,13 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — nine slices merged (PR #25–#33): the pipeline, the tick's batch selection
+**Status:** in progress — ten slices merged (PR #25–#34): the pipeline, the tick's batch selection
 with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
 write, the icon selector with the data-URL rules, the icon download half with the storage link and
 the orphan pass, the checker half with the guard and the storage decisions, the call that path
-makes for a feed from the pipeline, and the manual pass the CLI makes over the batch — the values
+makes for a feed from the pipeline, the manual pass the CLI makes over the batch — the values
 it reads, each job running once, a failure reported without stopping the rest, and the flag that
-gates the migrations this command runs.
+gates the migrations this command runs — and the minimal `status --json` contract the soak reads.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -143,6 +143,13 @@ criteria below cover the whole stage.
   rest, the schedule the run left, and the flag that gates the migrations this command runs. Pinned
   by `RefreshCommandTests`; the cadence and the pool cap are named as unpinnable in the suite
   header, and the reference's check that the schema is up to date is not ported.
+- The minimal `status --json` contract the soak reads: each field is the value the row holds, an
+  absent stamp reads as `nil` in the storage layer and stays `null` in the document, the rows are
+  listed in id order, the counts read every row whatever its state, `due` is the batch's pick, the
+  environment values reach the totals through the command, and the flag gates the migrations. Pinned
+  by `StatusSnapshotTests` and `StatusCommandTests`. The reference has no status command, so the
+  shape is the port's own; the suite headers name the scan order, the clock the command is built
+  with, the JSON key order and the wording of the human lines as unpinnable.
 - Retention deletes only expired entries (boundary cases) and writes tombstones, pinned by
   `RetentionTests`.
 
