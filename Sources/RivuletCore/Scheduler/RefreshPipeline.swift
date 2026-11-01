@@ -9,13 +9,13 @@ import Foundation
 /// `internal/reader/handler/handler.go` at commit `c4d54f87`): read the row through the user-scoped
 /// lookup, stamp the check time and the schedule, build the request, fetch, recompute the schedule
 /// for a rate-limited answer, then either record the failure or read the body, parse, sanitize and
-/// store each entry, and write the fetch state. Three things are different here, recorded in
-/// `docs/parity.md`: every write of one refresh commits in one transaction, the failure record is
-/// committed before its error leaves, and the clock is the injected seam rather than a `time.Now()`
-/// read inside the functions. The user rules the reference applies in its processor — filters,
-/// rewrite, scraping — are later stages, and so are the duplicate check, the reading time and the
-/// call the checker makes for a feed.  - See: ``Clock`` for the injected instant, ``NextCheckPolicy`` for the
-/// scheduling rule.
+/// store each entry, run the checker for the feed, and write the fetch state. Three things are
+/// different here, recorded in `docs/parity.md`: every write of one refresh commits in one
+/// transaction, the failure record is committed before its error leaves, and the clock is the
+/// injected seam rather than a `time.Now()` read inside the functions. The user rules the reference
+/// applies in its processor — filters, rewrite, scraping — are later stages, and so are the
+/// duplicate check and the reading time.  - See: ``Clock`` for the injected instant,
+/// ``NextCheckPolicy`` for the scheduling rule.
 public struct RefreshPipeline: Sendable {
     private let storage: SQLiteStorage
     private let fetcher: Fetcher
@@ -37,11 +37,15 @@ public struct RefreshPipeline: Sendable {
 
     /// Refreshes one feed of one user.  - Parameters: - userID: The user the feed belongs to; a
     /// feed of another user is the typed error. - feedID: The feed to refresh. - forceRefresh: The
-    /// forced path `rivulet refresh` takes: no stored validators are sent, and an existing entry is
-    /// updated. - Returns: What the refresh produced, as ``RefreshOutcome``. - Throws: The typed
-    /// failure the reference reports on this path: the feed not found, the fetch error, or the
-    /// parse error. The failure record is committed before the error is thrown, so the caller sees
-    /// the row the reference would have written.
+    /// forced path, which no production caller in this port takes: the batch and the tick call the
+    /// pipeline through ``JobRunner``, which is the reference's worker path and passes the flag as
+    /// false. The flag is read in three places, as the reference reads it: it keeps the stored
+    /// validators out of the request, it decides which branch runs, and it selects which
+    /// half of the checker runs. - Returns: What the refresh produced, as
+    /// ``RefreshOutcome``. - Throws: The typed failure the reference reports on this path:
+    /// the feed not found, the fetch error, or the parse error. The failure record is
+    /// committed before the error is thrown, so the caller sees the row the reference would
+    /// have written.
     public func refresh(userID: Int, feedID: Int, forceRefresh: Bool = false)
         async throws -> RefreshOutcome {
         let result = try await storage.withTransaction { connection in
@@ -112,22 +116,30 @@ public struct RefreshPipeline: Sendable {
             return .recorded(error)
         }
         if forceRefresh || response.isModified(against: state) {
-            return try await processModified(connection, feeds, state, response, userID, feedID,
-                weeklyCount, siteURL, feed.url, nextCheckAt, checkedAt)
+            return try await processModified(connection, feeds, feed, state, response, userID,
+                feedID, weeklyCount, siteURL, feed.url, nextCheckAt, checkedAt,
+                forceRefresh: forceRefresh)
         }
         return try await processHit(feeds, feed, response, feedID, siteURL, nextCheckAt, checkedAt)
     }
 
     /// The parse-and-store branch, in the reference's order: parse, take the delay the answer
-    /// carries, process the entries, then store the validators the response produced. The delay is
-    /// compared as a `Duration`, as the reference does, so a value that is not a whole number of
-    /// minutes keeps its seconds; the comparison itself is pinned in ``NextCheckPolicy``.
-    /// `feedURL` is the value the row holds, which is what the reference's processor parses, and
-    /// `weeklyCount` is the number read before the fetch, which is what the schedule is built from.
+    /// carries, process the entries, run the checker for the feed, then store the validators the
+    /// response produced. The delay is compared as a `Duration`, as the reference does, so a value
+    /// that is not a whole number of minutes keeps its seconds; the comparison itself is pinned in
+    /// ``NextCheckPolicy``. The order of those writes inside one transaction cannot be
+    /// pinned, so the checker call is written where the reference has it and read as what
+    /// the commit left. The checker is written with the values the row holds — the site
+    /// URL, already falling back to the feed URL, and the user agent — and with the icon
+    /// URL the parse produced, which is what the reference puts on the model it read before it
+    /// builds the checker. `feedURL` is the value the row holds, which is what the
+    /// reference's processor parses, and `weeklyCount` is the number read before the fetch,
+    /// which is what the schedule is built from.
     private func processModified(_ connection: any Database, _ feeds: FeedRepository,
-        _ state: FeedFetchState, _ response: FetchResponse, _ userID: Int, _ feedID: Int,
-        _ weeklyCount: Int, _ siteURL: String, _ feedURL: String, _ nextCheckAt: Int,
-        _ checkedAt: Int) async throws -> TransactionResult {
+        _ feed: Feed, _ state: FeedFetchState, _ response: FetchResponse, _ userID: Int,
+        _ feedID: Int, _ weeklyCount: Int, _ siteURL: String, _ feedURL: String,
+        _ nextCheckAt: Int, _ checkedAt: Int, forceRefresh: Bool) async throws
+        -> TransactionResult {
         let parsed: ParsedFeed
         do {
             parsed = try FeedParser.parse(baseURL: response.effectiveURL.absoluteString,
@@ -142,6 +154,19 @@ public struct RefreshPipeline: Sendable {
         let nextCheckAt = nextCheck.nextCheckAt(now: checkedAt, weeklyCount: weeklyCount,
             refreshDelay: delay)
         let hashes = try await processEntries(parsed, connection, userID, feedID, siteURL, feedURL)
+
+        // The checker for this feed, in the reference's order — after the entry loop. It
+        // runs on the connection that opened the transaction, so the row and the mapping
+        // it writes belong to the same commit, and it takes the values the row holds
+        // with the icon URL the parse produced.
+        let checker = IconChecker(fetcher: fetcher, options: options,
+            icons: IconRepository(connection), feedID: feedID, websiteURL: siteURL,
+            feedIconURL: parsed.iconURL, userAgent: feed.userAgent)
+        if forceRefresh {
+            await checker.updateOrCreate()
+        } else {
+            await checker.createIfMissing()
+        }
 
         try await feeds.recordFetch(feedID: feedID, etag: response.etag,
             lastModified: response.lastModified, nextCheckAt: nextCheckAt, checkedAt: checkedAt,

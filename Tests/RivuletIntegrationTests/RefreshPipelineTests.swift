@@ -27,8 +27,9 @@ import Testing
 /// `EntryFrequencyPipelineTests` pins on its own; the two columns the reference gates
 /// the entry-update branch on, which the schema does not have; the user rules the reference applies
 /// in its processor — filters, rewrite, scraping — which the plan puts in later stages; the
-/// duplicate check, the reading time and the call the checker makes for a feed, which land with
-/// those stages; and nothing here sleeps or polls.
+/// duplicate check and the reading time, which land with those stages; the icon rules, which this
+/// suite does not read at all and which `IconCheckerTests` and `RefreshIconTests` pin; and nothing
+/// here sleeps or polls.
 @Suite struct RefreshPipelineTests {
     /// The instant every stamp is read from, so a pin can tell the injected clock from the process
     /// one.

@@ -29,8 +29,10 @@ to end against the reference except the pool cap, which no test can assert witho
 the rules the icon suite headers name as unpinnable — the checksum function, the size cap, the basis
 the empty-body rule measures, the join escaping, the `external_id` randomness, the transaction
 boundary, the join table this port does not have, and the reference logging that a swallowed checker
-failure leaves no record for. The cadence loop that calls the checker for a feed, the manual refresh
-path and the soak artifact follow; retention is pinned by `RetentionTests`).
+failure leaves no record for. The call the refresh path makes for that checker — the branch it runs
+on, the fork the forced flag selects, the icon URL the parse produced, and the site URL and user
+agent read from the row — is pinned by `RefreshIconTests`. The cadence loop that calls the pipeline,
+the manual refresh path and the soak artifact follow; retention is pinned by `RetentionTests`).
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
 criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's
