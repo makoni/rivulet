@@ -37,7 +37,6 @@ extension RivuletCLI.Planned {
         .init(name: "list", stage: 6),
         .init(name: "import", stage: 5),
         .init(name: "export", stage: 5),
-        .init(name: "refresh", stage: 4),
         .init(name: "status", stage: 4),
         .init(name: "integration-credentials", stage: 5),
         .init(name: "backup", stage: 6),

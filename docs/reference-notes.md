@@ -42,6 +42,16 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   is `urllib.Domain` — the parsed host with its port, the input as written when the URL does not
   parse, no `www.` strip. `feedScheduler` passes neither a user nor a category, so the batch is not
   scoped. Upstream has no test for the builder; the port pins each rule in `SchedulerBatchTests`.
+- Manual pass: `internal/cli/refresh_feeds.go` — the same builder with the `config.Opts` values,
+  the jobs pushed to `WORKER_POOL_SIZE` goroutines over one channel, the process waiting for them
+  before it exits: there is no loop. Each job runs `RefreshFeed` with `forceRefresh` false, and a
+  job that fails is logged as a warning without stopping the worker. The values this pass reads
+  are `BATCH_SIZE` (100, validator at least 1), `WORKER_POOL_SIZE` (16, at least 1),
+  `POLLING_PARSING_ERROR_LIMIT` (3, at least 0) and `POLLING_LIMIT_PER_HOST` (0, at least 0);
+  `POLLING_FREQUENCY` (60, at least 1, minute type) is read by the loop, not by this pass. The
+  closing line reports the size of the whole batch and the duration. Migrations run before the
+  command is dispatched when `RUN_MIGRATIONS` is on, and the CLI then checks that the schema is up
+  to date.
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m] — the cap first,

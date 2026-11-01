@@ -6,8 +6,8 @@ import Testing
 /// at commit `c4d54f87`: `BATCH_SIZE` 100, `WORKER_POOL_SIZE` 16, `POLLING_PARSING_ERROR_LIMIT` 3,
 /// `POLLING_LIMIT_PER_HOST` 0 and `POLLING_FREQUENCY` 60 minutes.  What these pins can fail on:
 /// each number on its own, and only through `.defaults`: the pins read the defaults, not a value a
-/// test passes to the initializer.  What they cannot: the environment names, which stage 6 parses,
-/// and the
+/// test passes to the initializer.  What they cannot: the environment names, which `ConfigTests`
+/// pins for the five variables as stage 4 reads them, and the
 /// fact that the reference reads them through `config.Opts` while this port takes them as a value.
 /// The rules that read a zero as a switch rather than as a number are pinned where they change the
 /// query — in `SchedulerBatchTests` — because a switch is only observable through the query.

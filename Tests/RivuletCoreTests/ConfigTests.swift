@@ -256,6 +256,52 @@ import Testing
             #expect(payload?.reason.contains("on/off") == true)
         }
     }
+
+    // MARK: - Scheduler values
+
+    @Test func schedulerValuesComeFromTheEnvironment() throws {
+        let defaults = try Config.load(environment: environment())
+        #expect(defaults.scheduler.pollingFrequency == .seconds(3600))
+        #expect(defaults.scheduler.batchSize == 100)
+        #expect(defaults.scheduler.workerPoolSize == 16)
+        #expect(defaults.scheduler.parsingErrorLimit == 3)
+        #expect(defaults.scheduler.limitPerHost == 0)
+
+        let loaded = try Config.load(environment: environment([
+            "POLLING_FREQUENCY": "30",
+            "BATCH_SIZE": "50",
+            "WORKER_POOL_SIZE": "8",
+            "POLLING_PARSING_ERROR_LIMIT": "5",
+            "POLLING_LIMIT_PER_HOST": "2",
+        ]))
+        #expect(loaded.scheduler.pollingFrequency == .seconds(1800))
+        #expect(loaded.scheduler.batchSize == 50)
+        #expect(loaded.scheduler.workerPoolSize == 8)
+        #expect(loaded.scheduler.parsingErrorLimit == 5)
+        #expect(loaded.scheduler.limitPerHost == 2)
+    }
+
+    @Test func theSchedulerMinimumsAreTheReferenceValidators() throws {
+        // The three values that a positive number is read as reject zero; the two that
+        // are read as a switch accept it, because for them zero is the value that means
+        // off.
+        for value in ["BATCH_SIZE", "POLLING_FREQUENCY", "WORKER_POOL_SIZE"] {
+            for rejected in ["0", "-1"] {
+                let payload = configError(from: environment([value: rejected]))?.invalidValuePayload
+                #expect(payload?.name == value, "expected \(value)=\(rejected) to be rejected")
+                #expect(payload?.reason.contains("at least 1") == true, "\(payload?.reason)")
+            }
+        }
+
+        // The two that a pin can read as a switch accept zero, because for them zero is
+        // the value that means off.
+        let hostOff = try Config.load(environment: environment(["POLLING_LIMIT_PER_HOST": "0"]))
+        #expect(hostOff.scheduler.limitPerHost == 0, "POLLING_LIMIT_PER_HOST=0 is off, not an error")
+
+        let errorOff = try Config.load(environment: environment(["POLLING_PARSING_ERROR_LIMIT": "0"]))
+        #expect(errorOff.scheduler.parsingErrorLimit == 0,
+            "POLLING_PARSING_ERROR_LIMIT=0 is off, not an error")
+    }
 }
 
 /// The `.invalidValue` payload when this error is that case (`nil` otherwise).
