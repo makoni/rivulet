@@ -1,14 +1,13 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — eight slices merged (PR #25–#32): the pipeline, the tick's batch selection
+**Status:** in progress — nine slices merged (PR #25–#33): the pipeline, the tick's batch selection
 with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
 write, the icon selector with the data-URL rules, the icon download half with the storage link and
-the orphan pass, the checker half with the guard and the storage decisions, and the call that path
-makes for a feed from the pipeline. The ninth is the manual pass the CLI makes over the batch — the
-values it reads, each job running once, a failure reported without stopping the rest, and the flag
-that gates the migrations this command runs — pinned by `RefreshCommandTests` and the `ConfigTests`
-pins for the five variables.
+the orphan pass, the checker half with the guard and the storage decisions, the call that path
+makes for a feed from the pipeline, and the manual pass the CLI makes over the batch — the values
+it reads, each job running once, a failure reported without stopping the rest, and the flag that
+gates the migrations this command runs.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
