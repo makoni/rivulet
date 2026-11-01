@@ -26,11 +26,15 @@ enum IconDataURLError: Error, Equatable {
 /// The reference builds this with one regexp whose productions are `image/[^;,]+` for the
 /// mediatype, `base64|utf8` for the optional encoding and `.+` for the data, so a value fails
 /// on the shape before anything is decoded: the mediatype cannot cross the `;` or the `,`, an
-/// unknown encoding is not the optional group, and an empty data part is not a match. The three
+/// unknown encoding is not the optional group, and the data part must not be empty. Go's `.`
+/// does not match a newline, so a data part containing `\n` is not a match either. The three
 /// encodings then do three different things, and Go's `QueryUnescape` for the empty one is not
-/// a plain percent-decode: it turns a `+` into a space and refuses a truncated escape. Go's
-/// base64 decoder accepts a value without padding; this port does not, which no case here
-/// reads.
+/// a plain percent-decode: it turns a `+` into a space and refuses a truncated escape.
+///
+/// The checksum is the port's SHA-256 over the decoded bytes. The reference hashes the same
+/// bytes with `crypto.HashFromBytes`, which is FNV-128a, so the stored hash value differs from
+/// the reference's; the difference is recorded in `docs/parity.md` and cannot be pinned from
+/// this side of the boundary.
 enum IconDataURL {
     struct Value: Equatable {
         var mimeType: String
@@ -40,6 +44,13 @@ enum IconDataURL {
 
     /// Reads `value` the way the reference's regexp and the encoding switch do.
     static func parse(_ value: String) throws -> Value {
+        let (mimeType, encoding, data) = try readShape(value)
+        let bytes = try readEncoding(encoding: encoding, data: data, value: value)
+        return Value(mimeType: mimeType, content: bytes, hash: Hashes.sha256(bytes))
+    }
+
+    /// The four productions, read in the order the regexp reads them.
+    private static func readShape(_ value: String) throws -> (String, String, String) {
         guard value.hasPrefix("data:") else { throw IconDataURLError.malformed(value) }
 
         var rest = value.dropFirst("data:".count)
@@ -67,22 +78,28 @@ enum IconDataURL {
         } else {
             data = String(rest[rest.index(after: delimiter)...])
         }
-        guard !data.isEmpty else { throw IconDataURLError.malformed(value) }
 
-        let bytes: Data
+        guard !data.isEmpty, !data.contains("\n") else {
+            throw IconDataURLError.malformed(value)
+        }
+        return (mimeType, encoding, data)
+    }
+
+    /// What the three encodings do with the data part.
+    private static func readEncoding(encoding: String, data: String, value: String) throws -> Data {
         switch encoding {
         case "base64":
+            // Go's decoder accepts a value whose last quantum is not padded; this
+            // port's does not, which no case here reads.
             guard let decoded = Data(base64Encoded: data) else {
                 throw IconDataURLError.invalidBase64(data)
             }
-            bytes = decoded
+            return decoded
         case "utf8":
-            bytes = Data(data.utf8)
+            return Data(data.utf8)
         default:
-            bytes = try unescape(data)
+            return try unescape(data)
         }
-
-        return Value(mimeType: mimeType, content: bytes, hash: Hashes.sha256(bytes))
     }
 
     /// Go's `QueryUnescape`: a `+` is a space, a percent escape needs two hex digits after it, and
@@ -101,9 +118,7 @@ enum IconDataURL {
                     isHexDigit(bytes[index + 2]) else {
                     throw IconDataURLError.invalidEscape(value)
                 }
-                let high = hexValue(bytes[index + 1])
-                let low = hexValue(bytes[index + 2])
-                out.append(UInt8(high * 16 + low))
+                out.append(UInt8(hexValue(bytes[index + 1]) * 16 + hexValue(bytes[index + 2])))
                 index += 2
             } else {
                 out.append(byte)

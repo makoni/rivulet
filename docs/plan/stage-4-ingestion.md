@@ -74,12 +74,14 @@ criteria below cover the whole stage.
   the week by are pinned in `NextCheckPolicyTests` and `WeeklyEntryCountTests`, and the count
   reaching the schedule through the pipeline is pinned by `EntryFrequencyPipelineTests`.
 - Icon selection: the four `link` branches — only the three `icon` ones fold case, and a `rel` is
-  compared as a whole value — the href rules, document order, and the two facts the reference's tree
-  gives it, read here through the tokenizer subset: content inside a raw-text element is text, and a
-  self-closing element is the self-closing start tag token. The charset layer and the escaped path
-  are pinned as rules the icon scan reads through, not as the rules of their own suites. The `data:`
-  URL shape and its three encodings are pinned by `IconDataURLTests`. The selector's test that the
-  `href` attribute is present at all is not pinnable in this port, as the suite header states.
+  compared as a whole value — the href rules, document order, and the two tokenizer facts the
+  reference's tree agrees with for the cases here: content inside a raw-text element is text, and
+  the self-closing token kind is read as an element. The charset layer, the escaped path and the
+  tokenizer's lowercasing and value decoding are pinned as rules the icon scan reads through. The
+  `data:` URL shape and its three encodings are pinned by `IconDataURLTests`, including Go's `.`
+  production, which excludes a newline from the data part, and that the checksum is taken over the
+  decoded bytes. The selector's test that the `href` attribute is present at all is not pinnable in
+  this port, as the suite header states.
 
 ### Integration
 
@@ -138,3 +140,10 @@ returns the number of rows it deleted, where `ArchiveEntries` returns the number
 inserted into `entry_tombstones`; the two disagree for a skipped empty hash and for a `(feed_id,
 hash)` conflict. The pins cannot show it, and a live entry can never have a tombstone, so in
 practice the counts agree.
+Findings from review run 1 on PR #29 that do not change behavior:
+- Two upstream cases are not ported: `TestFindIconURLsFromHTMLDocument_InvalidHTML`, where an
+  unclosed tag lets the attribute-value state swallow the rest of the document, which no case here
+  reads, and `TestFindIconURLsFromHTMLDocument_EmptyDocument`.
+- The reference folds the selector's `i` flag and the attribute names with an ASCII-only lowering,
+  while the port uses Swift's `lowercased()`, which maps Unicode. The two agree for every value
+  these pins read, so the boundary is recorded here rather than pinned.

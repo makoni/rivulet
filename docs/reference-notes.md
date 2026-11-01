@@ -268,7 +268,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 
 - Stored in the database: `icons(id, hash unique, mime_type, content bytea)`
   (`internal/database/migrations.go`); deduplicated by hash; the public URL uses a random
-  `external_id`; feeds relate to icons via the `feed_icons` join table (many-to-many).
+  `external_id`; feeds relate to icons via the `feed_icons` join table (many-to-many). The hash is
+  `crypto.HashFromBytes`, which is `hash/fnv` FNV-128a (32 hex characters), not the `SHA256` the entry
+  identity uses; this port hashes an icon with SHA-256, which `docs/parity.md` records.
 - Served **unauthenticated** at `BASE_URL/feed-icon/<external_id>` with `ETag` and a 72h
   `Cache-Control`.
 - Google Reader `subscription/list` embeds `iconUrl` (there is no dedicated feed-icon endpoint);

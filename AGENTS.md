@@ -21,8 +21,8 @@ due-batch selection with the bounded worker pool, both modes of `ScheduleNextChe
 count the entry-frequency mode divides the week by, the two halves of the entry loop that write
 nothing — an entry the document no longer declares and a tombstoned `(feed_id, hash)` pair — and the
 icon `link` selector with the `data:` URL rules, pinned end to end against the reference except the
-pool cap, which no test can assert without a timed wait; the cadence loop, the manual refresh path,
-the icon download half and retention follow).
+pool cap, which no test can assert without a timed wait and the rules the icon suite headers name as
+unpinnable; the cadence loop, the manual refresh path, the icon download half and retention follow).
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
 criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's

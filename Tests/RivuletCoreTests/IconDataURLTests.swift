@@ -6,22 +6,26 @@ import Testing
 /// (`parseImageDataURL`); the upstream cases in `finder_test.go` are named per case.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: the mediatype is
-/// mandatory and has to name an image — a patch that accepts any mediatype fails the two cases
-/// that report it, and one that drops the `image/` requirement fails the `text/plain` one; the
+/// mandatory and has to name an image — a patch that accepts any mediatype fails the two cases that
+/// report it, and one that drops the `image/` requirement fails the `text/plain` one; the
 /// encoding is one of `base64`, `utf8` or the empty string, so a patch that reads an unknown
 /// encoding fails the `base32` case; the three encodings do three different things, and a patch
-/// that makes them the same fails the cases that tell them apart; data is required, so a patch
-/// that lets it be empty fails the case that reports it; and the URL-decoding branch is Go's
-/// `QueryUnescape`, which turns a `+` into a space and refuses a truncated escape.
+/// that makes them the same fails the cases that tell them apart; the data part is required and
+/// cannot contain a newline, which is Go's `.` production, so a patch that lets a newline
+/// through fails the case that reports it; and the URL-decoding branch is Go's `QueryUnescape`,
+/// which turns a `+` into a space and refuses a truncated escape. The hash pins can fail on
+/// which bytes the checksum is taken over — the decoded bytes, not the value as read.
 ///
-/// What they cannot fail on: the hash, which is the same SHA-256 the reader computes everywhere
-/// and is pinned by `HashTests`; the reference's error wording, which this port keeps as typed
-/// cases; and the `data:` prefix as a rule of its own, because a value that does not start with
-/// it fails on the same shape check as a mediatype that is not an image.
+/// What they cannot fail on: the checksum function itself, which is the port's SHA-256 and not the
+/// reference's `HashFromBytes` (FNV-128a), recorded in `docs/parity.md` and pinned as a value by
+/// `HashTests` for the entry path; the reference's error wording, which this port keeps as
+/// typed cases; the `data:` prefix as a rule of its own, because a value that does not start
+/// with it fails on the same shape check as a mediatype that is not an image; and Go's base64
+/// decoder accepting a value whose last quantum is not padded, which this port refuses.
 @Suite struct IconDataURLTests {
     @Test func base64EncodingIsDecoded() throws {
-        // Ported from `TestParseImageDataURL`. The content is the decoded bytes, and the hash is
-        // SHA-256 of them, which is the reference's value for this input.
+        // Ported from `TestParseImageDataURL`. The content is the decoded bytes, and the
+        // hash is the port's SHA-256 over them.
         let parsed = try IconDataURL.parse("data:image/png;base64,"
             + "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4"
             + "2mNkYPhfDwAChAGAhGAQ+QAAAABJRU5ErkJggg==")
@@ -33,7 +37,8 @@ import Testing
 
     @Test func noEncodingMeansURLDecoded() throws {
         // Ported from `TestParseImageDataURLWithNoEncoding`: the value is URL-decoded,
-        // so it is not the characters as they were written.
+        // so it is not the characters as they were written, and the hash is over the
+        // decoded bytes.
         let parsed = try IconDataURL.parse("data:image/webp,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E")
         #expect(parsed.mimeType == "image/webp")
         #expect(parsed.content == Data("<h1>Hello, World!</h1>".utf8))
@@ -76,6 +81,14 @@ import Testing
         // Ported from `TestParseInvalidImageDataURLWithUnsupportedEncoding`.
         #expect(parseError("data:image/png;base32,blob")
             == .malformed("data:image/png;base32,blob"))
+    }
+
+    @Test func aDataPartWithANewlineIsNotAMatch() throws {
+        // Go's `.` production does not match `\n`, so the shape fails before any
+        // encoding is read. This reaches the reader through an attribute value: the
+        // tokenizer decodes `&#10;` to a newline.
+        #expect(parseError("data:image/png;utf8,a\nb") == .malformed("data:image/png;utf8,a\nb"))
+        #expect(parseError("data:image/png,a\nb") == .malformed("data:image/png,a\nb"))
     }
 
     @Test func base64ThatCannotBeDecodedIsAnError() throws {

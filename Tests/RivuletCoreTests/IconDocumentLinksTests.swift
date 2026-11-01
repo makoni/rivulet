@@ -9,19 +9,21 @@ import Testing
 /// What these pins can fail on, each checked by patching the rule and reverting: the four
 /// selector branches, and which of them fold case — `apple-touch-icon` is the one that does not,
 /// so a patch that folds it fails the case that says so; a `rel` is compared whole, so a patch
-/// that compares by prefix fails the case with the trailing space; the href is not whitespace-
-/// only; an href the parse cannot read is skipped rather than passed through; a `link` inside a
-/// raw-text element is text, not an element; the self-closing token is read as an element; the
-/// order is document order, not sorted; the resolution rules and the escaped path, which are the
-/// URL layer's rules read through the scan; the bytes go through the charset layer, which is the
-/// "already valid UTF-8" answer otherwise; and the attribute name is lower-cased and the value is
-/// decoded, which are the tokenizer's rules read through the scan and pinned by its own suite.
+/// that compares by prefix fails the case with the trailing space; the href is not
+/// whitespace-only; an href the parse cannot read is skipped rather than passed through; a `link`
+/// inside a raw-text element is text, not an element; the self-closing token kind is read as an
+/// element; the order is document order, not sorted; the resolution rules and the escaped path,
+/// which are the URL layer's rules read through the scan; the bytes go through the charset layer,
+/// and the pin fails when the charset the content type names is not consulted; and the attribute
+/// name is lower-cased and the value is decoded, which are the tokenizer's rules read through the
+/// scan.
 ///
 /// What they cannot fail on: the selector's test that the `href` attribute is there at all,
 /// because a missing href reads as the empty value and the same guard answers for both; the
-/// reference's logging, which this port does not have; and the charset detection rules
-/// themselves, which the charset suite pins — this suite pins only that the icon path reads
-/// through them.
+/// reference's logging, which this port does not have; the charset detection steps no case here
+/// reads (the byte-order mark, the meta prescan, the "looks like UTF-8" answer), which the
+/// charset suite pins, and the tokenizer's rules as rules of the tokenizer, which its own suite
+/// pins.
 @Suite struct IconDocumentLinksTests {
     @Test func theFourSelectorBranchesMatchInDocumentOrder() {
         // Ported from `TestFindIconURLsFromHTMLDocument_MultipleIcons`.
@@ -158,9 +160,11 @@ import Testing
             documentURL: "https://example.org") == ["https://example.org/outside.ico"])
     }
 
-    @Test func aSelfClosingLinkIsAccepted() {
-        // A foreign-content element closed with `/>` is the self-closing start tag token, which the
-        // scan must read as an element like any other start tag.
+    @Test func theSelfClosingTokenKindIsReadAsAnElement() {
+        // The tokenizer answers with the self-closing start tag token for `/>`, which
+        // the scan must read as an element like any other start tag. Outside foreign
+        // content the reference's tree does not acknowledge the flag, and `link` is a
+        // void element, so this pins the token kind, not the tree's insertion mode.
         let html = "<link rel=\"icon\" href=\"/self-closing.ico\"/>"
             + " <link rel=\"apple-touch-icon\" href=\"/plain.ico\">"
         #expect(IconDocumentLinks.iconURLs(document: Data(html.utf8), contentType: "text/html",

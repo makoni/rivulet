@@ -362,20 +362,24 @@ The icon finder half (`IconDocumentLinksTests`, `IconDataURLTests`) pins the two
 `internal/reader/icon/finder.go` that read no network: which `link` elements a document offers as
 the feed icon, and how a `data:` URL is read. The selector's four branches are pinned one by one,
 with the two rules that make them differ from each other — only the three `icon` branches fold case,
-and a `rel` is compared as a whole value — plus the href rules (present, not whitespace-only, and a
-value the parse cannot read is skipped rather than passed through) and document order. The scan
-reads through the port's tokenizer subset and the charset layer rather than through a `goquery`
-tree, so the two cases that come from the tree are pinned as tokenizer facts: a `link` inside a
-raw-text element is text, not an element, and a self-closing element is the self-closing start tag
-token. The data-URL suite pins the shape — the mediatype is mandatory and has to name an image, the
-encoding is one of three, data is required — and that the three encodings do three different things,
-with Go's `QueryUnescape` turning a `+` into a space and refusing a truncated escape.
+and a `rel` is compared as a whole value — plus the href rules (not whitespace-only, and a value the
+parse cannot read is skipped rather than passed through) and document order. The scan reads through
+the port's tokenizer subset and the charset layer rather than through a `goquery` tree, so the two
+cases that come from the tree are pinned as tokenizer facts: a `link` inside a raw-text element is
+text, not an element, and `/>` is the self-closing token kind. The data-URL suite pins the shape —
+the mediatype is mandatory and has to name an image, the encoding is one of three, data is required
+and cannot contain a newline, which is Go's `.` production — and that the three encodings do three
+different things, with Go's `QueryUnescape` turning a `+` into a space and refusing a truncated
+escape.
 
 What these suites cannot fail on is stated in their headers: the selector's test that the `href`
 attribute is there at all, because a missing attribute reads as the empty value and the same guard
-answers for both; the resolution and charset rules, which their own suites pin and which these read
-through; Go's base64 decoder accepting a value whose last quantum is not padded, which this port
-does not; and the reference's logging, which this port has no layer for.
+answers for both; the checksum function itself, since the reference hashes an icon with FNV-128a and
+this port with SHA-256 — the pins can fail only on which bytes the checksum is taken over; Go's
+base64 decoder accepting an unpadded last quantum, which this port refuses; and the reference's
+logging, which this port has no layer for. What the pins do reach through another layer — the URL
+resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding — is
+named in the headers as read through the scan, with the rules themselves pinned by those suites.
 
 ## Running
 

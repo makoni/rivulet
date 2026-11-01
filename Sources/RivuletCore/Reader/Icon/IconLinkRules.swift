@@ -3,8 +3,6 @@
 // Ported from Miniflux internal/reader/icon/finder.go (`findIconURLsFromHTMLDocument`, the
 // selector) (Apache-2.0); adapted for Swift/SQLite.
 
-import Foundation
-
 /// The rule the icon selector reads a `link` element's `rel` with.
 ///
 /// The reference's query is the four branches `link[rel='icon' i][href]`,

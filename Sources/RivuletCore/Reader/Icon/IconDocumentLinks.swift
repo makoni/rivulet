@@ -9,10 +9,13 @@ import Foundation
 ///
 /// The bytes are read through the charset layer, which answers unchanged for a document that is
 /// already valid UTF-8, and then through the same HTML subset the sanitizer uses, so the scan
-/// sees what the reference's `goquery` document sees: a `link` inside a raw-text element is
-/// text, not an element, and a self-closing element in foreign content is an element. The
-/// reference resolves each href against the document URL and skips the one its parse cannot
-/// read, which is the case this scan answers by continuing rather than by failing the document.
+/// sees what the reference's `goquery` document sees for the cases here: a `link` inside a raw-
+/// text element is text, not an element. The scan reads tokens rather than a tree, so a token
+/// is matched whatever the tree would do with it — outside foreign content the reference's tree
+/// does not acknowledge the self-closing flag, and `link` is a void element, so the pin asserts
+/// the scan accepts that token kind. The reference resolves each href against the document URL
+/// and skips the one its parse cannot read, which is the case this scan answers by continuing
+/// rather than by failing the document.
 enum IconDocumentLinks {
     /// The icon hrefs the document offers, in the order the tokens arrive.
     static func iconURLs(document: Data, contentType: String?, documentURL: String) -> [String] {
