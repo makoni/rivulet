@@ -35,11 +35,7 @@ public struct FetchRequestBuilder: Sendable {
             throw FetchError.invalidURL(feed.url.absoluteString)
         }
 
-        var headers = [
-            "User-Agent": feed.userAgent.isEmpty ? options.userAgent : feed.userAgent,
-            "Accept": options.acceptHeader,
-            "Accept-Encoding": options.decompression ? "gzip" : "identity",
-        ]
+        var headers = requestHeaders(userAgent: feed.userAgent)
 
         // Upstream: per-feed setting first, then the global default, and a forced refresh
         // always skips the validators.
@@ -65,6 +61,37 @@ public struct FetchRequestBuilder: Sendable {
 
         return FetchRequest(url: feed.url, headers: headers, proxyURL: proxyURL)
     }
+
+    /// Builds the request for a URL the reader resolved on its own, which is the path the
+    /// icon search takes: the builder's headers, no conditional headers because the icon
+    /// path has no stored validators, and no proxy because the proxy decision belongs to
+    /// the feed row. The reference's `ExecuteRequest` sends the same headers for a URL that
+    /// is not a feed; the per-feed user-agent precedence belongs to its caller.
+    ///
+    /// - Throws: ``FetchError/invalidURL(_:)`` when the value is not an `http` or `https`
+    /// URL with a host —   the same rule ``build(feed:forceRefresh:)`` enforces, read here
+    /// without a feed state.
+    public func build(url: String) throws -> FetchRequest {
+        let parsedURL = URL(string: url)
+        guard let parsedURL, parsedURL.host != nil, dialable(parsedURL.scheme?.lowercased()) else {
+            throw FetchError.invalidURL(url)
+        }
+        return FetchRequest(url: parsedURL, headers: requestHeaders(userAgent: ""))
+    }
+
+    /// The headers the fetcher sends, shared by the feed path and the icon path: the user
+    /// agent with the upstream precedence, the accept header, and the encoding the option
+    /// asks for.
+    private func requestHeaders(userAgent: String) -> [String: String] {
+        [
+            "User-Agent": userAgent.isEmpty ? options.userAgent : userAgent,
+            "Accept": options.acceptHeader,
+            "Accept-Encoding": options.decompression ? "gzip" : "identity",
+        ]
+    }
+
+    /// The schemes the fetcher dials.
+    private func dialable(_ scheme: String?) -> Bool { scheme == "http" || scheme == "https" }
 
     /// Reads a proxy URL the way upstream reads it: one of the schemes it dials, and a host.
     ///

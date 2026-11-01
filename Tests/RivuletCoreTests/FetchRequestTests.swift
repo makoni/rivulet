@@ -5,6 +5,12 @@ import Testing
 /// Request building, ported from Miniflux `internal/reader/fetcher/request_builder.go`
 /// (ported tests: `TestRequestBuilder_WithETag`, `TestRequestBuilder_WithLastModified`,
 /// `TestRequestBuilder_WithUserAgent`).
+///
+/// The two tests for the path a URL without feed state takes can fail on the rules they name:
+/// the encoding follows the option, the accept header is the option's, the user agent is the
+/// option's when no feed value is read, and the scheme guard refuses a URL the fetcher does not
+/// dial. That the path sends no conditional headers cannot fail, because there are no stored
+/// validators on it to send; it is stated in ``FetchRequestBuilder/build(url:)``.
 @Suite struct FetchRequestTests {
     private let options = FetcherOptions.defaults
 
@@ -140,6 +146,45 @@ import Testing
             _ = try FetchRequestBuilder(options: options).build(
                 feed: state("https://example.com/feed.xml", fetchViaProxy: true)
             )
+        }
+    }
+
+    @Test func theURLPathSendsTheHeadersTheOptionsName() throws {
+        // The icon path builds a request from a URL with no feed state, so the only
+        // rules it reads are the ones the options name: the encoding the option asks
+        // for, and the accept header. These are the builder's rules, shared with the
+        // feed path through `headers(userAgent:)`.
+        let off = FetcherOptions(
+            timeout: FetcherOptions.defaultTimeout,
+            userAgent: FetcherOptions.defaultUserAgent,
+            acceptHeader: FetcherOptions.defaultAcceptHeader,
+            maxBodySize: FetcherOptions.defaultMaxBodySize,
+            maxRedirects: FetcherOptions.defaultMaxRedirects,
+            decompression: false,
+            ignoreHTTPCache: false,
+            proxyURL: nil,
+            allowPrivateNetworks: false
+        )
+
+        let offBuilder = FetchRequestBuilder(options: off)
+        let identity = try offBuilder.build(url: "https://example.org/favicon.ico")
+        #expect(identity.headers["Accept-Encoding"] == "identity")
+        #expect(identity.headers["Accept"] == FetcherOptions.defaultAcceptHeader)
+
+        let onBuilder = FetchRequestBuilder(options: options)
+        let gzip = try onBuilder.build(url: "https://example.org/favicon.ico")
+        #expect(gzip.headers["Accept-Encoding"] == "gzip")
+        #expect(gzip.headers["User-Agent"] == FetcherOptions.defaultUserAgent)
+    }
+
+    @Test func aURLTheFetcherDoesNotDialIsTheInvalidURLRule() throws {
+        // The same guard the feed path enforces, read here without a feed state.
+        let builder = FetchRequestBuilder(options: options)
+        #expect(throws: FetchError.invalidURL("ftp://example.org/icon.png")) {
+            _ = try builder.build(url: "ftp://example.org/icon.png")
+        }
+        #expect(throws: FetchError.invalidURL("/icon.png")) {
+            _ = try builder.build(url: "/icon.png")
         }
     }
 }

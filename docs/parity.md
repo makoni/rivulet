@@ -748,6 +748,16 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   The `data:` rules are the reference's regexp productions and its three encodings, including Go's
   `QueryUnescape` for the empty one, which reads a `+` as a space, and Go's `.` production, which
   does not match a newline, so a data part containing one is a shape error.
+- The join the default icon uses is `internal/urllib/url.go` (`JoinBaseURLAndPath`, which is Go's
+  `url.JoinPath`) with `path.Join`: the two guards run before the join, the join reads the escaped
+  path so a percent escape stays as it was read, sequences of slashes are reduced, a `.` element is
+  dropped, an inner `..` removes the element before it, a `..` that begins a rooted path has nothing
+  to remove, the trailing slash survives only from the last element, and the base's query stays
+  after the joined path. The order the search tries is the reference's: the feed's icon URL, the
+  website document, the root document only when it differs from the website URL, then the default
+  icon joined to the root, with the first success answering, an earlier failure skipped and the last
+  step's failure returned. A failing download inside a document moves to the next href, and a
+  `data:` href is answered without a request, which is the reference's own branch.
 
 **What differs.**
 
@@ -773,6 +783,31 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - The reference reports these failures as messages and logs each step of the discovery. RivuletCore
   has no logging layer, so the data-URL failures are typed cases and the pins compare the case, not
   the wording.
+- The reference reports the empty body through `LocalizedError`, which both paths read, measured as
+  `Content-Length` and exempting the conditional hit; `ReadBody` reports an empty buffer for any
+  response, so an icon fails on a `304` where the document path does not. This port has one rule for
+  both paths through `FetchResponse.error()` and restates the icon path's half in `IconDownload`,
+  which is the half the pins can fail on. The measurement basis is the difference: a chunked
+  response with an empty body is a failure here and not there, which no case here reads, so it is
+  recorded rather than pinned.
+- The orphan pass reports the number of rows it deleted. The reference reads `RowsAffected` from the
+  statement result; this SQLKit version gives no row count for a raw statement, so the port reads
+  `SELECT changes()` from the same connection immediately after the statement, which is the same
+  value for one statement on one connection.
+- The mapping from a feed to its icon is the feed row's `icon_id` here, where the reference keeps a
+  `feed_icons` table (many-to-many, `internal/database/migrations.go`). The replace and the orphan
+  pass read the same decision; the pins cannot fail on the join table itself, which this port does
+  not have.
+- The join does not escape what it joins, which is Go's documented expectation that the elements are
+  already escaped. A character the path mode escapes is written as its escape when the URL is
+  rendered, so a joined element carrying a space becomes `%20`; that escaping is the URL layer's
+  rule, pinned by its own suite, not the join's.
+- The port's `icons` table carries `created_at`, which the reference's does not have, so the port
+  writes the instant itself; nothing in the icon path reads it, so no pin can show it.
+- The guard the icon path reads lower-cases the scheme, where `IsAbsoluteURL` compares the prefix as
+  it was read, so `HTTPS://` is refused upstream and accepted here; the reference's builder checks
+  nothing and fails at the client with a different class, so the guard is the port's own rule,
+  recorded in `docs/reference-notes.md`.
 - Image resizing is not ported, because decoding an image needs a dependency that has not been
   approved. The reference decodes the icon, rejects one whose side exceeds 4096 or whose pixel count
   exceeds 4096×4096, and leaves an icon at or under 32×32 as it is; this port stores the bytes the

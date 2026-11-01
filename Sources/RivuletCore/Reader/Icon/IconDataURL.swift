@@ -20,8 +20,9 @@ enum IconDataURLError: Error, Equatable {
     case invalidEscape(String)
 }
 
-/// A `data:` URL read as an icon: the mediatype, the bytes the encoding branch produces, and
-/// the hash the storage layer deduplicates by.
+/// A `data:` URL read as an icon, answered as the ``IconCandidate`` the search answers with: the
+/// mediatype, the bytes the encoding branch produces, and the hash the storage layer
+/// deduplicates by.
 ///
 /// The reference builds this with one regexp whose productions are `image/[^;,]+` for the
 /// mediatype, `base64|utf8` for the optional encoding and `.+` for the data, so a value fails
@@ -36,17 +37,11 @@ enum IconDataURLError: Error, Equatable {
 /// the reference's; the difference is recorded in `docs/parity.md` and cannot be pinned from
 /// this side of the boundary.
 enum IconDataURL {
-    struct Value: Equatable {
-        var mimeType: String
-        var content: Data
-        var hash: String
-    }
-
     /// Reads `value` the way the reference's regexp and the encoding switch do.
-    static func parse(_ value: String) throws -> Value {
+    static func parse(_ value: String) throws -> IconCandidate {
         let (mimeType, encoding, data) = try readShape(value)
         let bytes = try readEncoding(encoding: encoding, data: data, value: value)
-        return Value(mimeType: mimeType, content: bytes, hash: Hashes.sha256(bytes))
+        return IconCandidate(mimeType: mimeType, content: bytes)
     }
 
     /// The four productions, read in the order the regexp reads them.

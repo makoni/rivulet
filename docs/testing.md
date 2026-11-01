@@ -372,7 +372,44 @@ and cannot contain a newline, which is Go's `.` production — and that the thre
 different things, with Go's `QueryUnescape` turning a `+` into a space and refusing a truncated
 escape.
 
-What these suites cannot fail on is stated in their headers: the selector's test that the `href`
+The download half of the same file (`IconDownloadTests`, `URLJoinPathTests`, `IconFinderTests`) is
+the part that reads the network. `IconDownloadTests` pins how a response becomes an icon: the
+checksum covers the body bytes rather than the response as a whole, the content type is the header
+as it was read with its parameters, and the status failure is read before the empty-body failure,
+which is the order the reference's handler has. It also pins the rule the icon path has and the feed
+path does not: the reference reports an empty body through `LocalizedError`, which both paths read,
+and `ReadBody` reports an empty buffer for any response, so an icon is a failure on a conditional
+hit while the feed path accepts one, because there an empty body means nothing to re-parse.
+`URLJoinPathTests` pins the two guards the reference runs before it joins, that the join reads the
+escaped path, the `path.Join` cleaning — multiple slashes reduced, `.` dropped, an inner `..`
+removing the element before it, and a `..` that begins a rooted path having nothing to remove — that
+the trailing slash survives only from the last element, and that the base's query stays after the
+path. `IconFinderTests` pins the order end to end against a stub server: the feed's icon URL, then
+the website document, then the root document only when it differs from the website URL, then the
+default icon joined to the root; the first step that produces an icon stops the search, an earlier
+failure is skipped while the last step's failure is the answer, a `data:` href answers without a
+request, and the feed's icon URL is read as the icon bytes rather than scanned as a document. What
+these three cannot fail on is stated in their headers: the join does not escape what it joins, which
+is Go's documented expectation and is pinned only as that it does not escape, while a character the
+path mode escapes is written as its escape by the URL layer's own rule; the reference's error
+wording, which this port keeps as typed cases; the size cap, which the fetcher applies before this
+layer sees the bytes and which no icon case reads; and the basis the empty-body rule measures, which
+is `Content-Length` upstream and the bytes read here, so a chunked empty body differs — recorded
+rather than pinned.
+
+`IconRepositoryTests` adds the storage half: the dedupe is by hash, the content type is compared as
+the whole value so one carrying a parameter is not a known icon type, the link replaces what the
+feed row had rather than adding a second mapping, and the orphan pass deletes only icons no feed
+points at. The count that pass returns can fail, and is read through `SELECT changes()` because this
+SQLKit version gives no row count for a raw statement. The pins cannot fail on the randomness of
+`external_id`, which they read only as the shape, nor on the single transaction the reference wraps
+the dedupe and the link in — the same boundary the pipeline records. The request headers the icon
+path sends are the fetch suite's rules, pinned in `FetchRequestTests` as following the options; that
+the icon path sends no conditional headers cannot fail, because there are no stored validators on it
+to send.
+
+What the selector and data suites cannot fail on is stated in their headers: the selector's test
+that the `href`
 attribute is there at all, because a missing attribute reads as the empty value and the same guard
 answers for both; the checksum function itself, since the reference hashes an icon with FNV-128a and
 this port with SHA-256 — the pins can fail only on which bytes the checksum is taken over; Go's

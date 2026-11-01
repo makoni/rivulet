@@ -1,9 +1,10 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — five slices merged: the pipeline (PR #25), the tick's batch selection
+**Status:** in progress — six slices merged: the pipeline (PR #25), the tick's batch selection
 with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), what the
-entry loop does not write (PR #28), and the icon selector with the data-URL rules (PR #29).
+entry loop does not write (PR #28), the icon selector with the data-URL rules (PR #29), and the
+icon download half with the storage link and the orphan pass (PR #30).
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -43,20 +44,26 @@ criteria below cover the whole stage.
       that an update left user state alone.
 - [ ] Icon finder: the selector half is pinned by PR #29 — the four `link` branches, which of them
       fold case, the href rules, document order, and the `data:` URL shape with its three encodings.
-      The download half is not: the size cap, the hash from the bytes, MIME normalization, dedupe,
-      `external_id` and the link to the feed follow. Image resizing is not ported, because it needs
-      an image-decoding dependency that has not been approved, so the deviation is recorded in
-      `docs/parity.md`.
+      The download half is pinned by PR #30: the order the search tries, the first success stopping
+      it, the skipped failures against the last step's failure, the response read as bytes with the
+      status rule before the empty-body rule, the join for the default icon, the dedupe by hash, the
+      content type compared as the whole value, the link replacing what the feed row had, and the
+      orphan pass. What remains is the checker, the wiring that runs the search for a stored feed,
+      which lands with the cadence loop. Image resizing is not ported, because it needs an
+      image-decoding dependency that has not been approved, so the deviation is recorded in
+      `docs/parity.md`, as is the SVG minifier.
 
 ## Implementation notes
 
 - Reference: `internal/cli/scheduler.go` (tick loop), `internal/model/feed.go`
   (`ScheduleNextCheck`), `internal/storage/batch.go` (due-set query),
   `internal/reader/handler/handler.go` (refresh delay from TTL/headers).
-- Icon half: `internal/reader/icon/finder.go` (the selector and the data URL),
-  `internal/reader/icon/checker.go` (the download path), `internal/storage/icon.go` (store, dedupe
-  by hash, orphan cleanup). The scan reads through the port's tokenizer subset, which is the
-  precedent stage 3 set for the sanitizer, rather than building a document tree.
+- Icon half: `internal/reader/icon/finder.go` (the selector, the data URL, the download, the order
+  and the join), `internal/reader/icon/checker.go` (the per-feed wiring, not ported yet: the request
+  builder it uses carries the feed's user agent, cookie, timeout and proxy, and the proxy decision
+  belongs to the feed row, so no request the search builds carries one), `internal/storage/icon.go`
+  (store, dedupe by hash, orphan cleanup). The scan reads through the port's tokenizer subset, which
+  is the precedent stage 3 set for the sanitizer, rather than building a document tree.
 - No external cron: the scheduler runs in-process inside `rivulet serve`.
 - Target: refreshing a 100-feed database must not block API reads (WAL + short write
   transactions).
@@ -117,8 +124,10 @@ Findings from the review runs on PR #25 that do not change behavior:
   tell the two reads apart.
 - The conditional-hit pin reads the half where the response carries a `Last-Modified`; the reference
   keeps the stored value when the header is empty, and no case here has an empty one.
-- The invalid-URL branch is recorded but not pinned, and the reference records a different class
-  there: the fetcher's own error from the request.
+- The pipeline's invalid-URL branch is recorded but not pinned, and the reference records another
+  class there: the fetcher's own error from the request. The guard the icon path reads is pinned by
+  PR #30, where the reference's builder checks nothing and fails at the client instead, and where
+  `IsAbsoluteURL` compares the prefix as read rather than lower-casing the scheme.
 - The single write transaction spans the HTTP fetch, which the reference's does not, and the
   transaction boundary itself is what no test here can pin.
 - `docs/parity.md` says the cache lifetime is read as minutes, which is true of `<ttl>`; the policy
@@ -147,3 +156,12 @@ Findings from review run 1 on PR #29 that do not change behavior:
 - The reference folds the selector's `i` flag and the attribute names with an ASCII-only lowering,
   while the port uses Swift's `lowercased()`, which maps Unicode. The two agree for every value
   these pins read, so the boundary is recorded here rather than pinned.
+
+Findings from review run 1 on PR #30 that do not change behavior:
+- The size cap is pinned only by the fetch suite: no icon case reads a body past the cap, as the
+  fetcher applies it before this layer sees the bytes.
+- The reference's `findIcon` can continue when a step answers with no icon and no error, which
+  is its resize path for an oversized image; this port has no case that answers without an
+  icon, which follows from resizing not being ported.
+- The icon reads the reference has for the checker — `HasFeedIcon`, `IconByExternalID`, `Icons`
+  — are not ported, because the checker that calls them is not ported.
