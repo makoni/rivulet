@@ -22,12 +22,15 @@ count the entry-frequency mode divides the week by, the two halves of the entry 
 nothing — an entry the document no longer declares and a tombstoned `(feed_id, hash)` pair — and the
 icon finder. The selector half is the four `link` branches with the `data:` URL rules, and the
 download half is the order the search tries, the response read as the icon bytes, the join for the
-default icon, and the storage dedupe, link and orphan pass. Both halves are pinned end to end
-against the reference except the pool cap, which no test can assert without a timed wait, and the
-rules the icon suite headers name as unpinnable — the checksum function, the size cap, the basis the
-empty-body rule measures, the join escaping, the `external_id` randomness, the transaction boundary
-and the join table this port does not have. The cadence loop with the icon checker, the manual
-refresh path and retention follow).
+default icon, and the storage dedupe, link and orphan pass, and the checker half is the guard with
+what it reads, the store and the link as two decisions that run on either branch, the path the guard
+does not cover, and the user agent the checker hands to the builder. All three halves are pinned end
+to end against the reference except the pool cap, which no test can assert without a timed wait, and
+the rules the icon suite headers name as unpinnable — the checksum function, the size cap, the basis
+the empty-body rule measures, the join escaping, the `external_id` randomness, the transaction
+boundary, the join table this port does not have, and the reference logging that a swallowed checker
+failure leaves no record for. The cadence loop that calls the checker for a feed, the manual refresh
+path and the soak artifact follow; retention is pinned by `RetentionTests`).
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
 criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's

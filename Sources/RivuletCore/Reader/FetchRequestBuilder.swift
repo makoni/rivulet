@@ -66,17 +66,22 @@ public struct FetchRequestBuilder: Sendable {
     /// icon search takes: the builder's headers, no conditional headers because the icon
     /// path has no stored validators, and no proxy because the proxy decision belongs to
     /// the feed row. The reference's `ExecuteRequest` sends the same headers for a URL that
-    /// is not a feed; the per-feed user-agent precedence belongs to its caller.
+    /// is not a feed, and the caller hands it the value the feed row carries, which is the
+    /// `WithUserAgent` precedence this builder implements.
     ///
+    /// - Parameters:
+    ///   - url: The URL to request.
+    ///   - userAgent: The value the caller's feed row carries; an empty one falls back to the
+    ///     option, as upstream.
     /// - Throws: ``FetchError/invalidURL(_:)`` when the value is not an `http` or `https`
     /// URL with a host —   the same rule ``build(feed:forceRefresh:)`` enforces, read here
     /// without a feed state.
-    public func build(url: String) throws -> FetchRequest {
+    public func build(url: String, userAgent: String = "") throws -> FetchRequest {
         let parsedURL = URL(string: url)
         guard let parsedURL, parsedURL.host != nil, dialable(parsedURL.scheme?.lowercased()) else {
             throw FetchError.invalidURL(url)
         }
-        return FetchRequest(url: parsedURL, headers: requestHeaders(userAgent: ""))
+        return FetchRequest(url: parsedURL, headers: requestHeaders(userAgent: userAgent))
     }
 
     /// The headers the fetcher sends, shared by the feed path and the icon path: the user

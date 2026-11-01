@@ -44,6 +44,15 @@ public struct IconRepository {
         try await Icon.query(on: database).filter(\Icon.$hash == hash).first()
     }
 
+    /// Reports whether this feed has an icon, the reference's `HasFeedIcon`, read through
+    /// the mapping this port keeps on the feed row. A feed with no row answers `false`,
+    /// which is what upstream answers when its scan reports nothing, because it does not
+    /// look at the error it gets there.
+    public func hasIcon(feedID: Int) async throws -> Bool {
+        let feed = try await Feed.query(on: database).filter(\Feed.$id == feedID).first()
+        return feed?.iconID != nil
+    }
+
     /// Returns the icon with `externalID` (the public feed-icon URL), or `nil`.
     public func fetch(externalID: String) async throws -> Icon? {
         try await Icon.query(on: database).filter(\Icon.$externalID == externalID).first()

@@ -26,9 +26,9 @@ import Testing
 /// entry-frequency scheduler, which this suite runs with the round-robin policy and which
 /// `EntryFrequencyPipelineTests` pins on its own; the two columns the reference gates
 /// the entry-update branch on, which the schema does not have; the user rules the reference applies
-/// in its processor — filters, rewrite, scraping — which the plan puts in later stages; and the
-/// duplicate check, the icon checker and the reading time, which land with those stages. Nothing
-/// here sleeps or polls.
+/// in its processor — filters, rewrite, scraping — which the plan puts in later stages; the
+/// duplicate check, the reading time and the call the checker makes for a feed, which land with
+/// those stages; and nothing here sleeps or polls.
 @Suite struct RefreshPipelineTests {
     /// The instant every stamp is read from, so a pin can tell the injected clock from the process
     /// one.

@@ -758,6 +758,15 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   icon joined to the root, with the first success answering, an earlier failure skipped and the last
   step's failure returned. A failing download inside a document moves to the next href, and a
   `data:` href is answered without a request, which is the reference's own branch.
+- The checker half (`internal/reader/icon/checker.go`) is the guard and the two storage decisions:
+  the guard reads the mapping for this feed rather than the icon table, and it belongs to the path
+  the
+  reference runs when the feed is not being forced, so the other path writes and points even for a
+  feed
+  that already has an icon. The store and the link are two decisions that both run on either branch:
+  the row is written only when the hash is not stored yet, and the mapping is written after it on
+  the
+  reuse branch too. The user agent is the value the feed row carries, handed to the builder.
 
 **What differs.**
 
@@ -808,8 +817,23 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   it was read, so `HTTPS://` is refused upstream and accepted here; the reference's builder checks
   nothing and fails at the client with a different class, so the guard is the port's own rule,
   recorded in `docs/reference-notes.md`.
+- The checker half (`internal/reader/icon/checker.go`) reads the mapping through `HasFeedIcon`, which
+  answers `false` when its scan reports nothing because it does not look at the error the scan gives
+  it; this port answers `false` the same way for a read that reports nothing, and for a feed with no
+  row at all, so the pins cannot tell a failing read from an empty one.
+- The reference logs each checker failure and continues. This port has no logging layer, so a
+failure
+  ends inside the checker without a record: the pins can read only that the call completes and
+  nothing was written.
+- The checker hands the builder the user agent as the value the feed row carries, which is the
+  `WithUserAgent` precedence the port's builder already implements. The reference reads the value from
+  the feed model and the port takes it as an argument, so the pin can fail only on the checker
+  handing
+  it on, not on which value wins when it is empty.
 - Image resizing is not ported, because decoding an image needs a dependency that has not been
   approved. The reference decodes the icon, rejects one whose side exceeds 4096 or whose pixel count
   exceeds 4096×4096, and leaves an icon at or under 32×32 as it is; this port stores the bytes the
   encoding branch produced. The SVG minifier upstream is not ported either, so the stored content is
-  the value as read.
+  the value as read. The reference's checker has a branch for an answer with no icon and no error,
+  which is that rejection; this port has no case that answers without an icon, so the branch has
+  nothing to pin.

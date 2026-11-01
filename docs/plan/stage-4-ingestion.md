@@ -1,10 +1,11 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — six slices merged: the pipeline (PR #25), the tick's batch selection
+**Status:** in progress — seven slices merged: the pipeline (PR #25), the tick's batch selection
 with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), what the
-entry loop does not write (PR #28), the icon selector with the data-URL rules (PR #29), and the
-icon download half with the storage link and the orphan pass (PR #30).
+entry loop does not write (PR #28), the icon selector with the data-URL rules (PR #29), the icon
+download half with the storage link and the orphan pass (PR #30), and the checker half with the
+guard and the storage decisions (PR #31).
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -24,8 +25,14 @@ loop does not write: an entry the parsed document no longer declares stays in pl
 it had, and a tombstoned `(feed_id, hash)` pair is refused by the insert guard on the forced path,
 pinned by `PipelineMergeAndTombstoneTests`. The fifth slice is the half of the icon finder that
 reads no network: which `link` elements a document offers, and how a `data:` URL is read, pinned by
-`IconDocumentLinksTests` and `IconDataURLTests`. The manual `rivulet refresh` path, the icon
-download half, retention and the soak artifact follow. The status stays in progress until the exit
+`IconDocumentLinksTests` and `IconDataURLTests`. The seventh slice is the checker, the wiring that
+runs the search for one stored feed: the guard, which reads the mapping for this feed rather than
+the
+icon table, the store and the link as two decisions that run on either branch, the path the guard
+does
+not cover, and the user agent the checker hands to the builder, pinned by `IconCheckerTests`. What
+follows is the call the refresh path makes for a feed, the manual `rivulet refresh` path and the soak
+artifact; retention is already pinned by `RetentionTests`. The status stays in progress until the exit
 criteria below cover the whole stage.
 
 ## Scope
@@ -48,8 +55,12 @@ criteria below cover the whole stage.
       it, the skipped failures against the last step's failure, the response read as bytes with the
       status rule before the empty-body rule, the join for the default icon, the dedupe by hash, the
       content type compared as the whole value, the link replacing what the feed row had, and the
-      orphan pass. What remains is the checker, the wiring that runs the search for a stored feed,
-      which lands with the cadence loop. Image resizing is not ported, because it needs an
+      orphan pass. The checker half is pinned by PR #31: the guard, which reads the mapping for this
+      feed rather than the icon table, the store and the link as two decisions that run on either
+      branch, the path the guard does not cover, and the user agent the checker hands to the
+      builder.
+      What remains is the call the refresh path makes for a feed, which lands with the cadence loop.
+      Image resizing is not ported, because it needs an
       image-decoding dependency that has not been approved, so the deviation is recorded in
       `docs/parity.md`, as is the SVG minifier.
 
@@ -59,10 +70,12 @@ criteria below cover the whole stage.
   (`ScheduleNextCheck`), `internal/storage/batch.go` (due-set query),
   `internal/reader/handler/handler.go` (refresh delay from TTL/headers).
 - Icon half: `internal/reader/icon/finder.go` (the selector, the data URL, the download, the order
-  and the join), `internal/reader/icon/checker.go` (the per-feed wiring, not ported yet: the request
-  builder it uses carries the feed's user agent, cookie, timeout and proxy, and the proxy decision
-  belongs to the feed row, so no request the search builds carries one), `internal/storage/icon.go`
-  (store, dedupe by hash, orphan cleanup). The scan reads through the port's tokenizer subset, which
+  and the join), `internal/reader/icon/checker.go` (the per-feed wiring: the guard, the store and the
+  link, and the user agent the reference hands to the builder, which this port takes as an argument;
+  the cookie, timeout, proxy, TLS and HTTP2 half of that builder is documented as deferred, and the
+  proxy decision belongs to the feed row, so no request the search builds carries one),
+  `internal/storage/icon.go` (store, dedupe by hash, orphan cleanup). The scan reads through the
+  port's tokenizer subset, which
   is the precedent stage 3 set for the sanitizer, rather than building a document tree.
 - No external cron: the scheduler runs in-process inside `rivulet serve`.
 - Target: refreshing a 100-feed database must not block API reads (WAL + short write
@@ -106,7 +119,11 @@ criteria below cover the whole stage.
   the pool is handed exactly the jobs the batch answered with, and the control rows — not due,
   disabled, at the limit — reach no run. The pool-size cap itself is not pinned, as the suite
   header states, and the completion order is not asserted because concurrency does not fix it.
-- Retention deletes only expired entries (boundary cases) and writes tombstones.
+- The checker for one stored feed: the guard and what it reads, the store and the link as two
+  decisions that run on either branch, the path the guard does not cover, and the user agent the
+  checker hands to the builder. Pinned by `IconCheckerTests`.
+- Retention deletes only expired entries (boundary cases) and writes tombstones, pinned by
+  `RetentionTests`.
 
 ## Exit criteria
 
@@ -164,4 +181,17 @@ Findings from review run 1 on PR #30 that do not change behavior:
   is its resize path for an oversized image; this port has no case that answers without an
   icon, which follows from resizing not being ported.
 - The icon reads the reference has for the checker — `HasFeedIcon`, `IconByExternalID`, `Icons`
-  — are not ported, because the checker that calls them is not ported.
+  — were not ported with PR #30, because the checker that calls them was not. `HasFeedIcon` landed
+  with PR #31 as the guard's read; `IconByExternalID` was already there from stage 1 as
+  `IconRepository.fetch(externalID:)`, and `Icons` is still unported, because nothing reads it until
+  the stage that shows an icon.
+
+Findings from review run 1 on PR #31 that do not change behavior:
+- The guard read cannot show that a read which fails answers the same as a read that finds nothing,
+  and the mechanism it reads through — the feed row rather than the join table the reference has —
+  is
+  recorded in `docs/parity.md`; the pins name the decision, not the mechanism.
+- The user-agent pin names only that the checker hands the feed's value to the builder; which value
+  wins when the feed row carries none is the fetch suite's rule, pinned in `FetchRequestTests`.
+- The run proposed splitting `store` as a long function; the length rule in `AGENTS.md` is an aim
+  rather than a check CI runs, and `store` is seven lines, so there is nothing to split.

@@ -13,8 +13,8 @@ import Foundation
 /// `docs/parity.md`: every write of one refresh commits in one transaction, the failure record is
 /// committed before its error leaves, and the clock is the injected seam rather than a `time.Now()`
 /// read inside the functions. The user rules the reference applies in its processor — filters,
-/// rewrite, scraping — are later stages, and the duplicate check, the icon checker and the reading
-/// time land with them.  - See: ``Clock`` for the injected instant, ``NextCheckPolicy`` for the
+/// rewrite, scraping — are later stages, and so are the duplicate check, the reading time and the
+/// call the checker makes for a feed.  - See: ``Clock`` for the injected instant, ``NextCheckPolicy`` for the
 /// scheduling rule.
 public struct RefreshPipeline: Sendable {
     private let storage: SQLiteStorage
