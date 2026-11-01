@@ -3,9 +3,9 @@ import Foundation
 
 /// The Rivulet command-line interface.
 ///
-/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version` and `refresh`
-/// work; the remaining commands are registered placeholders that report the stage implementing
-/// them (see `docs/plan/`).
+/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh` and
+/// `status` work; the remaining commands are registered placeholders that report the stage
+/// implementing them (see `docs/plan/`).
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///
@@ -36,6 +36,7 @@ public enum RivuletCLI {
         commands.use(Migrate(environment: environment), as: "migrate")
         commands.use(Version(), as: "version")
         commands.use(Refresh(environment: environment), as: "refresh")
+        commands.use(Status(environment: environment), as: "status")
         for planned in Planned.all {
             commands.use(planned, as: planned.name)
         }

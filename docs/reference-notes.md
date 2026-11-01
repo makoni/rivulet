@@ -51,7 +51,12 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   `POLLING_FREQUENCY` (60, at least 1, minute type) is read by the loop, not by this pass. The
   closing line reports the size of the whole batch and the duration. Migrations run before the
   command is dispatched when `RUN_MIGRATIONS` is on, and the CLI then checks that the schema is up
-  to date.
+  to date on that path, before the branch that runs the pass; flags that return earlier, such as
+- No status command upstream: `internal/cli/cli.go` at commit `c4d54f87` takes flags rather than
+  subcommands, and none of them reports the feed state — `--info` prints build information and
+  `--healthcheck` makes a request to an endpoint. Rivulet's `status` command and its `--json`
+  document are the port's own, recorded in `docs/parity.md`; what they read is the rows and the
+  batch rules above, so nothing here depends on a reference behavior beyond them.
 - Next interval: `internal/model/feed.go` `ScheduleNextCheck`:
   - round-robin (default): fixed interval, min 60m / max 1440m;
   - entry-frequency mode: `7d / (weekly_entries × factor)` clamped to [5m, 1440m] — the cap first,

@@ -34,7 +34,11 @@ on, the fork the forced flag selects, the icon URL the parse produced, and the s
 agent read from the row — is pinned by `RefreshIconTests`, and the manual pass the CLI makes over
 the batch is pinned by `RefreshCommandTests`: each job of the batch runs once, the values reach it
 from the environment, a failure is reported without stopping the rest, and the flag gates the
-migrations the command runs. The cadence loop that calls the pipeline and the soak artifact follow;
+migrations the command runs, and the minimal `status --json` contract the soak reads is pinned by
+`StatusSnapshotTests` and `StatusCommandTests`: each field is the value the row holds, an absent
+stamp stays `null`, the rows are listed in id order, the counts read every row whatever its state,
+`due` is the batch's pick, the environment values reach the totals through the command, and the flag
+gates the migrations. The cadence loop that calls the pipeline and the soak artifact follow;
 retention is pinned by `RetentionTests`).
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
