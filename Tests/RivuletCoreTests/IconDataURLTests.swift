@@ -85,8 +85,9 @@ import Testing
 
     @Test func aDataPartWithANewlineIsNotAMatch() throws {
         // Go's `.` production does not match `\n`, so the shape fails before any
-        // encoding is read. This reaches the reader through an attribute value: the
-        // tokenizer decodes `&#10;` to a newline.
+        // encoding is read. Read through the scan this value is not passed on: the URL
+        // layer refuses a control character, as Go's `url.Parse` does, so the pin reads
+        // the shape rule directly.
         #expect(parseError("data:image/png;utf8,a\nb") == .malformed("data:image/png;utf8,a\nb"))
         #expect(parseError("data:image/png,a\nb") == .malformed("data:image/png,a\nb"))
     }
