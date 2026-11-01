@@ -1,11 +1,11 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — seven slices merged: the pipeline (PR #25), the tick's batch selection
-with the worker pool (PR #26), the entry-frequency mode with the weekly count (PR #27), what the
-entry loop does not write (PR #28), the icon selector with the data-URL rules (PR #29), the icon
-download half with the storage link and the orphan pass (PR #30), and the checker half with the
-guard and the storage decisions (PR #31).
+**Status:** in progress — seven slices merged (PR #25–#31): the pipeline, the tick's batch selection
+with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
+write, the icon selector with the data-URL rules, the icon download half with the storage link and
+the orphan pass, and the checker half with the guard and the storage decisions. The eighth is the
+call that path makes for a feed from the pipeline, pinned by `RefreshIconTests`.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -30,10 +30,12 @@ runs the search for one stored feed: the guard, which reads the mapping for this
 the
 icon table, the store and the link as two decisions that run on either branch, the path the guard
 does
-not cover, and the user agent the checker hands to the builder, pinned by `IconCheckerTests`. What
-follows is the call the refresh path makes for a feed, the manual `rivulet refresh` path and the soak
-artifact; retention is already pinned by `RetentionTests`. The status stays in progress until the exit
-criteria below cover the whole stage.
+not cover, and the user agent the checker hands to the builder, pinned by `IconCheckerTests`. The
+eighth slice is the call that path makes for a feed from the pipeline: the branch it runs on, the
+fork the forced flag selects, the icon URL the parse produced, and the site URL and the user agent
+read from the row, pinned by `RefreshIconTests`. The manual `rivulet refresh` path and the soak
+artifact follow; retention is already pinned by `RetentionTests`. The status stays in progress until
+the exit criteria below cover the whole stage.
 
 ## Scope
 
@@ -58,9 +60,12 @@ criteria below cover the whole stage.
       orphan pass. The checker half is pinned by PR #31: the guard, which reads the mapping for this
       feed rather than the icon table, the store and the link as two decisions that run on either
       branch, the path the guard does not cover, and the user agent the checker hands to the
-      builder.
-      What remains is the call the refresh path makes for a feed, which lands with the cadence loop.
-      Image resizing is not ported, because it needs an
+      builder. The call the checker makes for a feed from the pipeline is pinned by
+      `RefreshIconTests`: the branch that runs it, the fork the forced flag selects, the icon
+      URL the parse produced, and the site URL and user agent read from the row. The cadence
+      loop that calls the pipeline per feed is not pinnable — nothing can pin a sleeping loop —
+      and the manual `rivulet refresh` path follows. Image resizing is not ported, because it
+      needs an
       image-decoding dependency that has not been approved, so the deviation is recorded in
       `docs/parity.md`, as is the SVG minifier.
 
@@ -70,7 +75,8 @@ criteria below cover the whole stage.
   (`ScheduleNextCheck`), `internal/storage/batch.go` (due-set query),
   `internal/reader/handler/handler.go` (refresh delay from TTL/headers).
 - Icon half: `internal/reader/icon/finder.go` (the selector, the data URL, the download, the order
-  and the join), `internal/reader/icon/checker.go` (the per-feed wiring: the guard, the store and the
+  and the join), `internal/reader/icon/checker.go` (the per-feed wiring: the guard, the store and
+  the
   link, and the user agent the reference hands to the builder, which this port takes as an argument;
   the cookie, timeout, proxy, TLS and HTTP2 half of that builder is documented as deferred, and the
   proxy decision belongs to the feed row, so no request the search builds carries one),
@@ -122,6 +128,10 @@ criteria below cover the whole stage.
 - The checker for one stored feed: the guard and what it reads, the store and the link as two
   decisions that run on either branch, the path the guard does not cover, and the user agent the
   checker hands to the builder. Pinned by `IconCheckerTests`.
+- The call that path makes for a feed from the pipeline: only the modified branch runs it, the
+  forced flag selects which half runs, and the checker is built from the row's site URL and user
+  agent with the icon URL the parse produced. Pinned by `RefreshIconTests`; the order of the writes
+  inside the transaction, which is the reference's order here, is what no pin can show.
 - Retention deletes only expired entries (boundary cases) and writes tombstones, pinned by
   `RetentionTests`.
 
@@ -195,3 +205,19 @@ Findings from review run 1 on PR #31 that do not change behavior:
   wins when the feed row carries none is the fetch suite's rule, pinned in `FetchRequestTests`.
 - The run proposed splitting `store` as a long function; the length rule in `AGENTS.md` is an aim
   rather than a check CI runs, and `store` is seven lines, so there is nothing to split.
+
+Findings from review run 1 on PR #32 that do not change behavior:
+- The parse-icon pin first gave the scan path nothing to answer from, so its "not the one the scan
+  finds" half could not fail on the rule it named; the case now answers the scan path with different
+  bytes, and the conditional-hit case gives the scan a document it could have answered from, so the
+  absence of the request, the row and the mapping are all falsifiable.
+- A pin that names the conditional-hit branch must reach the reference's conditional hit, so the
+  case answers `304` against the validator the row holds rather than a `200` whose `ETag` matches.
+- The pin that reads the site URL names a host the stub server does not answer for, which is what
+  makes a request on the row's path show which value the checker was given.
+- `RefreshPipelineTests` said its pins read the icon row; no assertion there reads it, so the header
+  now names the icon rules as outside that suite.
+- The position of the call inside the transaction is recorded as the reference's order rather than
+  presented as a pinned rule, and `RefreshFeed` assigns the parsed icon URL to the model it read,
+  not to a stored column; run 2 found the same wording in the pipeline's comment on this branch,
+  which is folded into this commit.

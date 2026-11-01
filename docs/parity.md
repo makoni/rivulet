@@ -670,9 +670,10 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   does not have. Nothing on the refresh path reads it: the reference starts from the configured
   minimum on every call, so the pins assert that a stored interval disagreeing with the policy must
   not decide the schedule. It is a port-only column, not a place where behavior diverges.
-- The feed row's parsed language, the icon checker, the duplicate-feed check, the entry reading
-  time and the user rules in the reference's processor — filters, rewrite, scraping — are not
-  ported yet; they land with the later stages.
+- The feed row's parsed language, the duplicate-feed check, the entry reading time and the user
+  rules in the reference's processor — filters, rewrite, scraping — are not ported yet; they land
+  with the later stages. The icon checker is ported, with the call the refresh path makes for a
+  feed, and the manual refresh path is not.
 
 ## Scheduler tick (stage 4)
 
@@ -767,7 +768,14 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   the row is written only when the hash is not stored yet, and the mapping is written after it on
   the
   reuse branch too. The user agent is the value the feed row carries, handed to the builder.
-
+- The refresh path runs the checker only on the branch the reference calls it on: the modified
+  branch, and the conditional-hit branch does not reach it. The fork the flag selects is the
+  reference's, and the values the checker is built from are the row's — the site URL with the empty
+  site fallback, the user agent — plus the icon URL the parse produced, which is the value
+  `RefreshFeed` puts on the model it read before it builds the checker. The call is written where
+  the reference has it, after the entry loop and before the fetch state is written; that position is
+  what no pin can show, so it is recorded here rather than pinned, and the fallback is pinned by
+  `RefreshPipelineTests` rather than by the icon suite.
 **What differs.**
 
 - The selection walks tokens, not a document tree. For the cases the suite reads the answer is the
@@ -821,6 +829,13 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   answers `false` when its scan reports nothing because it does not look at the error the scan gives
   it; this port answers `false` the same way for a read that reports nothing, and for a feed with no
   row at all, so the pins cannot tell a failing read from an empty one.
+- The reference's storage calls each open their own transaction, so the icon row and the mapping
+  commit apart from the entry batch. Rivulet runs the checker inside the refresh's single write
+  transaction, so the three writes commit together, which no pin can separate: the pins read what
+  the
+  commit left, not the order the statements ran in. The reference also has no `feeds.icon_url`
+  column, so the icon URL the parse produced reaches only the checker and nothing is stored for it;
+  this port has the same shape — the mapping is stored, the URL is not.
 - The reference logs each checker failure and continues. This port has no logging layer, so a
 failure
   ends inside the checker without a record: the pins can read only that the call completes and

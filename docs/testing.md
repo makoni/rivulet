@@ -316,8 +316,9 @@ through insertion order read by `ORDER BY id`, not through `created_at`, because
 is not a seam there. Pins compare the typed error case, not the message wording, because Rivulet
 has no locale layer. What the suite cannot pin is stated in the file: the single transaction
 itself, because nothing can make one statement inside it fail while the others succeed; the two
-columns the reference gates the entry-update branch on, which the schema does not have; and the
-rules the plan leaves for the later stages.
+columns the reference gates the entry-update branch on, which the schema does not have; the rules
+the plan leaves for the later stages; and the icon rules, which this suite does not read at all and
+which `IconCheckerTests` and `RefreshIconTests` pin.
 
 The scheduler suites (`SchedulerBatchTests`, `SchedulerTickTests`, `SchedulerOptionsTests`) pin the
 tick's batch selection against the builder, because upstream has no test for it: each rule can fail
@@ -427,6 +428,18 @@ read
 cannot show that a read which fails answers the same as a read that finds nothing: the pins name the
 decision, not the mechanism. The user agent is pinned only as the value the checker hands to the
 builder, not as which value wins when the feed row carries none.
+
+`RefreshIconTests` pins the call the refresh path makes for a feed, which is where the checker is
+reached from: the modified branch runs it and the conditional-hit branch does not, so a patch that
+calls it on the other branch fails the pin that reads a hit against a stored validator. The fork the
+forced flag selects is pinned from both sides — the guard on the path the flag does not select, and
+the mapping moving on the path it does, which a patch reading a flag of its own fails. The icon URL
+is the value the parse produced, read by giving the parse's path and the scan's path different
+answers on the stub server, and the site URL and the user agent are read from the row, which a patch
+reading the parse's site URL or handing the checker nothing fails. What the pins cannot fail on is
+stated in the header: the order of the statements inside the transaction, because a pin reads what
+the commit left rather than the order the writes ran in, so the checker running before the error
+counter is reset and before the validators are written cannot be shown.
 
 What the selector and data suites cannot fail on is stated in their headers: the selector's test
 that the `href`
