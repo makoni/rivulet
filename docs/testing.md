@@ -408,6 +408,26 @@ path sends are the fetch suite's rules, pinned in `FetchRequestTests` as followi
 the icon path sends no conditional headers cannot fail, because there are no stored validators on it
 to send.
 
+`IconCheckerTests` adds the checker half — the wiring that runs the search for one stored feed. The
+guard stops the search when the feed already has an icon, and it reads the mapping for this feed
+rather than the icon table, so a patch that answers from any stored row with the same hash fails the
+pin that runs the search for a feed with no mapping of its own. Storing and pointing are two
+decisions that both run on either branch, so a patch that stores without pointing, and a patch that
+points only on the branch it inserted on, fail the pins that name those; the guard belongs to the
+missing path only, which a patch that applies it to the other path fails. A failing search writes
+nothing, and the request carries the feed's user agent, which a patch that hands the builder nothing
+fails. What the pins cannot fail on is stated in the header: the reference logs each failure, so a
+swallowed failure reads only as the call completing with nothing written, and the reference can
+answer
+with no icon and no error through its resize step, which is not ported, so no case here can answer
+without an icon. The dedupe, the content-type normalization, the single transaction and the join
+table
+are the storage suite's rules, read here only as the values the checker passes on, and the guard
+read
+cannot show that a read which fails answers the same as a read that finds nothing: the pins name the
+decision, not the mechanism. The user agent is pinned only as the value the checker hands to the
+builder, not as which value wins when the feed row carries none.
+
 What the selector and data suites cannot fail on is stated in their headers: the selector's test
 that the `href`
 attribute is there at all, because a missing attribute reads as the empty value and the same guard

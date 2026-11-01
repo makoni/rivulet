@@ -20,18 +20,22 @@ import Foundation
 /// no layer for. The empty-body rule is the response layer's, read by both paths here, and what
 /// `IconDownloadTests` pins is the icon path having no conditional-hit exception; the basis that
 /// rule measures is recorded in `docs/parity.md`. The proxy decision for an icon belongs to the
-/// feed row and to the caller that wires the search to a feed, so no request here carries one.
+/// feed row and to the caller that wires the search to a feed, so no request here carries one, and
+/// the user agent a request carries is the value that caller hands this type.
 struct IconFinder {
     private let fetcher: Fetcher
     private let builder: FetchRequestBuilder
     private let websiteURL: String
     private let feedIconURL: String
+    private let userAgent: String
 
-    init(fetcher: Fetcher, options: FetcherOptions, websiteURL: String, feedIconURL: String = "") {
+    init(fetcher: Fetcher, options: FetcherOptions, websiteURL: String, feedIconURL: String = "",
+         userAgent: String = "") {
         self.fetcher = fetcher
         self.builder = FetchRequestBuilder(options: options)
         self.websiteURL = websiteURL
         self.feedIconURL = feedIconURL
+        self.userAgent = userAgent
     }
 
     /// Runs the search.
@@ -53,13 +57,15 @@ struct IconFinder {
     }
 
     private func download(_ iconURL: String) async throws -> IconCandidate {
-        try IconDownload.candidate(from: try await fetcher.fetch(builder.build(url: iconURL)))
+        try IconDownload.candidate(from:
+            try await fetcher.fetch(builder.build(url: iconURL, userAgent: userAgent)))
     }
 
     /// The document step: the hrefs the scan offers, answered in the order they arrive. A
     /// value the parse cannot read is skipped, which is what the scan already does.
     private func iconsFromDocument(_ documentURL: String) async throws -> IconCandidate? {
-        let response = try await fetcher.fetch(builder.build(url: documentURL))
+        let documentRequest = try await builder.build(url: documentURL, userAgent: userAgent)
+        let response = try await fetcher.fetch(documentRequest)
         if let error = response.error() { throw error }
 
         let hrefs = IconDocumentLinks.iconURLs(document: response.body,
