@@ -332,7 +332,26 @@ pipeline wrote is the one the next tick reads. The pool size is not pinned — a
 asserted without a timed wait, which the determinism rules forbid — and the suite header states it;
 the order of the outcomes is not asserted either, because concurrency does not fix it. The due pins
 read only instants after the process clock — 2065 against a stored schedule of 2061 — so the
-injected instant and the process one cannot answer the same batch.
+injected instant and the process one cannot answer the same batch. The values the batch is built
+with are pinned as the reference's defaults in `SchedulerOptionsTests`, and as the readings of
+the five variables in `ConfigTests`: each default, and the validators that read three of them as at
+least one while the two switches accept zero, because for them zero is the value that means off.
+
+The manual pass (`RefreshCommandTests`) pins the command the plan lists for stage 4: every job of
+the batch it reads runs once, so the control rows — a feed not yet due, a disabled feed, a feed at
+the error limit — reach no request; a patch that runs a job twice in the pool fails, because the
+arrivals are counted per path; the values reach the batch from the environment, so a pin that sets
+one of them can fail on a patch that keeps the reference defaults; the run is the worker's
+non-forced path, read as the stored validator reaching the request; a job that fails is reported
+without stopping the rest, which a patch that propagates the first failure fails; the pass leaves
+the schedule it advanced, so a second pass runs nothing; and `RUN_MIGRATIONS` gates the migrations
+this command runs. The report is read as the counts, not as the words, because the reference logs
+through `slog` and `RivuletCore` has no logging layer. Each feed's site URL is a path of its own,
+because the icon checker the run calls asks the server for the site URL: a feed whose site path
+were its feed path could not tell the job's request from the checker's. What the pins cannot fail
+on is stated in the header: that the pass is one pass (a patch that looped would hang the suite
+rather than fail it), the pool cap, the closing of the fetcher the command created, and the
+reference's check that the schema is up to date, which this port does not port.
 
 The entry-frequency half (`NextCheckPolicyTests`, `WeeklyEntryCountTests`,
 `EntryFrequencyPipelineTests`) pins the mode the reference's `PollingScheduler()` selects and the

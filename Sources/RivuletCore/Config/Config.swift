@@ -41,6 +41,10 @@ public struct Config: Sendable, Equatable {
     /// Fetcher options (`HTTP_CLIENT_*` and `FETCHER_*`).
     public let fetcher: FetcherOptions
 
+    /// The values the refresh path reads (`POLLING_*`, `BATCH_SIZE`, `WORKER_POOL_SIZE`), as the
+    /// reference reads them through `config.Opts`.
+    public let scheduler: SchedulerOptions
+
     /// Creates a configuration value.
     public init(
         listenAddress: ListenAddress,
@@ -49,7 +53,8 @@ public struct Config: Sendable, Equatable {
         logLevel: LogLevel,
         logFormat: LogFormat,
         runMigrations: Bool,
-        fetcher: FetcherOptions = FetcherOptions.defaults
+        fetcher: FetcherOptions = FetcherOptions.defaults,
+        scheduler: SchedulerOptions = SchedulerOptions.defaults
     ) {
         self.listenAddress = listenAddress
         self.baseURL = baseURL
@@ -58,6 +63,7 @@ public struct Config: Sendable, Equatable {
         self.logFormat = logFormat
         self.runMigrations = runMigrations
         self.fetcher = fetcher
+        self.scheduler = scheduler
     }
 
     /// Loads the configuration from an environment dictionary.
@@ -91,7 +97,31 @@ public struct Config: Sendable, Equatable {
                 value: environment["RUN_MIGRATIONS"],
                 fallback: true
             ),
-            fetcher: try FetcherOptions.load(environment: environment)
+            fetcher: try FetcherOptions.load(environment: environment),
+            scheduler: try parseSchedulerOptions(environment: environment)
+        )
+    }
+
+    /// The scheduler values, with the upstream defaults and the upstream validators: the three
+    /// that a positive number is read as require at least one, while `POLLING_LIMIT_PER_HOST`
+    /// and `POLLING_PARSING_ERROR_LIMIT` allow zero because there zero is the switch that reads
+    /// no filter, and `POLLING_FREQUENCY` is the upstream minute type, so the value is read as
+    /// minutes.
+    private static func parseSchedulerOptions(
+        environment: [String: String]
+    ) throws -> SchedulerOptions {
+        let minutes = try parseInteger(variable: "POLLING_FREQUENCY",
+            rawValue: environment["POLLING_FREQUENCY"], fallback: 60, minimum: 1)
+        return SchedulerOptions(
+            pollingFrequency: .seconds(minutes * 60),
+            batchSize: try parseInteger(variable: "BATCH_SIZE", rawValue: environment["BATCH_SIZE"],
+                fallback: 100, minimum: 1),
+            workerPoolSize: try parseInteger(variable: "WORKER_POOL_SIZE",
+                rawValue: environment["WORKER_POOL_SIZE"], fallback: 16, minimum: 1),
+            parsingErrorLimit: try parseInteger(variable: "POLLING_PARSING_ERROR_LIMIT",
+                rawValue: environment["POLLING_PARSING_ERROR_LIMIT"], fallback: 3, minimum: 0),
+            limitPerHost: try parseInteger(variable: "POLLING_LIMIT_PER_HOST",
+                rawValue: environment["POLLING_LIMIT_PER_HOST"], fallback: 0, minimum: 0)
         )
     }
 

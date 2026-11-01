@@ -1,11 +1,14 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — seven slices merged (PR #25–#31): the pipeline, the tick's batch selection
+**Status:** in progress — eight slices merged (PR #25–#32): the pipeline, the tick's batch selection
 with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
 write, the icon selector with the data-URL rules, the icon download half with the storage link and
-the orphan pass, and the checker half with the guard and the storage decisions. The eighth is the
-call that path makes for a feed from the pipeline, pinned by `RefreshIconTests`.
+the orphan pass, the checker half with the guard and the storage decisions, and the call that path
+makes for a feed from the pipeline. The ninth is the manual pass the CLI makes over the batch — the
+values it reads, each job running once, a failure reported without stopping the rest, and the flag
+that gates the migrations this command runs — pinned by `RefreshCommandTests` and the `ConfigTests`
+pins for the five variables.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -33,9 +36,12 @@ does
 not cover, and the user agent the checker hands to the builder, pinned by `IconCheckerTests`. The
 eighth slice is the call that path makes for a feed from the pipeline: the branch it runs on, the
 fork the forced flag selects, the icon URL the parse produced, and the site URL and the user agent
-read from the row, pinned by `RefreshIconTests`. The manual `rivulet refresh` path and the soak
-artifact follow; retention is already pinned by `RetentionTests`. The status stays in progress until
-the exit criteria below cover the whole stage.
+read from the row, pinned by `RefreshIconTests`. The ninth slice is the manual pass the CLI
+makes over the batch: one read, each job run once through the worker's path, the failure
+reported without stopping the rest, the values read from the environment, and the flag gating
+the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact follows;
+retention is already pinned by `RetentionTests`. The status stays in progress until the exit
+criteria below cover the whole stage.
 
 ## Scope
 
@@ -64,10 +70,11 @@ the exit criteria below cover the whole stage.
       `RefreshIconTests`: the branch that runs it, the fork the forced flag selects, the icon
       URL the parse produced, and the site URL and user agent read from the row. The cadence
       loop that calls the pipeline per feed is not pinnable — nothing can pin a sleeping loop —
-      and the manual `rivulet refresh` path follows. Image resizing is not ported, because it
-      needs an
-      image-decoding dependency that has not been approved, so the deviation is recorded in
-      `docs/parity.md`, as is the SVG minifier.
+      and the manual `rivulet refresh` path is pinned by `RefreshCommandTests`: each job of the
+      batch runs once, the values are read from the environment, a failure is reported without
+      stopping the rest, and the flag gates the migrations this command runs. Image resizing is not
+      ported, because it needs an image-decoding dependency that has not been approved, so the
+      deviation is recorded in `docs/parity.md`, as is the SVG minifier.
 
 ## Implementation notes
 
@@ -132,6 +139,11 @@ the exit criteria below cover the whole stage.
   forced flag selects which half runs, and the checker is built from the row's site URL and user
   agent with the icon URL the parse produced. Pinned by `RefreshIconTests`; the order of the writes
   inside the transaction, which is the reference's order here, is what no pin can show.
+- The manual pass the CLI makes over the batch: each job of the batch run once, the control rows
+  untouched, the values read from the environment, a job that fails reported without stopping the
+  rest, the schedule the run left, and the flag that gates the migrations this command runs. Pinned
+  by `RefreshCommandTests`; the cadence and the pool cap are named as unpinnable in the suite
+  header, and the reference's check that the schema is up to date is not ported.
 - Retention deletes only expired entries (boundary cases) and writes tombstones, pinned by
   `RetentionTests`.
 

@@ -80,7 +80,6 @@ import RivuletCore
             ("list", 6),
             ("import", 5),
             ("export", 5),
-            ("refresh", 4),
             ("status", 4),
             ("integration-credentials", 5),
             ("backup", 6),

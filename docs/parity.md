@@ -734,6 +734,49 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   write transaction the refresh uses, and the transaction boundary is what no test here can show.
 
 
+## CLI refresh pass (stage 4)
+
+**Matching the reference.**
+
+- The pass is the reference's manual path (`internal/cli/refresh_feeds.go` at commit `c4d54f87`):
+  one read of the batch with the values the configuration gives the builder — `BATCH_SIZE`,
+  `POLLING_PARSING_ERROR_LIMIT`, `POLLING_LIMIT_PER_HOST`, the disabled gate and the due condition
+  — each job run once through the worker's path with the forced flag false, and the process waits
+  for the jobs and then exits; there is no loop. The five values are the reference's defaults with
+  its validators: the three read as a positive number require at least one, while the two switches
+  accept zero because for them zero is off, and `POLLING_FREQUENCY` is the reference's minute
+  type.
+- A job that fails does not stop the rest, which is the worker's rule, and the migrations run when
+  `RUN_MIGRATIONS` is on, as the reference CLI runs them before dispatching a command.
+
+**What differs.**
+
+- The reference logs the batch, the pool start, each job and the duration through `slog`;
+  `RivuletCore` has no logging layer, so those lines have nowhere to go here and the pass prints
+  what it ran to the console, with the wording of that report being the port's own. The reference
+  reports the size of the whole batch, counting a job it could not refresh, so for a batch with a
+  failure its number and this report's count of what ran without a failure differ.
+- A batch read that fails is logged and the function returns there, which leaves the process exit
+  code 0; here the error leaves the command and the entry point reports it.
+- The reference starts `WORKER_POOL_SIZE` goroutines whatever the batch holds; `Scheduler` here
+  starts `min(pool size, jobs)`, the shape its own header states, and `SchedulerTickTests` names
+  the cap as unpinnable.
+- The scheduling rule this pass uses is `NextCheckPolicy()` with the reference defaults, so the
+  mode and the intervals are not read from the environment here (`POLLING_SCHEDULER` and the
+  `SCHEDULER_*` values), unlike the reference, which reads them through `config.Opts`. Loading
+  those variables is stage 6 work.
+- The reference CLI is a flag (`--refresh-feeds`) on one binary; here it is the `refresh`
+  subcommand, which is the CLI shape `docs/plan/README.md` chose. The reference also checks that
+  the schema is up to date before any command and exits when it is not; this port does not port
+  that check, so a pin can only show that the flag gates this command.
+
+**What cannot be pinned.**
+
+- That the pass is one pass: no test can show that a loop is absent, and the cadence belongs to
+  the loop `serve` runs. The pool cap, the closing of the fetcher the command created, and the
+  words of the console report are the findings the suite header states.
+
+
 ## Icon finder (stage 4)
 
 **Matching the reference.**
