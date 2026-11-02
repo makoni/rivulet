@@ -310,5 +310,5 @@ Findings from the sanitizer fixture corpus review (#36) that do not change behav
 
 Findings from the verification-run review (#37) that do not change behavior:
 
-- `docs/testing.md` is at 580 lines, past the ~500 cap: the Fixtures section is the part that could be
-  split by area, which is a shape change and not a behavior change.
+- `docs/testing.md` is at 580 lines, past the ~500 cap: the Fixtures section is the part that could
+  be split by area, which is a shape change and not a behavior change.
