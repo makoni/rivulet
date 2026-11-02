@@ -7,9 +7,10 @@
 
 - [ ] Finalize the remaining commands (stubs created in stage 0): `serve`, `migrate`,
       `create-admin` (core lands in stage 5; this stage polishes prompts and flags), `add`,
-      `remove`, `list` (feeds/categories/users), `import`/`export` (OPML), `refresh` (all/one),
-      `status` (per-feed last fetch, errors, next check + totals; `--json`), `integration-credentials`
-      (polish), `backup` (`VACUUM INTO`), `vacuum`, `version`.
+      `remove`, `list` (feeds/categories/users), `import`/`export` (OPML), `refresh` (all/one)
+      and `status` (`--json`) — the cores of both landed in stage 4 as the manual pass over the
+      batch and the minimal contract the soak reads; this stage polishes their flags and output.
+      `integration-credentials` (polish), `backup` (`VACUUM INTO`), `vacuum`, `version`.
 - [ ] No `api-key` command: REST v1 and API keys are non-goals (stage 9 backlog if ever needed).
 - [ ] Graceful shutdown and structured logs; `/healthz`; signals handled by Vapor's built-in
       serve command.
