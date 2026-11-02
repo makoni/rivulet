@@ -2,6 +2,9 @@
 .build/
 .swiftpm/
 
+# Python, for the soak check harness
+__pycache__/
+
 # DocC
 .docc-build/
 

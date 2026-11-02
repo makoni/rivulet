@@ -14,7 +14,8 @@ encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → gold
 three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML
 tolerance table and the parser error corpus | | Integration |
 `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor
-app over real HTTP | | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
+app over real HTTP | | Soak | `Scripts/soak.sh` with `Scripts/soak_check.py` | A real-time run over local stub feeds, run by hand and not in CI: its checks read the data each round leaves behind |
+| Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
 diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests
@@ -491,11 +492,58 @@ logging, which this port has no layer for. What the pins do reach through anothe
 resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding — is
 named in the headers as read through the scan, with the rules themselves pinned by those suites.
 
+## Soak
+
+`Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub
+feeds, one round per cadence step, with a `status --json` snapshot after each pass. It is not a test
+and it is not in CI — it is a real-time run against a real HTTP server and the process clock, so the
+determinism rules above do not apply to it, and `swift test` stays the suite CI runs.
+
+Its checks are `Scripts/soak_check.py`, and each is a function over the data a round leaves behind —
+the two snapshots, the instants the round recorded, the values the run declared and what the
+database answers — rather than an assertion about a live process. That is what makes each of them
+falsifiable: `python3 Scripts/soak_check.py --probe` crafts one input per rule that violates it and
+asserts that the rule reports it alone, and the same rules read a real round's files, so a probe is
+not a different machine from the run. What the rules read is the contract `StatusSnapshotTests` and
+`StatusCommandTests` pin, so the soak re-reads a pinned shape over 2h rather than pinning it again.
+A probe falsifies the report against the pick the checker computes, not the pick's own rules — those
+are pinned by `SchedulerBatchTests` — and the two probes that break a count state which of the two
+they report on.
+
+What the soak shows is the rule each round reports: the pass ran exactly the pick the rules make,
+the last-fetch stamp moved forward on every row it ran, the schedule moved forward and landed after
+the round, the counts match the rows, the error feed increments while the pick can reach it, the
+document is the documented contract, and the database kept no duplicate `(feed_id, hash)` pair. The
+three control rows are what make the gates readable in the run — one row that is never due, one
+disabled, one seeded at the error limit — because a rule that excludes a row needs a row to exclude.
+
+What it cannot show, and the script and the checks say so:
+
+- that the run slept, or that the cadence was the scheduler's: the in-process loop is stage 6's, so
+  the shell is the cadence here, and the number of rounds is not evidence that anything was fetched,
+  because a round that finds nothing due runs no job;
+- the request itself: the checks read the stamps the storage wrote, so a run that stored the same
+  stamps by another route would read the same. The live run does reach the server, and the log keeps
+  the reports the command printed, which is the part a check cannot turn into an assertion;
+- the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds
+  carry, because the policy takes the maximum of the two, so "the stamps advance" means two
+  advances per feed in 2h — the two hour boundaries inside the window — and the conditional-hit path
+  is reached on the second fetch of a feed that did not change, which is the last fetch a 2h window
+  reaches;
+- the instant the due check compares against is the one the shell recorded just before the status
+  command read it, so a row crossing the due boundary between the two reads as a violation — a false
+  failure rather than a false pass, which the check states;
+- the guards on the run's own numbers — the duration, the number of feeds, the window being at least
+  as large as the rows, the database being fresh — can fail, and each was seen to fail by declaring
+  a value below what it requires; that is the whole of what they can show.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).
 - `swift test --filter RivuletIntegrationTests` — integration only.
+- `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
+  each of its rules can fail on the rule it names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled
   by an `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with
   `RIVULET_HEAVY=1 swift test --filter HeavyTests`.
