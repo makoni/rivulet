@@ -39,7 +39,6 @@ ported now. The rules that no output can tell apart are named in the header of
 `SanitizerTableModeTests`, which pins three rules with cases that can fail on them: the caption list
 from both sides, the mode the open stack gives back, and the `table` start tag read in the table
 mode.
-cases that can fail on them.
 
 The typed errors landed as PR #24: ten inputs read through the reference's parser path pinned
 the sentinel, the branch the switch takes for it and how the scan ends, and found no
@@ -158,7 +157,6 @@ output can tell apart are named as unpinnable.
   the open stack gives back to the element around a nested table when it closes — are pinned case by
   case by `SanitizerTableModeTests`, which also pins the `table` start tag read in the table mode, a
   rule neither fixture exercises.
-  `SanitizerTableModeTests`.
 
 ### Integration
 
@@ -297,5 +295,5 @@ Findings from the parser error review (#24) that do not change behavior:
 
 Findings from the sanitizer fixture corpus review (#36) that do not change behavior:
 
-- `HTMLFragmentTree.swift` is at 537 lines, past the ~500 cap: the table-mode rules are the part
+- `HTMLFragmentTree.swift` is at 536 lines, past the ~500 cap: the table-mode rules are the part
   that could be split off from the body rules, which is a shape change and not a behavior change.

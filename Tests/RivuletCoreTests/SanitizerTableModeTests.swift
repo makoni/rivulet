@@ -23,13 +23,14 @@ import Testing
 /// does, because a name in the list moves the token after it out of the caption. The other members
 /// pin that same rule, so a case for each of them would repeat the pin rather than add one. What
 /// cannot be pinned is named here: the end tags the caption mode ignores, which the port already
-/// ignores for the same reason — a name outside the open stack is ignored whatever the mode is —
-/// `clearActiveFormattingElements`, which the port has no list for; the failure branch of
-/// `popUntil(tableScope, caption)`, which needs a caption outside the table scope, and so needs the
-/// scope markers the port does not have; the column-group mode, which the port keeps as the table
-/// mode; and content that is not whitespace, because the port puts content at the open element
-/// while the reference foster-parents it outside the table, so a case that shows where the
-/// insertion point is can only be built on whitespace or on a start tag from the mode's own list.
+/// ignores whatever its own list says, because none of those names is open on the stack (`body` and
+/// `html` are answered before the table rules); `clearActiveFormattingElements`, which the port has
+/// no list for; the failure branch of `popUntil(tableScope, caption)`, which needs a caption
+/// outside the table scope, and so needs the scope markers the port does not have; the column-group
+/// mode, which the port keeps as the table mode; and content that is not whitespace, because the
+/// port puts content at the open element while the reference foster-parents it outside the table,
+/// so a case that shows where the insertion point is can only be built on whitespace or on a start
+/// tag from the mode's own list.
 @Suite struct SanitizerTableModeTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
 
