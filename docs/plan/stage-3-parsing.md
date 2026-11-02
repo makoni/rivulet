@@ -158,6 +158,16 @@ output can tell apart are named as unpinnable.
   case by `SanitizerTableModeTests`, which also pins the `table` start tag read in the table mode, a
   rule neither fixture exercises.
 
+- Re-verification on the pinned toolchain (2026-11-02): the five things here that are not copies of
+  an upstream file were run again against the reference on Go 1.26.0, the toolchain `go.mod` pins,
+  in a copy of the pinned clone. Each value reproduces the committed file — 230 parser golden
+  values, 145 hostile outputs, 30 tolerance streams, and both sanitizer goldens byte for byte —
+  except two kinds of line a fresh run answers differently, now named in the files that state them:
+  the two date lines of `rdf_UTF8.xml.golden.txt`, which record the clock the suite injects, and the
+  two outcome lines of `parser_error_corpus.txt`, which name the branch the switch takes where the
+  reference answers with the adapter's failure. The full suite is green on the same tree: 785 unit +
+  218 integration + 12.
+
 ### Integration
 
 - Stub server → fetch → parse → sanitize → store: entries appear exactly once with sanitized

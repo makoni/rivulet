@@ -15,7 +15,8 @@ import Testing
 /// the toolchain `go.mod` pins — through the reference's test helper options, `OpenLinksInNewTab:
 /// true`, with the options `config.NewConfigOptions()` gives, the method recorded in
 /// `docs/testing.md`. The base URL a case uses is the one the reference's own benchmark pairs with
-/// that file, because the URLs the sanitizer resolves attribute values against it.
+/// that file, because the URLs the sanitizer resolves attribute values against it. Re-running the
+/// reference on that toolchain reproduces both goldens byte for byte.
 ///
 /// A failure here is a difference in the implementation under test, and recording it in
 /// `docs/parity.md` is the only way a difference can stay. The assertion compares the whole
