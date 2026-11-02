@@ -26,8 +26,8 @@ set -euo pipefail
 # feeds, and a third — the window must not be smaller than the rows, so the pick the checks compute
 # is the pick the rules make rather than the number the window happened to cut.
 #
-# Usage: Scripts/soak.sh                                        # 2h, 24 feeds, work dir under mktemp
-#        SOAK_SECONDS=120 SOAK_FEEDS=22 Scripts/soak.sh         # the same shape, for checking checks
+# Usage: Scripts/soak.sh                            # 2h, 24 feeds, work dir under mktemp
+#        SOAK_SECONDS=120 SOAK_FEEDS=22 Scripts/soak.sh   # the same shape, for checking checks
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CHECK="$ROOT/Scripts/soak_check.py"

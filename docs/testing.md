@@ -506,6 +506,9 @@ falsifiable: `python3 Scripts/soak_check.py --probe` crafts one input per rule t
 asserts that the rule reports it alone, and the same rules read a real round's files, so a probe is
 not a different machine from the run. What the rules read is the contract `StatusSnapshotTests` and
 `StatusCommandTests` pin, so the soak re-reads a pinned shape over 2h rather than pinning it again.
+A probe falsifies the report against the pick the checker computes, not the pick's own rules — those
+are pinned by `SchedulerBatchTests` — and the two probes that break a count state which of the two
+they report on.
 
 What the soak shows is the rule each round reports: the pass ran exactly the pick the rules make,
 the last-fetch stamp moved forward on every row it ran, the schedule moved forward and landed after
@@ -522,10 +525,11 @@ What it cannot show, and the script and the checks say so:
 - the request itself: the checks read the stamps the storage wrote, so a run that stored the same
   stamps by another route would read the same. The live run does reach the server, and the log keeps
   the reports the command printed, which is the part a check cannot turn into an assertion;
-- the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds carry,
-  because the policy takes the maximum of the two, so "the stamps advance" means about three
-  advances per feed in 2h, and the conditional-hit path is reached only on the second and third
-  fetch of a feed that did not change;
+- - the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub   feeds
+  carry, because the policy takes the maximum of the two, so "the stamps advance" means two
+  advances per feed in 2h — the two hour boundaries inside the window — and the conditional-hit path
+  is reached on the second fetch of a feed that did not change, which is the last fetch a 2h window
+  reaches;
 - the instant the due check compares against is the one the shell recorded just before the status
   command read it, so a row crossing the due boundary between the two reads as a violation — a false
   failure rather than a false pass, which the check states;

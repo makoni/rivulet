@@ -201,12 +201,14 @@ What the run read, in the numbers it left behind:
   icon. The checker ran 30 times, so the run also read the website document and the root document;
   for a row the run seeded, the website document is the feed file itself, because `CheckedNow` reads
   the row's site URL and falls back to the feed URL when it is empty.
-- falsifiability, as the artifact's rules were shown to fail: 17 probes, each reporting its own rule
-  and no other, and the four guards on the run's own numbers each seen to fire by declaring a value
-  below what they require (60 s against 7200, 19 feeds against 20, a window of 6 against the rows it
-  must cover, and a database that already had rows). The same rules read a real round's files: the
-  pair from round 2 and round 1 passed, and moving one number in a copy of that pair (`totals.due`
-  from 0 to 1) reported exactly `due_matches_pick`.
+- falsifiability, as the artifact's rules were shown to fail: 17 probe cases — 16 crafted inputs,
+  each reporting its own rule and no other, and the baseline reporting nothing — and the four guards
+  on the run's own numbers each seen to fire by declaring a value below what they require (60 s
+  against 7200, 19 feeds against 20, a window of 6 against the rows it must cover, and a database
+  that already had rows). The same rules read a real round's files: the pair from round 2 and round
+  1 passed, and moving one number in a copy of that pair (`totals.due` from 0 to 1) reported exactly
+  `due_matches_pick`.
+
 The comment in the script about the mutation said the rewritten feed has "something new to parse"
 while its content is unchanged; the comment now says what the run showed, and nothing else in the
 script changed.
@@ -232,6 +234,11 @@ Findings from the review runs on PR #25 that do not change behavior:
 
 
 ## Backlog
+
+Findings from review run 1 on PR #35 that do not change behavior:
+- `Scripts/soak_check.py` is 466 lines, above the 150–300 aim and under the ~500 cap: the rules
+  and the probe harness are one file, and splitting the probe set out would need an import between
+  two scripts, so the artifact stays whole.
 
 Findings from review run 1 on PR #26 that do not change behavior:
 - `JobQueue` is a second type in `Scheduler.swift`, whose primary type is `Scheduler`; the one

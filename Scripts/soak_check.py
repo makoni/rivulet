@@ -116,6 +116,10 @@ def rule_totals_match_rows(data):
 
 
 def rule_due_matches_pick(data):
+    # The instant compared here is the one the shell recorded just before the status command read
+    # the row, so a row crossing the due boundary between the two reads as a violation. The reported
+    # count comes from the query's clock, at or after the recorded instant, so the mismatch can only
+    # go one way: this rule can fail falsely, it cannot pass falsely.
     expected = pick(data["cur"]["feeds"], data["instants"]["cur"], data["error_limit"],
                     data["batch_size"], data["host_limit"])
     reported = data["cur"]["totals"].get("due")
