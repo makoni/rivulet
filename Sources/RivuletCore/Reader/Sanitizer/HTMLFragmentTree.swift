@@ -12,17 +12,22 @@ import Foundation
 /// popped as soon as they are inserted, the table-only tags that are not elements outside a table,
 /// the implied `tbody` and `tr` inside one, the end tags that pop the table modes, the end tags
 /// that walk the stack and stop at the first special element, the two end-tag rules that put a node
-/// on the tree with nothing in it, and the depth limit the reference refuses.
+/// on the tree with nothing in it, the caption mode, the `table` start tag that closes an open
+/// table and reads itself again, and the depth limit the reference refuses.
+///
+/// The mode is not stored: it is the mode of the nearest table element on the open stack, which is
+/// what `resetInsertionMode` answers with, and each mode the port models is the mode of its own
+/// element. That is what makes a nested table read in the table mode and give the mode back to the
+/// element around it when it closes.
 ///
 /// Where the subset stops, recorded in `docs/parity.md`: foster parenting, the active formatting
 /// elements — the order rule `addFormattingElement` gives them is ported, because that one changes
-/// what the sanitizer writes, while the list itself is not — the adoption agency, the caption and
-/// column-group modes, nested tables, the scope markers, the ancestor loops the start tags run for
-/// `li`, `dd` and `dt`, the raw-text leading-newline mode and the foreign-content self-closing pop.
-/// None of those changes what the
-/// sanitizer writes for a case in the reference corpus, but a real feed can nest content
-/// differently here, so the tree is built as if the insertion point were the open element, which is
-/// what the modes answer with for the tags in the corpus.
+/// what the sanitizer writes, while the list itself is not — the adoption agency, the column-group,
+/// head and select modes, the scope markers, the ancestor loops the start tags run for `li`, `dd`
+/// and `dt`, the raw-text leading-newline mode and the foreign-content self-closing pop. None of
+/// those changes what the sanitizer writes for a case in the reference corpus, but a real feed can
+/// nest content differently here, so the tree is built as if the insertion point were the open
+/// element, which is what the modes answer with for the tags in the corpus.
 ///
 /// Comment nodes are not kept, because the renderer answers with nothing for them.
 final class HTMLFragmentTree {
@@ -92,6 +97,15 @@ final class HTMLFragmentTree {
         "caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr",
     ]
 
+    /// The names `inCaptionIM` handles before it falls through: it closes the open caption and
+    /// reads the token again in the table mode. This is the cell list without `th`, and `th` being
+    /// outside it is the only thing about the list a case can pin: for every other name the table
+    /// rules the port already has cut the stack to the table, so the case writes the same string
+    /// either way.
+    static let captionStartTags: Set<String> = [
+        "caption", "col", "colgroup", "tbody", "td", "tfoot", "thead", "tr",
+    ]
+
     /// The names `inBodyIM` answers with `addFormattingElement`, which is the one place the
     /// reference reorders the attributes it puts on a node: by name, then by value for a tie. The
     /// port has no namespace, which is the first key `attrCompare` reads, so the name and the value
@@ -107,10 +121,10 @@ final class HTMLFragmentTree {
 
     struct Failure: Error, Equatable {}
 
-    /// The insertion modes the table rules switch between. `head`, `caption` and the column-group
-    /// mode are not modelled; the boundary is the paragraph above.
+    /// The insertion modes the table rules switch between. The head, column-group and select modes
+    /// are not modelled; the boundary is the paragraph above.
     private enum Mode {
-        case body, table, tableBody, row, cell
+        case body, table, tableBody, row, cell, caption
     }
 
     /// The three table scopes `clearStackToContext` answers for. Each scope is cut to its anchor
@@ -122,7 +136,27 @@ final class HTMLFragmentTree {
     private let tokenizer: HTMLTokenizer
     private let root = HTMLNode(kind: .document)
     private var open: [HTMLNode] = []
-    private var mode = Mode.body
+
+    /// `resetInsertionMode`: the mode is the mode of the nearest table element on the open stack,
+    /// and the body rules when nothing on the stack is one. The reference stores the mode, but for
+    /// the modes this port models the stored mode is always its own element's mode, so reading it
+    /// from the stack answers the same, and that is the answer a nested table gives back to the
+    /// element around it when it closes. `colgroup` is the exception, because the column-group mode
+    /// is not modelled, and `html` is not a mode element here.
+    private var mode: Mode {
+        for element in open.reversed() {
+            switch element.name {
+            case "caption": return .caption
+            case "colgroup", "table": return .table
+            case "tbody", "thead", "tfoot": return .tableBody
+            case "tr": return .row
+            case "td", "th": return .cell
+            case "body": return .body
+            default: continue
+            }
+        }
+        return .body
+    }
 
     init(_ tokenizer: HTMLTokenizer) {
         self.tokenizer = tokenizer
@@ -180,8 +214,9 @@ final class HTMLFragmentTree {
 
     private func processStartTagInBody(_ name: String, attributes: [HTMLAttribute]) throws {
         if name == "table" {
+            // The table mode is the one the stack answers with once the element is on it, which is
+            // what makes a nested table read in the table mode.
             try insertElement(name: name, attributes: attributes)
-            mode = .table
             return
         }
         if HTMLFragmentTree.tableOnlyTags.contains(name) { return }
@@ -201,10 +236,11 @@ final class HTMLFragmentTree {
 
     /// The same token read again in the mode the implied element switched to, which is what
     /// `parseImpliedToken` does: the cell rules in the table mode imply a `tbody`, and the cell
-    /// rules in the table-body mode imply a `tr`.
+    /// rules in the table-body mode imply a `tr`. Each mode is the mode of the element on the top
+    /// of the stack, so reading the mode answers with what the reference sets for it.
     private func processStartTagInTable(_ name: String, attributes: [HTMLAttribute]) throws {
         switch mode {
-        case .body: try insertAtInsertionPoint(name, attributes: attributes)
+        case .body: try processStartTagInBody(name, attributes: attributes)
         case .table: try startTagInTableMode(name, attributes: attributes)
         case .tableBody: try startTagInTableBodyMode(name, attributes: attributes)
         case .row: try startTagInRowMode(name, attributes: attributes)
@@ -214,11 +250,21 @@ final class HTMLFragmentTree {
             // is the cell itself, because a cell is a special element.
             if Self.cellStartTags.contains(name) {
                 open.removeLast()
-                mode = .row
                 try processStartTagInTable(name, attributes: attributes)
                 return
             }
             try insertAtInsertionPoint(name, attributes: attributes)
+        case .caption:
+            // The caption closes for the names in its list, which is the cell list without `th`,
+            // and the token is read again in the table mode. Anything else is the rules for the
+            // body, at the caption, which is what keeps the content inside it.
+            guard Self.captionStartTags.contains(name) else {
+                try processStartTagInBody(name, attributes: attributes)
+                return
+            }
+            guard let position = indexOfOpenElement("caption") else { return }
+            open.removeSubrange(position...)
+            try processStartTagInTable(name, attributes: attributes)
         }
     }
 
@@ -230,9 +276,16 @@ final class HTMLFragmentTree {
         case "tbody", "thead", "tfoot":
             cut(to: .table)
             try insertElement(name: name, attributes: attributes)
-            mode = .tableBody
         case "td", "th", "tr":
-            try insertImplied(name: "tbody", scope: .table, modeAfter: .tableBody)
+            try insertImplied(name: "tbody", scope: .table)
+            try processStartTagInTable(name, attributes: attributes)
+        case "table":
+            // A `table` read in the table mode closes the open table and is read again in the mode
+            // the open stack gives, so two tables in a row are siblings. A `table` read by the
+            // rules for the body is a node instead, and that is the nested table: the stack then
+            // answers with the table mode for it.
+            guard let position = indexOfOpenElement("table") else { return }
+            open.removeSubrange(position...)
             try processStartTagInTable(name, attributes: attributes)
         default:
             try insertAtInsertionPoint(name, attributes: attributes)
@@ -244,16 +297,14 @@ final class HTMLFragmentTree {
         case "tr":
             cut(to: .tableBody)
             try insertElement(name: name, attributes: attributes)
-            mode = .row
         case "td", "th":
-            try insertImplied(name: "tr", scope: .tableBody, modeAfter: .row)
+            try insertImplied(name: "tr", scope: .tableBody)
             try processStartTagInTable(name, attributes: attributes)
         case "caption", "col", "colgroup", "tbody", "tfoot", "thead":
             // The open body is popped only when one of the three is open, and the token is then
             // read again in the table mode.
             guard let position = indexOfTableBody() else { return }
             open.removeSubrange(position...)
-            mode = .table
             try processStartTagInTable(name, attributes: attributes)
         default:
             try insertAtInsertionPoint(name, attributes: attributes)
@@ -265,11 +316,9 @@ final class HTMLFragmentTree {
         case "td", "th":
             cut(to: .tableRow)
             try insertElement(name: name, attributes: attributes)
-            mode = .cell
         case "caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr":
             guard elementNamed("tr") != nil else { return }
             open.removeLast()
-            mode = .tableBody
             try processStartTagInTable(name, attributes: attributes)
         default:
             try insertAtInsertionPoint(name, attributes: attributes)
@@ -290,7 +339,7 @@ final class HTMLFragmentTree {
             if name == "html" || name == "body" { return }
             // Each table mode has its own list of end tags. A name outside it is processed by the
             // rules for the body, at the insertion point, which is the open table element.
-            if processEndTagInTable(name) { return }
+            if try processEndTagInTable(name) { return }
         }
 
         if name == "p" {
@@ -335,24 +384,29 @@ final class HTMLFragmentTree {
     }
 
     /// The end tags each table mode answers for, and the ones it ignores. A name in neither list is
-    /// processed by the rules for the body.
-    private func processEndTagInTable(_ name: String) -> Bool {
+    /// processed by the rules for the body. The mode is the one the open stack answers with, so the
+    /// pop is what changes it.
+    private func processEndTagInTable(_ name: String) throws -> Bool {
         if ignoredEndTag(name) { return true }
         guard name == "table" || HTMLFragmentTree.tableOnlyTags.contains(name) else { return false }
+
+        // Inside an open caption: `caption` closes the caption, and `table` closes the caption
+        // first and then reads the end tag again in the table mode.
+        if mode == .caption, name == "caption" || name == "table" {
+            guard let position = indexOfOpenElement("caption") else { return true }
+            open.removeSubrange(position...)
+            if name == "caption" { return true }
+            return try processEndTagInTable(name)
+        }
+
         guard let position = indexOfOpenElement(name) else { return true }
         open.removeSubrange(position...)
-
-        switch name {
-        case "table": mode = .body
-        case "tbody", "thead", "tfoot": mode = .table
-        case "tr": mode = .tableBody
-        case "td", "th": mode = .row
-        default: break
-        }
         return true
     }
 
-    /// The names the current table mode ignores, which are the ones its own switch lists.
+    /// The names the current table mode ignores, which are the ones its own switch lists. The
+    /// caption mode reads `caption` and `table` by its own rules, and `body` and `html` are
+    /// answered before this is called.
     private func ignoredEndTag(_ name: String) -> Bool {
         switch mode {
         case .table:
@@ -364,6 +418,8 @@ final class HTMLFragmentTree {
             return ["caption", "col", "colgroup", "td", "th"].contains(name)
         case .cell:
             return ["caption", "col", "colgroup"].contains(name)
+        case .caption:
+            return ["col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr"].contains(name)
         case .body:
             return false
         }
@@ -403,10 +459,11 @@ final class HTMLFragmentTree {
 
     // MARK: - Stack rules
 
-    private func insertImplied(name: String, scope: Scope, modeAfter newMode: Mode) throws {
+    /// `parseImpliedToken` for the two implied elements: the stack is cut to the scope, the element
+    /// is put on the tree, and the mode is the one its name gives.
+    private func insertImplied(name: String, scope: Scope) throws {
         cut(to: scope)
         try insertElement(name: name, attributes: [])
-        mode = newMode
     }
 
     /// `clearStackToContext`: the stack is cut to the anchor of the scope. The reference also

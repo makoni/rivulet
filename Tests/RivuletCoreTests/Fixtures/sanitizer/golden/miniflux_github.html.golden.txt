@@ -1,0 +1,1658 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+    
+    
+    
+    
+  
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  GitHub - miniflux/v2: Minimalist and opinionated feed reader
+
+
+
+  
+  
+  
+
+    
+  
+
+
+  
+
+
+    
+
+
+  
+  
+
+  
+  
+
+    
+  
+  
+  
+  
+
+
+
+  
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+    
+    
+      
+      
+    
+    
+    
+      
+      
+      
+
+
+
+        
+
+
+
+        
+
+
+  
+  
+  
+  
+
+  
+
+      
+
+  
+
+  
+
+
+
+    
+  
+
+
+  
+
+  
+
+  
+  
+  
+
+
+
+
+
+  
+
+  
+
+  
+    
+      
+
+
+    
+      <a href="#start-of-content">Skip to content</a>
+      
+    
+      
+      
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+
+
+
+
+      
+
+        
+
+            
+
+
+
+  
+    Toggle navigation
+  
+
+  
+    
+      <a href="https://github.com/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        
+    
+
+      </a>
+
+      
+        <a href="https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          Sign in
+        </a>
+      
+
+      
+          
+    
+            
+            
+  
+
+      
+    
+
+
+    
+      
+          
+            <ul>
+                <li>
+      
+        Product
+        
+    
+
+      
+      
+          
+            <ul>
+                <li>
+  <a href="https://github.com/features/actions" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Actions
+        Automate any workflow
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/packages" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Packages
+        Host and manage packages
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/security" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Security
+        Find and fix vulnerabilities
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/codespaces" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Codespaces
+        Instant dev environments
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/copilot" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Copilot
+        Write better code with AI
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/code-review" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Code review
+        Manage code changes
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/issues" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Issues
+        Plan and track work
+      
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/features/discussions" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      
+        Discussions
+        Collaborate outside of code
+      
+
+    
+</a></li>
+
+            </ul>
+          
+          
+              Explore
+            <ul>
+                <li>
+  <a href="https://github.com/features" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      All features
+
+    
+</a></li>
+
+                <li>
+  <a href="https://docs.github.com" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Documentation
+
+    
+    
+
+</a></li>
+
+                <li>
+  <a href="https://skills.github.com/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      GitHub Skills
+
+    
+    
+
+</a></li>
+
+                <li>
+  <a href="https://github.blog" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Blog
+
+    
+    
+
+</a></li>
+
+            </ul>
+          
+      
+</li>
+
+
+                <li>
+      
+        Solutions
+        
+    
+
+      
+      
+          
+              For
+            <ul>
+                <li>
+  <a href="https://github.com/enterprise" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Enterprise
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/team" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Teams
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/enterprise/startups" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Startups
+
+    
+</a></li>
+
+                <li>
+  <a href="https://education.github.com" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Education
+
+    
+    
+
+</a></li>
+
+            </ul>
+          
+          
+              By Solution
+            <ul>
+                <li>
+  <a href="https://github.com/solutions/ci-cd/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      CI/CD &amp; Automation
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/solutions/devops/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      DevOps
+
+    
+</a></li>
+
+                <li>
+  <a href="https://resources.github.com/devops/fundamentals/devsecops/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      DevSecOps
+
+    
+    
+
+</a></li>
+
+            </ul>
+          
+          
+              Resources
+            <ul>
+                <li>
+  <a href="https://resources.github.com/learn/pathways/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Learning Pathways
+
+    
+    
+
+</a></li>
+
+                <li>
+  <a href="https://resources.github.com/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      White papers, Ebooks, Webinars
+
+    
+    
+
+</a></li>
+
+                <li>
+  <a href="https://github.com/customer-stories" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Customer Stories
+
+    
+</a></li>
+
+                <li>
+  <a href="https://partner.github.com/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Partners
+
+    
+    
+
+</a></li>
+
+            </ul>
+          
+      
+</li>
+
+
+                <li>
+      
+        Open Source
+        
+    
+
+      
+      
+          
+            <ul>
+                <li>
+  <a href="https://github.com/sponsors" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+      
+        GitHub Sponsors
+        Fund open source developers
+      
+
+    
+</a></li>
+
+            </ul>
+          
+          
+            <ul>
+                <li>
+  <a href="https://github.com/readme" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+      
+        The ReadME Project
+        GitHub community articles
+      
+
+    
+</a></li>
+
+            </ul>
+          
+          
+              Repositories
+            <ul>
+                <li>
+  <a href="https://github.com/topics" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Topics
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/trending" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Trending
+
+    
+</a></li>
+
+                <li>
+  <a href="https://github.com/collections" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      Collections
+
+    
+</a></li>
+
+            </ul>
+          
+      
+</li>
+
+
+                <li>
+    <a href="https://github.com/pricing" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Pricing</a>
+</li>
+
+            </ul>
+          
+
+        
+                
+
+
+
+  
+      
+        
+          
+    
+
+        
+        Search or jump to...
+          
+            
+
+          
+      
+
+    
+
+    
+
+  
+      <h1 id="search-suggestions-dialog-header">Search code, repositories, users, issues, pull requests...</h1>
+    
+      
+                  
+
+
+    
+
+  
+  
+  
+    
+
+  
+    
+  
+    
+      <h1 id="feedback-dialog-title">
+        Provide feedback
+      </h1>
+    
+    
+      
+    
+
+    
+  
+
+      
+                
+          <p>We read every piece of feedback, and take your input very seriously.</p>
+          
+          
+          Include my email address so I can be contacted
+
+      
+                    Cancel
+
+              Submit feedback
+
+
+
+
+    
+    
+
+  
+    
+  
+    
+      <h1 id="custom-scopes-dialog-title">
+        Saved searches
+      </h1>
+        <h2 id="custom-scopes-dialog-description">Use saved searches to filter your results more quickly</h2>
+    
+    
+      
+    
+
+    
+  
+
+      
+                
+
+        
+
+        
+          
+        
+
+
+      
+                    Cancel
+
+              Create saved search
+
+
+
+    
+  
+
+
+
+          
+            <a href="https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+              Sign in
+            </a>
+          
+
+            <a href="https://github.com/signup?ref_cta=Sign+up&amp;ref_loc=header+logged+out&amp;ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&amp;source=header-repo&amp;source_repo=miniflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+              Sign up
+            </a>
+        
+      
+    
+  
+
+
+      
+    
+
+  
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+  
+    
+
+  
+    
+      
+    
+
+    
+    
+      
+      {{ message }}
+
+    
+  
+
+  
+
+
+
+    
+    
+
+
+
+
+
+
+  
+        
+    
+      
+  
+
+
+
+
+
+    
+    
+
+    
+
+
+
+
+
+
+  
+  
+
+      
+
+        
+            
+  
+      
+    
+
+    
+    
+      <a href="https://github.com/miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        miniflux
+</a>    
+    /
+    <strong>
+      <a href="https://github.com/miniflux/v2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">v2</a>
+    </strong>
+
+    Public
+  
+
+
+        
+
+        
+            <ul>
+    
+      
+
+  <li>
+            <a href="https://github.com/login?return_to=%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">    
+    
+Notifications
+</a>
+  </li>
+
+  <li>
+          <a href="https://github.com/login?return_to=%2Fminiflux%2Fv2" id="fork-button" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">    
+    
+Fork
+    661
+</a>
+  </li>
+
+  <li>
+        
+        <a href="https://github.com/login?return_to=%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">    
+    
+
+          Star
+          5.9k
+</a>            
+    
+
+
+  </li>
+
+    <li>
+        
+
+    </li>
+</ul>
+
+        
+      
+
+        
+      
+      <p>
+        Minimalist and opinionated feed reader
+      </p>
+      
+        
+    
+
+        
+          <a href="https://miniflux.app" title="https://miniflux.app" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">miniflux.app</a>
+        
+      
+
+    
+      <h3>License</h3>
+  
+    <a href="https://github.com/miniflux/v2/blob/main/LICENSE" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+     Apache-2.0 license
+    </a>
+  
+
+
+    
+        <a href="https://github.com/miniflux/v2/stargazers" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          5.9k
+          stars
+</a>        <a href="https://github.com/miniflux/v2/forks" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          661
+          forks
+</a>          <a href="https://github.com/miniflux/v2/branches" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+            
+    
+
+            Branches
+</a>          <a href="https://github.com/miniflux/v2/tags" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+            
+    
+
+            Tags
+</a>        <a href="https://github.com/miniflux/v2/activity" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          Activity
+</a>    
+
+      
+        
+            
+        <a href="https://github.com/login?return_to=%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">    
+    
+
+          Star
+
+</a>            
+    
+
+
+        
+        
+                <a href="https://github.com/login?return_to=%2Fminiflux%2Fv2" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">    
+    
+Notifications
+</a>
+        
+          
+            
+
+          
+      
+  
+
+
+
+
+          
+
+  <ul>
+      <li>
+  <a href="https://github.com/miniflux/v2" id="code-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Code
+          
+
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/issues" id="issues-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Issues
+          273
+
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/pulls" id="pull-requests-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Pull requests
+          14
+
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/discussions" id="discussions-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Discussions
+          
+
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/actions" id="actions-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Actions
+          
+
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/security" id="security-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Security
+          
+
+    
+</a></li>
+      <li>
+  <a href="https://github.com/miniflux/v2/pulse" id="insights-tab" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+              
+    
+
+        Insights
+          
+
+
+    
+</a></li>
+</ul>
+          
+  
+      
+    
+
+Additional navigation options
+
+
+
+  
+    
+                
+  <ul id="action-menu-a4c7c67d-0875-455b-9efd-1c2d26243ff8-list">
+      
+      
+      
+      
+      
+      
+      
+</ul>  
+
+
+
+      
+  
+
+
+
+  
+
+  
+
+
+
+
+    
+    
+
+
+    
+      
+  <h1>miniflux/v2</h1>
+  
+    
+
+  
+
+  
+
+  
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+      main<a href="https://github.com/miniflux/v2/branches" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Branches</a><a href="https://github.com/miniflux/v2/tags" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Tags</a><a href="https://github.com/miniflux/v2/branches" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"></a><a href="https://github.com/miniflux/v2/tags" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"></a>Go to fileCode<h2 id="folders-and-files">Folders and files</h2><table><thead><tr><th colspan="2">Name</th><th colspan="1">Name</th><th>Last commit message</th><th colspan="1">Last commit date</th></tr></thead><tr><td colspan="3"><h2>Latest commit</h2> <h2>History</h2><a href="https://github.com/miniflux/v2/commits/main/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">1,624 Commits</a><a href="https://github.com/miniflux/v2/commits/main/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"></a></td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/.devcontainer" title=".devcontainer" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.devcontainer</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/.devcontainer" title=".devcontainer" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.devcontainer</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/.github" title=".github" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.github</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/.github" title=".github" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.github</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/client" title="client" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">client</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/client" title="client" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">client</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/contrib" title="contrib" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">contrib</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/contrib" title="contrib" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">contrib</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/internal" title="internal" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">internal</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/internal" title="internal" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">internal</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/tree/main/packaging" title="packaging" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">packaging</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/tree/main/packaging" title="packaging" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">packaging</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/.gitignore" title=".gitignore" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.gitignore</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/.gitignore" title=".gitignore" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">.gitignore</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/ChangeLog" title="ChangeLog" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">ChangeLog</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/ChangeLog" title="ChangeLog" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">ChangeLog</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/LICENSE" title="LICENSE" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">LICENSE</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/LICENSE" title="LICENSE" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">LICENSE</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/Makefile" title="Makefile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Makefile</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/Makefile" title="Makefile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Makefile</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/Procfile" title="Procfile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Procfile</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/Procfile" title="Procfile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Procfile</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/README.md" title="README.md" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">README.md</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/README.md" title="README.md" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">README.md</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/SECURITY.md" title="SECURITY.md" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">SECURITY.md</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/SECURITY.md" title="SECURITY.md" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">SECURITY.md</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/go.mod" title="go.mod" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">go.mod</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/go.mod" title="go.mod" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">go.mod</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/go.sum" title="go.sum" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">go.sum</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/go.sum" title="go.sum" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">go.sum</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/main.go" title="main.go" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">main.go</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/main.go" title="main.go" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">main.go</a></h3></td><td> </td><td> </td></tr><tr><td colspan="2"><h3><a href="https://github.com/miniflux/v2/blob/main/miniflux.1" title="miniflux.1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">miniflux.1</a></h3></td><td colspan="1"><h3><a href="https://github.com/miniflux/v2/blob/main/miniflux.1" title="miniflux.1" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">miniflux.1</a></h3></td><td> </td><td> </td></tr><tr><td colspan="3">View all files</td></tr></table><h2>Repository files navigation</h2><ul><li><a href="#">README</a></li><li><a href="#">Apache-2.0 license</a></li><li><a href="#">Security</a></li></ul><h1>Miniflux 2</h1><a href="#miniflux-2" id="user-content-miniflux-2"></a>
+<p>Miniflux is a minimalist and opinionated feed reader:</p>
+<ul>
+<li>Written in Go (Golang)</li>
+<li>Works only with Postgresql</li>
+<li>Doesn&#39;t use any ORM</li>
+<li>Doesn&#39;t use any complicated framework</li>
+<li>Use only modern vanilla Javascript (ES6 and Fetch API)</li>
+<li>Single binary compiled statically without dependency</li>
+<li>The number of features is voluntarily limited</li>
+</ul>
+<p>It&#39;s simple, fast, lightweight and super easy to install.</p>
+<p>Official website: <a href="https://miniflux.app" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">https://miniflux.app</a></p>
+<h2>Documentation</h2><a href="#documentation" id="user-content-documentation"></a>
+<p>The Miniflux documentation is available here: <a href="https://miniflux.app/docs/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">https://miniflux.app/docs/</a> (<a href="https://miniflux.app/miniflux.1.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Man page</a>)</p>
+<ul>
+<li><a href="https://miniflux.app/opinionated.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Opinionated?</a></li>
+<li><a href="https://miniflux.app/features.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Features</a></li>
+<li><a href="https://miniflux.app/docs/requirements.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Requirements</a></li>
+<li><a href="https://miniflux.app/docs/installation.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Installation Instructions</a></li>
+<li><a href="https://miniflux.app/docs/upgrade.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Upgrading to a New Version</a></li>
+<li><a href="https://miniflux.app/docs/configuration.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Configuration</a></li>
+<li><a href="https://miniflux.app/docs/cli.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Command Line Usage</a></li>
+<li><a href="https://miniflux.app/docs/ui.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">User Interface Usage</a></li>
+<li><a href="https://miniflux.app/docs/keyboard_shortcuts.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Keyboard Shortcuts</a></li>
+<li><a href="https://miniflux.app/docs/services.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Integration with External Services</a></li>
+<li><a href="https://miniflux.app/docs/rules.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Rewrite and Scraper Rules</a></li>
+<li><a href="https://miniflux.app/docs/api.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">API Reference</a></li>
+<li><a href="https://miniflux.app/docs/development.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Development</a></li>
+<li><a href="https://miniflux.app/docs/i18n.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Internationalization</a></li>
+<li><a href="https://miniflux.app/faq.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Frequently Asked Questions</a></li>
+</ul>
+<h2>Screenshots</h2><a href="#screenshots" id="user-content-screenshots"></a>
+<p>Default theme:</p>
+<p><a href="https://camo.githubusercontent.com/4c2ed867792b75194aac085471271b59d44c635ed0adabef02550398ad5e91ed/68747470733a2f2f6d696e69666c75782e6170702f696d616765732f6f766572766965772e706e67" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img src="https://camo.githubusercontent.com/4c2ed867792b75194aac085471271b59d44c635ed0adabef02550398ad5e91ed/68747470733a2f2f6d696e69666c75782e6170702f696d616765732f6f766572766965772e706e67" alt="Default theme" loading="lazy"></a></p>
+<p>Dark theme when using keyboard navigation:</p>
+<p><a href="https://camo.githubusercontent.com/574f02c280b2b1617d545a0d55cb419423addefe0236dc73da5909816842bc12/68747470733a2f2f6d696e69666c75782e6170702f696d616765732f6974656d2d73656c656374696f6e2d626c61636b2d7468656d652e706e67" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img src="https://camo.githubusercontent.com/574f02c280b2b1617d545a0d55cb419423addefe0236dc73da5909816842bc12/68747470733a2f2f6d696e69666c75782e6170702f696d616765732f6974656d2d73656c656374696f6e2d626c61636b2d7468656d652e706e67" alt="Dark theme" loading="lazy"></a></p>
+<h2>Credits</h2><a href="#credits" id="user-content-credits"></a>
+<ul>
+<li>Authors: Frédéric Guillot - <a href="https://github.com/miniflux/v2/graphs/contributors" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">List of contributors</a></li>
+<li>Distributed under Apache 2.0 License</li>
+</ul>
+   
+
+
+        
+
+        
+
+      
+        
+          
+            
+  <h2>About</h2>
+
+      <p>
+        Minimalist and opinionated feed reader
+      </p>
+      
+        
+    
+
+        
+          <a href="https://miniflux.app" title="https://miniflux.app" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">miniflux.app</a>
+        
+      
+
+    <h3>Topics</h3>
+    
+        
+      <a href="https://github.com/topics/atom" title="Topic: atom" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  atom
+</a>
+      <a href="https://github.com/topics/go" title="Topic: go" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  go
+</a>
+      <a href="https://github.com/topics/letsencrypt" title="Topic: letsencrypt" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  letsencrypt
+</a>
+      <a href="https://github.com/topics/golang" title="Topic: golang" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  golang
+</a>
+      <a href="https://github.com/topics/rss" title="Topic: rss" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  rss
+</a>
+      <a href="https://github.com/topics/rdf" title="Topic: rdf" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  rdf
+</a>
+      <a href="https://github.com/topics/postgresql" title="Topic: postgresql" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  postgresql
+</a>
+      <a href="https://github.com/topics/feed" title="Topic: feed" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  feed
+</a>
+      <a href="https://github.com/topics/opml" title="Topic: opml" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  opml
+</a>
+      <a href="https://github.com/topics/jsonfeed" title="Topic: jsonfeed" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+  jsonfeed
+</a>
+  
+
+    
+
+    <h3>Resources</h3>
+    
+      <a href="#readme-ov-file">
+        
+    
+
+        Readme
+</a>    
+
+  
+    <h3>License</h3>
+  
+    <a href="#Apache-2.0-1-ov-file">
+      
+    
+
+     Apache-2.0 license
+    </a>
+  
+
+
+
+    <h3>Security policy</h3>
+    
+      <a href="#security-ov-file">
+        
+    
+
+        Security policy
+      </a>
+    
+
+  
+  
+
+  
+    <a href="https://github.com/miniflux/v2/activity" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      Activity
+</a>  
+
+    
+      <a href="https://github.com/miniflux/v2/custom-properties" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        
+    
+
+        Custom properties
+</a>    
+
+  <h3>Stars</h3>
+  
+    <a href="https://github.com/miniflux/v2/stargazers" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      <strong>5.9k</strong>
+      stars
+</a>  
+
+  <h3>Watchers</h3>
+  
+    <a href="https://github.com/miniflux/v2/watchers" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      <strong>70</strong>
+      watching
+</a>  
+
+  <h3>Forks</h3>
+  
+    <a href="https://github.com/miniflux/v2/forks" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      
+    
+
+      <strong>661</strong>
+      forks
+</a>  
+
+    
+      <a href="https://github.com/contact/report-content?content_url=https%3A%2F%2Fgithub.com%2Fminiflux%2Fv2&amp;report=miniflux+%28user%29" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          Report repository
+</a>    
+
+
+          
+        
+
+        
+            
+              
+                <h2>
+  <a href="https://github.com/miniflux/v2/releases" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    Releases
+      54
+</a></h2>
+
+  <a href="https://github.com/miniflux/v2/releases/tag/2.1.0" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    
+    
+
+    
+      
+        Miniflux 2.1.0
+        
+          Latest
+      
+      Feb 17, 2024
+    
+</a>    
+      <a href="https://github.com/miniflux/v2/releases" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        + 53 releases
+</a>
+              
+            
+
+        
+        
+        
+            
+
+        
+            
+              
+                <h2>
+  <a href="https://github.com/miniflux/v2/graphs/contributors" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+    Contributors
+      214
+</a></h2>
+
+
+    
+  <ul>
+    <li>
+      <a href="https://github.com/fguillot" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/323546?s=64&amp;v=4" alt="@fguillot" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/apps/dependabot" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/in/29110?s=64&amp;v=4" alt="@dependabot[bot]" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/jvoisin" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/325724?s=64&amp;v=4" alt="@jvoisin" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/shizunge" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/1281491?s=64&amp;v=4" alt="@shizunge" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/krvpb024" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/20417513?s=64&amp;v=4" alt="@krvpb024" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/thiagowfx" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/2840106?s=64&amp;v=4" alt="@thiagowfx" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/pdewacht" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/223495?s=64&amp;v=4" alt="@pdewacht" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/akosiaris" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/814130?s=64&amp;v=4" alt="@akosiaris" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/dzaikos" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/1633653?s=64&amp;v=4" alt="@dzaikos" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/astrophena" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/58525038?s=64&amp;v=4" alt="@astrophena" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/rdelaage" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/19993671?s=64&amp;v=4" alt="@rdelaage" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/qjebbs" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/16953333?s=64&amp;v=4" alt="@qjebbs" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/dave-atx" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/8920060?s=64&amp;v=4" alt="@dave-atx" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/bhopmann" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/2770597?s=64&amp;v=4" alt="@bhopmann" height="32" width="32" loading="lazy">
+      </a>
+    </li>
+</ul>
+
+
+
+
+  
+    <a href="https://github.com/miniflux/v2/graphs/contributors" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+      + 200 contributors
+</a>
+              
+            
+
+        
+        
+            
+              
+                <h2>Languages</h2>
+
+  
+    
+    
+    
+    
+    
+    
+    
+
+<ul>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=go" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          Go
+          84.5%
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          HTML
+          9.1%
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=javascript" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          JavaScript
+          2.7%
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=css" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          CSS
+          2.2%
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=roff" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          Roff
+          0.7%
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/miniflux/v2/search?l=makefile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+          
+    
+
+          Makefile
+          0.3%
+        </a>
+    </li>
+    <li>
+      
+        
+    
+
+        Other
+        0.5%
+      
+    </li>
+</ul>
+
+              
+            
+
+              
+
+  
+
+
+  
+
+
+  
+
+
+
+
+    
+  
+
+  
+
+          
+  <h2>Footer</h2>
+
+  
+
+
+  
+    
+      <a href="https://github.com" title="GitHub" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+        
+    
+
+</a>
+      
+        © 2024 GitHub, Inc.
+      
+    
+
+    
+      <h3 id="sr-footer-heading">Footer navigation</h3>
+
+      <ul>
+
+          <li>
+            <a href="https://docs.github.com/site-policy/github-terms/github-terms-of-service" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Terms</a>
+          </li>
+
+          <li>
+            <a href="https://docs.github.com/site-policy/privacy-policies/github-privacy-statement" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Privacy</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/security" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Security</a>
+          </li>
+
+          <li>
+            <a href="https://www.githubstatus.com/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Status</a>
+          </li>
+
+          <li>
+            <a href="https://docs.github.com" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://support.github.com?tags=dotcom-footer" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Contact</a>
+          </li>
+
+          <li>
+  
+    
+      Manage cookies
+    
+  
+</li>
+
+<li>
+  
+    
+      Do not share my personal information
+    
+  
+</li>
+
+      </ul>
+    
+  
+
+
+
+
+
+    
+
+
+  
+
+    
+  
+    
+    
+      
+        
+    
+
+      
+      
+    
+  
+
+
+    
+  
+  
+
+
+    
+  
+    
+      
+    
+
+      
+    
+
+    
+  
+
+
+  
+    
+      
+    
+
+      
+    
+
+    
+  
+
+
+
+
+
+    
+
+    
+    
+  
+
+

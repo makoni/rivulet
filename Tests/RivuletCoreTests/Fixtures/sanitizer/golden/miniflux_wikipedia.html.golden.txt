@@ -1,0 +1,744 @@
+
+
+
+
+Miniflux — Wikipédia
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a href="#bodyContent">Aller au contenu</a>
+
+	
+		
+			
+				
+
+	
+	
+
+Menu principal
+	
+	
+
+
+				
+		
+
+	
+	Menu principal
+	déplacer vers la barre latérale
+	masquer
+
+
+	
+
+	
+		Navigation
+	
+	
+		
+		<ul>
+			
+			<li id="n-mainpage-description"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Accueil_principal" title="Accueil général [z]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Accueil</a></li><li id="n-thema"><a href="https://fr.wikipedia.org/wiki/Portail:Accueil" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Portails thématiques</a></li><li id="n-randompage"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Page_au_hasard" title="Affiche un article au hasard [x]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article au hasard</a></li><li id="n-contact"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Contact" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Contact</a></li>
+		</ul>
+		
+	
+
+
+	
+	
+
+	
+		Contribuer
+	
+	
+		
+		<ul>
+			
+			<li id="n-aboutwp"><a href="https://fr.wikipedia.org/wiki/Aide:D%C3%A9buter" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Débuter sur Wikipédia</a></li><li id="n-help"><a href="https://fr.wikipedia.org/wiki/Aide:Accueil" title="Accès à l’aide" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Aide</a></li><li id="n-portal"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Accueil_de_la_communaut%C3%A9" title="À propos du projet, ce que vous pouvez faire, où trouver les informations" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Communauté</a></li><li id="n-recentchanges"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Modifications_r%C3%A9centes" title="Liste des modifications récentes sur le wiki [r]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Modifications récentes</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?uselang=fr" title="Soutenez-nous" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Faire un don</a></li>
+		</ul>
+		
+	
+
+
+	
+
+	
+		Langues
+		
+			Sur cette version linguistique de Wikipédia, les liens interlangues sont placés en haut à droite du titre de l’article.<br><a href="#p-lang-btn">Aller en haut</a>.
+		
+	
+
+
+
+
+				
+
+	
+
+
+		
+			
+<a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Accueil_principal" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+	<img src="https://fr.wikipedia.org/static/images/icons/wikipedia.png" alt="" height="50" width="50" loading="lazy">
+	
+		<img alt="Wikipédia" src="https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg" loading="lazy">
+		<img alt="l&#39;encyclopédie libre" src="https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg" width="120" height="13" loading="lazy">
+	
+</a>
+
+		
+		
+			
+
+	<a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche" id="" title="Rechercher sur Wikipédia [f]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">
+
+Rechercher
+	</a>
+	
+		
+			
+				
+					
+						
+						
+					
+					
+				
+				Rechercher
+			
+		
+	
+
+
+			
+	
+	
+
+	
+		
+		<ul>
+			
+			
+		</ul>
+		
+	
+
+
+	
+
+	
+		
+		<ul>
+			
+			
+		</ul>
+		
+	
+
+
+	
+		
+		
+	
+	
+
+	
+		
+		<ul>
+			
+			
+		</ul>
+		
+	
+
+
+	
+
+	
+		
+		<ul>
+			<li id="pt-createaccount-2"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Cr%C3%A9er_un_compte&amp;returnto=Miniflux" title="Nous vous encourageons à créer un compte utilisateur et vous connecter ; ce n’est cependant pas obligatoire." rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Créer un compte</a>
+</li>
+<li id="pt-login-2"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Connexion&amp;returnto=Miniflux" title="Nous vous encourageons à vous connecter ; ce n’est cependant pas obligatoire. [o]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Se connecter</a>
+</li>
+
+			
+		</ul>
+		
+	
+
+
+	
+	
+
+	
+	
+
+Outils personnels
+	
+	
+
+
+		
+
+	
+		
+		<ul>
+			
+			<li id="pt-createaccount"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Cr%C3%A9er_un_compte&amp;returnto=Miniflux" title="Nous vous encourageons à créer un compte utilisateur et vous connecter ; ce n’est cependant pas obligatoire." rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"> Créer un compte</a></li><li id="pt-login"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Connexion&amp;returnto=Miniflux" title="Nous vous encourageons à vous connecter ; ce n’est cependant pas obligatoire. [o]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"> Se connecter</a></li>
+		</ul>
+		
+	
+
+
+
+	
+		Pages pour les contributeurs déconnectés <a href="https://fr.wikipedia.org/wiki/Aide:Introduction" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">en savoir plus</a>
+	
+	
+		
+		<ul>
+			
+			<li id="pt-anoncontribs"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Mes_contributions" title="Une liste des modifications effectuées depuis cette adresse IP [y]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Contributions</a></li><li id="pt-anontalk"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Mes_discussions" title="La page de discussion pour les contributions depuis cette adresse IP [n]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Discussion</a></li>
+		</ul>
+		
+	
+
+
+	
+	
+
+
+
+
+		
+	
+
+
+	
+		
+			
+		
+		
+			
+		
+			
+				
+				
+				
+		
+		
+	
+	
+				
+					
+					
+	
+	<h2>Sommaire</h2>
+	déplacer vers la barre latérale
+	masquer
+
+
+
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text">
+			<a href="#">
+				Début
+			</a>
+		</li>
+		<li id="toc-Caractéristiques">
+		<a href="#Caractéristiques">
+			
+			1Caractéristiques
+		</a>
+		
+		<ul id="toc-Caractéristiques-sublist">
+		</ul>
+	</li>
+	<li id="toc-Liens_externes">
+		<a href="#Liens_externes">
+			
+			2Liens externes
+		</a>
+		
+		<ul id="toc-Liens_externes-sublist">
+		</ul>
+	</li>
+	<li id="toc-Notes_et_références">
+		<a href="#Notes_et_références">
+			
+			3Notes et références
+		</a>
+		
+		<ul id="toc-Notes_et_références-sublist">
+		</ul>
+	</li>
+</ul>
+
+
+					
+		
+			
+		
+		
+			
+				
+					
+						
+
+	
+	
+
+Basculer la table des matières
+	
+	
+
+
+							
+			
+		
+	
+
+
+					
+					<h1 id="firstHeading">Miniflux</h1>
+							
+
+	
+	
+
+Ajouter des langues
+	
+	
+
+		
+			
+			<ul>
+				
+				
+			</ul>
+			<a href="https://www.wikidata.org/wiki/Special:EntityPage/Q16664605#sitelinks-wikipedia" title="Ajouter des liens interlangues" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Ajouter des liens</a>
+		
+
+	
+
+
+				
+					
+						
+							
+								
+
+	
+		
+		<ul>
+			
+			<li id="ca-nstab-main"><a href="https://fr.wikipedia.org/wiki/Miniflux" title="Voir le contenu de la page [c]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article</a></li><li id="ca-talk"><a href="https://fr.wikipedia.org/w/index.php?title=Discussion:Miniflux&amp;action=edit&amp;redlink=1" title="Discussion au sujet de cette page de contenu (page inexistante) [t]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Discussion</a></li>
+		</ul>
+		
+	
+
+
+								
+
+	
+	français
+	
+	
+
+
+					
+
+	
+		
+		<ul>
+			
+			
+		</ul>
+		
+	
+
+
+				
+	
+
+
+							
+						
+						
+							
+								
+
+	
+		
+		<ul>
+			
+			<li id="ca-view"><a href="https://fr.wikipedia.org/wiki/Miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Lire</a></li><li id="ca-ve-edit"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit" title="Modifier cette page [v]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Modifier</a></li><li id="ca-edit"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit" title="Modifier le wikicode de cette page [e]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Modifier le code</a></li><li id="ca-history"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=history" title="Historique des versions de cette page [h]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Voir l’historique</a></li>
+		</ul>
+		
+	
+
+
+							
+				
+							
+								
+
+	
+	Outils
+	
+	
+
+
+									
+						
+
+	
+	Outils
+	déplacer vers la barre latérale
+	masquer
+
+
+	
+
+	
+		Actions
+	
+	
+		
+		<ul>
+			
+			<li id="ca-more-view"><a href="https://fr.wikipedia.org/wiki/Miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Lire</a></li><li id="ca-more-ve-edit"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit" title="Modifier cette page [v]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Modifier</a></li><li id="ca-more-edit"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit" title="Modifier le wikicode de cette page [e]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Modifier le code</a></li><li id="ca-more-history"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=history" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Voir l’historique</a></li>
+		</ul>
+		
+	
+
+
+
+	
+		Général
+	
+	
+		
+		<ul>
+			
+			<li id="t-whatlinkshere"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Pages_li%C3%A9es/Miniflux" title="Liste des pages liées qui pointent sur celle-ci [j]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Pages liées</a></li><li id="t-recentchangeslinked"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Suivi_des_liens/Miniflux" title="Liste des modifications récentes des pages appelées par celle-ci [k]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Suivi des pages liées</a></li><li id="t-upload"><a href="https://fr.wikipedia.org/wiki/Aide:Importer_un_fichier" title="Téléverser des fichiers [u]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Téléverser un fichier</a></li><li id="t-specialpages"><a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Pages_sp%C3%A9ciales" title="Liste de toutes les pages spéciales [q]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Pages spéciales</a></li><li id="t-permalink"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;oldid=204322562" title="Adresse permanente de cette version de cette page" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Lien permanent</a></li><li id="t-info"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=info" title="Davantage d’informations sur cette page" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Informations sur la page</a></li><li id="t-cite"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Citer&amp;page=Miniflux&amp;id=204322562&amp;wpFormIdentifier=titleform" title="Informations sur la manière de citer cette page" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Citer cette page</a></li><li id="t-urlshortener"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:UrlShortener&amp;url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FMiniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Obtenir l&#39;URL raccourcie</a></li><li id="t-urlshortener-qrcode"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:QrCode&amp;url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FMiniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Télécharger le code QR</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q16664605" title="Lien vers l’élément dans le dépôt de données connecté [g]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Élément Wikidata</a></li>
+		</ul>
+		
+	
+
+
+
+	
+		Imprimer / exporter
+	
+	
+		
+		<ul>
+			
+			<li id="coll-create_a_book"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Livre&amp;bookcmd=book_creator&amp;referer=Miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Créer un livre</a></li><li id="coll-download-as-rl"><a href="https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:DownloadAsPdf&amp;page=Miniflux&amp;action=show-download-screen" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Télécharger comme PDF</a></li><li id="t-print"><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;printable=yes" title="Version imprimable de cette page [p]" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Version imprimable</a></li>
+		</ul>
+		
+	
+
+
+
+
+									
+				
+	
+
+
+							
+						
+					
+				
+				
+					
+						
+							
+				
+							
+		
+						
+						
+					
+				
+				
+					
+							
+		
+
+						Un article de Wikipédia, l&#39;encyclopédie libre.
+					
+					
+					
+					
+					<a href="https://fr.wikipedia.org/wiki/Fichier:Circle-icons-email.svg" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Circle-icons-email.svg/35px-Circle-icons-email.svg.png" decoding="async" width="35" height="35" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Circle-icons-email.svg/53px-Circle-icons-email.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Circle-icons-email.svg/70px-Circle-icons-email.svg.png 2x" loading="lazy"></a>
+<p><strong>Cet article est une <a href="https://fr.wikipedia.org/wiki/Aide:%C3%89bauche" title="Aide:Ébauche" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">ébauche</a> concernant <a href="https://fr.wikipedia.org/wiki/Internet" title="Internet" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Internet</a>.</strong>
+</p><p>Vous pouvez partager vos connaissances en l’améliorant (<b><a href="https://fr.wikipedia.org/wiki/Aide:Comment_modifier_une_page" title="Aide:Comment modifier une page" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">comment ?</a></b>) selon les recommandations des <a href="https://fr.wikipedia.org/wiki/Projet:Accueil" title="Projet:Accueil" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">projets correspondants</a>.
+</p>
+
+<figure><a href="https://fr.wikipedia.org/wiki/Mod%C3%A8le:Sources_secondaires" title="Si ce bandeau n&#39;est plus pertinent, retirez-le. Cliquez ici pour en savoir plus." rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Si ce bandeau n&#39;est plus pertinent, retirez-le. Cliquez ici pour en savoir plus." src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Info_Simple.svg/12px-Info_Simple.svg.png" decoding="async" width="12" height="12" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Info_Simple.svg/18px-Info_Simple.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Info_Simple.svg/24px-Info_Simple.svg.png 2x" loading="lazy"></a><figcaption>Si ce bandeau n&#39;est plus pertinent, retirez-le. Cliquez ici pour en savoir plus.</figcaption></figure><a href="https://fr.wikipedia.org/wiki/Fichier:2017-fr.wp-orange-source.svg" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2017-fr.wp-orange-source.svg/45px-2017-fr.wp-orange-source.svg.png" decoding="async" width="45" height="45" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2017-fr.wp-orange-source.svg/68px-2017-fr.wp-orange-source.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2017-fr.wp-orange-source.svg/90px-2017-fr.wp-orange-source.svg.png 2x" loading="lazy"></a>
+<p><strong>Cet article ne s&#39;appuie pas, ou pas assez, sur des sources <a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Sources_primaires,_secondaires_et_tertiaires" title="Wikipédia:Sources primaires, secondaires et tertiaires" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">secondaires ou tertiaires</a></strong> <small>(<time datetime="2014-03">mars 2014</time>).</small>
+</p><p>Pour améliorer la <a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:V%C3%A9rifiabilit%C3%A9" title="Wikipédia:Vérifiabilité" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">vérifiabilité</a> de l&#39;article ainsi que <a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Ce_que_Wikip%C3%A9dia_n%27est_pas#Un_annuaire_ou_une_base_de_donn%C3%A9es" title="Wikipédia:Ce que Wikipédia n&#39;est pas" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">son intérêt encyclopédique</a>, il est nécessaire, quand des <a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Sources_primaires,_secondaires_et_tertiaires" title="Wikipédia:Sources primaires, secondaires et tertiaires" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">sources primaires</a> sont citées, de les associer à des analyses faites par des sources secondaires.
+</p>
+
+
+
+Miniflux
+
+<p>
+
+
+</p>
+<table><caption>Informations</caption>
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/D%C3%A9veloppeur" title="Développeur" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Développé par</a></th>
+<td>
+Frédéric Guillot</td>
+</tr>
+
+
+
+
+
+<tr>
+<th> <a href="https://fr.wikipedia.org/wiki/Version_d%27un_logiciel" title="Version d&#39;un logiciel" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Dernière version</a>
+ </th>
+<td>
+2.1.0 (<time datetime="2024-02-17">17 février 2024</time>)<sup id="cite_ref-wikidata-f2992d0f89b91ee9578634940004e13779ead67d_1-0"><a href="#cite_note-wikidata-f2992d0f89b91ee9578634940004e13779ead67d-1">[1]</a></sup><a href="https://www.wikidata.org/wiki/Q16664605?uselang=fr#P348" title="Voir et modifier les données sur Wikidata" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Voir et modifier les données sur Wikidata" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/10px-Blue_pencil.svg.png" decoding="async" width="10" height="10" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/15px-Blue_pencil.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/20px-Blue_pencil.svg.png 2x" loading="lazy"></a></td>
+</tr>
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/D%C3%A9p%C3%B4t_(informatique)" title="Dépôt (informatique)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Dépôt</a></th>
+<td>
+<a href="https://github.com/miniflux/miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">github.com/miniflux/miniflux</a><a href="https://www.wikidata.org/wiki/Q16664605?uselang=fr#P1324" title="Voir et modifier les données sur Wikidata" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Voir et modifier les données sur Wikidata" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/10px-Blue_pencil.svg.png" decoding="async" width="10" height="10" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/15px-Blue_pencil.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/20px-Blue_pencil.svg.png 2x" loading="lazy"></a></td>
+</tr>
+
+
+
+
+
+<tr>
+<th> <a href="https://fr.wikipedia.org/wiki/Langage_de_programmation" title="Langage de programmation" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Écrit en</a>
+ </th>
+<td>
+<a href="https://fr.wikipedia.org/wiki/Go_(langage)" title="Go (langage)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Go</a><a href="https://www.wikidata.org/wiki/Q16664605?uselang=fr#P277" title="Voir et modifier les données sur Wikidata" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Voir et modifier les données sur Wikidata" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/10px-Blue_pencil.svg.png" decoding="async" width="10" height="10" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/15px-Blue_pencil.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Blue_pencil.svg/20px-Blue_pencil.svg.png 2x" loading="lazy"></a></td>
+</tr>
+
+
+
+
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Plate-forme_(informatique)" title="Plate-forme (informatique)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Environnement</a></th>
+<td>
+<a href="https://fr.wikipedia.org/wiki/Logiciel_multiplate-forme" title="Logiciel multiplate-forme" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">multiplateforme</a></td>
+</tr>
+
+
+
+
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Internationalisation_(informatique)" title="Internationalisation (informatique)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Langues</a></th>
+<td>
+<a href="https://fr.wikipedia.org/wiki/Multilingue" title="Multilingue" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Multilingue</a></td>
+</tr>
+
+<tr>
+<th> Type
+ </th>
+<td>
+<a href="https://fr.wikipedia.org/wiki/RSS" title="RSS" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">agrégateur de RSS</a></td>
+</tr>
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Licence_de_logiciel" title="Licence de logiciel" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Licence</a></th>
+<td>
+<a href="https://fr.wikipedia.org/wiki/AGPL" title="AGPL" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Licence AGPL</a></td>
+</tr>
+
+
+
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Site_web" title="Site web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Site web</a></th>
+<td>
+<a href="http://miniflux.net/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">miniflux.net</a></td>
+</tr>
+
+</table>
+<p>
+
+</p>
+<p><a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit&amp;section=0" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier</a> - <a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit&amp;section=0" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier le code</a> - <a href="https://www.wikidata.org/wiki/Special:ItemByTitle/frwiki/Miniflux" title="d:Special:ItemByTitle/frwiki/Miniflux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">voir Wikidata</a> <a href="https://fr.wikipedia.org/wiki/Aide:Infobox_Wikidata" title="Aide:Infobox Wikidata" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">(aide)</a> <a href="https://fr.wikipedia.org/wiki/Mod%C3%A8le:Infobox_Logiciel" title="Consultez la documentation du modèle" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Consultez la documentation du modèle" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Gtk-dialog-info.svg/12px-Gtk-dialog-info.svg.png" decoding="async" width="12" height="12" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Gtk-dialog-info.svg/18px-Gtk-dialog-info.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Gtk-dialog-info.svg/24px-Gtk-dialog-info.svg.png 2x" loading="lazy"></a></p>
+<p><b>Miniflux</b> est un agrégateur de flux <a href="https://fr.wikipedia.org/wiki/RSS" title="RSS" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">RSS</a> minimaliste. C&#39;est une <a href="https://fr.wikipedia.org/wiki/Application_web" title="Application web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">application web</a> <a href="https://fr.wikipedia.org/wiki/Logiciel_libre" title="Logiciel libre" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">libre</a> diffusé sous licence <a href="https://fr.wikipedia.org/wiki/AGPL" title="AGPL" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">AGPL</a>.
+Ce logiciel est prévu pour être <a href="https://fr.wikipedia.org/wiki/Auto-h%C3%A9bergement_(Internet)" title="Auto-hébergement (Internet)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">auto-hébergé</a> sur son propre serveur ou sur un hébergement mutualisé.
+</p>
+<h2>Caractéristiques[<a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit&amp;section=1" title="Modifier la section : Caractéristiques" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier</a> | <a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit&amp;section=1" title="Modifier le code source de la section : Caractéristiques" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier le code</a>]</h2>
+<ul><li>Mises à jour : il est possible de mettre à jour ses abonnements depuis une tâche planifiée (<a href="https://fr.wikipedia.org/wiki/Cron" title="Cron" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">cronjob</a>) ou depuis l&#39;interface web (<a href="https://fr.wikipedia.org/wiki/Ajax_(informatique)" title="Ajax (informatique)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Ajax</a>). De plus, Miniflux vérifie les en-têtes <a href="https://fr.wikipedia.org/wiki/HTTP" title="HTTP" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">HTTP</a> et met à jour les flux uniquement lorsque c&#39;est nécessaire.</li>
+<li>Réseaux sociaux : Miniflux ne s&#39;intègre pas avec les réseaux sociaux, il n&#39;y a donc aucune forme de partage, d&#39;envoi par email ou encore de système de favoris.</li>
+<li>Publicité : les publicités dans les abonnements sont supprimées automatiquement ainsi que tout éventuel &#34;<a href="https://fr.wikipedia.org/wiki/Pixel_espion" title="Pixel espion" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">pixel espion</a>&#34; (image de 1px sur 1px utilisée par les outils de statistiques). De plus, les liens externes ne transmettent pas le <a href="https://fr.wikipedia.org/wiki/R%C3%A9f%C3%A9rent_(informatique)" title="Référent (informatique)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">référent</a> (l&#39;<a href="https://fr.wikipedia.org/wiki/Uniform_Resource_Locator" title="Uniform Resource Locator" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">adresse web</a> d&#39;où l&#39;utilisateur vient).</li>
+<li>Données personnelles : Miniflux est compatible avec le format <a href="https://fr.wikipedia.org/wiki/OPML" title="OPML" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">OPML</a> qui permet d&#39;importer ou d&#39;exporter sa liste d&#39;abonnements.</li>
+<li>Accessibilité : une fois installé, Miniflux est accessible à la manière d&#39;une <a href="https://fr.wikipedia.org/wiki/Application_web" title="Application web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">application web</a> depuis n&#39;importe quel navigateur web et ce même sur les appareils mobiles.</li>
+<li><a href="https://fr.wikipedia.org/wiki/Interface_de_programmation" title="Interface de programmation" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Interface de programmation</a>: Le logiciel intègre une interface de programmation de sorte à voir créer des scripts afin d&#39;automatiser certaines tâches comme la création d&#39;un utilisateur, de récupérer des statistiques ou encore de récupérer des données concernant son flux ou ses abonnements<sup id="cite_ref-2"><a href="#cite_note-2">[2]</a></sup>.</li></ul>
+<h2>Liens externes[<a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit&amp;section=2" title="Modifier la section : Liens externes" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier</a> | <a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit&amp;section=2" title="Modifier le code source de la section : Liens externes" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier le code</a>]</h2>
+<ul><li><abbr title="Langue : anglais">(en)</abbr> <a href="http://miniflux.net/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Site officiel en anglais</a></li></ul>
+<h2>Notes et références[<a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;veaction=edit&amp;section=3" title="Modifier la section : Notes et références" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier</a> | <a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;action=edit&amp;section=3" title="Modifier le code source de la section : Notes et références" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">modifier le code</a>]</h2>
+<ol>
+<li id="cite_note-wikidata-f2992d0f89b91ee9578634940004e13779ead67d-1"><a href="#cite_ref-wikidata-f2992d0f89b91ee9578634940004e13779ead67d_1-0">↑</a> « <a href="https://github.com/miniflux/v2/releases/tag/2.1.0" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><cite>Release 2.1.0</cite></a> », <time datetime="2024-02-17">17 février 2024</time> <small>(consulté le <time datetime="2024-02-20">20 février 2024</time>)</small>
+</li>
+<li id="cite_note-2"><a href="#cite_ref-2">↑</a> « <a href="https://miniflux.app/docs/api.html" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><cite>API Reference - Documentation</cite></a> », sur miniflux.app <small>(consulté le <time datetime="2020-06-26">26 juin 2020</time>)</small>
+</li>
+</ol>
+
+
+<table>
+<tr><th colspan="3"><a href="https://fr.wikipedia.org/wiki/Mod%C3%A8le:Palette_Agr%C3%A9gateurs" title="Modèle:Palette Agrégateurs" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><abbr title="Voir ce modèle.">v</abbr></a> · <a href="https://fr.wikipedia.org/w/index.php?title=Mod%C3%A8le:Palette_Agr%C3%A9gateurs&amp;action=edit" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><abbr title="Modifier ce modèle. Merci de prévisualiser avant de sauvegarder.">m</abbr></a><a href="https://fr.wikipedia.org/wiki/Agr%C3%A9gateur" title="Agrégateur" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Agrégateurs</a></th>
+</tr>  <tr>
+<th><a href="https://fr.wikipedia.org/wiki/Client_lourd" title="Client lourd" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Clients de bureau</a></th>
+<td><table>
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Logiciel_libre" title="Logiciel libre" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Libre</a></th>
+<td>
+<ul><li><i><a href="https://fr.wikipedia.org/wiki/Akregator" title="Akregator" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Akregator</a></i></li>
+<li><a href="https://fr.wikipedia.org/w/index.php?title=%27%27FeedReader%27%27&amp;action=edit&amp;redlink=1" title="&#39;&#39;FeedReader&#39;&#39; (page inexistante)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><i>FeedReader</i></a> <a href="https://www.wikidata.org/wiki/Q50836189" title="d:Q50836189" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">(<abbr title="Wikidata">d</abbr>)</a> <a href="https://tools.wmflabs.org/reasonator/?q=Q50836189&amp;lang=fr" title="Voir avec Reasonator" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="Voir avec Reasonator" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Wikidata-Reasonator_small_logo.svg/12px-Wikidata-Reasonator_small_logo.svg.png" decoding="async" width="12" height="12" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Wikidata-Reasonator_small_logo.svg/18px-Wikidata-Reasonator_small_logo.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Wikidata-Reasonator_small_logo.svg/24px-Wikidata-Reasonator_small_logo.svg.png 2x" loading="lazy"></a></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Liferea" title="Liferea" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Liferea</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Mozilla_Thunderbird" title="Mozilla Thunderbird" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Mozilla Thunderbird</a></i></li>
+<li><i>QuiteRSS</i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/GNOME_Web" title="GNOME Web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Web</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/QBittorrent" title="QBittorrent" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">QBittorrent</a></i></li>
+<li><i>RSSOwl</i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Zimbra" title="Zimbra" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Zimbra</a></i></li></ul>
+</td>
+</tr> <tr>
+<th><a href="https://fr.wikipedia.org/wiki/Logiciel_propri%C3%A9taire" title="Logiciel propriétaire" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Propriétaire</a></th>
+<td>
+<ul><li><i><a href="https://fr.wikipedia.org/wiki/Microsoft_Outlook" title="Microsoft Outlook" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Microsoft Outlook</a></i></li></ul>
+</td>
+</tr>                            
+
+</table></td>
+<td rowspan="2"><a href="https://fr.wikipedia.org/wiki/Fichier:Feed-icon.svg" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Feed-icon.svg/70px-Feed-icon.svg.png" decoding="async" width="70" height="70" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Feed-icon.svg/105px-Feed-icon.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Feed-icon.svg/140px-Feed-icon.svg.png 2x" loading="lazy"></a></td>
+</tr> <tr>
+<th>Basés sur le <a href="https://fr.wikipedia.org/wiki/Web" title="Web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">web</a></th>
+<td><table>
+<tr>
+<th><a href="https://fr.wikipedia.org/wiki/Logiciel_libre" title="Logiciel libre" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Libre</a></th>
+<td>
+<ul><li><i><a href="https://fr.wikipedia.org/w/index.php?title=Feedbin&amp;action=edit&amp;redlink=1" title="Feedbin (page inexistante)" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Feedbin</a> <a href="https://en.wikipedia.org/wiki/Feedbin" title="en:Feedbin" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">(en)</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/FreshRSS" title="FreshRSS" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">FreshRSS</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/KrISS-feed" title="KrISS-feed" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">KrISS-feed</a></i></li>
+<li><i>Leed</i></li>
+<li><i>Selfoss</i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/NewsBlur" title="NewsBlur" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">NewsBlur</a></i></li>
+<li><i>Cartulary</i></li>
+<li><i>Miniflux</i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Tiny_Tiny_RSS" title="Tiny Tiny RSS" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Tiny Tiny RSS</a></i></li></ul>
+</td>
+</tr> <tr>
+<th><a href="https://fr.wikipedia.org/wiki/Logiciel_propri%C3%A9taire" title="Logiciel propriétaire" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Propriétaire</a></th>
+<td>
+<ul><li><i><a href="https://fr.wikipedia.org/wiki/Feedly" title="Feedly" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Feedly</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Inoreader" title="Inoreader" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Inoreader</a></i></li>
+<li><i><a href="https://fr.wikipedia.org/wiki/Netvibes" title="Netvibes" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Netvibes</a></i></li></ul>
+</td>
+</tr>                            
+
+</table></td>
+</tr>                             </table>
+<p>,
+</p><ul id="bandeau-portail"><li><a href="https://fr.wikipedia.org/wiki/Portail:Logiciels_libres" title="Portail des logiciels libres" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img alt="icône décorative" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Heckert_GNU_white.svg/25px-Heckert_GNU_white.svg.png" decoding="async" width="25" height="24" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Heckert_GNU_white.svg/37px-Heckert_GNU_white.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Heckert_GNU_white.svg/49px-Heckert_GNU_white.svg.png 2x" loading="lazy"></a> <a href="https://fr.wikipedia.org/wiki/Portail:Logiciels_libres" title="Portail:Logiciels libres" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Portail des logiciels libres</a> </li>                    </ul>
+
+
+
+
+
+Ce document provient de « <a href="https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;oldid=204322562" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">https://fr.wikipedia.org/w/index.php?title=Miniflux&amp;oldid=204322562</a> ».
+					<a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Accueil" title="Catégorie:Accueil" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Catégories</a> : <ul><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Logiciel_%C3%A9crit_en_Go" title="Catégorie:Logiciel écrit en Go" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Logiciel écrit en Go</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Agr%C3%A9gateur" title="Catégorie:Agrégateur" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Agrégateur</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Application_web" title="Catégorie:Application web" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Application web</a></li></ul>Catégories cachées : <ul><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Wikip%C3%A9dia:%C3%A9bauche_Internet" title="Catégorie:Wikipédia:ébauche Internet" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Wikipédia:ébauche Internet</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_manquant_de_r%C3%A9f%C3%A9rences_depuis_mars_2014" title="Catégorie:Article manquant de références depuis mars 2014" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article manquant de références depuis mars 2014</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_manquant_de_r%C3%A9f%C3%A9rences/Liste_compl%C3%A8te" title="Catégorie:Article manquant de références/Liste complète" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article manquant de références/Liste complète</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Page_utilisant_P348" title="Catégorie:Page utilisant P348" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Page utilisant P348</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Page_utilisant_P1324" title="Catégorie:Page utilisant P1324" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Page utilisant P1324</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Page_utilisant_P277" title="Catégorie:Page utilisant P277" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Page utilisant P277</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Logiciel_cat%C3%A9goris%C3%A9_automatiquement_par_langage_d%27%C3%A9criture" title="Catégorie:Logiciel catégorisé automatiquement par langage d&#39;écriture" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Logiciel catégorisé automatiquement par langage d&#39;écriture</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_utilisant_une_Infobox" title="Catégorie:Article utilisant une Infobox" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article utilisant une Infobox</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_contenant_un_appel_%C3%A0_traduction_en_anglais" title="Catégorie:Article contenant un appel à traduction en anglais" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Article contenant un appel à traduction en anglais</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Portail:Logiciels_libres/Articles_li%C3%A9s" title="Catégorie:Portail:Logiciels libres/Articles liés" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Portail:Logiciels libres/Articles liés</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Portail:Logiciel/Articles_li%C3%A9s" title="Catégorie:Portail:Logiciel/Articles liés" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Portail:Logiciel/Articles liés</a></li><li><a href="https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Portail:Informatique/Articles_li%C3%A9s" title="Catégorie:Portail:Informatique/Articles liés" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Portail:Informatique/Articles liés</a></li></ul>
+				
+			
+			
+		
+		
+			
+
+	<ul id="footer-info">
+	<li id="footer-info-lastmod"> La dernière modification de cette page a été faite le 17 mai 2023 à 04:04.</li>
+	<li id="footer-info-copyright"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Citation_et_r%C3%A9utilisation_du_contenu_de_Wikip%C3%A9dia" title="Droit d&#39;auteur" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Droit d&#39;auteur</a> : les textes sont disponibles sous <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" title="Licence Creative Commons Attribution - partage dans les mêmes conditions 4.0 international" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">licence Creative Commons attribution, partage dans les mêmes conditions</a> ; d’autres conditions peuvent s’appliquer. Voyez les <a href="https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use/fr" title="Conditions d’utilisation de la Wikimedia Foundation" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">conditions d’utilisation</a> pour plus de détails, ainsi que les <a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Cr%C3%A9dits_graphiques" title="Droit d&#39;auteur de certaines icônes" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">crédits graphiques</a>. En cas de réutilisation des textes de cette page, voyez <a href="https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Citer/Miniflux" title="Citer ou réutiliser cette page" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">comment citer les auteurs et mentionner la licence</a>.<br>
+Wikipedia® est une marque déposée de la <a href="https://wikimediafoundation.org/" title="Wikimedia Foundation" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Wikimedia Foundation, Inc.</a>, organisation de bienfaisance régie par le paragraphe <a href="https://fr.wikipedia.org/wiki/501c" title="501c" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">501(c)(3)</a> du code fiscal des États-Unis.<br></li>
+</ul>
+
+	<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy/fr" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Politique de confidentialité</a></li>
+	<li id="footer-places-about"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:%C3%80_propos_de_Wikip%C3%A9dia" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">À propos de Wikipédia</a></li>
+	<li id="footer-places-disclaimers"><a href="https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Avertissements_g%C3%A9n%C3%A9raux" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Avertissements</a></li>
+	<li id="footer-places-contact"><a href="https://fr.wikipedia.org/wiki/Wikipédia:Contact" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Contact</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Code de conduite</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Développeurs</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/fr.wikipedia.org" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Statistiques</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Déclaration sur les témoins (cookies)</a></li>
+	<li id="footer-places-mobileview"><a href="https://fr.m.wikipedia.org/w/index.php?title=Miniflux&amp;mobileaction=toggle_view_mobile" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">Version mobile</a></li>
+</ul>
+
+	<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://wikimediafoundation.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img src="https://fr.wikipedia.org/static/images/footer/wikimedia-button.png" srcset="https://fr.wikipedia.org/static/images/footer/wikimedia-button-1.5x.png 1.5x, https://fr.wikipedia.org/static/images/footer/wikimedia-button-2x.png 2x" width="88" height="31" alt="Wikimedia Foundation" loading="lazy"></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank"><img src="https://fr.wikipedia.org/static/images/footer/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="https://fr.wikipedia.org/static/images/footer/poweredby_mediawiki_132x47.png 1.5x, https://fr.wikipedia.org/static/images/footer/poweredby_mediawiki_176x62.png 2x" width="88" height="31" loading="lazy"></a></li>
+</ul>
+
+
+
+		
+	 
+ 
+
+	<ul>
+		<li>
+		
+
+Activer ou désactiver la limitation de largeur du contenu
+
+</li>
+	</ul>
+
+
+
+

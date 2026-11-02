@@ -1,7 +1,9 @@
 # Stage 3 — Parsing & sanitization
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
-**Status:** implementation merged, open on one exit criterion (the fixture corpus): the
+**Status:** merged, with every exit criterion met: the last one, the fixture corpus, closed with PR
+#36, which reads the two `sanitizer/` HTML fixtures end to end against the reference's own output.
+The
 charset slice is merged (labels, detection and transcoding, fixture corpus) and so is the XML reader
 slice (tokenizer, lexical scanner, entity table, format detection); the date parser slice is merged
 too (Go's `parse` over the reference's 209 layouts, with a fixed zone table in place of the
@@ -28,8 +30,14 @@ The integration items below are pinned by stage 4's refresh pipeline (`RefreshPi
 PR #25), which is the first caller that reads these layers end to end: entries land sanitized
 through the stub server and are written once, a `304` writes nothing, and a document the parser
 cannot decide on yields its typed error, and the validators the row held are not overwritten. The
-stage stays open on one exit criterion: the two `sanitizer/` HTML fixtures still have no case that
-reads them.
+last exit criterion closed with PR #36: the two `sanitizer/` HTML fixtures are read end to end
+against the reference's output, which upstream never asserts for them, since it uses those files
+only as benchmark inputs. `miniflux_github.html` matched the port as it was, and
+`miniflux_wikipedia.html` did not: the four places that differed are two rules, `inCaptionIM` and
+the mode the open stack gives back to the element around a nested table when it closes, and both are
+ported now. The rules that no output can tell apart are named in the header of
+`SanitizerTableModeTests`, which pins the two rules with
+cases that can fail on them.
 
 The typed errors landed as PR #24: ten inputs read through the reference's parser path pinned
 the sentinel, the branch the switch takes for it and how the scan ends, and found no
@@ -140,9 +148,14 @@ output can tell apart are named as unpinnable.
   have. The text layer (`StripTags` and `TruncateHTML`) is the suite PR #15 adds. The tokenizer
   and insertion-mode rules have no reference corpus, so they are pinned through the sanitizer
   output as traced against `golang.org/x/net/html` at the version `miniflux/go.mod` pins, v0.57.0
-  — see `docs/parity.md` — except the four the output cannot show: a NUL in a tag name, a NUL in
-  an attribute key, the shape of the entity table, and where comment data ends, which are asserted
-  through the tokenizer itself.
+  — see `docs/parity.md` — except the four the output cannot show: a NUL in a tag name, a NUL in an
+  attribute key, the shape of the entity table, and where comment data ends, which are asserted
+  through the tokenizer itself. The two `sanitizer/` HTML fixtures are read end to end by
+  `SanitizerFixtureCorpusTests` (PR #36) against `Fixtures/sanitizer/golden/`, the reference's
+  output for them; the two rules that output needed the port to add — `inCaptionIM`, and the mode
+  the open stack gives back to the element around a nested table when it closes — are pinned case by
+  case by
+  `SanitizerTableModeTests`.
 
 ### Integration
 
@@ -153,7 +166,9 @@ output can tell apart are named as unpinnable.
 
 ## Exit criteria
 
-- [ ] The ported Miniflux fixture corpus is green.
+- [x] The ported Miniflux fixture corpus is green, including the two `sanitizer/` HTML fixtures,
+  which are read end to end against the reference's own output by `SanitizerFixtureCorpusTests`
+  (PR #36) over `Fixtures/sanitizer/golden/`.
 - [x] Hostile sanitizer corpus produces no active content.
 
 ## Risks

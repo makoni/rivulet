@@ -385,12 +385,14 @@ the corpus covers it | | Attribute order inside `math` or `svg` | the sort belon
 not sort | the sort is applied whatever the content is, because the foreign-content mode is not
 ported | An `a` with more than one attribute inside `math` or `svg` writes its attributes sorted
 here and as read in the reference; the corpus cannot pin it, so no case asserts it | | Caption,
-column-group and nested-table modes, and the scope markers | each mode has its own rules, including
-the markers the scope checks stop at | the table modes are the three scopes `clearStackToContext`
-answers for, with the implied `tbody` and `tr`; a section start tag pops the open
-`tbody`/`thead`/`tfoot` before it is reprocessed, and a cell closes for the names `inCellIM` lists |
-A `caption`'s own mode and a nested table are not modelled, so markup that switches into them is
-attached to the insertion point instead | | Text inside a table | only whitespace text is added to
+the mode the open stack gives, and the scope markers | each mode has its own rules, including
+the markers the scope checks stop at | the table modes are the scopes `clearStackToContext` answers
+for, with the implied `tbody` and `tr`, and the caption mode is ported; the mode is read from the
+open stack the way `resetInsertionMode` computes it, so a nested table reads in the table mode and
+gives the mode back to the element around it when it closes; `colgroup` answers with the table mode,
+because the column-group mode is not ported | Content inside `colgroup` nests here where the
+reference closes the section, and a caption outside the table scope is not popped here; the ported
+half is pinned by `SanitizerTableModeTests` | | Text inside a table | only whitespace text is added to
 the table element; anything else is foster parented | added to the insertion point | Same for
 whitespace; non-whitespace text can be inside the table here | | Comment nodes | kept as nodes in
 the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the
