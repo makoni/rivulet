@@ -8,7 +8,7 @@ import Testing
 /// Every expected value is the reference's own output for its input, not this implementation's,
 /// so a failure here is a difference in the port, and recording it in `docs/parity.md` is the
 /// only way a difference can stay. The values were written by running Miniflux v2.3.3 at commit
-/// `c4d54f87` on Go 1.26.0, the toolchain `go.mod` pins, through `NewXMLDecoder` and `Token()` —
+/// `c4d54f87` on Go 1.26.0, the version `go.mod` declares, through `NewXMLDecoder` and `Token()` —
 /// the reader path, not `Decode` — with `TZ=UTC`, the method recorded in `docs/testing.md`.
 /// Re-running the reference on that toolchain reproduces all 30 streams.
 ///

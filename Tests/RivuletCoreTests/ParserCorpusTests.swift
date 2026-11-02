@@ -8,15 +8,15 @@ import Testing
 
 /// The parser fixture corpus: the 8 fixtures read end to end against the reference's own output.
 ///
-/// Upstream uses these files only as benchmark and fuzz inputs, so no Go test states what the
-/// parse produces. The golden files in `Fixtures/parser/golden/` carry the values the reference
-/// produces, written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the toolchain
-/// `go.mod` pins, over these bytes with `TZ=UTC`, and the method is recorded in `docs/testing.md`.
-/// Every golden value is the reference's, never this implementation's, so a failure here is a
-/// difference in the implementation under test, and recording it in `docs/parity.md` is the only
-/// way a difference can stay. Re-running the reference on that toolchain reproduces every value
-/// here except the two date lines of `rdf_UTF8.xml`, which record the clock this suite injects:
-/// the rule reads the clock for an item that has no date, so a run answers with its own clock for
+/// Upstream uses these files only as benchmark and fuzz inputs, so no Go test states what the parse
+/// produces. The golden files in `Fixtures/parser/golden/` carry the values the reference produces,
+/// written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the version `go.mod`
+/// declares, over these bytes with `TZ=UTC`, and the method is recorded in `docs/testing.md`. Every
+/// golden value is the reference's, never this implementation's, so a failure here is a difference
+/// in the implementation under test, and recording it in `docs/parity.md` is the only way a
+/// difference can stay. Re-running the reference on that toolchain reproduces every value here
+/// except the two date lines of `rdf_UTF8.xml`, which record the clock this suite injects: the
+/// adapter reads the clock for an item that has no date, so a run answers with its own clock for
 /// them.
 ///
 /// Each golden line pins one value as `path = value`, and every golden value is the reference's,

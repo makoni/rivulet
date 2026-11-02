@@ -38,10 +38,10 @@ and `parser/parser_error_corpus.txt` are the five things here that are not copie
 file. The golden files are the reference's output on the fixtures above — each file says so on its
 own line, except the two sanitizer goldens, which are the output byte for byte because the test
 compares the whole document — and the three corpora are the reference's output on inputs of our own,
-written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the toolchain `go.mod` pins,
+written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the version `go.mod` declares,
 with the clock fixed to UTC. Two kinds of line are not the reference's answer for their input, and
 the files name them: the two date lines of `parser/golden/rdf_UTF8.xml.golden.txt` record the clock
-the suite injects, because the rule answers with the clock for an item that has no date; and the
+the suite injects, because the adapter answers with the clock for an item that has no date; and the
 outcome lines of `parser/parser_error_corpus.txt` name the branch the switch takes, which for a
 routed case whose scan fails is not what the reference answers — for those two it answers with the
 failure the adapter reports. The tolerance corpus was read through `NewXMLDecoder` and `Token()`,

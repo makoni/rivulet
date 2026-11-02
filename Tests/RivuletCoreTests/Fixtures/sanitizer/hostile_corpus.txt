@@ -1,11 +1,12 @@
 # The hostile corpus: inputs that try to make the sanitizer write active content.
 
-# Every output is the reference's own output for the input above it, produced by running
-# Miniflux v2.3.3 at commit c4d54f87 with the reference's test helper options: OpenLinksInNewTab
-# true, base URL http://example.org/, TZ=UTC. The method is recorded in docs/testing.md. A control
-# byte in an input or an output is written as an escape form, and an empty output as (empty). A data
-# line is the string the reference produced for the input above it, so it is not wrapped here:
-# breaking it would change what it says.
+# Every output is the reference's own output for the input above it, produced by running Miniflux
+v2.3.3 at commit c4d54f87 on Go 1.26.0, the version go.mod declares, with the reference's test
+helper options: OpenLinksInNewTab true, base URL http://example.org/, TZ=UTC. The method is recorded
+in docs/testing.md. A control byte in an input or an output is written as an escape form, a
+backslash inside an input is written as two of them, and an empty output as (empty); the test reads
+these forms back before running the input. A data line is the string the reference produced for the
+input above it, so it is not wrapped here: breaking it would change what it says.
 
 # Each rule line names the rule of the case under it, and every case here can fail on that rule: a
 # case is left out when a wrong implementation of the rule it names writes the same output. So the

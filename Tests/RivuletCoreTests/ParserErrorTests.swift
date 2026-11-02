@@ -8,13 +8,13 @@ import Testing
 /// Every expected value is the reference's own output for its input, not this implementation's,
 /// so a failure here is a difference in the port, and recording it in `docs/parity.md` is the
 /// only way a difference can stay. The values were written by running Miniflux v2.3.3 at commit
-/// `c4d54f87` on Go 1.26.0, the toolchain `go.mod` pins, through `DetectFeedFormat` and the
-/// switch `ParseFeed` makes, with `TZ=UTC`, the method recorded in `docs/testing.md`. The
-/// reference reports the failure as its sentinel `ErrFeedFormatNotDetected`
+/// `c4d54f87` on Go 1.26.0, the version `go.mod` declares, through `DetectFeedFormat` and the
+/// switch `ParseFeed` makes, with `TZ=UTC`, the method recorded in `docs/testing.md`. The reference
+/// reports the failure as its sentinel `ErrFeedFormatNotDetected`
 /// (`internal/reader/parser/parser.go:17`), which the port models as
-/// `ParserError.feedFormatNotDetected`. Two outcome lines are not the reference's answer for
-/// their input: for the two routed cases whose scan fails, the reference answers with the failure
-/// the adapter reports, so those lines name the branch the switch takes, which is what this pin
+/// `ParserError.feedFormatNotDetected`. Two outcome lines are not the reference's answer for their
+/// input: for the two routed cases whose scan fails, the reference answers with the failure the
+/// adapter reports, so those lines name the branch the switch takes, which is what this pin
 /// compares. Re-running the reference on that toolchain reproduces every value here except those
 /// two.
 ///

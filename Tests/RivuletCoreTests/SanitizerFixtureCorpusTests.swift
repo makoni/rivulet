@@ -12,7 +12,7 @@ import Testing
 /// Upstream reads these files only in `BenchmarkSanitize` and `BenchmarkTruncateHTML`, so no Go
 /// test states what the sanitizer writes for them. Every golden file is the reference's own output
 /// for the fixture bytes, written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0 —
-/// the toolchain `go.mod` pins — through the reference's test helper options, `OpenLinksInNewTab:
+/// the version `go.mod` declares — through the reference's test helper options, `OpenLinksInNewTab:
 /// true`, with the options `config.NewConfigOptions()` gives, the method recorded in
 /// `docs/testing.md`. The base URL a case uses is the one the reference's own benchmark pairs with
 /// that file, because the URLs the sanitizer resolves attribute values against it. Re-running the

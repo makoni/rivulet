@@ -12,7 +12,7 @@ import Testing
 /// Every expected value is the reference's own output for its input, not this implementation's, so
 /// a failure here is a difference in the port, and recording it in `docs/parity.md` is the only way
 /// a difference can stay. The values were written by running Miniflux v2.3.3 at commit `c4d54f87`
-/// on Go 1.26.0, the toolchain `go.mod` pins, through the reference's test helper options —
+/// on Go 1.26.0, the version `go.mod` declares, through the reference's test helper options —
 /// `OpenLinksInNewTab: true`, base URL `http://example.org/`, `TZ=UTC` — the method recorded in
 /// `docs/testing.md`. Re-running the reference on that toolchain reproduces all 145 outputs.
 ///
