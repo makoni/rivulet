@@ -1,28 +1,28 @@
 # Stage 3 — Parsing & sanitization
 
 **Goal:** raw feed bytes → clean, normalized, deduplicated entries.
-**Status:** implementation merged, open on one exit criterion (the fixture corpus): the charset
-slice is merged (labels, detection and transcoding, fixture corpus) and so is the XML reader slice
-(tokenizer, lexical scanner, entity table, format detection); the date parser slice is merged too (Go's `parse` over the reference's 209
-layouts, with a fixed zone table in place of the machine's tzdata); the URL layer the sanitizer
-resolves through is merged too (the `net/url` subset, the URI-scheme allowlist, the
-tracking-parameter cleaner). The sanitizer slice is merged (PR #13), with the findings from its
-review landed as PR #14, and its text layer — `StripTags` and `TruncateHTML` — as PR #15. The
-normalized model with the shared primitives and the RSS adapter is merged as PR #16, and RDF
-(RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters landed one format at a
-time: the JSON reader — our own reader over the bytes, because Miniflux reads a JSON
-feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed adapter — the
+**Status:** implementation merged, open on one exit criterion (the fixture corpus): the
+charset slice is merged (labels, detection and transcoding, fixture corpus) and so is the XML reader
+slice (tokenizer, lexical scanner, entity table, format detection); the date parser slice is merged
+too (Go's `parse` over the reference's 209 layouts, with a fixed zone table in place of the
+machine's tzdata); the URL layer the sanitizer resolves through is merged too (the `net/url` subset,
+the URI-scheme allowlist, the tracking-parameter cleaner). The sanitizer slice is merged (PR #13),
+with the findings from its review landed as PR #14, and its text layer — `StripTags` and
+`TruncateHTML` — as PR #15. The normalized model with the shared primitives and the RSS adapter is
+merged as PR #16, and RDF (RSS 1.0) as PR #17, and Atom 1.0 and 0.3 as PR #18. The format adapters
+landed one format at a time: the JSON reader — our own reader over the bytes, because Miniflux reads
+a JSON feed through `encoding/json` — is merged as PR #19, and so is the JSON Feed adapter — the
 field read for the shapes `json.go` declares, and the chains `adapter.go` writes — as PR #20. The
 parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end against the reference's
 own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
-inputs. The hostile sanitizer corpus is merged as PR #22: 145 inputs pinned against the
-reference's own output, each with the rule that output pins, and the one rule the corpus found
-the port missing — the order a formatting element writes its attributes in. The entity-decoding
-and whitespace items of the normalization URL part closed with it, because the value reaches the
-URL layer already decoded by the tokenizer and the URL part normalizes no whitespace of its own.
-The tolerance decision table landed as PR #23: 52 inputs read through the reference's reader
-path pinned the four quirk classes and found no divergence, so the table records what the
-reference reports, and the 30 cases that can fail on their rules are committed as a fixture.
+inputs. The hostile sanitizer corpus is merged as PR #22: 145 inputs pinned against the reference's
+own output, each with the rule that output pins, and the one rule the corpus found the port missing
+— the order a formatting element writes its attributes in. The entity-decoding and whitespace items
+of the normalization URL part closed with it, because the value reaches the URL layer already
+decoded by the tokenizer and the URL part normalizes no whitespace of its own. The tolerance
+decision table landed as PR #23: 52 inputs read through the reference's reader path pinned the four
+quirk classes and found no divergence, so the table records what the reference reports, and the 30
+cases that can fail on their rules are committed as a fixture.
 
 The integration items below are pinned by stage 4's refresh pipeline (`RefreshPipelineTests`,
 PR #25), which is the first caller that reads these layers end to end: entries land sanitized
@@ -47,9 +47,9 @@ output can tell apart are named as unpinnable.
       RSS adapter through the same root name, which the detection suite pins; no fixture of those
       versions of its own is in the corpus, which the backlog records.
 - [x] Entry identity fallback chains and SHA-256 hashing, exactly as the reference does
-      (per-format rules in `docs/reference-notes.md`). The chains are the adapters' helpers, and each
-      format pins its own branch of them; the corpus goldens pin them end to end, and the refresh
-      path pins that the identity is taken before the cleaner runs.
+      (per-format rules in `docs/reference-notes.md`). The chains are the adapters' helpers, and
+      each format pins its own branch of them; the corpus goldens pin them end to end, and the
+      refresh path pins that the identity is taken before the cleaner runs.
 - [x] Date parsing: port the reference rules — integer Unix timestamp first, RFC822/850/1123
       interpreted as local time, 209 layouts after normalization (3 in the local-time group and 206
       in the list), PST/PDT workaround, UTC-offset clamping; adapters fall back to "now" when
