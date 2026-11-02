@@ -17,10 +17,11 @@ set -euo pipefail
 # at all, that the fetcher reached the network, and which round read a row.
 #
 # The schedule the pass leaves is the interval the policy applies — the reference default of 60
-# minutes, because the command builds `NextCheckPolicy()` with the reference defaults — so a feed is
-# fetched about three times in 2h, and the `<ttl>` the stub feeds carry cannot shorten that: the
-# policy takes the maximum of the mode's interval and the delay the answer carries. "Stamps
-# advancing" is read as those three advances, not as a faster cadence.
+# minutes, because the command builds `NextCheckPolicy()` with the reference defaults — so each feed
+# is fetched twice in 2h, at the two hour boundaries, and the `<ttl>` the stub feeds carry cannot
+# shorten that: the policy takes the maximum of the mode's interval and the delay the answer
+# carries. The third boundary falls at the instant the run stops, which the duration guard reads as
+# 7200 s, so "stamps advancing" is read as those two advances, not as a faster cadence.
 #
 # Two numbers are the run's own rules and the script fails on them: the duration and the number of
 # feeds, and a third — the window must not be smaller than the rows, so the pick the checks compute

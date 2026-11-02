@@ -525,7 +525,7 @@ What it cannot show, and the script and the checks say so:
 - the request itself: the checks read the stamps the storage wrote, so a run that stored the same
   stamps by another route would read the same. The live run does reach the server, and the log keeps
   the reports the command printed, which is the part a check cannot turn into an assertion;
-- - the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub   feeds
+- the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds
   carry, because the policy takes the maximum of the two, so "the stamps advance" means two
   advances per feed in 2h — the two hour boundaries inside the window — and the conditional-hit path
   is reached on the second fetch of a feed that did not change, which is the last fetch a 2h window
