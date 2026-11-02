@@ -36,7 +36,7 @@ is inside the MVP.
 | 0 | [Foundation](stage-0-foundation.md) | done | M |
 | 1 | [Storage layer](stage-1-storage.md) | done | M |
 | 2 | [Feed fetching](stage-2-fetching.md) | done — the deferred criterion is met by stage 4's pipeline | M |
-| 3 | [Parsing & sanitization](stage-3-parsing.md) | merged — every format has its adapter and its corpus, and the integration items are pinned by stage 4's pipeline; one exit criterion is open, because the two sanitizer HTML fixtures have no case that reads them | XL |
+| 3 | [Parsing & sanitization](stage-3-parsing.md) | merged — every format has its adapter and its corpus, and the integration items are pinned by stage 4's pipeline; the last exit criterion closed with PR #36, the two sanitizer HTML fixtures read end to end against the reference's own output | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline, the tick's batch selection with the worker pool, both modes of `ScheduleNextCheck` with the weekly count, the merge and tombstone halves of the entry loop, the three halves of the icon path, the call that path makes for a feed from the pipeline, the manual pass the CLI makes over the batch, the minimal `status --json` contract the soak reads, and the soak artifact itself — 2h over 24 local stub feeds, its checks reading that contract round after round — are pinned, and retention is pinned by `RetentionTests`; open: the icon image resizing, which needs a dependency that has not been approved, and the in-process cadence loop that lands with stage 6 | M |
 | 5 | [Client APIs & OPML](stage-5-apis.md) | not started | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |

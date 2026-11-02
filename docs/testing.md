@@ -147,6 +147,13 @@ file pins one value per line as `path = value`, says that its values are the ref
 that fixture, names the rule its fixture pins, and says what it cannot show; a value that would
 break a line is written escaped, and content longer than the files keep readable is pinned as its
 first 120 code points plus its SHA-256, which pins the whole of it.
+The sanitizer fixture corpus (`SanitizerFixtureCorpusTests`) reads the two `sanitizer/` HTML
+fixtures the same way, end to end, and its golden files hold the output as bytes with no header
+line, because the assertion compares the whole document. The run used the toolchain `go.mod` pins,
+Go 1.26.0, the reference's test helper options — `OpenLinksInNewTab: true` with what
+`config.NewConfigOptions()` gives — and the base URL the reference's own benchmark pairs with each
+file, because the URLs the sanitizer writes out are resolved against it, and it ran in a copy of the
+pinned clone so the clone itself stayed clean.
 
 Only the values named below were traced independently of the run, from the fixture bytes; every
 other pinned value rests on the run, which is why the golden files and the test say plainly that a

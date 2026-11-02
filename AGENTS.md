@@ -44,9 +44,12 @@ check is shown to fail on the rule it names; the in-process cadence loop itself 
 stage 6, and retention is pinned by `RetentionTests`).
 Stage 4 keeps two open things: the icon image resizing, which needs a dependency that has not
 been approved, and the cadence loop named above.
-Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
-open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
-criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's
+Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit criterion
+met: the two sanitizer HTML fixtures are read end to end against the reference's own output, which
+took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack
+gives back to the element around a nested table when it closes — and both are pinned case by case by
+`SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to the refresh path
+is met by the pipeline. Keep this line and the plan's
 status table in sync.
 
 ## Toolchain
