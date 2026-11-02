@@ -36,7 +36,9 @@ only as benchmark inputs. `miniflux_github.html` matched the port as it was, and
 `miniflux_wikipedia.html` did not: the four places that differed are two rules, `inCaptionIM` and
 the mode the open stack gives back to the element around a nested table when it closes, and both are
 ported now. The rules that no output can tell apart are named in the header of
-`SanitizerTableModeTests`, which pins the two rules with
+`SanitizerTableModeTests`, which pins three rules with cases that can fail on them: the caption list
+from both sides, the mode the open stack gives back, and the `table` start tag read in the table
+mode.
 cases that can fail on them.
 
 The typed errors landed as PR #24: ten inputs read through the reference's parser path pinned
@@ -154,7 +156,8 @@ output can tell apart are named as unpinnable.
   `SanitizerFixtureCorpusTests` (PR #36) against `Fixtures/sanitizer/golden/`, the reference's
   output for them; the two rules that output needed the port to add — `inCaptionIM`, and the mode
   the open stack gives back to the element around a nested table when it closes — are pinned case by
-  case by
+  case by `SanitizerTableModeTests`, which also pins the `table` start tag read in the table mode, a
+  rule neither fixture exercises.
   `SanitizerTableModeTests`.
 
 ### Integration
@@ -291,3 +294,8 @@ Findings from the parser error review (#24) that do not change behavior:
   whole of what this path can reach because the rule reads single bytes; Go's
   `unicode.IsSpace` counts more runes above `U+00FF`, so the wording describes the reachable
   subset rather than the class as Unicode defines it.
+
+Findings from the sanitizer fixture corpus review (#36) that do not change behavior:
+
+- `HTMLFragmentTree.swift` is at 537 lines, past the ~500 cap: the table-mode rules are the part
+  that could be split off from the body rules, which is a shape change and not a behavior change.

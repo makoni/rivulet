@@ -6,8 +6,9 @@ import Foundation
 import Testing
 @testable import RivuletCore
 
-/// The two table modes the port now models: `inCaptionIM` (`parse.go`:1549) and the mode a nested
-/// table gives back through `resetInsertionMode` (`parse.go`:449).
+/// The rules the port now models for the table modes: `inCaptionIM` (`parse.go`:1549), the mode a
+/// nested table gives back through `resetInsertionMode` (`parse.go`:449), and the `table` start tag
+/// that closes an open table and reads itself again in the mode the stack gives.
 ///
 /// Every expected value is the reference's own output for its input, written by running Miniflux
 /// v2.3.3 at commit `c4d54f87` on Go 1.26.0 — the toolchain `go.mod` pins — through the reference's
@@ -17,15 +18,17 @@ import Testing
 /// test, and recording it in `docs/parity.md` is the only way a difference can stay. No case reads
 /// a clock, a locale or the network.
 ///
-/// Each case names the rule it pins and can fail on that rule. What cannot be pinned is named here:
-/// the members of the caption's start-tag list other than `th`, because the port's table rules cut
-/// the open stack to the table either way, so a case writes the same string whether the list closes
-/// the caption or not; the end tags the caption mode ignores, which the port already ignores for
-/// the same reason; `clearActiveFormattingElements`, which the port has no list for; the failure
-/// branch of `popUntil(tableScope, caption)`, which needs a caption outside the table scope, and so
-/// needs the scope markers the port does not have; the column-group mode, which the port keeps as
-/// the table mode; and content that is not whitespace, because the port puts content at the open
-/// element while the reference foster-parents it outside the table, so a case that shows where the
+/// Each case names the rule it pins and can fail on that rule. Membership of the list is pinned
+/// from both sides: `th` pins a name the caption mode's list does not have, and `tr` pins one it
+/// does, because a name in the list moves the token after it out of the caption. The other members
+/// pin that same rule, so a case for each of them would repeat the pin rather than add one. What
+/// cannot be pinned is named here: the end tags the caption mode ignores, which the port already
+/// ignores for the same reason — a name outside the open stack is ignored whatever the mode is —
+/// `clearActiveFormattingElements`, which the port has no list for; the failure branch of
+/// `popUntil(tableScope, caption)`, which needs a caption outside the table scope, and so needs the
+/// scope markers the port does not have; the column-group mode, which the port keeps as the table
+/// mode; and content that is not whitespace, because the port puts content at the open element
+/// while the reference foster-parents it outside the table, so a case that shows where the
 /// insertion point is can only be built on whitespace or on a start tag from the mode's own list.
 @Suite struct SanitizerTableModeTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
@@ -34,12 +37,21 @@ import Testing
         Sanitizer.sanitize(baseURL: "http://example.org/", rawHTML: input, options: options)
     }
 
-    /// `th` is not in the start-tag list `inCaptionIM` pops the caption for, so inside an open
+    /// `th` is in the cell mode's start-tag list and not in the caption mode's, so inside an open
     /// caption it is read by the rules for the body, where it is a table-only tag and not an
-    /// element. It is the only member of that list a case can pin.
+    /// element. It pins which names the list does not have.
     @Test func thIsNotInCaptionStartTagList() {
         #expect(sanitize("<table><caption>x<th>y</caption></table>") ==
             "<table><caption>xy</caption></table>")
+    }
+
+    /// A name the list does have is pinned the same way, from the other side: `tr` closes the open
+    /// caption, so the `tr` node is written at the table and the whitespace inside it belongs to
+    /// the row. An implementation without `tr` in the list writes no `tr` at all, so this fails on
+    /// membership rather than on the table rules the port already has.
+    @Test func trIsInCaptionStartTagList() {
+        #expect(sanitize("<table><caption> x<tr> </tr></table>") ==
+            "<table><caption> x</caption><tr> </tr></table>")
     }
 
     /// The caption end tag closes the open caption, so the whitespace that follows it is written by

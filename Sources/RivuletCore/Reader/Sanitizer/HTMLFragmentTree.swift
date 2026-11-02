@@ -98,10 +98,9 @@ final class HTMLFragmentTree {
     ]
 
     /// The names `inCaptionIM` handles before it falls through: it closes the open caption and
-    /// reads the token again in the table mode. This is the cell list without `th`, and `th` being
-    /// outside it is the only thing about the list a case can pin: for every other name the table
-    /// rules the port already has cut the stack to the table, so the case writes the same string
-    /// either way.
+    /// reads the token again in the table mode. This is the cell list without `th`, and both
+    /// sides of it are pinned: `th` pins a name the list does not have, and `tr` pins one it
+    /// has, because a name in the list moves the token after it out of the caption.
     static let captionStartTags: Set<String> = [
         "caption", "col", "colgroup", "tbody", "td", "tfoot", "thead", "tr",
     ]
