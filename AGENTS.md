@@ -38,8 +38,12 @@ migrations the command runs, and the minimal `status --json` contract the soak r
 `StatusSnapshotTests` and `StatusCommandTests`: each field is the value the row holds, an absent
 stamp stays `null`, the rows are listed in id order, the counts read every row whatever its state,
 `due` is the batch's pick, the environment values reach the totals through the command, and the flag
-gates the migrations. The cadence loop that calls the pipeline and the soak artifact follow;
-retention is pinned by `RetentionTests`).
+gates the migrations. The soak artifact landed with PR #35: the shell is its cadence, its checks
+read the data each round leaves behind rather than the process that produced them, and each
+check is shown to fail on the rule it names; the in-process cadence loop itself waits for
+stage 6, and retention is pinned by `RetentionTests`).
+Stage 4 keeps two open things: the icon image resizing, which needs a dependency that has not
+been approved, and the cadence loop named above.
 Stage 3 is merged, with its remaining findings in its stage-file backlog, and one exit criterion
 open: the two sanitizer HTML fixtures have no case that reads them. Stage 2 is merged, and the exit
 criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's

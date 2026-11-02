@@ -7,8 +7,10 @@ A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://gi
 > sanitizer are in place: configuration, the SQLite storage wrapper with its pragmas, the CLI
 > skeleton, `/healthz`, entry queries and FTS5 search, retention and maintenance (backup, vacuum,
 > checkpoint on shutdown, startup integrity check), the per-feed refresh pipeline with the
-> scheduler's due-batch selection, the icon path, and the CLI commands `refresh` and `status`. Stage
-> 4 stays open for its cadence loop and the soak artifact, and the client APIs land with stage 5.
+> scheduler's due-batch selection, the icon path, and the CLI commands `refresh` and `status`,
+> together with the soak artifact that drives the pipeline over 2h against local stub feeds. Stage 4
+> stays open for its in-process cadence loop and for the icon image resizing, which needs a
+> dependency that has not been approved, and the client APIs land with stage 5.
 
 ## What it will be
 

@@ -4,10 +4,11 @@
 **Status:** in progress — ten slices merged (PR #25–#34): the pipeline, the tick's batch selection
 with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
 write, the icon selector with the data-URL rules, the icon download half with the storage link and
-the orphan pass, the checker half with the guard and the storage decisions, the call that path
-makes for a feed from the pipeline, the manual pass the CLI makes over the batch — the values
-it reads, each job running once, a failure reported without stopping the rest, and the flag that
-gates the migrations this command runs — and the minimal `status --json` contract the soak reads.
+the orphan pass, the checker half with the guard and the storage decisions, the call that path makes
+for a feed from the pipeline, the manual pass the CLI makes over the batch — the values it reads,
+each job running once, a failure reported without stopping the rest, and the flag that gates the
+migrations this command runs — and the minimal `status --json` contract the soak reads. The soak
+itself landed as PR #35 over 24 local stub feeds.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -38,9 +39,11 @@ fork the forced flag selects, the icon URL the parse produced, and the site URL 
 read from the row, pinned by `RefreshIconTests`. The ninth slice is the manual pass the CLI
 makes over the batch: one read, each job run once through the worker's path, the failure
 reported without stopping the rest, the values read from the environment, and the flag gating
-the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact follows;
-retention is already pinned by `RetentionTests`. The status stays in progress until the exit
-criteria below cover the whole stage.
+the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact landed as PR
+#35: the shell is its cadence, its checks read the data each round leaves behind rather than the
+process that produced them, and each check is shown to fail on the rule it names. Retention is
+already pinned by `RetentionTests`. What keeps stage 4 open is the icon image resizing, which needs
+a dependency that has not been approved, and the in-process cadence loop that lands with stage 6.
 
 ## Scope
 
@@ -155,10 +158,58 @@ criteria below cover the whole stage.
 
 ## Exit criteria
 
-- [ ] Soak artifact: `Scripts/soak.sh` runs ≥ 2h with ≥ 20 local stub feeds; `status --json`
+- [x] Soak artifact: `Scripts/soak.sh` runs ≥ 2h with ≥ 20 local stub feeds; `status --json`
       snapshots (stage 4 ships the minimal feed-state `status --json`; stage 6 extends it) show
       `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached to the stage
-      status.
+      status. Landed as PR #35: the run is the shell's cadence over the manual pass, the checks
+      are `Scripts/soak_check.py`, each reading the data a round leaves behind rather than the
+      process that produced it, and the run under "Soak run" is the one the artifact made.
+
+### Soak run
+
+The run the artifact made: `SOAK_SECONDS=7200`, `SOAK_FEEDS=24`, three control rows, 30 s rounds,
+239 rounds, every round reported nothing. The excerpt is the log as the artifact printed it, one
+line per round, so its lines run past the prose width.
+
+```text
+run start: feeds=24 error_feed=25 limit=2 batch=100 pool=8 port=49615 due_before_first_pass=0
+round 2 instant=1793601092 ran=25 due_after=0 error_feed_count=1 report=[Feed 25: feedFormatNotDetected
+Refreshed 24 feed(s), 1 failed.] exit_refresh=0 exit_status=0
+round 122 instant=1793604716 ran=25 due_after=0 error_feed_count=2 report=[Feed 25: feedFormatNotDetected
+Refreshed 24 feed(s), 1 failed.] exit_refresh=0 exit_status=0
+round 239 instant=1793608258 ran=0 due_after=0 error_feed_count=2 report=[Refreshed 0 feed(s), 0 failed.] exit_refresh=0 exit_status=0
+run end: rounds=239 error_increments=2 entries=72 distinct_pairs=72
+```
+
+What the run read, in the numbers it left behind:
+
+- two active rounds, at the two hour boundaries inside the window, each running exactly the pick:
+  the 24 good feeds plus the error feed. Every other round read the batch and ran nothing, which is
+  what the pass does when nothing is due.
+- the schedule each pass left is 3600 s ahead, the round-robin minimum the policy applies; the
+  `<ttl>` the stub feeds carry is one minute and `max(interval, refreshDelay)` keeps the larger, so
+  the run has two advances per feed and no third hour boundary inside the window.
+- the error feed incremented once in each active round and stopped at the limit of 2. The run ends
+  before the third boundary, so the exclusion is not seen as a round that ran 24 rows instead of 25:
+  it is seen only through the rule that computes the pick, and the live exclusion is pinned by
+  `SchedulerBatchTests`.
+- entries: 72 with 72 distinct `(feed_id, hash)` pairs — the entry loop wrote the three items of
+  each feed once and nothing afterwards, because the mutated feeds change their mtime and not their
+  content.
+- the stub server logged 140 requests: 92 answered 200, 18 answered 304 (the conditional hit on the
+  feeds not touched since their last pass), 30 answered 404 — the icon path's lookup of the default
+  icon. The checker ran 30 times, so the run also read the website document and the root document;
+  for a row the run seeded, the website document is the feed file itself, because `CheckedNow` reads
+  the row's site URL and falls back to the feed URL when it is empty.
+- falsifiability, as the artifact's rules were shown to fail: 17 probes, each reporting its own rule
+  and no other, and the four guards on the run's own numbers each seen to fire by declaring a value
+  below what they require (60 s against 7200, 19 feeds against 20, a window of 6 against the rows it
+  must cover, and a database that already had rows). The same rules read a real round's files: the
+  pair from round 2 and round 1 passed, and moving one number in a copy of that pair (`totals.due`
+  from 0 to 1) reported exactly `due_matches_pick`.
+The comment in the script about the mutation said the rewritten feed has "something new to parse"
+while its content is unchanged; the comment now says what the run showed, and nothing else in the
+script changed.
 
 Findings from the review runs on PR #25 that do not change behavior:
 - `recordFetch` and `recordParsingError` are keyed by the feed id, where the reference's statements
