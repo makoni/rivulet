@@ -8,8 +8,9 @@ import Testing
 /// Every expected value is the reference's own output for its input, not this implementation's,
 /// so a failure here is a difference in the port, and recording it in `docs/parity.md` is the
 /// only way a difference can stay. The values were written by running Miniflux v2.3.3 at commit
-/// `c4d54f87` (Go 1.26.0) through `NewXMLDecoder` and `Token()` — the reader path, not `Decode`
-/// — with `TZ=UTC`, the method recorded in `docs/testing.md`.
+/// `c4d54f87` on Go 1.26.0, the version `go.mod` declares, through `NewXMLDecoder` and `Token()` —
+/// the reader path, not `Decode` — with `TZ=UTC`, the method recorded in `docs/testing.md`.
+/// Re-running the reference on that toolchain reproduces all 30 streams.
 ///
 /// The comparison reads the stream as the reference reports it, so it cannot show the production
 /// a run of text came from: `Token()` reports a CDATA run as character data like any other run,

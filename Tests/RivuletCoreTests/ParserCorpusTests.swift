@@ -8,12 +8,16 @@ import Testing
 
 /// The parser fixture corpus: the 8 fixtures read end to end against the reference's own output.
 ///
-/// Upstream uses these files only as benchmark and fuzz inputs, so no Go test states what the
-/// parse produces. The golden files in `Fixtures/parser/golden/` carry the values the reference
-/// produces, written by running Miniflux v2.3.3 over these bytes with the clock fixed to UTC, and
-/// the method is recorded in `docs/testing.md`. Every golden value is the reference's, never this
-/// implementation's, so a failure here is a difference in the implementation under test, and
-/// recording it in `docs/parity.md` is the only way a difference can stay.
+/// Upstream uses these files only as benchmark and fuzz inputs, so no Go test states what the parse
+/// produces. The golden files in `Fixtures/parser/golden/` carry the values the reference produces,
+/// written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the version `go.mod`
+/// declares, over these bytes with `TZ=UTC`, and the method is recorded in `docs/testing.md`. Every
+/// golden value is the reference's, never this implementation's, so a failure here is a difference
+/// in the implementation under test, and recording it in `docs/parity.md` is the only way a
+/// difference can stay. Re-running the reference on that toolchain reproduces every value here
+/// except the two date lines of `rdf_UTF8.xml`, which record the clock this suite injects: the
+/// adapter reads the clock for an item that has no date, so a run answers with its own clock for
+/// them.
 ///
 /// Each golden line pins one value as `path = value`, and every golden value is the reference's,
 /// never this implementation's. The paths are the fields the adapters write, plus `format`,
@@ -25,9 +29,10 @@ import Testing
 /// as `\n`. The zone name a date resolved to is not pinned, because the reference reads it through
 /// the machine's tzdata; see `docs/parity.md`.
 ///
-/// No case reads a clock, a locale or the network. The base URL a case uses is the one its golden
-/// file was written with, stated at the call site, because the feed URL an adapter keeps is the
-/// base URL when the document declares no self link.
+/// No case reads the machine's clock, a locale or the network; the clock the date fallback reads is
+/// injected here. The base URL a case uses is the one its golden file was written with, stated at
+/// the call site, because the feed URL an adapter keeps is the base URL when the document declares
+/// no self link.
 @Suite struct ParserCorpusTests {
     private let clock = ParsedDate(epochSeconds: 1_700_000_000, nanoseconds: 0, zoneName: "UTC",
         zoneOffsetSeconds: 0)

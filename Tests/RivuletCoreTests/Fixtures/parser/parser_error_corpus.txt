@@ -1,12 +1,15 @@
 # The parser error corpus: the inputs the typed error and the switch decide on, read through
 # the reference's own path.
 
-# Every value is the reference's own output for the input above it, produced by running
-# Miniflux v2.3.3 at commit c4d54f87 (Go 1.26.0) through DetectFeedFormat and the switch
-# ParseFeed makes, with TZ=UTC. The method is recorded in docs/testing.md. A control byte is
-# written as an escape form, and the decision, the outcome and the end state are the
-# reference's output for the case above it, so they are not wrapped here: breaking them
-# would change what they say.
+# Every value is the reference's own output for the input above it, produced by running Miniflux
+# v2.3.3 at commit c4d54f87 on Go 1.26.0, the version go.mod declares, through DetectFeedFormat and
+# the switch ParseFeed makes, with TZ=UTC. The method is recorded in docs/testing.md. Two outcome
+# lines are not the reference's answer for their input, and the test that reads this file says so:
+# for the two cases the switch routes and whose scan fails, the reference answers with the failure
+# the adapter reports, so those lines name the branch the switch takes. A control byte is written as
+# an escape form, and the decision, the outcome and the end state are the reference's output for the
+# case above it, so they are not wrapped here: breaking them would change what they say. Re-running
+# the reference on that toolchain reproduces every line here except those two.
 
 # A case is included when a wrong implementation of the rule its line names writes a different
 # value for it, and a case is left out when it does not. The number the cap counts is pinned

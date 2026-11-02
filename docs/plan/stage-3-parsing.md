@@ -158,6 +158,16 @@ output can tell apart are named as unpinnable.
   case by `SanitizerTableModeTests`, which also pins the `table` start tag read in the table mode, a
   rule neither fixture exercises.
 
+- Re-verification on the pinned toolchain (2026-11-02): the five things here that are not copies of
+  an upstream file were run again against the reference on Go 1.26.0, the version `go.mod` declares,
+  in a copy of the pinned clone. Each value reproduces the committed file — 230 parser golden
+  values, 145 hostile outputs, 30 tolerance streams, 30 parser error values and both sanitizer
+  goldens byte for byte — except the four lines a fresh run answers differently, now named in the
+  files that state them: the two date lines of `rdf_UTF8.xml.golden.txt`, which record the clock the
+  suite injects, and the two outcome lines of `parser_error_corpus.txt`, which name the branch the
+  switch takes where the reference answers with the adapter's failure. The suite is green on the
+  same tree: 785 unit tests, 218 integration tests and 12 app tests.
+
 ### Integration
 
 - Stub server → fetch → parse → sanitize → store: entries appear exactly once with sanitized
@@ -297,3 +307,8 @@ Findings from the sanitizer fixture corpus review (#36) that do not change behav
 
 - `HTMLFragmentTree.swift` is at 536 lines, past the ~500 cap: the table-mode rules are the part
   that could be split off from the body rules, which is a shape change and not a behavior change.
+
+Findings from the verification-run review (#37) that do not change behavior:
+
+- `docs/testing.md` is at 580 lines, past the ~500 cap: the Fixtures section is the part that could
+  be split by area, which is a shape change and not a behavior change.

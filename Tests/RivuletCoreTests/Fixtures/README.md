@@ -29,28 +29,37 @@ asserts their parsed output, so the parser tests define their own expected value
 As of the charset, the XML reader, the parser corpus, the hostile sanitizer corpus, the tolerance
 corpus, the parser error corpus and the sanitizer fixture corpus slices, `encoding/`, `xml/`
 including `xml/tolerance_corpus.txt`, `parser/` including `parser/parser_error_corpus.txt`,
-`sanitizer/hostile_corpus.txt` and the two `sanitizer/` HTML files are read by tests.  The two
+`sanitizer/hostile_corpus.txt` and the two `sanitizer/` HTML files are read by tests. The two
 `sanitizer/` HTML files are read end to end against `sanitizer/golden/`: upstream reads them only in
 `BenchmarkSanitize` and `BenchmarkTruncateHTML`, and no upstream test asserts what they produce, so
 their golden files are the reference's output from a run rather than a ported assertion.
- `parser/golden/`, `sanitizer/golden/`, `sanitizer/hostile_corpus.txt`, `xml/tolerance_corpus.txt`
+`parser/golden/`, `sanitizer/golden/`, `sanitizer/hostile_corpus.txt`, `xml/tolerance_corpus.txt`
 and `parser/parser_error_corpus.txt` are the five things here that are not copies of an upstream
 file. The golden files are the reference's output on the fixtures above — each file says so on its
 own line, except the two sanitizer goldens, which are the output byte for byte because the test
 compares the whole document — and the three corpora are the reference's output on inputs of our own,
-written by running Miniflux v2.3.3 (Go 1.26, the version `miniflux/go.mod` pins) with the clock
-fixed to UTC. The tolerance corpus was read through `NewXMLDecoder` and `Token()`, the reader path,
-and the parser error corpus through `DetectFeedFormat` and the switch `ParseFeed` makes. Each file
-names the rule its input pins, and each says what cannot be pinned: the corpora also say that a case
-is left out when a wrong implementation of the rule its line names writes the same output, so a rule
-that no
-output can tell apart has no case. The two sanitizer goldens were written by running that same
-reference on `Go 1.26.0` with `OpenLinksInNewTab: true` and the options `config.NewConfigOptions()`
-gives, against the base URL the reference's own benchmark pairs with each file, because the URLs the
-sanitizer writes out are resolved against it; the run was made on a copy of the pinned clone, so the
-clone itself stayed clean. None of the five is Rivulet's output: they record what the reference
-produces, so a test failing against them is a difference in the implementation under test.
-Regenerating any of the five means running the reference again, never running Rivulet.
+written by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0, the version `go.mod` declares,
+with the clock fixed to UTC. Two kinds of line are not the reference's answer for their input, and
+the files name them: the two date lines of `parser/golden/rdf_UTF8.xml.golden.txt` record the clock
+the suite injects, because the adapter answers with the clock for an item that has no date; and the
+outcome lines of `parser/parser_error_corpus.txt` name the branch the switch takes, which for a
+routed case whose scan fails is not what the reference answers — for those two it answers with the
+failure the adapter reports. The tolerance corpus was read through `NewXMLDecoder` and `Token()`,
+the reader path, and the parser error corpus through `DetectFeedFormat` and the switch `ParseFeed`
+makes. Each file names the rule its input pins, and each says what cannot be pinned: the corpora
+also say that a case is left out when a wrong implementation of the rule its line names writes the
+same output, so a rule that no output can tell apart has no case. The two sanitizer goldens were
+written by running that same reference with `OpenLinksInNewTab: true` and the options
+`config.NewConfigOptions()` gives, against the base URL the reference's own benchmark pairs with
+each file, because the URLs the sanitizer writes out are resolved against it; the run was made on a
+copy of the pinned clone, so the clone itself stayed clean. None of the five is Rivulet's output:
+they record what the reference produces, so a test failing against them is a difference in the
+implementation under test. Regenerating any of the five means running the reference again, never
+running Rivulet.
+
+The five were run again on that toolchain, in a copy of the pinned clone, and each value reproduces
+the file committed here — except the two kinds of line named above, which a fresh run answers with
+its own clock and with the adapter's failure. The counts the run reported are in the stage file.
 
 To refresh the corpus, copy the files again from the pinned commit rather than editing
 them here; a local edit would silently invalidate the provenance above.
