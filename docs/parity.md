@@ -946,25 +946,28 @@ failure
 
 **Matching the reference.**
 
-- The order the creation rules are read in, the character class read per Unicode scalar, and the
-  password minimum counted as bytes are the reference's, and `UserValidationTests` pins each of
-  them with an input that would fail two rules naming the rule the reference reaches first.
+- The order the creation rules are read in is the reference's, and `UserValidationTests` pins it
+  with an input that would fail two rules naming the rule it reaches first; the character class read
+  per Unicode scalar and the password minimum counted as bytes are pinned by their own cases.
 - The command's own order is the reference's too: the existence read runs before any rule, so a
   stored name is skipped whatever its characters are. The pin seeds a name the character class
   rejects, and only the skip path can end that run without a failure, so the run completing is what
   shows the order. The trim and the secure read are `askCredentials`'s, and `TestConsole` records
   the flag of each read, which is what lets a pin name which path the read took rather than only
   the value that came back.
-- The 72-byte refusal is kept as an explicit guard, because Vapor's C implementation truncates the
-  plaintext silently instead of reporting the length; without the guard a 73-byte plaintext whose
-  first 72 bytes are the stored password answers as a match, where the reference reports the length
-  as an error. The cost is passed explicitly as 10, because Vapor's `hash` defaults to 12.
+- The 72-byte rule is the reference's on the hash path, and the port keeps it there. On the compare
+  path the port answers as the reference does, which has no length check there: its comparison reads
+  at most the first 72 key bytes, so a 73-byte plaintext that shares those bytes with the stored
+  password answers as a match. Vapor's C implementation truncates the plaintext the same way, so the
+  pin names the reference's answer rather than a rule the port added.
+- The cost is passed explicitly as 10, because Vapor's `hash` defaults to 12 while the reference's
+  is 10 at the version `go.mod` pins.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Revision marker | writes hashes as `$2a$` | writes `$2b$` | The same algorithm at the same cost. A hash written at either marker verifies through both, which is what `BcryptHasherTests` pins, so hashes stored by the reference stay readable by this port; the pins compare a reference-written hash and do not assert which marker the port writes |
+| Revision marker | writes hashes as `$2a$` | writes `$2b$` | The same algorithm at the same cost. A hash written at the reference's marker verifies through this port, which is what `BcryptHasherTests` pins; which marker this port writes, and whether its hashes read back through the reference, is not pinned, so a stored hash from either is readable here |
 | Rule identity | four localized error names resolved through the locale catalog | the rule as a named case, and the sentence a command prints for it is the port's own | The text differs; which rule an input fails on is the same, and that is what is pinned. The reference's names are recorded in `docs/reference-notes.md` |
 | Report wording | two `slog` records with fixed sentences, sent to the log | console lines, with the port's own wording | Pins read the outcome and the name carried on the line, not the sentence |
 | Interactive-terminal check | refuses to read when the input is not a terminal | not ported, because this port reads through the console seam and a captured console has no terminal to test | A non-terminal input is accepted here. No pin can reach this case, so it is stated in the command comment |

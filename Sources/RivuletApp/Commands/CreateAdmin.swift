@@ -77,8 +77,11 @@ extension RivuletCLI {
             try await rivulet.shutdown()
         }
 
-        /// Reads one line and trims it, as `askCredentials` does. The prompt wording is the port's
-        /// own; the flag says which path the read takes, and `CreateAdminTests` reads that flag.
+        /// Reads one line and trims it, as `askCredentials` does. The class is Swift's
+        /// `whitespaces`, which is not Go's `TrimSpace`: the two differ on `U+0085`, and the line
+        /// ending is already gone by the time a console read returns, so the difference is not
+        /// reachable here. The prompt wording is the port's own; the flag says which path the read
+        /// takes, and `CreateAdminTests` reads that flag.
         private func read(_ console: any Console, prompt: String, secure: Bool) -> String {
             console.print(prompt, newLine: false)
             return console.input(isSecure: secure).trimmingCharacters(in: .whitespaces)

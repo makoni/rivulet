@@ -9,23 +9,24 @@ import Vapor
 /// The cost is the reference's: `bcrypt.DefaultCost` is 10 at the version `go.mod` pins
 /// (`golang.org/x/crypto v0.54.0`), while Vapor's `hash` defaults to 12, so the cost is passed
 /// explicitly. The reference writes hashes with the `$2a$` marker and this port writes `$2b$`, the
-/// same algorithm under a different marker, recorded in `docs/parity.md`; a hash written at either
-/// marker verifies through this type, which is what `BcryptHasherTests` pins.
+/// same algorithm under a different marker, recorded in `docs/parity.md`; a hash written at the
+/// reference's marker verifies through this type, which is what `BcryptHasherTests` pins.
 ///
-/// The plaintext limit is the reference's too: Go's package reports a plaintext longer than 72
-/// bytes as an error on both paths, while Vapor's C implementation truncates the plaintext
-/// silently, so without the guard here a 73-byte plaintext whose first 72 bytes are the stored
-/// password would answer as a match. The guard keeps the port on the reference's side. This is a
-/// one-shot path — one hash per command run, or one comparison per authenticated request — so it
-/// runs on the caller's task rather than as a loop.
+/// The 72-byte limit is the reference's, and it belongs to the hash path only: Go's package reports
+/// a plaintext longer than 72 bytes as an error when it creates a hash, while its comparison reads
+/// at most the first 72 key bytes, so a longer plaintext that shares those bytes answers as a
+/// match. Vapor's C implementation truncates the plaintext the same way, so `verify` needs no
+/// guard: it answers as the reference does. This is a one-shot path — one hash per command run, or
+/// one comparison per authenticated request — so it runs on the caller's task rather than as a
+/// loop.
 public struct BcryptHasher: Sendable {
     /// `bcrypt.DefaultCost`, the cost the reference writes.
     public static let referenceCost = 10
 
-    /// The longest plaintext the reference's package accepts, in bytes.
+    /// The longest plaintext the reference's package accepts when it creates a hash, in bytes.
     public static let maximumPasswordBytes = 72
 
-    /// The plaintext the reference's package reports as too long.
+    /// The plaintext the reference's package reports as too long, on the hash path.
     public enum HashError: Error, Equatable, Sendable {
         case passwordTooLong
     }
@@ -39,24 +40,19 @@ public struct BcryptHasher: Sendable {
     /// - Throws: `HashError.passwordTooLong` for a plaintext past the reference's limit, and the
     ///   digest's own errors for a cost or a salt it rejects.
     public func hash(_ password: String) throws -> String {
-        try check(password)
-        return try Bcrypt.hash(password, cost: Self.referenceCost)
-    }
-
-    /// Checks `password` against a stored hash.
-    ///
-    /// - Throws: `HashError.passwordTooLong` for a plaintext past the reference's limit — the
-    ///   reference reports the length as an error here rather than answering whether a truncated
-    ///   plaintext matches.
-    /// - Returns: `true` when the stored hash was created from `password`.
-    public func verify(_ password: String, hash stored: String) throws -> Bool {
-        try check(password)
-        return try Bcrypt.verify(password, created: stored)
-    }
-
-    private func check(_ password: String) throws {
         guard password.utf8.count <= Self.maximumPasswordBytes else {
             throw HashError.passwordTooLong
         }
+        return try Bcrypt.hash(password, cost: Self.referenceCost)
+    }
+
+    /// Checks `password` against a stored hash. No length check here, as the reference has none:
+    /// the comparison reads at most the first 72 key bytes, so a plaintext past the hash-path limit
+    /// answers as a match when its first 72 bytes are the stored password.
+    ///
+    /// - Returns: `true` when the stored hash was created from `password`, or from its first 72
+    ///   bytes.
+    public func verify(_ password: String, hash stored: String) throws -> Bool {
+        try Bcrypt.verify(password, created: stored)
     }
 }

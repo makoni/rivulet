@@ -6,13 +6,14 @@ import Testing
 
 /// CRUD round-trip for ``UserRepository`` against a real SQLite file.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting: the lowercase
-/// write, the case-insensitive lookup, the uniqueness of the name, the order `list` reads, the
-/// default "All" category written with the row, and the existence read finding the stored name
-/// whatever case it is given, which a patch that compares the input as read fails. What they cannot
-/// fail on: the single-row limit of that existence read, which a lookup that fetched every matching
-/// row answers the same way, so the code states it rather than pinning it; and the transaction the
-/// pair of writes would need, which is the caller's and is stated in the repository comment.
+/// What these pins can fail on: the lowercase write, the case-insensitive lookup, the uniqueness of
+/// the name, the order `list` reads, the default "All" category written with the row, and the
+/// existence read finding the stored name whatever case it is given, which a patch that compares
+/// the input as read fails. That last pin was checked by patching and reverting for this change;
+/// the others were checked the same way when they landed. What they cannot fail on: the single-row
+/// limit of that existence read, which a lookup that fetched every matching row answers the same
+/// way, so the code states it rather than pinning it; and the transaction the pair of writes would
+/// need, which is the caller's and is stated in the repository comment.
 @Suite struct UserRepositoryTests {
     @Test func createStoresTheAccountFieldsAndAssignsAnID() async throws {
         try await withMigratedStorage { _, storage in

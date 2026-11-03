@@ -22,7 +22,7 @@ Rivulet is a single binary with two faces over one core:
         ┌──────────────────────▼─────────────────────────┐
         │                   RivuletCore                  │
         │  config · storage · fetcher · parser ·         │
-        │  sanitizer · scheduler · OPML · user rules      │
+        │  sanitizer · scheduler · OPML · user rules     │
         └──────────────────────┬─────────────────────────┘
                                │
                      SQLite (WAL + FTS5)

@@ -11,14 +11,13 @@ import RivuletApp
 /// is the reference's 10, which a patch that calls `hash` without a cost fails; the stored value is
 /// the hash and not the plaintext, which a patch returning the plaintext fails; verification
 /// accepts the password it was created from and rejects another, which a patch that answers as a
-/// match without comparing fails; the salt is random, which a patch that hashes one password to one
-/// value fails, because two hashes then compare equal while the pins still call them different; the
-/// plaintext longer than the reference's 72-byte limit is refused on both paths, which a patch that
-/// drops the guard fails — Vapor's C implementation truncates the plaintext at 72 bytes (
-/// `CVaporBcrypt/bcrypt.c`), so without the guard a 73-byte plaintext whose first 72 bytes are the
-/// stored password answers as a match, where the reference's package reports the length as an
-/// error; and a hash written at the reference's marker verifies here, which a patch that admits
-/// only this port's marker fails.
+/// match without comparing fails; the salt is random, which a patch that returns the same hash for
+/// one password fails, because the two hashes then compare equal while the pin still calls them
+/// different; the plaintext past the reference's 72-byte limit is refused on the hash path, which a
+/// patch that drops the guard fails; the same plaintext answers as a match on the compare path,
+/// which is the reference's answer — its comparison reads at most the first 72 key bytes — and a
+/// patch that refuses past 72 bytes there fails that pin; and a hash written at the reference's
+/// marker verifies here, which a patch that admits only this port's marker fails.
 ///
 /// What they cannot fail on: the revision marker this port writes, which is `$2b$` where the
 /// reference writes `$2a$` — recorded in `docs/parity.md`, and the pin that reads a reference hash
@@ -46,8 +45,9 @@ import RivuletApp
         let hash = try hasher.hash("secret")
         #expect(try hasher.verify("secret", hash: hash))
         #expect(!(try hasher.verify("longpass", hash: hash)))
-        // Both sides of this pair are inside the reference's limit, so a patch that only kept the
-        // length guard would still have to compare the digests to fail the second line.
+        // Both sides of this pair are inside the reference's 72-byte limit, so this pin does not
+        // reach the length rule at all: a patch that only had a length rule would still have to
+        // compare.
         #expect(!(try hasher.verify("short", hash: hash)))
     }
 
@@ -62,25 +62,26 @@ import RivuletApp
     @Test func aHashWrittenAtTheReferenceMarkerVerifiesHere() throws {
         // Written by the reference at the pinned cost: `bcrypt.GenerateFromPassword("secret", 10)`,
         // which is what a Miniflux account row holds. The marker is not asserted here — it is the
-        // difference recorded in `docs/parity.md`; what is pinned is that the two stay compatible.
+        // difference recorded in `docs/parity.md`; what is pinned is that a hash written at the
+        // reference's marker reads back through this port.
         let referenceHash = "$2a$10$BY.PtuLLSYpEHB/4r0SaWutP2Lqwg58suDiGf6IkCAU4CH9W9v2s."
         #expect(try hasher.verify("secret", hash: referenceHash))
     }
 
-    @Test func aPlaintextLongerThanTheReferenceLimitIsRefusedOnBothPaths() throws {
+    @Test func theHashPathRefusesAPastLimitPlaintextAndTheComparePathAnswersAsAMatch() throws {
         let long = String(repeating: "a", count: 73)
         #expect(throws: BcryptHasher.HashError.passwordTooLong) {
             try hasher.hash(long)
         }
-        // The same plaintext against a hash of its first 72 bytes: without the guard this answers
-        // as a match, because Vapor's C path truncates, where the reference reports the length as
-        // an error.
-        let stored = try hasher.hash(String(repeating: "a", count: 72))
-        #expect(throws: BcryptHasher.HashError.passwordTooLong) {
-            try hasher.verify(long, hash: stored)
-        }
 
-        // The boundary the reference accepts: exactly 72 bytes hashes and verifies.
+        // The reference's comparison has no length check: it reads at most the first 72 key bytes,
+        // so a 73-byte plaintext that shares those bytes with the stored password answers as a
+        // match. This is the line that shows the port answers as the reference does on that path,
+        // and a patch that refuses past 72 bytes there fails it.
+        let stored = try hasher.hash(String(repeating: "a", count: 72))
+        #expect(try hasher.verify(long, hash: stored), "the reference answers as a match here")
+
+        // The boundary both paths accept: exactly 72 bytes hashes and verifies.
         let boundary = String(repeating: "a", count: 72)
         let boundaryHash = try hasher.hash(boundary)
         #expect(try hasher.verify(boundary, hash: boundaryHash))

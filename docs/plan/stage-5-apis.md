@@ -87,3 +87,23 @@ lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stag
 - [ ] The automated journey is green in CI.
 - [ ] One real client (NetNewsWire) connects, adds a feed and syncs against a locally running
       instance (manual check; repeated with the full client matrix in stage 7).
+
+## Backlog
+
+Findings from review run 1 on PR #38 that do not change behavior:
+
+- `UserRepository.userExists` repeats the body of `fetch(username:)`. The reference has these as two
+  statements, and the pin for the case-insensitive read fails on either one, so the duplication is a
+  style matter rather than a rule; keeping the bodies separate keeps the comment that names the
+  reference's `LIMIT 1` read on the function the pin reads.
+- `CreateAdmin` trims with Swift's `whitespaces`, which is not Go's `TrimSpace`: the two differ on
+  `U+0085`. A console read has already removed the line ending, so the difference cannot be reached
+  here, and it is recorded in the comment rather than pinned.
+- `BcryptHasher` runs the digest on the caller's task, which is what the plan asks for on the CLI
+  path: one hash per command run. It is also where the stage-5 routers will compare hashes, and one
+  comparison per request is not a loop; the hop is what to revisit if that path grows into a loop,
+  and the type stays in `RivuletApp` either way, because `RivuletCore` must not depend on Vapor. The
+  type is not `async` while the command that calls it is.
+- Two table rows are split across lines from earlier commits, at `docs/parity.md:395` and
+  `docs/testing.md:17`, which puts them past the 100-column width; they are not part of this slice.
+- `docs/testing.md` is at 585 lines, past the ~500 cap.

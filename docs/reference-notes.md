@@ -314,7 +314,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 - bcrypt: cost 10 (`bcrypt.DefaultCost` at `golang.org/x/crypto v0.54.0`, the version `go.mod`
   pins), marker `$2a$`, and the hash written as marker, cost and 53 characters of digest block with
   no separator between the salt and the checksum. A plaintext longer than 72 bytes is refused as
-  `ErrPasswordTooLong` on both the hash and the compare path.
+  `ErrPasswordTooLong` when the package creates a hash. Its comparison has no length check and reads
+  at most the first 72 key bytes, so a longer plaintext that shares those bytes with the stored
+  password answers as a match.
 
 ## Google Reader API (`internal/googlereader`)
 
