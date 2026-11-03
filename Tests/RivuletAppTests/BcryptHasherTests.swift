@@ -21,10 +21,11 @@ import RivuletApp
 ///
 /// What they cannot fail on: the revision marker this port writes, which is `$2b$` where the
 /// reference writes `$2a$` — recorded in `docs/parity.md`, and the pin that reads a reference hash
-/// shows the two stay interchangeable rather than pinning which marker the port writes; the
-/// boundary between the salt and the checksum, which bcrypt writes as one run with no separator, so
-/// the pin reads the digest block as a whole; the work factor's timing, which no pin reads; and the
-/// wording of the refused-length error, which is the port's own.
+/// pins only that a hash written at the reference's marker reads back here, not which marker the
+/// port writes, or whether its hashes read back through the reference; the boundary between the
+/// salt and the checksum, which bcrypt writes as one run with no separator, so the pin reads the
+/// digest block as a whole; the work factor's timing, which no pin reads; and the wording of the
+/// refused-length error, which is the port's own.
 @Suite struct BcryptHasherTests {
     private let hasher = BcryptHasher()
 
