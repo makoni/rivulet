@@ -247,20 +247,4 @@ import RivuletApp
     private func row(_ document: [String: Any], id: Int) -> [String: Any]? {
         (document["feeds"] as? [[String: Any]])?.first { $0["id"] as? Int == id }
     }
-
-    /// The tables the database file holds, read through a connection of its own.
-    private func tables(at path: String) async throws -> [String] {
-        let config = try Config.load(environment: ["DATABASE_URL": path])
-        let rivulet = try await ApplicationFactory.make(config: config)
-        do {
-            let sql = try #require(rivulet.application.db(.sqlite) as? any SQLDatabase)
-            let rows = try await sql.raw("SELECT name FROM sqlite_master WHERE type = 'table'").all()
-            let names = try rows.map { try $0.decode(column: "name", as: String.self) }
-            try await rivulet.shutdown()
-            return names
-        } catch {
-            try? await rivulet.shutdown()
-            throw error
-        }
-    }
 }

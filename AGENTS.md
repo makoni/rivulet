@@ -16,7 +16,17 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 4 — Ingestion & scheduling** (the per-feed refresh pipeline, the tick's
+Current focus: **Stage 5 — Client APIs & OPML**, started with its first slice, which lands with
+PR #38: `create-admin` with the user rules and the bcrypt hasher. The order the creation rules are
+read in, the character class read per Unicode scalar, the password minimum counted as bytes, the
+existence check that runs before any rule, the secure read and the trim, and the flag that gates the
+migrations are pinned by `UserValidationTests` and `CreateAdminTests`; the reference cost, the
+72-byte refusal and the cross-marker compatibility are pinned by `BcryptHasherTests`. What those
+pins cannot show is named in the suite headers — the locale wording, the terminal check, the
+environment path, which marker the port writes, and the single-row limit of the existence read. The
+next slice is `integration-credentials`.
+
+Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
 count the entry-frequency mode divides the week by, the two halves of the entry loop that write
 nothing — an entry the document no longer declares and a tombstoned `(feed_id, hash)` pair — and the

@@ -3,9 +3,9 @@ import Foundation
 
 /// The Rivulet command-line interface.
 ///
-/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh` and
-/// `status` work; the remaining commands are registered placeholders that report the stage
-/// implementing them (see `docs/plan/`).
+/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh`,
+/// `status` and `create-admin` work; the remaining commands are registered placeholders that report
+/// the stage implementing them (see `docs/plan/`).
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///
@@ -13,9 +13,9 @@ public enum RivuletCLI {
     /// other command loads ``Config`` from `environment` first.
     ///
     /// - Parameters:
-    ///   - console: Console to print to and read input from (tests pass a capturing console).
-    ///   - environment: Environment variables used for configuration.
-    ///   - arguments: Raw arguments; the first element is the executable name.
+    /// - console: Console to print to and read input from (tests pass a capturing console).
+    /// - environment: Environment variables used for configuration.
+    /// - arguments: Raw arguments; the first element is the executable name.
     /// - Throws: Errors from configuration, storage or the command itself. The executable
     ///   entry point reports them and exits with a non-zero status.
     public static func run(
@@ -35,6 +35,7 @@ public enum RivuletCLI {
         commands.use(Serve(environment: environment), as: "serve")
         commands.use(Migrate(environment: environment), as: "migrate")
         commands.use(Version(), as: "version")
+        commands.use(CreateAdmin(environment: environment), as: "create-admin")
         commands.use(Refresh(environment: environment), as: "refresh")
         commands.use(Status(environment: environment), as: "status")
         for planned in Planned.all {

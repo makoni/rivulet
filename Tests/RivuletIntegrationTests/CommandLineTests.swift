@@ -73,8 +73,9 @@ import RivuletCore
     }
 
     @Test func plannedCommandsReportTheStageThatImplementsThem() async throws {
+        // `create-admin` is no longer in this list: it was the first command of stage 5 to land,
+        // and its pins are `CreateAdminTests`.
         let planned: [(name: String, stage: Int)] = [
-            ("create-admin", 5),
             ("add", 6),
             ("remove", 6),
             ("list", 6),

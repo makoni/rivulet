@@ -76,7 +76,12 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   ratio above 1, so the decompression guard `docs/reference-notes.md` records is not exercised by
   any test either.
 - `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke tests
-  run commands against a temp database through it.
+  run commands against a temp database through it. It records the `isSecure` flag of every read, in
+  the order the reads happened, so a pin can name which path a read took rather than only the value
+  that came back.
+- `SchemaTables.swift` — the tables a database file holds, read through an application built for
+  that file. CLI pins use it on both sides of the migration flag, so what a pin reports is the gate
+  rather than a schema the test built itself.
 - `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the CLI
   and probe tests).
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
