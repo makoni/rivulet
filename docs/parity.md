@@ -941,3 +941,32 @@ failure
   the value as read. The reference's checker has a branch for an answer with no icon and no error,
   which is that rejection; this port has no case that answers without an icon, so the branch has
   nothing to pin.
+
+## User rules and password hashing (stage 5)
+
+**Matching the reference.**
+
+- The order the creation rules are read in, the character class read per Unicode scalar, and the
+  password minimum counted as bytes are the reference's, and `UserValidationTests` pins each of
+  them with an input that would fail two rules naming the rule the reference reaches first.
+- The command's own order is the reference's too: the existence read runs before any rule, so a
+  stored name is skipped whatever its characters are. The pin seeds a name the character class
+  rejects, and only the skip path can end that run without a failure, so the run completing is what
+  shows the order. The trim and the secure read are `askCredentials`'s, and `TestConsole` records
+  the flag of each read, which is what lets a pin name which path the read took rather than only
+  the value that came back.
+- The 72-byte refusal is kept as an explicit guard, because Vapor's C implementation truncates the
+  plaintext silently instead of reporting the length; without the guard a 73-byte plaintext whose
+  first 72 bytes are the stored password answers as a match, where the reference reports the length
+  as an error. The cost is passed explicitly as 10, because Vapor's `hash` defaults to 12.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Revision marker | writes hashes as `$2a$` | writes `$2b$` | The same algorithm at the same cost. A hash written at either marker verifies through both, which is what `BcryptHasherTests` pins, so hashes stored by the reference stay readable by this port; the pins compare a reference-written hash and do not assert which marker the port writes |
+| Rule identity | four localized error names resolved through the locale catalog | the rule as a named case, and the sentence a command prints for it is the port's own | The text differs; which rule an input fails on is the same, and that is what is pinned. The reference's names are recorded in `docs/reference-notes.md` |
+| Report wording | two `slog` records with fixed sentences, sent to the log | console lines, with the port's own wording | Pins read the outcome and the name carried on the line, not the sentence |
+| Interactive-terminal check | refuses to read when the input is not a terminal | not ported, because this port reads through the console seam and a captured console has no terminal to test | A non-terminal input is accepted here. No pin can reach this case, so it is stated in the command comment |
+| Environment path | `ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN` create the account on the daemon branch | not ported with this slice, because that path belongs to `serve` | The console path is pinned; the environment path is named in the stage plan and arrives with stage 6 |
+| Transaction boundary | `CreateUser` writes the row and the default "All" category in one transaction | two statements, with the transaction left to the caller, because a repository must not open a nested connection | No pin can separate the two statements; the pair is asserted as what the run left behind, which is stated in the repository comment |

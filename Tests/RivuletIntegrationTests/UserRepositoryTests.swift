@@ -5,6 +5,14 @@ import Testing
 @testable import RivuletCore
 
 /// CRUD round-trip for ``UserRepository`` against a real SQLite file.
+///
+/// What these pins can fail on, each checked by patching the rule and reverting: the lowercase
+/// write, the case-insensitive lookup, the uniqueness of the name, the order `list` reads, the
+/// default "All" category written with the row, and the existence read finding the stored name
+/// whatever case it is given, which a patch that compares the input as read fails. What they cannot
+/// fail on: the single-row limit of that existence read, which a lookup that fetched every matching
+/// row answers the same way, so the code states it rather than pinning it; and the transaction the
+/// pair of writes would need, which is the caller's and is stated in the repository comment.
 @Suite struct UserRepositoryTests {
     @Test func createStoresTheAccountFieldsAndAssignsAnID() async throws {
         try await withMigratedStorage { _, storage in
@@ -99,6 +107,23 @@ import Testing
                     // type is a driver detail the storage layer does not promise.
                 }
                 #expect(try await users.list().count == 1)
+            }
+        }
+    }
+
+    @Test func userExistsReadsTheStoredNameWhateverCaseItIsGiven() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                #expect(!(try await users.userExists(username: "carol")), "no row yet")
+
+                _ = try await users.create(username: "Alice", passwordHash: "hash", isAdmin: false)
+                #expect(try await users.userExists(username: "alice"))
+                // The reference reads the name through `LOWER($1)`, so a patch that compares the
+                // input as given fails this line. What the pin cannot fail on is the single-row
+                // read: a lookup that fetched every matching row answers the same value, so
+                // `LIMIT 1` is stated in the code rather than pinned.
+                #expect(try await users.userExists(username: "ALICE"), "the case-insensitive read")
             }
         }
     }

@@ -46,6 +46,16 @@ public struct UserRepository {
         try await User.query(on: database).filter(\User.$username == username.lowercased()).first()
     }
 
+    /// Returns whether a user with `username` has a row (upstream parity: `UserExists`, which reads
+    /// `SELECT true FROM users WHERE username=LOWER($1) LIMIT 1`).
+    ///
+    /// The lookup is case-insensitive because usernames are stored lowercase. The single row is
+    /// what the reference reads; a pin cannot tell a single-row read from one that read every
+    /// match, so the limit is stated here and `UserRepositoryTests` pins the case-insensitive read.
+    public func userExists(username: String) async throws -> Bool {
+        try await User.query(on: database).filter(\User.$username == username.lowercased()).first() != nil
+    }
+
     /// Returns every user, ordered by username (upstream parity:
     /// `ORDER BY username ASC`).
     public func list() async throws -> [User] {

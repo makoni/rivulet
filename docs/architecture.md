@@ -22,7 +22,7 @@ Rivulet is a single binary with two faces over one core:
         ┌──────────────────────▼─────────────────────────┐
         │                   RivuletCore                  │
         │  config · storage · fetcher · parser ·         │
-        │  sanitizer · scheduler · OPML                  │
+        │  sanitizer · scheduler · OPML · user rules      │
         └──────────────────────┬─────────────────────────┘
                                │
                      SQLite (WAL + FTS5)
@@ -37,9 +37,11 @@ Sources/
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher (+ address resolver seam and address policy), parser, dates,
 │   │                       # charset, sanitizer, OPML
-│   └── Scheduler/          # refresh loop; retention runs as a storage-layer job
+│   ├── Scheduler/          # refresh loop; retention runs as a storage-layer job
+│   └── Validation/         # user-name and password rules, in the reference's order
 ├── RivuletApp/             # application layer — the only target that knows Vapor
-│   ├── Commands/           # serve, migrate, version, refresh, status + registered CLI stubs
+│   ├── Commands/           # serve, migrate, version, refresh, status, create-admin + stubs
+│   ├── Hashing/            # bcrypt through Vapor's digest, at the reference's cost
 │   ├── Logging/            # text/JSON swift-log bootstrap
 │   └── Routes/             # /healthz now; client APIs arrive in stage 5
 └── rivulet/                # executable: entry point only
@@ -99,9 +101,17 @@ non-zero exit status — everything else lives in `RivuletApp`.
   selects the machine-readable document the stage-4 soak reads, whose keys are the column names —
   with `enabled`, the positive form of the `disabled` column — and without the flag the same values
   print as console lines. Migrations run when the flag is on, as `serve` has them gated.
-- Every other command of the final surface (`create-admin`, `add`, `remove`, `list`, `import`,
-  `export`, `integration-credentials`, `backup`, `vacuum`) is a registered stub that reports the
-  stage implementing it.
+- `create-admin` — the first account, then exit: reads the name as plain console input and the
+  password as the secure input, trims both, and writes the admin row with the default "All"
+  category. The existence read runs before the rules, as the reference has it, so a stored name is
+  skipped whatever its characters are, and a rule failure ends the command with nothing written.
+  The stored value is the bcrypt hash at the reference's cost, and the migrations run when the flag
+  is on, as the other commands have them gated. Two parts of the reference's command are not
+  ported: the terminal check, because this port reads through the console seam, and the environment
+  path, which belongs to the daemon branch and arrives with `serve`.
+- Every other command of the final surface (`add`, `remove`, `list`, `import`, `export`,
+  `integration-credentials`, `backup`, `vacuum`) is a registered stub that reports the stage
+  implementing it.
 
 `--help` lists every command and, like `version`, works without configuration.
 

@@ -8,11 +8,21 @@ import Synchronization
 final class TestConsole: Console {
     private let outputLines = Mutex<[String]>([])
     private let inputQueue = Mutex<[String]>([])
+    private let inputReads = Mutex<[Bool]>([])
     private let consoleUserInfo = Mutex<[AnySendableHashable: any Sendable]>([:])
 
     /// Everything written to the console (output and reported errors), concatenated in order.
     var output: String {
         outputLines.withLock { $0.joined() }
+    }
+
+    /// The `isSecure` flag of every read, in the order the reads happened.
+    ///
+    /// A command test uses this to see which read was the secure one: the pin that names the secure
+    /// read compares these flags, and a pin that read only the values could not tell the two paths
+    /// apart.
+    var secureReads: [Bool] {
+        inputReads.withLock { $0 }
     }
 
     /// Queues a line to be returned by the next ``input(isSecure:)`` call.
@@ -25,7 +35,8 @@ final class TestConsole: Console {
     var size: (width: Int, height: Int) { (200, 50) }
 
     func input(isSecure: Bool) -> String {
-        inputQueue.withLock { $0.isEmpty ? "" : $0.removeFirst() }
+        inputReads.withLock { $0.append(isSecure) }
+        return inputQueue.withLock { $0.isEmpty ? "" : $0.removeFirst() }
     }
 
     func output(_ text: ConsoleText, newLine: Bool) {

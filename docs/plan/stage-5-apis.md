@@ -1,11 +1,18 @@
 # Stage 5 — Client APIs & OPML
 
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
-**Status:** not started. **Effort:** XL. **Depends on:** Stage 4.
+**Status:** in progress — the first slice (`create-admin` with the user rules and the bcrypt hasher)
+lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
 
-- [ ] Promote `create-admin` from stub to working — the acceptance journey and real clients need it.
+- [x] Promote `create-admin` from stub to working — the acceptance journey and real clients need it.
+      Landed with PR #38: the rule order, the character class read per scalar, the byte-counted
+      minimum, the skip that runs before the rules, the secure read, the trim and the migration gate
+      are pinned by `CreateAdminTests` and `UserValidationTests`, and the reference cost and the
+      cross-marker compatibility by `BcryptHasherTests`. The locale wording, the terminal check and
+      the environment path are named as not pinned in the suite header; the environment path arrives
+      with `serve`.
 - [ ] Integration credentials command: `rivulet integration-credentials` sets per-user Google
       Reader username/password (stored bcrypt) and Fever username/password (stored as the MD5
       token); prints the derived Fever `api_key`.

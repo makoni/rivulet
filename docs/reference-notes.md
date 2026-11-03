@@ -291,6 +291,31 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 - Google Reader `subscription/list` embeds `iconUrl` (there is no dedicated feed-icon endpoint);
   Fever `favicons` returns `mime;base64,…` without the `data:` prefix.
 
+## Users, password hashing and `create-admin` (`internal/validator/user.go`, `internal/crypto`,
+`internal/cli/create_admin.go`)
+
+- Creation rules, in the order `ValidateUserCreationWithPassword` reads them: empty name
+  (`error.user_mandatory_fields`) → existing user (`error.user_already_exists`) → character class
+  (`error.invalid_username`) → password length (`error.password_min_length`). The port names the
+  rule, not the locale string, so the wording a command prints from a rule is its own; the names
+  are what a client-visible message is traced back to.
+- Username class: letters and numbers by Unicode category (`unicode.IsLetter`, `unicode.IsNumber`,
+  so a category-No digit such as `①` passes), plus `_`, `-`, `@`, `.`. Read rune by rune, so a
+  combining mark after a letter is its own character and fails the class.
+- Password minimum is 6 **bytes**, because `len(password)` counts bytes: three non-ASCII letters
+  are enough, where a character count would not be. There is no maximum; the length limit the
+  hashing package has is the one below.
+- `CreateUser` writes the name as `LOWER($1)` and creates the default "All" category with the row
+  in one transaction; `UserExists` reads `SELECT true FROM users WHERE username=LOWER($1) LIMIT 1`.
+- `create-admin` checks existence before any rule, so a stored name is skipped whatever its
+  characters are, and the write sets `IsAdmin: true`. `askCredentials` trims both values and reads
+  the password through the terminal's secure path. The two outcomes are `slog` records naming the
+  username: "Skipping admin user creation because it already exists" and "Created new admin user".
+- bcrypt: cost 10 (`bcrypt.DefaultCost` at `golang.org/x/crypto v0.54.0`, the version `go.mod`
+  pins), marker `$2a$`, and the hash written as marker, cost and 53 characters of digest block with
+  no separator between the salt and the checksum. A plaintext longer than 72 bytes is refused as
+  `ErrPasswordTooLong` on both the hash and the compare path.
+
 ## Google Reader API (`internal/googlereader`)
 
 Implemented routes (`handler.go`, Go 1.22 mux):
