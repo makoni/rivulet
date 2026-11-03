@@ -1,8 +1,10 @@
 # Stage 5 — Client APIs & OPML
 
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
-**Status:** in progress — the first slice (`create-admin` with the user rules and the bcrypt hasher)
-lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stage 4.
+**Status:** in progress — the first slice is merged and the second lands with PR #39: `create-admin`
+with the user rules and the bcrypt hasher, and `integration-credentials` with the Fever token
+derivation and the duplicate-name rules. The rest is not started. **Effort:** XL. **Depends on:**
+Stage 4.
 
 ## Scope
 
@@ -13,9 +15,20 @@ lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stag
       cross-marker compatibility by `BcryptHasherTests`. The locale wording, the terminal check and
       the environment path are named as not pinned in the suite header; the environment path arrives
       with `serve`.
-- [ ] Integration credentials command: `rivulet integration-credentials` sets per-user Google
+- [x] Integration credentials command: `rivulet integration-credentials` sets per-user Google
       Reader username/password (stored bcrypt) and Fever username/password (stored as the MD5
       token); prints the derived Fever `api_key`.
+      Lands with PR #39: the join, the lowercase hex form, the parts read as given, the order the
+      two duplicate checks are read in, the guard that an empty name is not read, the per-user
+      exclusion, the values compared as read, each check reading its own column, and the rule that a
+      blank password read keeps the stored value are pinned by `FeverTokenTests`,
+      `IntegrationValidationTests`, `UserRepositoryTests` and `IntegrationCredentialsTests`. The
+      goldens are the reference's own output at the toolchain `go.mod` pins. The prompt order, the
+      wording, the blank-name rule (this port keeps the stored value where the form writes what was
+      submitted), the absent flag that would turn an integration off, the reference's stored Fever
+      password, and the
+      unique index on `fever_token` are named as not pinned in the suite header and recorded in
+      `docs/parity.md`.
 - [ ] Google Reader API — port the reference router exactly (see `docs/reference-notes.md`):
       `ClientLogin`; `token`; `edit-tag`; `rename-tag`; `disable-tag`; `tag/list`; `user-info`;
       `subscription/list` (embeds `iconUrl`); `subscription/edit`

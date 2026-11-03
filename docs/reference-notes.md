@@ -318,6 +318,33 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   at most the first 72 key bytes, so a longer plaintext that shares those bytes with the stored
   password answers as a match.
 
+## Integration credentials (`internal/ui/integration_update.go`)
+
+- The account's integration row (`internal/database/migrations.go`) is keyed by `user_id`
+  (`primary key(user_id)`), with the credential fields and one `*_enabled` flag per integration;
+  `Integration(userID)` reads it and `UpdateIntegration` (`internal/storage/integration.go`) writes
+  all of the fields for one user.
+- The Fever `api_key` is
+  `fmt.Sprintf("%x", md5.Sum([]byte(fever_username + ":" + fever_password)))`: the two values joined
+  with a colon, hashed as their UTF-8 bytes, printed as lowercase hex. The parts are joined as
+  submitted — only the printed digest is lowercased — and the lookup the Fever API does compares
+  both sides with `lower()`: `integrations.fever_enabled='t' AND lower(fever_token)=lower($1)`. The
+  row also keeps `fever_password` as it was submitted, next to the derived token.
+- The Google Reader password is stored as the bcrypt hash (`crypto.HashPassword`, so the cost and
+  the marker of the section above), and `GoogleReaderUserCheckPassword` compares it with
+  `bcrypt.CompareHashAndPassword` for a row whose flag is on.
+- A submitted form field writes what was submitted; only the two password fields keep the stored
+  value when they come back empty, and a flag that is off clears its pair. So an empty Fever name
+  writes an empty name, while an empty Fever password leaves the stored token as it was.
+- Two duplicate checks guard the write, in this order: `HasDuplicateFeverUsername` reads
+  `SELECT true FROM integrations WHERE user_id != $1 AND fever_username=$2 LIMIT 1`, then the Fever
+  token, then `HasDuplicateGoogleReaderUsername` with the same shape on `googlereader_username`,
+  then the Google Reader password. Each check runs only when the name is not empty, and a hit ends
+  the write with nothing saved. Neither check lowercases the name.
+- There is no integration validator in the reference: these rules live in the handler, which reports
+  a hit as a localized flash message (`error.duplicate_fever_username`,
+  `error.duplicate_googlereader_username`).
+
 ## Google Reader API (`internal/googlereader`)
 
 Implemented routes (`handler.go`, Go 1.22 mux):

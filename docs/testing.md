@@ -82,6 +82,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `SchemaTables.swift` — the tables a database file holds, read through an application built for
   that file. CLI pins use it on both sides of the migration flag, so what a pin reports is the gate
   rather than a schema the test built itself.
+- Nullable columns in the CLI pins are read through `decodeNil(column:)`, so a pin can tell a stored
+  value apart from the column being empty: decoding a `NULL` as `String` throws, which a run would
+  report as a failure rather than as the rule the pin reads.
 - `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the CLI
   and probe tests).
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s

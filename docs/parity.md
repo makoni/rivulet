@@ -973,3 +973,34 @@ failure
 | Interactive-terminal check | refuses to read when the input is not a terminal | not ported, because this port reads through the console seam and a captured console has no terminal to test | A non-terminal input is accepted here. No pin can reach this case, so it is stated in the command comment |
 | Environment path | `ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN` create the account on the daemon branch | not ported with this slice, because that path belongs to `serve` | The console path is pinned; the environment path is named in the stage plan and arrives with stage 6 |
 | Transaction boundary | `CreateUser` writes the row and the default "All" category in one transaction | two statements, with the transaction left to the caller, because a repository must not open a nested connection | No pin can separate the two statements; the pair is asserted as what the run left behind, which is stated in the repository comment |
+
+## Integration credentials (stage 5)
+
+**Matching the reference.**
+
+- The Fever `api_key` is the reference's derivation, read as its output: the pair joined with a
+  colon, hashed as its UTF-8 bytes, written as lowercase hex, with the parts joined as read. The
+  pins compare the values the reference produced at the toolchain `go.mod` pins, so the choice of
+  digest is read as the reference's fact rather than as behavior the port reproduced.
+- The order the two duplicate checks are read in is the reference's, and so is the guard that an
+  empty name does not reach the storage layer. `IntegrationValidationTests` pins the order with an
+  input that would fail both rules, naming the rule the reference reaches first, and pins the guard
+  with a case where only the guard can change which rule is reported.
+- Both checks exclude the row they belong to, compare the value as read with no `LOWER`, and read
+  their own column; that is upstream's `user_id != $1`, and `UserRepositoryTests` pins each of the
+  three.
+- A blank password read leaves the stored value as it was, which is what the reference does for its
+  two password fields, and the integration names are stored as given, without the lowercase the
+  account name gets.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Where the values live | a separate `integrations` table keyed by `user_id`, with an `*_enabled` flag per integration | the credential columns of `users`, and no flag: a credential is present or it is not | The flag is not ported, so the reference's branch that clears a pair when its flag is off has nothing to pin here |
+| A blank name field | writes what was submitted, so a blank field clears the stored name | keeps what the row already holds, because a command line reads blank as "not given" | A blank name behaves differently, and the duplicate check sees the kept name here where upstream's guard would skip an empty field; the pins read the keep rule, and the difference is stated in the command comment |
+| The Fever password | `fever_password` holds the value as submitted, next to the derived token | no column for it: the pair is stored as the digest alone | A value upstream can read back is not stored here. Nothing in this port reads it, so no pin covers it |
+| Unique index | none on `fever_username`, `googlereader_username` or `fever_token` | `fever_token` carries `UNIQUE` from stage 0's schema | Two accounts with the same token are refused here and accepted upstream; the rule is the schema, so no patch can reach it and it is not pinned |
+| Path to the values | the web form handler, with a session flash and a redirect | the CLI, reading through the console seam with the port's own wording | Only the outcome and the stored values are pinned, not the sentences |
+| Which account is written | the user of the web session | the name read from the console, which must have a row | A name with no row ends the run here; upstream cannot reach that case |
+| `updated_at` | the `integrations` table has no such column | stamped on the write, because the `users` row carries it | A stamp no pin can read, so it is stated in the repository comment |
