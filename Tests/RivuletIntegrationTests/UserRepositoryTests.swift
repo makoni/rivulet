@@ -24,8 +24,8 @@ import Testing
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: true)
                 let id = try #require(user.id)
 
-                // Re-read through a fresh fetch: the assertions prove the stored row,
-                // not the in-memory object.
+                // Re-read through a fresh fetch: the assertions prove the stored row, not the
+                // in-memory object.
                 let stored = try await users.fetch(id: id)
                 #expect(stored?.id == id)
                 #expect(stored?.username == "alice")
@@ -69,8 +69,8 @@ import Testing
                     _ = try await users.create(username: "ALICE", passwordHash: "b", isAdmin: false)
                     Issue.record("expected the case-insensitive duplicate username to be rejected")
                 } catch {
-                    // UNIQUE(username) violation after normalization; the driver error
-                    // type is not promised.
+                    // UNIQUE(username) violation after normalization; the driver error type is not
+                    // promised.
                 }
                 #expect(try await users.list().count == 1)
             }
@@ -106,8 +106,8 @@ import Testing
                     _ = try await users.create(username: "alice", passwordHash: "b", isAdmin: true)
                     Issue.record("expected the duplicate username to be rejected")
                 } catch {
-                    // The driver reports the UNIQUE(username) violation; its concrete
-                    // type is a driver detail the storage layer does not promise.
+                    // The driver reports the UNIQUE(username) violation; its concrete type is a
+                    // driver detail the storage layer does not promise.
                 }
                 #expect(try await users.list().count == 1)
             }
@@ -206,13 +206,14 @@ import Testing
                 let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
                 let bobID = try #require(bob.id)
 
-                // The two columns hold different values, so each read can be named by what it answers.
+                // The two columns hold different values, so each read can be named by what it
+                // answers.
                 try await users.updateIntegration(alice, feverUsername: "FName",
                     feverToken: "t", googleReaderUsername: "GName",
                     googleReaderPasswordHash: "h")
 
-                // No `LOWER` in either check, unlike the account lookup: a patch that lowercased the
-                // input before comparing fails these two lines.
+                // No `LOWER` in either check, unlike the account lookup: a patch that lowercased
+                // the input before comparing fails these two lines.
                 #expect(try await users.hasDuplicateFeverUsername(userID: bobID,
                     feverUsername: "FName"), "the value as read")
                 #expect(!(try await users.hasDuplicateFeverUsername(userID: bobID,
@@ -223,8 +224,8 @@ import Testing
                     googleReaderUsername: "gname")), "the input is not lowercased first")
 
                 // Which column each check reads: a patch that read the other column for this rule
-                // would answer true here, where only the Fever column holds `GName` and only the
-                // Google Reader column holds `FName`.
+                // would answer true here, where the Fever column holds only `FName` and the Google
+                // Reader column holds only `GName`.
                 #expect(!(try await users.hasDuplicateFeverUsername(userID: bobID,
                     feverUsername: "GName")), "the Fever check reads the Fever column")
                 #expect(!(try await users.hasDuplicateGoogleReaderUsername(userID: bobID,

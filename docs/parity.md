@@ -982,24 +982,30 @@ failure
   colon, hashed as its UTF-8 bytes, written as lowercase hex, with the parts joined as read. The
   pins compare the values the reference produced at the toolchain `go.mod` pins, so the choice of
   digest is read as the reference's fact rather than as behavior the port reproduced.
-- The order the two duplicate checks are read in is the reference's, and so is the guard that an
-  empty name does not reach the storage layer. `IntegrationValidationTests` pins the order with an
-  input that would fail both rules, naming the rule the reference reaches first, and pins the guard
-  with a case where only the guard can change which rule is reported.
+- The order the two duplicate checks are read in is the reference's, and
+  `IntegrationValidationTests` pins it with an input that would fail both rules, naming the rule the
+  reference reaches first. The guard that an empty name is not checked is pinned inside the rule
+  function; the guard that keeps the storage read from happening for an empty name is the command's,
+  and no pin can fail on it, because the pins hand the storage answers in as values, so the code
+  states it and the suite header names it as not pinned.
 - Both checks exclude the row they belong to, compare the value as read with no `LOWER`, and read
   their own column; that is upstream's `user_id != $1`, and `UserRepositoryTests` pins each of the
   three.
 - A blank password read leaves the stored value as it was, which is what the reference does for its
   two password fields, and the integration names are stored as given, without the lowercase the
-  account name gets.
+  account name gets. The password itself is stored on neither side: the reference's form field feeds
+  the derivation, and the column that once held it is dropped by `migrations.go:413`.
+- The reference reads each duplicate check and then derives that pair's value, in the order its form
+  fields are handled; this port reads both checks before deriving anything, which cannot change the
+  outcome because a hit writes nothing.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
 | Where the values live | a separate `integrations` table keyed by `user_id`, with an `*_enabled` flag per integration | the credential columns of `users`, and no flag: a credential is present or it is not | The flag is not ported, so the reference's branch that clears a pair when its flag is off has nothing to pin here |
-| A blank name field | writes what was submitted, so a blank field clears the stored name | keeps what the row already holds, because a command line reads blank as "not given" | A blank name behaves differently, and the duplicate check sees the kept name here where upstream's guard would skip an empty field; the pins read the keep rule, and the difference is stated in the command comment |
-| The Fever password | `fever_password` holds the value as submitted, next to the derived token | no column for it: the pair is stored as the digest alone | A value upstream can read back is not stored here. Nothing in this port reads it, so no pin covers it |
+| A blank name field | writes what was submitted, so a blank field clears the stored name | keeps what the row already holds, because a command line reads blank as "not given" | A blank name behaves differently: the duplicate check sees the kept name here where upstream's guard would skip an empty field, and the value derived from the pair is the digest of the kept name rather than of an empty part. The pins read the keep rule, and the difference is stated in the command comment |
+| Whitespace around a read | the form writes what the request submitted, untrimmed | the console read trims the line before the value is used | A read with spaces around it behaves differently here; the pins read the trim |
 | Unique index | none on `fever_username`, `googlereader_username` or `fever_token` | `fever_token` carries `UNIQUE` from stage 0's schema | Two accounts with the same token are refused here and accepted upstream; the rule is the schema, so no patch can reach it and it is not pinned |
 | Path to the values | the web form handler, with a session flash and a redirect | the CLI, reading through the console seam with the port's own wording | Only the outcome and the stored values are pinned, not the sentences |
 | Which account is written | the user of the web session | the name read from the console, which must have a row | A name with no row ends the run here; upstream cannot reach that case |

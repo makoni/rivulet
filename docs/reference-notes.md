@@ -329,7 +329,8 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   with a colon, hashed as their UTF-8 bytes, printed as lowercase hex. The parts are joined as
   submitted — only the printed digest is lowercased — and the lookup the Fever API does compares
   both sides with `lower()`: `integrations.fever_enabled='t' AND lower(fever_token)=lower($1)`. The
-  row also keeps `fever_password` as it was submitted, next to the derived token.
+  form field `fever_password` is only used for that derivation: the column that once stored it is
+  dropped by `migrations.go:413`, and the model has no field for it, so nothing stores the password.
 - The Google Reader password is stored as the bcrypt hash (`crypto.HashPassword`, so the cost and
   the marker of the section above), and `GoogleReaderUserCheckPassword` compares it with
   `bcrypt.CompareHashAndPassword` for a row whose flag is on.

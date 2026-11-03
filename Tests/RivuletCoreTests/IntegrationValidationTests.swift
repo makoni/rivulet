@@ -11,19 +11,21 @@ import Testing
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: the order, which
 /// an input that would fail both rules names the rule the reference reaches first; each rule naming
-/// its own case, which a patch that answered the other one fails; and the guard that an empty name
-/// is not checked at all, which a patch that checked an empty name against the storage answer fails
-/// — the pin gives one side an empty name with the storage answer true and the other side a name
-/// with the answer true, so only the guard can change which rule the run reports.
+/// its own case, which a patch that answered the other one fails; and the guard inside this
+/// function that an empty name is not read against the answer, which a patch that dropped it fails
+/// — the pin gives one side an empty name with the answer true and the other side a name with the
+/// answer true, so only the guard can change which rule the run reports.
 ///
-/// What they cannot fail on: which column each read looks at, which is the storage layer's rule and
-/// is pinned by `UserRepositoryTests`; the wordings the command prints for a rule, which are the
-/// port's own; and the reference's own field order, which a web form reads in an order this port's
-/// console path does not have.
+/// What they cannot fail on: the guard in the command that keeps the storage read from happening
+/// for an empty name, because the answers are handed in as values here, so the command states that
+/// guard and `IntegrationCredentialsTests` reads the outcome it produces; which column each read
+/// looks at, which is the storage layer's rule and is pinned by `UserRepositoryTests`; the wordings
+/// the command prints for a rule, which are the port's own; and the reference's own field order,
+/// which a web form reads in an order this port's console path does not have.
 @Suite struct IntegrationValidationTests {
     @Test func theChecksAreReadInTheReferenceOrder() throws {
         // An input that would fail both rules: the answer names the rule the reference reaches
-          // first.
+        // first.
         #expect(IntegrationValidation.validate(feverUsername: "bob", feverNameIsDuplicate: true,
             googleReaderUsername: "bob", googleReaderNameIsDuplicate: true) == .duplicateFeverUsername,
             "the Fever check is read first upstream")

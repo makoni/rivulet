@@ -32,7 +32,8 @@ extension RivuletCLI.Planned {
     /// Every planned command with the stage that implements it.
     ///
     /// `create-admin` and `integration-credentials` are no longer here: the first two slices of
-    /// stage 5 landed them, and their pins are `CreateAdminTests` and `IntegrationCredentialsTests`.
+    /// stage 5 landed them, and their pins are `CreateAdminTests` and
+    /// `IntegrationCredentialsTests`.
     static let all: [RivuletCLI.Planned] = [
         .init(name: "add", stage: 6),
         .init(name: "remove", stage: 6),

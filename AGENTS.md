@@ -20,19 +20,21 @@ Current focus: **Stage 5 — Client APIs & OPML**, with its first slice merged a
 as PR #39: `create-admin` with the user rules and the bcrypt hasher, and `integration-credentials`
 with the Fever token derivation and the duplicate-name rules. For the second slice the join, the
 lowercase hex form, the parts read as given, the order the two duplicate checks are read in, the
-guard that an empty name is not read, the per-user exclusion, the values compared as read, each
-check reading its own column, and the rule that a blank password read keeps the stored value are
-pinned by `FeverTokenTests`, `IntegrationValidationTests`, `UserRepositoryTests` and
-`IntegrationCredentialsTests`; for the first slice the rule order, the character class read per
-Unicode scalar, the byte-counted minimum, the existence read that runs before any rule, the secure
-read and the trim, and the flag that gates the migrations are pinned by `UserValidationTests` and
+guard inside the rule function that an empty name is not read against the answer, the per-user
+exclusion, the values compared as read, each check reading its own column, and the rule that a blank
+password read keeps the stored value are pinned by `FeverTokenTests`, `IntegrationValidationTests`,
+`UserRepositoryTests` and `IntegrationCredentialsTests`; for the first slice the rule order, the
+character class read per Unicode scalar, the byte-counted minimum, the existence read that runs
+before any rule, the secure read and the trim, and the flag that gates the migrations are pinned by
+`UserValidationTests` and
 `CreateAdminTests`, and the reference cost, the 72-byte rule and the marker direction by
 `BcryptHasherTests`. What those pins cannot show is named in the suite headers — the locale wording,
 the terminal check, the environment path, which marker the port writes, the single-row limit of the
-existence read, the prompt order and wording of the credentials command, the blank-name rule this
-port reads differently from the reference's form, the absent enabled flag, the reference's stored
-Fever password, and the unique index on `fever_token`. The next slice is the Google Reader and Fever
-routers.
+existence read, the prompt wording of the credentials command (its read order is pinned by the flags
+of the reads), the command's guard that an empty name never reaches the storage layer, the
+blank-name rule this port reads differently from the reference's form, the absent enabled flag, the
+Fever password the reference does not store, and the unique index on `fever_token`. The next slice
+is the Google Reader and Fever routers.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

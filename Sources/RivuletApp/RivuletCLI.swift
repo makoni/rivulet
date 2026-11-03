@@ -3,9 +3,9 @@ import Foundation
 
 /// The Rivulet command-line interface.
 ///
-/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh`, `status`,
-/// `create-admin` and `integration-credentials` work; the remaining commands are registered
-/// placeholders that report the stage implementing them (see `docs/plan/`).
+/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh`,
+/// `status`, `create-admin` and `integration-credentials` work; the remaining commands are
+/// registered placeholders that report the stage implementing them (see `docs/plan/`).
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///

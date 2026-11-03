@@ -9,33 +9,34 @@ import RivuletApp
 /// console, check each name against the other users, write what the run derived, and print the
 /// Fever `api_key`. The reference has this path only as its web form
 /// (`internal/ui/integration_update.go` at `c4d54f87`), so the console prompts are the port's own;
-/// what is ported is what that handler does with the values it is given.
-///
-/// What these pins can fail on, each checked by patching the rule and reverting: the stored Fever
-/// value is the digest of the pair the command read, which a patch that stores the password itself
-/// fails; the stored Google Reader value is the hash of the password read and not the plaintext,
-/// which a patch that stores the plaintext fails; the names are stored as read, which a patch that
-/// lowercases them before writing fails — the reference writes `fever_username=$9` as submitted;
-/// the input is trimmed before it is used, which a patch that skips the trim fails on the stored
-/// name and on the value derived from it; a read that comes back empty keeps what the row already
-/// holds, which a patch that writes the empty read fails; the rule order, read here as the answer
-/// of the rule function pinned by `IntegrationValidationTests`, ends the run before anything is
-/// written, which a patch that writes first fails; the run prints the value it stored, which a
-/// patch that prints the password instead fails; the passwords are read as the secure input and the
-/// names as the plain one, which a patch that reads everything plainly fails, because the console
-/// records the flag of each read; the account must have a row, which a patch that creates one
-/// fails; and the migration flag gates this command, which a patch that migrates regardless of it
-/// fails — that pin reads the schema each run leaves behind, because the run itself ends at the
-/// account read.
-///
-/// What they cannot fail on: the wording of what the command prints, which is the port's own — the
-/// reference has no CLI path here, so a failing run is read as a failure and an unchanged row, and
-/// the pins read the stored values and the value printed rather than the sentences; the order of
-/// the prompts, which is the port's own; the per-user exclusion and the column each duplicate check
-/// reads, which are the storage layer's rules and are pinned by `UserRepositoryTests`; the
-/// reference's stored Fever password, which this port has no column for, so the pair is stored as
-/// the digest alone; and the unique index on `fever_token`, which no patch can reach because the
-/// rule is the schema, so it is stated in the schema comment and in `docs/parity.md`.
+/// what is ported is what that handler does with the values it is given. What these pins can fail
+/// on, each checked by patching the rule and reverting: the stored Fever value is the digest of the
+/// pair the command read, which a patch that stores the password itself fails; the stored Google
+/// Reader value is the hash of the password read and not the plaintext, which a patch that stores
+/// the plaintext fails; the names are stored as read, which a patch that lowercases them before
+/// writing fails — the reference writes `fever_username=$9` as submitted; the input is trimmed
+/// before it is used, which a patch that skips the trim fails on the stored name and on the value
+/// derived from it; a read that comes back empty keeps what the row already holds, which a patch
+/// that writes the empty read fails; the rule order, read here as the answer of the rule function
+/// pinned by `IntegrationValidationTests`, ends the run before anything is written, which a patch
+/// that writes first fails; the run prints the value it stored, which a patch that prints the
+/// password instead fails; the passwords are read as the secure input and the names as the plain
+/// one, which a patch that reads everything plainly fails, because the console records the flag of
+/// each read; the account must have a row, which a patch that creates one fails; and the migration
+/// flag gates this command, which a patch that migrates regardless of it fails — that pin reads the
+/// schema each run leaves behind, because the run itself ends at the account read. What they cannot
+/// fail on: the wording of what the command prints, which is the port's own — the reference has no
+/// CLI path here, so a failing run is read as a failure and an unchanged row, and the pins read the
+/// stored values and the value printed rather than the sentences; the wording of the prompts, also
+/// the port's own, though the order the reads happen in is pinned by the flags of those reads, so
+/// moving a read fails the pin; the guard that an empty name is not read against the storage layer
+/// at all, which the command states and no pin here can fail on, because the answers are handed to
+/// the rule function as values and `IntegrationValidationTests` pins only the guard inside it; the
+/// per-user exclusion and the column each duplicate check reads, which are the storage layer's
+/// rules and are pinned by `UserRepositoryTests`; the Fever password, which the reference does not
+/// store — its form field only feeds the derivation, and the column that once held it is dropped by
+/// `migrations.go:413` — so there is nothing here to pin; and the unique index on `fever_token`,
+/// which no patch can reach because the rule is the schema, so it is recorded in `docs/parity.md`.
 @Suite struct IntegrationCredentialsTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -105,7 +106,7 @@ import RivuletApp
         }
 
         // One side supplied, the other read blank: the supplied one is written, the blank one
-          // stays.
+        // stays.
         try await withRun(inputs: ["bob", "Fever1", "newpass", "", ""], seed: [seedRow(
             username: "bob", feverUsername: "old", feverToken: "db76921119a86d54eaef38f9ffee7184",
             googleReaderUsername: "Gr1", googleReaderPasswordHash: "stored-hash")]) { outcome in
