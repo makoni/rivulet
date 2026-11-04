@@ -13,9 +13,11 @@
 /// reports the `;` error at the end of the read while keeping the pairs read before it, which this
 /// read answers the same for.
 struct GoogleReaderForm {
-    /// What Go's `ParseForm` reports as an error for the whole form. Go has two, and both are the
-    /// request failing here rather than one pair being skipped — the pins that put a readable value
-    /// in one pair and the failure in another are what make this falsifiable.
+    /// What Go's `ParseForm` reports as an error for the whole form. The pair-level errors are two,
+    /// and both are the request failing here rather than one pair being skipped — the pins that put
+    /// a readable value in one pair and the failure in another are what make this falsifiable. Go's
+    /// other `ParseForm` errors, a media type it cannot parse and a body over its 10 MB cap, have
+    /// nothing to fail on in this suite.
     enum ReadError: Error, Equatable, Sendable {
         /// Go's `invalid semicolon separator in query`: a `;` is not a pair separator for
         /// `ParseForm`.
@@ -39,7 +41,8 @@ struct GoogleReaderForm {
     }
 
     /// `r.Form.Get`: the first value with this name, or the empty string for a name the form does
-    /// not carry.
+    /// not carry. Go's `r.Form` is a map, so what this order gives is the answer per name, not the
+    /// order the pairs are read in overall.
     func value(named name: String) -> String {
         pairs.first { $0.name == name }?.value ?? ""
     }
@@ -63,7 +66,8 @@ struct GoogleReaderForm {
 
     /// Go's `unescape` as `parseQuery` uses it: `+` is a space, `%` starts a two-digit hex escape,
     /// and a `%` that is not one of those is the error this read reports for the whole form. The
-    /// bytes are put back as UTF-8, which is what a percent-encoded value carries.
+    /// bytes are put back as UTF-8, so an escape whose bytes are not valid UTF-8 answers U+FFFD
+    /// here, where Go keeps the byte it could not decode — the divergence `docs/parity.md` records.
     private static func unescape(_ value: String) throws -> String {
         let scalars = value.unicodeScalars
         var bytes: [UInt8] = []

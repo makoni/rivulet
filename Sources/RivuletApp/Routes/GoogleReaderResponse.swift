@@ -47,8 +47,14 @@ struct GoogleReaderResponse {
         Self.json(errorDocument("access unauthorized"), status: .unauthorized)
     }
 
+    /// `writeHeaders`: the three headers the builder writes on every response of this path, plus
+    /// the content type the caller chose. The builder's `Vary` header only appears above its
+    /// compression threshold, which none of these bodies reach, so no pin can read it.
     private static func make(status: HTTPStatus, contentType: String, body: String) -> Response {
         var headers = HTTPHeaders()
+        headers.add(name: "X-Content-Type-Options", value: "nosniff")
+        headers.add(name: "X-Frame-Options", value: "DENY")
+        headers.add(name: "Referrer-Policy", value: "no-referrer")
         headers.add(name: "Content-Type", value: contentType)
         return Response(status: status, headers: headers, body: Response.Body(string: body))
     }

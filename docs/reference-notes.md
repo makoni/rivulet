@@ -408,6 +408,9 @@ Authentication:
   `text/plain; charset=utf-8` for the text shapes. `json.Marshal` writes the compact form, with the
   object keys in the order the struct declares them, no solidus escape, and the three HTML-sensitive
   characters and the two line separators escaped as `\uXXXX` with lowercase digits.
+- The same builder's `writeHeaders` sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`
+  and `Referrer-Policy: no-referrer` on every response it writes, and `Vary: Accept-Encoding` only
+  when the body is above its compression threshold (`internal/http/response/builder.go`).
 
 Contract details worth pinning in golden tests:
 

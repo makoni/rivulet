@@ -1026,15 +1026,24 @@ failure
 
 - The JSON this path writes is `json.Marshal`, not the platform encoder: the compact form with no
   spaces, the object keys in the order the document declares them, and the solidus written as it is.
-  Swift's own encoder differs on all three, so the port writes the document with Go's escape
-  classes: the quote and the backslash, the three control characters with their short forms, every
-  other character below U+0020 as `\u00XX`, the three HTML-sensitive characters and the two line
-  separators as `\uXXXX` with lowercase digits. `JSONValueTests` pins each class against the
-  reference's output at the toolchain `go.mod` pins, and the key order with a document where the two
-  orders differ.
+  Swift's own encoder is compact too, but its key order is the dictionary's, which is not the order
+  the document declares them in, and it escapes the solidus and leaves the three HTML-sensitive
+  characters as they are, so the port writes the document with Go's escape classes: the quote and
+  the backslash, the three control characters with their short forms, every other character below
+  U+0020 as `\u00XX`, the three HTML-sensitive characters and the two line separators as `\uXXXX`
+  with lowercase digits. `JSONValueTests` pins each class against the reference's output at the
+  toolchain `go.mod` pins, and the key order with a document where the two orders differ.
+
+- The response builder writes `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and
+  `Referrer-Policy: no-referrer` on every response of this path, so each shape it writes carries
+  them, including both 401 answers; `GoogleReaderAuthTests` pins the three headers on each of the
+  six responses this piece answers. The builder's `Vary: Accept-Encoding` appears only above its
+  compression threshold, which none of these bodies reach, so nothing here can pin it.
+
 - `Content-Type` is what the reference sets on this path — `application/json` with no charset, and
   `text/plain; charset=utf-8` for the text shapes — written explicitly, because Vapor's default adds
   the charset to the JSON one.
+
 - The form read is Go's `ParseForm`: the urlencoded body pairs are read into `r.Form` before the
   query pairs, so the value `Form.Get` answers for a name both sides carry is the body one. A pair
   with no `=` is a name with an empty value, empty pairs are skipped, `+` is a space while `%2B` is
@@ -1043,20 +1052,25 @@ failure
   ignored and compared lowercased, as Go's `mime.ParseMediaType` reads a type with its parameters
   dropped, which the pins read with a charset parameter and with the type written in upper case. The
   plan's earlier note had the query first; Go puts the body first, so that note is corrected here.
+
 - The header is read as Go's `strings.Fields` splits it, which collapses the whitespace between the
   fields: exactly two fields, the second split on exactly one `=` with the empty part kept, so a
   value that carries another equals sign is not the shape the reference reads.
+
 - The two 401 answers are the reference's two: the login path answers the JSON document without the
   bad-token header, the protected path answers the text shape with it.
+
+- The catch-all answer is pinned on the exact path the reference registers; the no-slash path is
+  pinned as the divergence below.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| JSON write | `encoding/json` | the same rules, written by `JSONValue`, because the platform encoder sorts the keys, escapes the solidus and leaves the HTML class as it is | No observable difference; the port has its own writer because the platform one cannot reproduce the reference's bytes, and the pins read that writer |
-| Bytes that are not valid UTF-8 | a string holding an invalid byte is written as `\ufffd` | cannot arise, because a Swift `String` holds valid UTF-8 | Only the reference has this case; what is pinned here is what it writes for a valid replacement character |
+| JSON write | `encoding/json` | the same rules, written by `JSONValue`, because the platform encoder writes its dictionary order (sorted on Darwin), escapes the solidus and leaves the HTML class as it is | No observable difference; the port has its own writer because the platform one cannot reproduce the reference's bytes, and the pins read that writer |
+| Bytes that are not valid UTF-8 | a string holding an invalid byte is written as `\ufffd`, and a form value can hold one because Go's `unescape` returns raw bytes | a writer cannot receive an invalid byte, because a Swift `String` holds valid UTF-8, but the form read can build one: a percent escape whose bytes are not valid UTF-8 answers U+FFFD here, where Go keeps the byte | Only the reference has the write case; the pins read what this port writes for a valid replacement character, and the form half is recorded in the code comment |
 | The compare | `crypto/subtle.ConstantTimeCompare` | the same form, one pass over the bytes | No pin can read the timing, so the answer is pinned, including that the value is compared whole rather than as a prefix |
-| Path matching | the catch-all pattern is Go's subtree pattern, so it answers for any path under `/reader/api/0/` | only the exact path is registered today | The subpath answer arrives with the router piece, which is what the acceptance matrix will read |
-| No trailing slash | 307 with `text/html; charset=utf-8` and `<a href="/reader/api/0/">Temporary Redirect</a>.\n\n`, written before the auth middleware, so an unauthenticated request gets the redirect rather than 401 | 404, which is what Vapor's router answers for a path it has no pattern for | The two answers differ for the no-slash path; both halves are recorded in `docs/reference-notes.md` and land with the router piece |
-| A method the pattern does not register | 405 `Method Not Allowed` as `text/plain; charset=utf-8`, also before the auth middleware | 404, for the same reason | The same for an unauthenticated request: upstream answers 405 where this port answers 404 |
+| Path matching | the catch-all pattern is Go's subtree pattern, so it answers for any path under `/reader/api/0/` | only the exact path is registered today, so a path under it answers Vapor's own 404 without the builder headers | The subpath answer arrives with the router piece, which is what the acceptance matrix will read |
+| No trailing slash | 307 with `text/html; charset=utf-8` and `<a href="/reader/api/0/">Temporary Redirect</a>.\n\n`, written before the auth middleware, so an unauthenticated request gets the redirect rather than 401 | the route is matched on the path segments, so the path without the trailing slash reaches the same handler and answers the catch-all `[]` + 200, or the protected 401 when it has no token | `GoogleReaderAuthTests` pins this port's answer for both halves; the reference's redirect is recorded in `docs/reference-notes.md` |
+| A method the pattern does not register | 405 `Method Not Allowed` as `text/plain; charset=utf-8`, also before the auth middleware | 404, which is what Vapor's router answers for a path it has no pattern for | The same for an unauthenticated request: upstream answers 405 where this port answers 404 |
 | Two rows and the last-login stamp | the integration row and the user row read by id, and `SetLastLogin` on a successful compare | one row, and no last-login column | The same single row here; no pin can read the stamp, so the suite header names it |

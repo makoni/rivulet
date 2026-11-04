@@ -41,13 +41,15 @@ while this read does not. What that suite cannot show is named in its header —
 the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
 default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The Google Reader auth
 path landed with PR #41: the login's own field names, the text shape by default and the JSON shape
-only when `output` says `json`, the compare against the stored value, the guard that an empty field
+only when `output` says `json`, the compare against the stored value, the guard that an empty name
 ends the login before the read, the transport chosen by method, the merged form with Go's order, the
-header read as `strings.Fields` splits it, the structure rule and the two 401 shapes are pinned by
+header read as `strings.Fields` splits it, the three headers the response builder writes on every
+response of this path, the structure rule and the two 401 shapes are pinned by
 `GoogleReaderAuthTests` over a real socket, with the derivation and the JSON write pinned against
-the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`; the timing form of the
-compare and the one-part structure are named as unpinnable in that header, as are the mux rules the
-router piece brings. The next piece is the Google Reader and Fever routers.
+the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`, and the port's answer
+for the path without the trailing slash pinned as a divergence; the timing form of the compare, the
+guard's password half and the one-part structure are named as unpinnable in that header, as are the
+mux rules the router piece brings. The next piece is the Google Reader and Fever routers.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

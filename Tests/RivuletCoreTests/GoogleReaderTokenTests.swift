@@ -67,8 +67,14 @@ import Testing
         let token = GoogleReaderToken.derive(username: "userone", storedHash: storedHash)
         let name = try #require(GoogleReaderToken.name(ofToken: token))
         let digest = try #require(GoogleReaderToken.digest(ofToken: token))
-        #expect(token == name + "/" + digest, "the two parts joined by a slash: \(token)")
+
+        // Read against the golden, not against the value the same type just built: comparing the
+        // token with `name + "/" + digest` would state the rule with the rule and could not fail. A
+        // patch that joined with the colon the Fever rule uses reads this token as one part, so the
+        // two requires answer nothing here, and the golden equality fails.
         #expect(name == "userone", "the part before the separator: \(name)")
+        #expect(digest == "cb4f382fa4467e865dd77085df73ec241fc2c74b54adbff3b7df9aeed53ad4f1",
+            "the part after it, read as the reference's golden")
     }
 
     @Test func theCompareAnswersForEqualStringsOnly() throws {
