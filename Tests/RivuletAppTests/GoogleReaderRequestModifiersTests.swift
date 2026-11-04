@@ -14,15 +14,16 @@ import Testing
 /// case-insensitively fails on `r=O`; that the value is compared as the pair read gives it, which a
 /// patch that trimmed it first fails on `r=%20o`; the list read's trim and its skip of an empty
 /// value, which a patch that kept empty values or did not trim fails on the query it names in the
-/// test: `?s=+feed/1&s=&s=%20feed/2&s=%09feed/3`, where the `+` is the space the pair read gives;
-/// the integer read's three paths — empty, unparseable, negative — each answering the default,
-/// which a patch that read only one of them fails, and `n=+50` shows that the number is parsed from
-/// the value as the pair read gave it, so the space the `+` became is what makes it unparseable;
-/// that the first value with a name is what a single read answers, which a patch that read the last
-/// one fails; the order the three stream reads run in, which a patch that read the excludes before
-/// the streams fails on the query that has a bad value in each list; the user id carried through to
-/// the read; and the continuation rule, which is the sum only while it is below the total, so a
-/// patch that answered it always fails on the page that is the whole answer.
+/// test: `?s=+feed/1&s=&s=%20feed/2&s=%09feed/3`, where the `+` is the space the pair read gives —
+/// the character set the trim uses is pinned by `GoogleReaderQueryTests`; the integer read's three
+/// paths — empty, unparseable, negative — each answering the default, which a patch that read only
+/// one of them fails, and `n=+50` shows that the number is parsed from the value as the pair read
+/// gave it, so the space the `+` became is what makes it unparseable; that the first value with a
+/// name is what a single read answers, which a patch that read the last one fails; the order the
+/// three stream reads run in, which a patch that read the excludes before the streams fails on the
+/// query that has a bad value in each list; the user id carried through to the read; and the
+/// continuation rule, which is the sum only while it is below the total, so a patch that answered
+/// it always fails on the page that is the whole answer.
 ///
 /// What these pins cannot fail on: `WithOffset`'s branch that keeps only a positive offset, because
 /// the parameter read already answers the default for a negative value, so no query reaches that
@@ -89,10 +90,11 @@ import Testing
         let ordered = try filter(for: "s=feed/2&s=feed/1")
         #expect(ordered.streams.map(\.id) == ["2", "1"], "the order the pairs came in")
 
-        // A query that carries only empty values answers nothing, so the stream read's fallback
-        // error is what a caller gets for `?s=`.
+        // A query that carries only empty values answers nothing, which is what the reference's
+        // list read gives for `?s=`: the empty value is skipped before the stream read, so the read
+        // that answers no stream for an empty value is never reached here and is pinned by
+        // `GoogleReaderStreamTests` on its own.
         #expect(try filter(for: "s=").streams.isEmpty, "an empty value is skipped before the read")
-        #expect(errorDescription(for: "s=") == nil, "and nothing is read, so nothing is reported")
     }
 
     @Test func theIntegerReadAnswersTheDefaultForAnEmptyUnparseableOrNegativeValue() throws {
@@ -170,5 +172,7 @@ import Testing
             "3 plus 2 is 5, which is not below the total")
         #expect(GoogleReaderRequestModifiers.continuation(returned: 4, offset: 1, total: 6) == 5,
             "the value is the sum, which is below the total here")
+        #expect(GoogleReaderRequestModifiers.continuation(returned: 5, offset: 5, total: 5) == 0,
+            "the sum is not below the total, so nothing is answered")
     }
 }

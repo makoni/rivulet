@@ -15,10 +15,15 @@ import Testing
 /// either the name or the value is a space, while `%2B` is the character itself, which a patch that
 /// read `+` as itself fails on the name `a b`; a pair whose name or value cannot be unescaped is
 /// skipped and the rest of the query is still read, which a patch that stopped the whole read fails
-/// on `?a=b&%zz&f=g`; the value read is the first one with that name, while the list read gives
-/// them in the order the pairs came in, which a patch that ordered them the other way fails on
-/// `?s=feed/2&s=feed/1`; and the name is unescaped before it is compared, so `?a%20b=c` answers for
-/// the name `a b`.
+/// on `?a=b&%zz&f=g`, and each half of the pair is read on its own, so a patch that kept the pair
+/// answers the name it carried and fails on `?a=%zz&b=v` and on `?%zz=a&c=d`; that the escape needs
+/// two hex digits after the percent, which a patch that read the second one without checking that
+/// it is there traps on `?a%2=b&c=d` instead of skipping the pair; the list read's trim, which is
+/// Go's `unicode.IsSpace` rather than this port's `.whitespaces`, which a patch that trimmed with
+/// the port's set fails on `?s=%0Afeed/1`, and its skip of an empty value; the value read is the
+/// first one with that name, while the list read gives them in the order the pairs came in, which a
+/// patch that ordered them the other way fails on `?s=feed/2&s=feed/1`; and the name is unescaped
+/// before it is compared, so `?a%20b=c` answers for the name `a b`.
 ///
 /// What these pins cannot fail on: that a name the query does not carry and a name whose value is
 /// empty answer the same — Go's `Values` answers `""` for both, which is why the guards read the
@@ -70,9 +75,33 @@ import Testing
         #expect(query.values(named: "a") == ["b"], "the pair before it")
         #expect(query.values(named: "f") == ["g"], "the pair after it")
 
-        // A patch that stopped the whole read at the bad pair answered nothing for `a` here.
-        #expect(GoogleReaderQuery(query: "=%zz&a=v").values(named: "a") == ["v"],
-            "the pair whose name cannot be unescaped is skipped, and the read continues")
+        // The value is the part that fails here, so nothing answers for the name the pair carried:
+        // a patch that kept the pair instead of skipping it answered `%zz` for `a`.
+        let value = GoogleReaderQuery(query: "a=%zz&b=v")
+        #expect(value.values(named: "a").isEmpty, "the pair whose value cannot be unescaped is skipped")
+        #expect(value.values(named: "b") == ["v"], "and the read continues with the pair after it")
+
+        // The name is the part that fails here, which a patch that checked only the value answers
+        // as the name the pair gave: a patch that skipped the name check kept this pair.
+        let name = GoogleReaderQuery(query: "%zz=a&c=d")
+        #expect(name.values(named: "%zz").isEmpty, "the pair whose name cannot be unescaped is skipped")
+        #expect(name.values(named: "c") == ["d"], "and the read continues with the pair after it")
+    }
+
+    @Test func anEscapeThatRunsOffTheEndOfThePairSkipsItAndTheReadContinues() throws {
+        // Go reports `invalid URL escape "%2"` for a `%` that does not have two hex digits after
+        // it, which is what an escape at the end of the pair is, and the read continues with the
+        // pairs after it. A patch that read the second character of the escape without checking
+        // that it is there traps here instead of skipping the pair.
+        let query = GoogleReaderQuery(query: "a%2=b&c=d")
+        #expect(query.values(named: "a").isEmpty, "the pair with the truncated escape is not read")
+        #expect(query.values(named: "c") == ["d"], "and the pair after it is read")
+
+        // The one-character escape is the same rule, and so is the name form of it.
+        #expect(GoogleReaderQuery(query: "a%=b&c=d").values(named: "c") == ["d"],
+            "an escape with no characters after the percent is skipped too")
+        #expect(GoogleReaderQuery(query: "%=a&c=d").values(named: "c") == ["d"],
+            "and the name form of it")
     }
 
     @Test func thePlusIsASpaceAndPercentEscapeIsTheCharacter() throws {
@@ -83,6 +112,21 @@ import Testing
             "the percent form is the character itself")
         #expect(GoogleReaderQuery(query: "a%20b=c").values(named: "a b") == ["c"],
             "the name is unescaped before it is compared")
+    }
+
+    @Test func theListReadTrimsTheCharactersTheReferenceTreatsAsSpace() throws {
+        // `strings.TrimSpace` is Go's `unicode.IsSpace`, which covers the control forms this port's
+        // `.whitespaces` does not, so a patch that trimmed with `.whitespaces` kept these values.
+        let query = GoogleReaderQuery(query: "s=%0Afeed/1&s=%0Bfeed/2&s=%0Cfeed/3&s=%0Dfeed/4")
+        #expect(query.values(named: "s") == ["\nfeed/1", "\u{0B}feed/2", "\u{0C}feed/3", "\rfeed/4"],
+            "the values themselves are what the pair read gives, not trimmed")
+        #expect(query.list(named: "s") == ["feed/1", "feed/2", "feed/3", "feed/4"],
+            "the list read trims each of them")
+
+        // U+0085 is a space for the reference and not for `.whitespaces`, so this is the character
+        // the two sets differ on when the escape is read as UTF-8.
+        #expect(GoogleReaderQuery(query: "s=%C2%85feed/1").list(named: "s") == ["feed/1"],
+            "the next line is trimmed by the reference's set")
     }
 
     @Test func theFirstValueWithTheNameIsWhatGetAnswers() throws {

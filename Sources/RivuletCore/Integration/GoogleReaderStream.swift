@@ -1,6 +1,5 @@
 // Ported from Miniflux internal/googlereader/stream.go (Apache-2.0); adapted for Swift/SQLite.
 
-import Foundation
 
 /// A stream the Google Reader contract names: the type and the part of the value that is left after
 /// the prefix is removed.

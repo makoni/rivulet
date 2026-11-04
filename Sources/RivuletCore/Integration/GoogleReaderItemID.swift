@@ -1,6 +1,5 @@
 // Ported from Miniflux internal/googlereader/item.go (Apache-2.0); adapted for Swift/SQLite.
 
-import Foundation
 
 /// The item id the Google Reader contract uses.
 ///
@@ -77,28 +76,44 @@ public enum GoogleReaderItemID {
 
     // MARK: - Rules
 
-    /// `fmt.Sscanf` with `%016x`: the sign, then digits up to the field width, stopping at the
-    /// first character that is not one. Go reports EOF when there is nothing to scan and "expected
-    /// integer" when the character there is not one, and the value is what `strconv.ParseInt`
-    /// answers for the token the scan read.
+    /// `fmt.Sscanf` with `%016x`: the space before the verb is skipped, then the sign, then digits
+    /// up to the field width, stopping at the first character that is not one — and the skipped
+    /// space does not count against the width. Go reads one rune at a time, so a character that is
+    /// a base character with a combining mark is the base character here, not the whole grapheme.
+    /// Go reports EOF when there is nothing to scan and "expected integer" when the character there
+    /// is not one, and the value is what `strconv.ParseInt` answers for the token the scan read.
     private static func scan(field: String, input: String) throws -> Int64 {
-        let characters = Array(field)
+        let characters = Array(field.unicodeScalars)
         var position = 0
+
+        // A newline is not one of the characters the skip takes, so it is what the read reports at
+        // the point where a space would have been skipped.
+        while position < characters.count, GoSpace.isSpace(characters[position]),
+            characters[position] != "\n" {
+            position += 1
+        }
+        if position < characters.count, characters[position] == "\n" {
+            throw ReadError(form: .hexadecimal, input: input, reason: "unexpected newline")
+        }
+
+        var read = 0
         var negative = false
         if position < characters.count, characters[position] == "-" || characters[position] == "+" {
             negative = characters[position] == "-"
+            read += 1
             position += 1
         }
 
         var digits = ""
-        while position < characters.count, position < fieldWidth, isHexDigit(characters[position]) {
-            digits.append(characters[position])
+        while position < characters.count, read < fieldWidth, isHexDigit(characters[position]) {
+            digits.unicodeScalars.append(characters[position])
+            read += 1
             position += 1
         }
 
         if digits.isEmpty {
-            // Go reports EOF when the input ran out, which is what a field that is only a sign is,
-            // and "expected integer" when the character there is not one.
+            // Go reports EOF when the input ran out, which is what a field that is only a sign or
+            // only a space is, and "expected integer" when the character there is not one.
             throw ReadError(form: .hexadecimal, input: input,
                 reason: position == characters.count ? "EOF" : "expected integer")
         }
@@ -123,8 +138,8 @@ public enum GoogleReaderItemID {
         return parsed
     }
 
-    private static func isHexDigit(_ character: Character) -> Bool {
-        character.isHexDigit
+    private static func isHexDigit(_ scalar: Unicode.Scalar) -> Bool {
+        ("0"..."9").contains(scalar) || ("a"..."f").contains(scalar) || ("A"..."F").contains(scalar)
     }
 
     private static func isDigit(_ character: Character) -> Bool {

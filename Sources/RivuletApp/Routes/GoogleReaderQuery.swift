@@ -1,6 +1,9 @@
 // Ported from Go's `url.Values` as `r.URL.Query()` builds it, and from
 // `internal/http/request/params.go` (Apache-2.0); adapted for Swift/SQLite.
 
+import Foundation
+import RivuletCore
+
 /// The query read the stream filter uses.
 ///
 /// `r.URL.Query()` calls `url.ParseQuery` and discards the error it reports, so a pair that cannot
@@ -50,9 +53,11 @@ struct GoogleReaderQuery {
         return value.isEmpty ? defaultValue : value
     }
 
-    /// `request.QueryStringParamList`: the values trimmed, with the empty ones skipped.
+    /// `request.QueryStringParamList`: the values trimmed with Go's `unicode.IsSpace`, with the
+    /// empty ones skipped. This port's `.whitespaces` is a smaller set, so the control forms are
+    /// what the two differ on, which the pins read.
     func list(named name: String) -> [String] {
-        values(named: name).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        values(named: name).map { $0.trimmingCharacters(in: GoSpace.characters) }.filter { !$0.isEmpty }
     }
 
     /// `request.QueryIntParam`: the default for an empty, unparseable or negative value.

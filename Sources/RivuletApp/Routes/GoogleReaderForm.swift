@@ -78,9 +78,14 @@ struct GoogleReaderForm {
             if scalar == "+" {
                 bytes.append(UInt8(ascii: " "))
             } else if scalar == "%" {
+                // Go checks that both characters of the escape are there before reading them, so
+                // the bounds are read before either character: for an escape that runs off the end
+                // of the pair there is nothing to read, which is the error this read reports.
                 let first = scalars.index(after: index)
-                guard first < scalars.endIndex, let high = Self.hexDigit(scalars[first]),
-                    let low = Self.hexDigit(scalars[scalars.index(after: first)]) else {
+                guard first < scalars.endIndex else { throw ReadError.malformedEscape }
+                let second = scalars.index(after: first)
+                guard second < scalars.endIndex, let high = Self.hexDigit(scalars[first]),
+                    let low = Self.hexDigit(scalars[second]) else {
                     throw ReadError.malformedEscape
                 }
                 bytes.append(high << 4 | low)

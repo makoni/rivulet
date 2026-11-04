@@ -19,12 +19,18 @@ import Testing
 /// fails on `8000000000000000`; the zero check that belongs only to the long form, which a patch
 /// that applied it to the bare hex form fails on `000000000000000g`; the decimal read as
 /// `strconv.ParseInt` reads it, which a patch that read the decimal form as hex and read its
-/// characters as hex digits fails on `g000000000000000`; the 16-digit width of the hex write, which
-/// a patch that wrote without padding fails, and its lowercase form, which a patch that wrote it
-/// uppercase fails; the sign the write puts before the padding, which a patch that gave the digits
-/// the whole width fails on `entryID: -1`; and each error wording, including that the hex wording
-/// names the token the scan read rather than the whole input, which a patch that wrote the whole
-/// input fails on `.../8000000000000000x`.
+/// characters as hex digits fails on `g000000000000000`, and which answers the most negative value
+/// as an answer rather than as out of range; the 16-digit width of the hex write, which a patch
+/// that wrote without padding fails, and its lowercase form, which a patch that wrote it uppercase
+/// fails; the sign the write puts before the padding, which a patch that gave the digits the whole
+/// width fails on `entryID: -1`; the space `fmt.Sscanf` skips before the field, which a patch that
+/// did not skip it fails on `.../item/ 1`, and that the skipped space does not count against the
+/// field width, which a patch that counted it fails on `.../item/ 12345678901234567`; that a
+/// newline is not a space the scan skips, which a patch that skipped it fails on `.../item/\n1`,
+/// where the reference reports "unexpected newline"; that the scan reads per Unicode scalar, which
+/// a patch that tested the whole grapheme as a hex digit fails on `.../item/0\u{0301}`; and each
+/// error wording, including that the hex wording names the token the scan read rather than the
+/// whole input, which a patch that wrote the whole input fails on `.../8000000000000000x`.
 ///
 /// What these pins cannot fail on: that `fmt.Sscanf` reports one scanned value, which has no input
 /// that can fail here — the count is 1 for every value the scan reads; and the rule that a form
@@ -85,6 +91,56 @@ import Testing
         #expect(try GoogleReaderItemID.parse("8000000000000000") == 8000000000000000,
             "the hex scan is out of range here, so the decimal read answers it")
         #expect(try GoogleReaderItemID.parse("+12345") == 12345, "the decimal read accepts a sign")
+        #expect(try GoogleReaderItemID.parse("-9223372036854775808") == -9223372036854775808,
+            "the most negative value is an answer for the decimal read, not out of range")
+    }
+
+    @Test func theScanSkipsTheSpaceBeforeTheField() throws {
+        // `fmt.Sscanf` skips the space before a verb before reading the field, so these are the
+        // digits after the space, and the skipped space does not count against the field width.
+        #expect(try GoogleReaderItemID.parse("tag:google.com,2005:reader/item/ 1") == 1,
+            "the value after a skipped space")
+        #expect(try GoogleReaderItemID.parse("tag:google.com,2005:reader/item/\t1") == 1,
+            "the tab is skipped the same way")
+        #expect(try GoogleReaderItemID.parse("tag:google.com,2005:reader/item/\u{85}1") == 1,
+            "and so is the next line, which is a space for the reference's character set")
+        #expect(try GoogleReaderItemID.parse("tag:google.com,2005:reader/item/ 12345678901234567") ==
+            1311768467284833366, "the field width counts what is read, not the skipped space")
+
+        // A newline is not a space the scan skips, so it is what the read reports where a space
+        // would have been skipped.
+        #expect(errorDescription(for: "tag:google.com,2005:reader/item/\n1") ==
+            "failed to parse hexadecimal item ID tag:google.com,2005:reader/item/\n1: " +
+            "unexpected newline", "the newline is not skipped")
+        #expect(errorDescription(for: "tag:google.com,2005:reader/item/ \n1") ==
+            "failed to parse hexadecimal item ID tag:google.com,2005:reader/item/ \n1: " +
+            "unexpected newline", "the space is skipped first, so the newline is what is read")
+
+        // A field that is only whitespace runs out before anything is read, which is what Go
+        // reports as EOF.
+        #expect(errorDescription(for: "tag:google.com,2005:reader/item/ ") ==
+            "failed to parse hexadecimal item ID tag:google.com,2005:reader/item/ : EOF",
+            "a field that is only a space")
+
+        // The sign is read after the skip, and the space after it is not skipped again, so the
+        // digits that follow are not read as part of the same number.
+        #expect(errorDescription(for: "tag:google.com,2005:reader/item/+ 1") ==
+            "failed to parse hexadecimal item ID tag:google.com,2005:reader/item/+ 1: expected integer",
+            "the sign is not followed by a digit")
+
+        // 16 bytes with the space at the front is the bare hex form, so the scan reads the 15
+        // digits after the skipped space.
+        #expect(try GoogleReaderItemID.parse(" 123456789012345") == 81985529205302085,
+            "the bare form reads the digits after the skipped space")
+    }
+
+    @Test func theScanReadsOneUnicodeScalarAtATime() throws {
+        // The scan reads runes, not the grapheme cluster this port's `Character` is, so the base
+        // character is what is read and the combining mark stops it: a patch that tested the whole
+        // character as a hex digit answered "expected integer" here instead of the zero.
+        #expect(errorDescription(for: "tag:google.com,2005:reader/item/0\u{0301}") ==
+            "failed to parse hexadecimal item ID tag:google.com,2005:reader/item/0\u{0301}: " +
+            "item ID is zero", "the scalar `0` is read, and the long form reports the zero")
     }
 
     @Test func theHexScanStopsAtTheFirstCharacterThatIsNotADigit() throws {
