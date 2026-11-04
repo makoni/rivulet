@@ -40,7 +40,7 @@ when no row matches, and the control pin shows that the account lookup lowercase
 while this read does not. What that suite cannot show is named in its header — the `*_enabled` gate,
 the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
 default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The Google Reader auth
-path landed with PR #41: the login's own field names, the text shape by default and the JSON shape
+path merged with PR #41: the login's own field names, the text shape by default and the JSON shape
 only when `output` says `json`, the compare against the stored value, the guard that an empty name
 ends the login before the read, the transport chosen by method, the merged form with Go's order, the
 header read as `strings.Fields` splits it, the three headers the response builder writes on every
