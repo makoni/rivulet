@@ -16,9 +16,9 @@ a CLI-first interface and no web UI.
    Re-check the clone when in doubt.
 4. `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 5 — Client APIs & OPML**, with its first slice merged and its second landing
-as PR #39: `create-admin` with the user rules and the bcrypt hasher, and `integration-credentials`
-with the Fever token derivation and the duplicate-name rules. For the second slice the join, the
+Current focus: **Stage 5 — Client APIs & OPML**, with its first two slices merged: `create-admin`
+with the user rules and the bcrypt hasher (PR #38), and `integration-credentials` with the Fever
+token derivation and the duplicate-name rules (PR #39). For the second slice the join, the
 lowercase hex form, the parts read as given, the order the two duplicate checks are read in, the
 guard inside the rule function that an empty name is not read against the answer, the per-user
 exclusion, the values compared as read, each check reading its own column, and the rule that a blank

@@ -1,10 +1,9 @@
 # Stage 5 — Client APIs & OPML
 
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
-**Status:** in progress — the first slice is merged and the second lands with PR #39: `create-admin`
-with the user rules and the bcrypt hasher, and `integration-credentials` with the Fever token
-derivation and the duplicate-name rules. The rest is not started. **Effort:** XL. **Depends on:**
-Stage 4.
+**Status:** in progress — the first two slices are merged: `create-admin` with the user rules and
+the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
+duplicate-name rules (PR #39). The rest is not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
 
@@ -18,7 +17,7 @@ Stage 4.
 - [x] Integration credentials command: `rivulet integration-credentials` sets per-user Google
       Reader username/password (stored bcrypt) and Fever username/password (stored as the MD5
       token); prints the derived Fever `api_key`.
-      Lands with PR #39: the join, the lowercase hex form, the parts read as given, the order the
+      Landed with PR #39: the join, the lowercase hex form, the parts read as given, the order the
       two duplicate checks are read in, the guard inside the rule function that an empty name is not
       read against the answer, the per-user exclusion, the values compared as read, each check
       reading its own column, and the rule that a blank password read keeps the stored value are
