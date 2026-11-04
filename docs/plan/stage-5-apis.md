@@ -4,8 +4,9 @@
 **Status:** in progress — the first two slices are merged: `create-admin` with the user rules and
 the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
 duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40, the Google
-Reader auth path with PR #41, and the contract rules the routers read with PR #42; the routers
-themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
+Reader auth path with PR #41, and the contract rules the routers read with PR #42; the rules the
+handlers read — the tag read, the output read and the document shapes — landed with PR #43 as pure
+logic too, and the handlers themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
 
@@ -71,10 +72,15 @@ themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
       check that runs before the escape's two characters are read — and the parameter reads with the
       order read, the list read's trim as Go's `unicode.IsSpace` and its skip of an empty value, and
       the continuation rule, pinned by `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`,
-      `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. What follows with the
-      handlers: `n` clamped to 1000 where the query builder applies it, `continuation` as a numeric
-      offset written as a JSON string and omitted when 0, `edit-tag` reading tags from the body,
-      `output=json` on the affected endpoints, unknown streams answering 500, and the text-vs-JSON
+      `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. The rules the handlers read
+      landed with PR #43, also with no HTTP: the tag read with the add loop before the remove loop
+      and the value each branch writes, the output read with the side chosen by method, and the
+      document shapes with the `omitempty` rule, the continuation as a string omitted when 0, and
+      the empty list written as `[]`, pinned by `GoogleReaderTagsTests`, `GoogleReaderOutputTests`
+      and `GoogleReaderShapeTests`. What follows with the handlers: `n` clamped to 1000 where the
+      query builder applies it, the value the handler gives the continuation rule, `edit-tag`
+      reading tags from the body, which endpoints the output read applies to and the status the
+      answer writes, and the unknown-stream 500 wording, the subpath wildcard, and the text-vs-JSON
       response shapes and the token-transport split above.
 - [ ] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
       `saved_item_ids`, `items`, `mark=item|feed|group` with reference semantics (limit 50;
@@ -137,7 +143,7 @@ Findings from the runs on PR #41 that do not change behavior:
   redirect cannot be observed here, because Vapor's client follows a redirect and reports the answer
   after the follow. The pin's comment says this, and the pin fails on a read that distinguishes the
   trailing slash.
-- `docs/testing.md` is over the file-size aim for a document (604 lines): it is one file for the
+- `docs/testing.md` is over the file-size aim for a document (617 lines): it is one file for the
   levels, the support helpers and the CI rules, and splitting it by level is a style matter.
 
 Findings from review run 1 on PR #38 that do not change behavior:

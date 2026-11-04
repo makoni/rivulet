@@ -486,6 +486,42 @@ what the JSON shape leaves out, and `count` is what the page returned, not the p
 Goldens at the pins: (2, 0, 5) → 2, (2, 0, 2) → 0, (1, 0, 1) → 0, (3, 2, 5) → 0, (4, 1, 6) → 5, (5,
 5, 5) → 0.
 
+### The rules the handlers read (`checkAndSimplifyTags`, `checkOutputFormat`, `response.go`)
+
+The tag read (`checkAndSimplifyTags`), with the add loop before the remove loop:
+
+- `read` answers true for the add loop and false for the remove loop, and `kept-unread` answers the
+  other value for the same type in each loop; `starred` is true for the add loop and false for the
+  remove loop;
+- the add loop's `read` guard asks for the map key `KeptUnreadStream`, which that loop never writes,
+  so it can never fire; its `kept-unread` guard asks for `ReadStream`, which the same loop may have
+  written, so `add read` then `add kept-unread` is the error, while the other order writes the last
+  value;
+- `broadcast` and `like` are logged and write nothing, so they are not the unsupported error; any
+  other type is, and the wording names the type as the reference's `String()` prints it, not the
+  label;
+- the two wordings: `googlereader: kept-unread and read should not be supplied simultaneously` names
+  the pair of suffixes, and googlereader: starred should not be supplied for add and remove
+  simultaneously names one. Both are the 500 answer.
+
+The output read (`checkOutputFormat`): POST reads through the form read, which reports a pair error
+for the whole form, and every other method reads through the query read, which skips that pair. Only
+the value `json` passes, compared as the read gives it, and the wording is
+`googlereader: only json output is supported`, which the 400 answer writes. The four endpoints this
+applies to are `stream/items/contents`, `tag/list`, `subscription/list` and `stream/items/ids`;
+`user-info`, the token endpoint and the catch-all do not check it. The form error names the escape
+as Go names it: the substring from the percent cut to three characters, so `abc%zz` names `%zz` and
+`%zzz` names `%zz`.
+
+The documents (`response.go`), as `encoding/json` writes them: `itemRef` writes `id` always and the
+other two only when they have a value; `streamIDResponse` writes `itemRefs` as `[]`, because the
+reference builds the slice with `make` before writing it, and writes `continuation` only when it is
+not 0 and as a JSON string, because of the document's `,string` option; `userInfoResponse` has no
+`omitempty` on any of its four fields; `subscriptionCategoryResponse` writes `id` always and `label`
+and `type` only when they have a value. Goldens at the pins: `{"itemRefs":[]}`,
+`{"itemRefs":[{"id":"7"}],"continuation":"5"}`, and
+`{"tags":[{"id":"user/7/state/com.google/starred"}]}`.
+
 ## Fever API (`internal/fever`)
 
 Implemented parameters (`handler.go` dispatch): `groups`, `feeds`, `favicons`, `unread_item_ids`,

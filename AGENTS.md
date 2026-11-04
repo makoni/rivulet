@@ -61,9 +61,21 @@ reports, the order the two stream prefixes are removed in, the error `r.URL.Quer
 `WithOffset` branch the parameter read never reaches, the platform reading `bitSize 0` as 64 bits,
 and which count the continuation rule is given, because that is the handler's choice. The form read
 reports a pair error for the whole form while the query read skips that pair, which is
-`r.URL.Query()`; both are recorded in the code comment. The `output=json` read, the `edit-tag` body
-tags, the `streamIDResponse` shape, the unknown-stream 500 wording and the subpath wildcard stay
-with the handlers, which are the next piece together with the Fever parameter set, `quickadd`
+`r.URL.Query()`; both are recorded in the code comment.
+
+PR #43 landed the rules the handlers read, still as pure logic with no HTTP: the tag read with the
+add loop before the remove loop, the value each branch writes for `read`, `kept-unread` and
+`starred` — the other way round for the remove loop — the two wordings that name different things,
+and the branches that write nothing and are not the unsupported error; the output read, where the
+method decides which side is read and only the value `json` passes, compared as the read gives it;
+and the document shapes with the `omitempty` rule, the continuation written as a string and omitted
+when it is 0, and the empty list written as `[]` because the reference builds the slice with `make`
+— are pinned by `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and `GoogleReaderShapeTests`.
+What those headers name as unpinnable: the guard inside the add loop, which asks for the map key
+that loop never writes so it can never fire, the guard that an empty add and an empty remove answer
+the reference's own wording, and which endpoints apply the output check, both being the handler's
+choice. The handlers, the status these errors answer with, the unknown-stream 500 wording and the
+subpath wildcard stay with the next piece, together with the Fever parameter set, `quickadd`
 discovery, the icon route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's

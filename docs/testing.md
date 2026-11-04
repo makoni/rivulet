@@ -519,21 +519,34 @@ reference's logging, which this port has no layer for. What the pins do reach th
 suites.
 
 The stage-5 contract suites pin the reference's output as values inside the suite rather than as
-fixture files, because each of those pins reads one answer for one rule rather than a corpus. The
-four suites are `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
-`GoogleReaderRequestModifiersTests`; their goldens are the reference's own output at the toolchain
-`go.mod` pins, and each pin was seen to fail on the rule it names by patching that rule and
-reverting — one probe per rule. The probe for the escape bounds traps instead of answering, which is
-what the pin says that rule does: it reads past the end of the pair. Two pins that were written and
-then removed are recorded here because they cannot fail on their own: the continuation rule answers
-the sum for whatever count it is given, so which count the handler gives it is not a rule this side
-can pin, and the header names it as landing with the handler; and the pin that only said the read
-reports no error for `?s=`, which the list read's skip of the empty value already settles, so it
-could not fail on its own. The other rules these four headers name as unpinnable are the count
-`fmt.Sscanf` reports, which has no input that can fail, the order the two stream prefixes are
-removed in, which no input this side can build is affected by, the error `r.URL.Query()` discards,
-which has no answer this side can show, and the read `WithOffset` never reaches, because the
-parameter read already answers the default for the value that would reach it.
+fixture files, because each of those pins reads one answer for one rule rather than a corpus.
+
+The suites PR #42 built are `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`,
+`GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`; their goldens are the reference's
+output at the toolchain `go.mod` pins, and each pin was seen to fail on the rule it names by
+patching that rule and reverting — one probe per rule. The probe for the escape bounds traps instead
+of answering, which is what the pin says that rule does: it reads past the end of the pair. Two pins
+that were written and then removed are recorded here because they cannot fail on their own: the
+continuation rule answers the sum for whatever count it is given, so which count the handler gives
+it is not a rule this side can pin, and the header names it as landing with the handler; and the pin
+that only said the read reports no error for `?s=`, which the list read's skip of the empty value
+already settles, so it could not fail on its own. The other rules these four headers name as
+unpinnable are the count `fmt.Sscanf` reports, which has no input that can fail, the order the two
+stream prefixes are removed in, which no input this side can build is affected by, the error
+`r.URL.Query()` discards, which has no answer this side can show, and the read `WithOffset` never
+reaches, because the parameter read already answers the default for the value that would reach it.
+
+PR #43 adds three suites pinned the same way: `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and
+`GoogleReaderShapeTests` — one probe per rule, 26 probes, all showing their pin failing. Two probes
+could not bite at first and are recorded here: the pin that read the unsupported wording for one
+type could not fail on a patch that wrote that wording for every type, so it now reads a second type
+the same branch answers for; and the escape pin could not fail on a patch that named the pair from
+its start, because the value it read began at the percent, so that probe now patches both error
+sites. What these headers name as unpinnable: the add loop's `read` guard, which asks for a map key
+that loop never writes so it can never fire; the guard that an empty add and an empty remove answer
+the reference's own wording, which is the handler's rule; which endpoints apply the output check and
+which document a handler builds, both the handler's choice; and the `%q` quoting of the escape
+wording, which `docs/parity.md` already records as a divergence. No pin here had to be removed.
 
 ## Soak
 

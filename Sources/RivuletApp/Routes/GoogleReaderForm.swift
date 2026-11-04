@@ -18,13 +18,26 @@ struct GoogleReaderForm {
     /// a readable value in one pair and the failure in another are what make this falsifiable. Go's
     /// other `ParseForm` errors, a media type it cannot parse and a body over its 10 MB cap, have
     /// nothing to fail on in this suite.
-    enum ReadError: Error, Equatable, Sendable {
+    ///
+    /// The wordings are the ones the answer writes, and the escape one names the text Go names: the
+    /// substring from the percent, cut to three characters. Go builds that sentence with `%q`,
+    /// which is the quoting divergence `docs/parity.md` records; the pins read the cases where it
+    /// makes no difference, because the text a failing escape names is the percent and the
+    /// characters after it.
+    enum ReadError: Error, CustomStringConvertible, Equatable, Sendable {
         /// Go's `invalid semicolon separator in query`: a `;` is not a pair separator for
         /// `ParseForm`.
         case semicolonSeparator
 
-        /// Go's `invalid URL escape`: a `%` that is not a two-digit hex escape.
-        case malformedEscape
+        /// Go's `invalid URL escape`, with the text Go names.
+        case malformedEscape(String)
+
+        var description: String {
+            switch self {
+            case .semicolonSeparator: return "invalid semicolon separator in query"
+            case .malformedEscape(let escape): return "invalid URL escape \"\(escape)\""
+            }
+        }
     }
 
     /// The pairs, in the order Go builds `r.Form` in: the body first, then the query.
@@ -82,11 +95,13 @@ struct GoogleReaderForm {
                 // the bounds are read before either character: for an escape that runs off the end
                 // of the pair there is nothing to read, which is the error this read reports.
                 let first = scalars.index(after: index)
-                guard first < scalars.endIndex else { throw ReadError.malformedEscape }
+                guard first < scalars.endIndex else {
+                    throw ReadError.malformedEscape(Self.namedEscape(scalars, from: index))
+                }
                 let second = scalars.index(after: first)
                 guard second < scalars.endIndex, let high = Self.hexDigit(scalars[first]),
                     let low = Self.hexDigit(scalars[second]) else {
-                    throw ReadError.malformedEscape
+                    throw ReadError.malformedEscape(Self.namedEscape(scalars, from: index))
                 }
                 bytes.append(high << 4 | low)
                 index = scalars.index(first, offsetBy: 2)
@@ -95,6 +110,18 @@ struct GoogleReaderForm {
                 bytes.append(contentsOf: String(scalar).utf8)
             }
             index = scalars.index(after: index)
+        }
+        return String(decoding: bytes, as: UTF8.self)
+    }
+
+    /// The text the escape error names: the substring from the percent, cut to three. Go cuts by
+    /// bytes, which is what this does, so a multi-byte character is cut where Go cuts it.
+    private static func namedEscape(_ scalars: String.UnicodeScalarView, from index: String.Index) -> String {
+        var bytes: [UInt8] = []
+        var position = index
+        while position < scalars.endIndex, bytes.count < 3 {
+            bytes.append(contentsOf: String(scalars[position]).utf8)
+            position = scalars.index(after: position)
         }
         return String(decoding: bytes, as: UTF8.self)
     }
