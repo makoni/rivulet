@@ -12,23 +12,22 @@ sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting 
 `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora:
 encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the
 three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML
-tolerance table and the parser error corpus | | Integration |
-`Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor
-app over real HTTP | | Soak | `Scripts/soak.sh` with `Scripts/soak_check.py` | A real-time run over local stub feeds, run by hand and not in CI: its checks read the data each round leaves behind |
+tolerance table and the parser error corpus | | Integration | `Tests/RivuletIntegrationTests` | Real
+SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP | | Soak |
+`Scripts/soak.sh` with `Scripts/soak_check.py` | A real-time run over local stub feeds, run by hand
+and not in CI: its checks read the data each round leaves behind |
 | Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
 diff against real Miniflux in Docker |
 
-The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests
-speak to a real socket through Vapor's client).
-Fixture files are target resources (`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as
-stage 3 landed them.
+The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
+to a real socket through Vapor's client). Fixture files are target resources
+(`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them.
 
 ## Workflow (TDD)
 
-1. Write a failing test that describes the behavior.
-2. Implement the minimal change to make it pass.
-3. Refactor with tests green.
-4. Bug fixes start with a regression test that reproduces the bug.
+1. Write a failing test that describes the behavior. 2. Implement the minimal change to make it
+pass. 3. Refactor with tests green. 4. Bug fixes start with a regression test that reproduces the
+bug.
 
 Rules:
 
@@ -51,9 +50,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   paths, because only `ServeCommand` stops it for the happy path and a started server that is not
   stopped trips `HTTPServer`'s deinit assertion instead of reporting the failure; the temp directory
   is removed here, so the teardown rule stays in one place.
-- `GoogleReaderRequests.swift` — the requests and answer reads the Google Reader suite shares:
-  the form body is sent as the bytes are given, so a rule about what the form read sees is
-  shown by the bytes rather than by an encoding the client added.
+- `GoogleReaderRequests.swift` — the requests and answer reads the Google Reader suite shares: the
+  form body is sent as the bytes are given, so a rule about what the form read sees is shown by the
+  bytes rather than by an encoding the client added.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
   with a chosen status/starred state, bulk-seeds entries for pagination limits, builds entry inputs,
   counts entries, tombstones and FTS matches, and backdates timestamps for the retention suites.
@@ -63,7 +62,7 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot be
   read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
-  status codes, `ETag`/`Last-Modified`, gzip, redirects, delays (before the answer, or after the
+  status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the
   head so a body can arrive later than a deadline), cut connections, chunked responses, charset
   headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records every
   request it receives (target and headers) so a test can check what the client actually sent, and
@@ -102,57 +101,57 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)` takes
   Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
-`SystemAddressResolver` is the only public API that cannot have a hermetic test against a
-network: it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is
-the narrow case that works without one — a numeric host, which the resolver answers from the
-string itself — and that is also the only place the byte order of the raw `addrinfo` layout
-is pinned. Everything else that matters — one lookup for a direct hop, the answer handed to
-the policy, and the client pinned to the answer it was built from — is tested through the
-resolver seam, with a seeded resolver for the pinning and a counting one for the single lookup.
+`SystemAddressResolver` is the only public API that cannot have a hermetic test against a network:
+it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow
+case that works without one — a numeric host, which the resolver answers from the string itself —
+and that is also the only place the byte order of the raw `addrinfo` layout is pinned. Everything
+else that matters — one lookup for a direct hop, the answer handed to the policy, and the client
+pinned to the answer it was built from — is tested through the resolver seam, with a seeded resolver
+for the pinning and a counting one for the single lookup.
 
-The cache has two behaviour tests. The first pins the one effect that can be observed from
-outside an eviction: while a request is in flight the client serving it must not be closed,
-or that request is cancelled — that is the failure the test reproduces. The request head
-reaches the stub only after the client was taken from the cache, so waiting for the head
-with `waitForRequest(for:)` puts the test at a known point without a sleep, and the body
-is held long enough for the fillers to run, which the test states. The second asserts what
-`shutdown()` can be observed to do: a second call finds nothing to close, and the next fetch
-builds a client again. The recovery assertion carries the weight, but the second call is not
-worthless either — an implementation that left closed entries in the cache would fail it with
-AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first cannot close the same
-client twice follows from taking the entries out before the first await; it cannot be reproduced
-without a client-creation seam the plan does not have, so it is documented rather than tested.
-Everything else about the cache is not observable from outside when two hosts are answered by the
-same address: what is asserted is the key, because the guarantee that a pin is never reused for
-another host or a proxied request rests on it; the TTL clock is monotonic so an NTP step cannot
-stretch or shrink it, and eviction is by expiry among idle entries, not by use, which the code
-states plainly. A client in use is never pruned; `shutdown()` closes every client regardless
-of use, so calling it when no `fetch` is in flight is a caller's contract and the suite does
-not assert the failure a shutdown during a fetch causes — that is a misuse, not a supported path.
+The cache has two behaviour tests. The first pins the one effect that can be observed from outside
+an eviction: while a request is in flight the client serving it must not be closed, or that request
+is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
+the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
+test at a known point without a sleep, and the body is held long enough for the fillers to run,
+which the test states. The second asserts what `shutdown()` can be observed to do: a second call
+finds nothing to close, and the next fetch builds a client again. The recovery assertion carries the
+weight, but the second call is not worthless either — an implementation that left closed entries in
+the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first
+cannot close the same client twice follows from taking the entries out before the first await; it
+cannot be reproduced without a client-creation seam the plan does not have, so it is documented
+rather than tested. Everything else about the cache is not observable from outside when two hosts
+are answered by the same address: what is asserted is the key, because the guarantee that a pin is
+never reused for another host or a proxied request rests on it; the TTL clock is monotonic so an NTP
+step cannot stretch or shrink it, and eviction is by expiry among idle entries, not by use, which
+the code states plainly. A client in use is never pruned; `shutdown()` closes every client
+regardless of use, so calling it when no `fetch` is in flight is a caller's contract and the suite
+does not assert the failure a shutdown during a fetch causes — that is a misuse, not a supported
+path.
 
-App-level tests build the real Vapor app with a temp database and speak real HTTP over a
-socket: the `/healthz` tests start the server on an ephemeral port (never the configured one)
-and use Vapor's client. The same socket-level approach backs the client-API journey tests.
+App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket: the
+`/healthz` tests start the server on an ephemeral port (never the configured one) and use Vapor's
+client. The same socket-level approach backs the client-API journey tests.
 
 Determinism rules: no fixed ports, no sleeps or real-time waits (`TZ=UTC` for date tests, per-test
 temp directories, no network access except to the local stub server or the stub proxy). The ported
 date parser needs neither the clock nor the machine's zone: it reads no clock and no tzdata, and a
-value that reads no zone is read as UTC, which is what the reference does as well. A bounded
-timeout that proves a failure is fast rather than hanging is allowed — the pool-timeout test
-asserts one — and a test whose pass condition is a timeout says so in its comment. A stub-side
-hold is the only margin that can turn a test into a false pass: the first cache test keeps a
-request in flight under a one-second body delay while eight local round trips fill the cache,
-and a slow machine can only make that a false pass, never a false failure; the fetch timing
-tests hold their margin the same way, with the first hop's delay small against the deadline so
-CI overhead can only make the deadline fire earlier, never let a hop that should be cut finish. A
-test that waits without a bound carries a `timeLimit` so a regression fails instead of hanging.
+value that reads no zone is read as UTC, which is what the reference does as well. A bounded timeout
+that proves a failure is fast rather than hanging is allowed — the pool-timeout test asserts one —
+and a test whose pass condition is a timeout says so in its comment. A stub-side hold is the only
+margin that can turn a test into a false pass: the first cache test keeps a request in flight under
+a one-second body delay while eight local round trips fill the cache, and a slow machine can only
+make that a false pass, never a false failure; the fetch timing tests hold their margin the same
+way, with the first hop's delay small against the deadline so CI overhead can only make the deadline
+fire earlier, never let a hop that should be cut finish. A test that waits without a bound carries a
+`timeLimit` so a regression fails instead of hanging.
 
 ## Fixtures
 
-Ported from Miniflux (Apache-2.0) into `Tests/RivuletCoreTests/Fixtures/<area>/`. The directory
-gets its own `README.md` recording provenance: upstream repository, commit `c4d54f87`, license,
-and which files were copied verbatim vs regenerated. `NOTICE` is updated when fixtures land.
-Each ported case carries a comment pointing to the original Go test (`internal/reader/...`).
+Ported from Miniflux (Apache-2.0) into `Tests/RivuletCoreTests/Fixtures/<area>/`. The directory gets
+its own `README.md` recording provenance: upstream repository, commit `c4d54f87`, license, and which
+files were copied verbatim vs regenerated. `NOTICE` is updated when fixtures land. Each ported case
+carries a comment pointing to the original Go test (`internal/reader/...`).
 
 The parser corpus (`ParserCorpusTests`) reads the 8 fixtures end to end. Upstream uses these files
 only as benchmark and fuzz inputs, so there is no upstream assertion to port, and the expected
@@ -184,15 +183,15 @@ the adapter reports.
 
 Only the values named below were traced independently of the run, from the fixture bytes; every
 other pinned value rests on the run, which is why the golden files and the test say plainly that a
-golden value is the reference's output and not Rivulet's. The independent checks are: the SHA-256
-of a GUID, of an entry URL and of an entry ID (`encoding_WINDOWS-1251.xml`, the entry-1 item of
-`no_encoding_ISO-8859-1.xml`, which has no GUID, and `small_atom.xml`), the windows-1251 title,
-the entry-1 content of `no_encoding_ISO-8859-1.xml` — the no-label path drops the bytes that are
-not XML characters — a numeric character reference kept as written inside CDATA, the epoch a date
-resolves to, and an entity decoded in a media thumbnail URL. The zone name a date resolves to is
-not pinned, because the reference reads it through the machine's tzdata — see `docs/parity.md` —
-while the epoch and the offset are. Nothing in this corpus reads a clock, a locale or the network;
-the date the RDF items start with is the clock the suite injects.
+golden value is the reference's output and not Rivulet's. The independent checks are: the SHA-256 of
+a GUID, of an entry URL and of an entry ID (`encoding_WINDOWS-1251.xml`, the entry-1 item of
+`no_encoding_ISO-8859-1.xml`, which has no GUID, and `small_atom.xml`), the windows-1251 title, the
+entry-1 content of `no_encoding_ISO-8859-1.xml` — the no-label path drops the bytes that are not XML
+characters — a numeric character reference kept as written inside CDATA, the epoch a date resolves
+to, and an entity decoded in a media thumbnail URL. The zone name a date resolves to is not pinned,
+because the reference reads it through the machine's tzdata — see `docs/parity.md` — while the epoch
+and the offset are. Nothing in this corpus reads a clock, a locale or the network; the date the RDF
+items start with is the clock the suite injects.
 
 The URL layer has no fixture corpus, because the reference has none for it: its cases are the ported
 tables from `internal/urllib/url_test.go` and `internal/reader/urlcleaner/urlcleaner_test.go`, plus
@@ -234,65 +233,62 @@ lookup inside an attribute value — which is where the URL part's entity decodi
 the value reaches the URL layer already decoded — the srcset whitespace class, that the URL part
 normalizes no whitespace of its own, and the order a formatting element writes its attributes in.
 What it cannot pin is content inside `math` or `svg`, which the reference inserts through the
-foreign-content rules this port does not have, and the rules an output cannot tell apart, such
-as a raw path that is already the canonical encoding, a plus in a query that round-trips to the
-same string, an attribute allowlist with a single name, a read order that is already the sorted
-order, or the sort tie-break by value, which needs two attributes with the same name. The limit
-of 512 open elements in `parse.go` is pinned by the two cases that mirror
-`TestDeeplyNestedpage`: the reference reaches it by panicking and its own parse recovers that as
-an error, so a chain one past the limit answers with nothing, and the port refuses at the same
-count.
+foreign-content rules this port does not have, and the rules an output cannot tell apart, such as a
+raw path that is already the canonical encoding, a plus in a query that round-trips to the same
+string, an attribute allowlist with a single name, a read order that is already the sorted order, or
+the sort tie-break by value, which needs two attributes with the same name. The limit of 512 open
+elements in `parse.go` is pinned by the two cases that mirror `TestDeeplyNestedpage`: the reference
+reaches it by panicking and its own parse recovers that as an error, so a chain one past the limit
+answers with nothing, and the port refuses at the same count.
 
 The XML tolerance table (`XMLToleranceTests`) is the run the plan's test-plan item asks for: 52
 inputs over the four quirk classes, read through `NewXMLDecoder` and `Token()` — the reader path,
 not `Decode` — with the same reference and the same method the parser corpus uses, comparing the
 token stream and how the stream ends. The run found no divergence, so the table in
 `docs/reference-notes.md` records what the reference reports rather than a difference, and
-`docs/parity.md` gained no new row there beyond the modeling choice for the end of the stream.
-The 30 cases that can fail on the rule they name are committed as the fixture
+`docs/parity.md` gained no new row there beyond the modeling choice for the end of the stream. The
+30 cases that can fail on the rule they name are committed as the fixture
 `Tests/RivuletCoreTests/Fixtures/xml/tolerance_corpus.txt`; a case is left out when a wrong
 implementation of its rule writes the same stream, so the suite reads the fixture rather than
 carrying the inputs inline. What the corpus cannot pin: the production a run of text came from,
 which `Token()` reports as character data either way, and a stream that ends at the end of the
-document inside a CDATA section, because the port reports that as the one failure case it has. A
-pin cannot fail on the wording of a failure message either, which is why the test compares the case
-the message names, and it cannot tell a clean end of the stream from an end reached inside an
-element, which is the equivalence recorded in `docs/parity.md`.
+document inside a CDATA section, because the port reports that as the one failure case it has. A pin
+cannot fail on the wording of a failure message either, which is why the test compares the case the
+message names, and it cannot tell a clean end of the stream from an end reached inside an element,
+which is the equivalence recorded in `docs/parity.md`.
 
-The typed error on the parser path (`ParserErrorTests`) is read from the same reference, with
-the same method: 10 inputs, each with the rule its line names, comparing what
-`DetectFeedFormat` answers, which branch `ParseFeed` takes for that answer, and how the scan
-ends. The run found no divergence, so `docs/reference-notes.md` records what the reference
-reports rather than a difference. Every case can fail on the rule it names, checked by
-patching each rule and reverting: a different case for the typed error fails the five pins
-that name it; the JSON rule read after the tokens fails the case whose JSON content is
-followed by a real element; the first character read as written, or one buffer read instead of
-reading until the first character, fails the case whose whitespace is longer than the buffer;
-the count checked after the switch on the name, or read as 60, fails the case whose root is
-read as the 51st token; a `version` attribute matched only without a prefix fails the prefixed
-case; and an angle bracket inside a quoted attribute value tolerated fails the case that names
-the failure. The number the cap counts is pinned only by the pair whose roots sit on the two
-sides of the boundary — a cap read as 49 fails the case read as the 50th token and a cap read
-as 60 the case read as the 51st — so no case pins it alone, and a case for a root read far
-past the cap is left out because a wrong number writes the same answer for it. What no case
-can pin: the buffer size, because a larger one writes the same decision for every case; the
-characters above ASCII that Go's whitespace class counts, U+0085 and U+00A0, because no case
-here has one; the wording of the sentinel; and which adapter the switch calls, since the
-outcome compares the branch, not a call.
+The typed error on the parser path (`ParserErrorTests`) is read from the same reference, with the
+same method: 10 inputs, each with the rule its line names, comparing what `DetectFeedFormat`
+answers, which branch `ParseFeed` takes for that answer, and how the scan ends. The run found no
+divergence, so `docs/reference-notes.md` records what the reference reports rather than a
+difference. Every case can fail on the rule it names, checked by patching each rule and reverting: a
+different case for the typed error fails the five pins that name it; the JSON rule read after the
+tokens fails the case whose JSON content is followed by a real element; the first character read as
+written, or one buffer read instead of reading until the first character, fails the case whose
+whitespace is longer than the buffer; the count checked after the switch on the name, or read as 60,
+fails the case whose root is read as the 51st token; a `version` attribute matched only without a
+prefix fails the prefixed case; and an angle bracket inside a quoted attribute value tolerated fails
+the case that names the failure. The number the cap counts is pinned only by the pair whose roots
+sit on the two sides of the boundary — a cap read as 49 fails the case read as the 50th token and a
+cap read as 60 the case read as the 51st — so no case pins it alone, and a case for a root read far
+past the cap is left out because a wrong number writes the same answer for it. What no case can pin:
+the buffer size, because a larger one writes the same decision for every case; the characters above
+ASCII that Go's whitespace class counts, U+0085 and U+00A0, because no case here has one; the
+wording of the sentinel; and which adapter the switch calls, since the outcome compares the branch,
+not a call.
 
-The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported
-cases from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split
-by what the adapter writes — the feed level, the entry level, the attachments, the identity —
-plus the pins traced against the reference where the corpus does not reach. The RDF suite has no
-attachment or identity cases because the structs this format reads have no such fields, so the
-two negative pins there are what the model starts with. Every traced case states the value the
-reference produces, and the tree rules the adapters read through — `",chardata"` at the
-element's own level, the CDATA marker inside `Inner`, the markup a child contributes to it, and
-the last match at the element's own level, which is what the reference assigns a field — are
-pinned in `XMLTreeTests` and `RDFEntryTests`, while the default space standing in for a name
-with no prefix is pinned in `RSSFeedTests`. The clock the date fallback reads is injected as a
-parameter, so no case depends on the machine's time; nothing else in this layer reads a clock, a
-locale or the network.
+The format adapters have no fixture corpus of their own. The RSS and RDF suites are the ported cases
+from `internal/reader/rss/parser_test.go` and `internal/reader/rdf/parser_test.go`, split by what
+the adapter writes — the feed level, the entry level, the attachments, the identity — plus the pins
+traced against the reference where the corpus does not reach. The RDF suite has no attachment or
+identity cases because the structs this format reads have no such fields, so the two negative pins
+there are what the model starts with. Every traced case states the value the reference produces, and
+the tree rules the adapters read through — `",chardata"` at the element's own level, the CDATA
+marker inside `Inner`, the markup a child contributes to it, and the last match at the element's own
+level, which is what the reference assigns a field — are pinned in `XMLTreeTests` and
+`RDFEntryTests`, while the default space standing in for a name with no prefix is pinned in
+`RSSFeedTests`. The clock the date fallback reads is injected as a parameter, so no case depends on
+the machine's time; nothing else in this layer reads a clock, a locale or the network.
 
 Atom is the seven suites `AtomFeedTests`, `AtomEntryTests`, `AtomTextConstructTests`,
 `AtomMediaTests`, `AtomHashTests`, `Atom03Tests` and `AtomLanguageTests`, ported from
@@ -323,37 +319,36 @@ end of input, because `readValue` reports `io.ErrUnexpectedEOF` there and only `
 the space it invents; the pins name the end of input, and `docs/parity.md` records where the traced
 subset stops.
 
-The JSON Feed adapter ports `internal/reader/json/parser_test.go` (40 test functions) into
-six suites: `JSONFeedTests` for the feed-level chains, `JSONEntryTests`, `JSONAuthorTests`,
-`JSONEnclosureTests` and `JSONHashTests` for the entry rules, and `JSONFieldReadTests` for
-the field read the adapter reads through, which the reference has no code for and so no corpus
-of its own. Each case names the upstream test it comes from, and a traced case states the
-value the reference produces. What cannot be pinned is the byte offset `UnmarshalTypeError`
-carries and the message the reference builds from it, because nothing in the port reads the
-message; the pins name the value word and the type. The rules that can only be pinned by
-this layer are the three branches of `JSONAuthors.UnmarshalJSON` and the order the first
-failure is recorded in, because the reference has no code of its own for them. One case
-asserts a deviation recorded in `docs/parity.md` — the name match is exact, where `foldName`
-would also fold — so it states what this layer does rather than what the reference does.
+The JSON Feed adapter ports `internal/reader/json/parser_test.go` (40 test functions) into six
+suites: `JSONFeedTests` for the feed-level chains, `JSONEntryTests`, `JSONAuthorTests`,
+`JSONEnclosureTests` and `JSONHashTests` for the entry rules, and `JSONFieldReadTests` for the field
+read the adapter reads through, which the reference has no code for and so no corpus of its own.
+Each case names the upstream test it comes from, and a traced case states the value the reference
+produces. What cannot be pinned is the byte offset `UnmarshalTypeError` carries and the message the
+reference builds from it, because nothing in the port reads the message; the pins name the value
+word and the type. The rules that can only be pinned by this layer are the three branches of
+`JSONAuthors.UnmarshalJSON` and the order the first failure is recorded in, because the reference
+has no code of its own for them. One case asserts a deviation recorded in `docs/parity.md` — the
+name match is exact, where `foldName` would also fold — so it states what this layer does rather
+than what the reference does.
 
 The refresh pipeline suite (`RefreshPipelineTests`) is the integration suite where the fetcher, the
 parser, the sanitizer and the storage layer meet: each case runs the pipeline against the stub
-server and reads what landed in the database through its own checkout. The pipeline opens the
-single write transaction it owns, so a test must not hold a connection across `refresh`: the SQLite
-driver keeps one pooled connection per event loop and a nested checkout would wait for it forever.
-The clock is the injected seam (`Support/TestClock.swift`), so every stamp a pin reads is the
-instant the test supplied, which the process clock could not produce; `SystemClockTests` pins the
-other side of the seam, that the production clock answers Unix seconds.
-`NextCheckPolicyTests` pins that the delay is added to the clock with the reference's second
-precision, which no integration case can show because its delay sources answer whole minutes.
-Entry order is pinned
-through insertion order read by `ORDER BY id`, not through `created_at`, because the storage clock
-is not a seam there. Pins compare the typed error case, not the message wording, because Rivulet
-has no locale layer. What the suite cannot pin is stated in the file: the single transaction
-itself, because nothing can make one statement inside it fail while the others succeed; the two
-columns the reference gates the entry-update branch on, which the schema does not have; the rules
-the plan leaves for the later stages; and the icon rules, which this suite does not read at all and
-which `IconCheckerTests` and `RefreshIconTests` pin.
+server and reads what landed in the database through its own checkout. The pipeline opens the single
+write transaction it owns, so a test must not hold a connection across `refresh`: the SQLite driver
+keeps one pooled connection per event loop and a nested checkout would wait for it forever. The
+clock is the injected seam (`Support/TestClock.swift`), so every stamp a pin reads is the instant
+the test supplied, which the process clock could not produce; `SystemClockTests` pins the other side
+of the seam, that the production clock answers Unix seconds. `NextCheckPolicyTests` pins that the
+delay is added to the clock with the reference's second precision, which no integration case can
+show because its delay sources answer whole minutes. Entry order is pinned through insertion order
+read by `ORDER BY id`, not through `created_at`, because the storage clock is not a seam there. Pins
+compare the typed error case, not the message wording, because Rivulet has no locale layer. What the
+suite cannot pin is stated in the file: the single transaction itself, because nothing can make one
+statement inside it fail while the others succeed; the two columns the reference gates the
+entry-update branch on, which the schema does not have; the rules the plan leaves for the later
+stages; and the icon rules, which this suite does not read at all and which `IconCheckerTests` and
+`RefreshIconTests` pin.
 
 The scheduler suites (`SchedulerBatchTests`, `SchedulerTickTests`, `SchedulerOptionsTests`) pin the
 tick's batch selection against the builder, because upstream has no test for it: each rule can fail
@@ -368,8 +363,8 @@ asserted without a timed wait, which the determinism rules forbid — and the su
 the order of the outcomes is not asserted either, because concurrency does not fix it. The due pins
 read only instants after the process clock — 2065 against a stored schedule of 2061 — so the
 injected instant and the process one cannot answer the same batch. The values the batch is built
-with are pinned as the reference's defaults in `SchedulerOptionsTests`, and as the readings of
-the five variables in `ConfigTests`: each default, and the validators that read three of them as at
+with are pinned as the reference's defaults in `SchedulerOptionsTests`, and as the readings of the
+five variables in `ConfigTests`: each default, and the validators that read three of them as at
 least one while the two switches accept zero, because for them zero is the value that means off.
 
 The manual pass (`RefreshCommandTests`) pins the command the plan lists for stage 4: every job of
@@ -382,11 +377,11 @@ without stopping the rest, which a patch that propagates the first failure fails
 the schedule it advanced, so a second pass runs nothing; and `RUN_MIGRATIONS` gates the migrations
 this command runs. The report is read as the counts, not as the words, because the reference logs
 through `slog` and `RivuletCore` has no logging layer. Each feed's site URL is a path of its own,
-because the icon checker the run calls asks the server for the site URL: a feed whose site path
-were its feed path could not tell the job's request from the checker's. What the pins cannot fail
-on is stated in the header: that the pass is one pass (a patch that looped would hang the suite
-rather than fail it), the pool cap, the closing of the fetcher the command created, and the
-reference's check that the schema is up to date, which this port does not port.
+because the icon checker the run calls asks the server for the site URL: a feed whose site path were
+its feed path could not tell the job's request from the checker's. What the pins cannot fail on is
+stated in the header: that the pass is one pass (a patch that looped would hang the suite rather
+than fail it), the pool cap, the closing of the fetcher the command created, and the reference's
+check that the schema is up to date, which this port does not port.
 
 The status contract (`StatusSnapshotTests`, `StatusCommandTests`) pins the minimal feed-state
 document the soak reads, which is the port's own shape because the reference has no status command.
@@ -413,26 +408,26 @@ The entry-frequency half (`NextCheckPolicyTests`, `WeeklyEntryCountTests`,
 `EntryFrequencyPipelineTests`) pins the mode the reference's `PollingScheduler()` selects and the
 count the storage layer answers for it: the rounding up, the gap keeping its fraction as the
 reference's division does, the week window at its boundary, the user scope, the empty result, the
-zero count answering the maximum, and through the pipeline that the count is read before the
-entries land. What cannot be pinned there: the order of the two entry-frequency clamps, because for
-a pair the reference's validator accepts they commute and for the pair it would reject the mode's
-cap is applied again after the delay; the `NULLIF` guard, because SQLite answers a division by zero
-as null, which `COALESCE` turns into the same 0; the mode gate in the pipeline, because the round-
+zero count answering the maximum, and through the pipeline that the count is read before the entries
+land. What cannot be pinned there: the order of the two entry-frequency clamps, because for a pair
+the reference's validator accepts they commute and for the pair it would reject the mode's cap is
+applied again after the delay; the `NULLIF` guard, because SQLite answers a division by zero as
+null, which `COALESCE` turns into the same 0; the mode gate in the pipeline, because the round-
 robin mode reads the count for nothing; the shape of the ceiling, because exact integer arithmetic
 answers the same value as `CEIL` of the reference's real division for every case these pins read;
 and the transaction the count read runs inside.
 
 The merge and tombstone half (`PipelineMergeAndTombstoneTests`) pins what the entry loop does not
-write: an entry the document no longer declares is left in place, and a tombstoned `(feed_id,
-hash)` pair is refused by the insert guard once the entry loop runs on a forced refresh, which is
-what makes sure the answer is not a conditional hit. Both pins read the rows through their own
-checkout, and the archive runs inside `withTransaction`, because the delete and the tombstone
-insert are one atomic step only there. What these pins cannot fail on is stated in the suite
-header: the age boundary, the batch limit and the starred rule of the archive, which
-`RetentionTests` pins, because the pin that runs the archive runs it on an instant past every
-stored row and on a single row; the atomicity itself; the user state an update must not touch,
-which the storage suite pins; and the reference's return value, which counts the tombstone rows it
-inserted rather than the rows it deleted.
+write: an entry the document no longer declares is left in place, and a tombstoned (feed_id, hash)
+pair is refused by the insert guard once the entry loop runs on a forced refresh, which is what
+makes sure the answer is not a conditional hit. Both pins read the rows through their own checkout,
+and the archive runs inside `withTransaction`, because the delete and the tombstone insert are one
+atomic step only there. What these pins cannot fail on is stated in the suite header: the age
+boundary, the batch limit and the starred rule of the archive, which `RetentionTests` pins, because
+the pin that runs the archive runs it on an instant past every stored row and on a single row; the
+atomicity itself; the user state an update must not touch, which the storage suite pins; and the
+reference's return value, which counts the tombstone rows it inserted rather than the rows it
+deleted.
 
 The icon finder half (`IconDocumentLinksTests`, `IconDataURLTests`) pins the two rules of
 `internal/reader/icon/finder.go` that read no network: which `link` elements a document offers as
@@ -494,15 +489,12 @@ missing path only, which a patch that applies it to the other path fails. A fail
 nothing, and the request carries the feed's user agent, which a patch that hands the builder nothing
 fails. What the pins cannot fail on is stated in the header: the reference logs each failure, so a
 swallowed failure reads only as the call completing with nothing written, and the reference can
-answer
-with no icon and no error through its resize step, which is not ported, so no case here can answer
-without an icon. The dedupe, the content-type normalization, the single transaction and the join
-table
-are the storage suite's rules, read here only as the values the checker passes on, and the guard
-read
-cannot show that a read which fails answers the same as a read that finds nothing: the pins name the
-decision, not the mechanism. The user agent is pinned only as the value the checker hands to the
-builder, not as which value wins when the feed row carries none.
+answer with no icon and no error through its resize step, which is not ported, so no case here can
+answer without an icon. The dedupe, the content-type normalization, the single transaction and the
+join table are the storage suite's rules, read here only as the values the checker passes on, and
+the guard read cannot show that a read which fails answers the same as a read that finds nothing:
+the pins name the decision, not the mechanism. The user agent is pinned only as the value the
+checker hands to the builder, not as which value wins when the feed row carries none.
 
 `RefreshIconTests` pins the call the refresh path makes for a feed, which is where the checker is
 reached from: the modified branch runs it and the conditional-hit branch does not, so a patch that
@@ -517,14 +509,31 @@ the commit left rather than the order the writes ran in, so the checker running 
 counter is reset and before the validators are written cannot be shown.
 
 What the selector and data suites cannot fail on is stated in their headers: the selector's test
-that the `href`
-attribute is there at all, because a missing attribute reads as the empty value and the same guard
-answers for both; the checksum function itself, since the reference hashes an icon with FNV-128a and
-this port with SHA-256 — the pins can fail only on which bytes the checksum is taken over; Go's
-base64 decoder accepting an unpadded last quantum, which this port refuses; and the reference's
-logging, which this port has no layer for. What the pins do reach through another layer — the URL
-resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding — is
-named in the headers as read through the scan, with the rules themselves pinned by those suites.
+that the `href` attribute is there at all, because a missing attribute reads as the empty value and
+the same guard answers for both; the checksum function itself, since the reference hashes an icon
+with FNV-128a and this port with SHA-256 — the pins can fail only on which bytes the checksum is
+taken over; Go's base64 decoder accepting an unpadded last quantum, which this port refuses; and the
+reference's logging, which this port has no layer for. What the pins do reach through another layer
+— the URL resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding
+— is named in the headers as read through the scan, with the rules themselves pinned by those
+suites.
+
+The stage-5 contract suites pin the reference's output as values inside the suite rather than as
+fixture files, because each of those pins reads one answer for one rule rather than a corpus. The
+four suites are `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
+`GoogleReaderRequestModifiersTests`; their goldens are the reference's own output at the toolchain
+`go.mod` pins, and each pin was seen to fail on the rule it names by patching that rule and
+reverting — one probe per rule. The probe for the escape bounds traps instead of answering, which is
+what the pin says that rule does: it reads past the end of the pair. Two pins that were written and
+then removed are recorded here because they cannot fail on their own: the continuation rule answers
+the sum for whatever count it is given, so which count the handler gives it is not a rule this side
+can pin, and the header names it as landing with the handler; and the pin that only said the read
+reports no error for `?s=`, which the list read's skip of the empty value already settles, so it
+could not fail on its own. The other rules these four headers name as unpinnable are the count
+`fmt.Sscanf` reports, which has no input that can fail, the order the two stream prefixes are
+removed in, which no input this side can build is affected by, the error `r.URL.Query()` discards,
+which has no answer this side can show, and the read `WithOffset` never reaches, because the
+parameter read already answers the default for the value that would reach it.
 
 ## Soak
 
@@ -559,11 +568,10 @@ What it cannot show, and the script and the checks say so:
 - the request itself: the checks read the stamps the storage wrote, so a run that stored the same
   stamps by another route would read the same. The live run does reach the server, and the log keeps
   the reports the command printed, which is the part a check cannot turn into an assertion;
-- the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds
-  carry, because the policy takes the maximum of the two, so "the stamps advance" means two
-  advances per feed in 2h — the two hour boundaries inside the window — and the conditional-hit path
-  is reached on the second fetch of a feed that did not change, which is the last fetch a 2h window
-  reaches;
+- the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds carry,
+  because the policy takes the maximum of the two, so "the stamps advance" means two advances per
+  feed in 2h — the two hour boundaries inside the window — and the conditional-hit path is reached
+  on the second fetch of a feed that did not change, which is the last fetch a 2h window reaches;
 - the instant the due check compares against is the one the shell recorded just before the status
   command read it, so a row crossing the due boundary between the two reads as a violation — a false
   failure rather than a false pass, which the check states;
@@ -578,8 +586,8 @@ What it cannot show, and the script and the checks say so:
 - `swift test --filter RivuletIntegrationTests` — integration only.
 - `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
   each of its rules can fail on the rule it names.
-- Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled
-  by an `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with
+- Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
+  `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with
   `RIVULET_HEAVY=1 swift test --filter HeavyTests`.
 - A few storage tests need at least two event loops (one pooled connection per loop); they
   `Test.cancel` on single-loop runners. CI runners always expose ≥2 event loops.
@@ -590,8 +598,7 @@ reduced large-feed smoke); the full parity harness runs on demand via `Scripts/p
 
 ## Framework
 
-Swift Testing everywhere (`import Testing`, `@Suite`/`@Test`, `#expect`/`#require`) — one
-framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by
-default and every test owns its resources (temp directories, kernel-assigned ports), so no
-suite depends on execution order. Use the `.serialized` trait only where a suite must share
-process-wide state.
+Swift Testing everywhere (`import Testing`, `@Suite`/ `@Test`, `#expect`/ `#require`) — one
+framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by default
+and every test owns its resources (temp directories, kernel-assigned ports), so no suite depends on
+execution order. Use the `.serialized` trait only where a suite must share process-wide state.

@@ -5,51 +5,66 @@ This file is for AI agents (and humans) making changes to this repository.
 ## What this project is
 
 Rivulet is a lightweight self-hosted feed reader: a Swift port of
-[Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3), with SQLite storage,
-a CLI-first interface and no web UI.
+[Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3), with SQLite storage, a
+CLI-first interface and no web UI.
 
 ## Read before working
 
-1. `docs/plan/README.md` — stages, status, definition of done.
-2. The stage file for the current work (`docs/plan/stage-N-*.md`).
-3. `docs/reference-notes.md` — verified Miniflux behavior (scheduling, auth, endpoints, retention).
-   Re-check the clone when in doubt.
-4. `docs/architecture.md` and `docs/testing.md`.
+1. `docs/plan/README.md` — stages, status, definition of done. 2. The stage file for the current
+work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Miniflux behavior
+(scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
+`docs/architecture.md` and `docs/testing.md`.
 
 Current focus: **Stage 5 — Client APIs & OPML**, with its first two slices merged: `create-admin`
 with the user rules and the bcrypt hasher (PR #38), and `integration-credentials` with the Fever
-token derivation and the duplicate-name rules (PR #39). For the second slice the join, the
-lowercase hex form, the parts read as given, the order the two duplicate checks are read in, the
-guard inside the rule function that an empty name is not read against the answer, the per-user
-exclusion, the values compared as read, each check reading its own column, and the rule that a blank
-password read keeps the stored value are pinned by `FeverTokenTests`, `IntegrationValidationTests`,
+token derivation and the duplicate-name rules (PR #39). For the second slice the join, the lowercase
+hex form, the parts read as given, the order the two duplicate checks are read in, the guard inside
+the rule function that an empty name is not read against the answer, the per-user exclusion, the
+values compared as read, each check reading its own column, and the rule that a blank password read
+keeps the stored value are pinned by `FeverTokenTests`, `IntegrationValidationTests`,
 `UserRepositoryTests` and `IntegrationCredentialsTests`; for the first slice the rule order, the
 character class read per Unicode scalar, the byte-counted minimum, the existence read that runs
 before any rule, the secure read and the trim, and the flag that gates the migrations are pinned by
-`UserValidationTests` and
-`CreateAdminTests`, and the reference cost, the 72-byte rule and the marker direction by
-`BcryptHasherTests`. What those pins cannot show is named in the suite headers — the locale wording,
-the terminal check, the environment path, which marker the port writes, the single-row limit of the
-existence read, the prompt wording of the credentials command (its read order is pinned by the flags
-of the reads), the command's guard that an empty name never reaches the storage layer, the
-blank-name rule this port reads differently from the reference's form, the absent enabled flag, the
-Fever password the reference does not store, and the unique index on `fever_token`. The storage
-reads the routers are built on landed with PR #40 and are pinned by `ClientAuthTests`: the Fever
-lookup lowercases both sides, the Google Reader read compares the name as read, both answer nothing
-when no row matches, and the control pin shows that the account lookup lowercases what it is given
-while this read does not. What that suite cannot show is named in its header — the `*_enabled` gate,
-the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
-default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The Google Reader auth
-path merged with PR #41: the login's own field names, the text shape by default and the JSON shape
-only when `output` says `json`, the compare against the stored value, the guard that an empty name
-ends the login before the read, the transport chosen by method, the merged form with Go's order, the
-header read as `strings.Fields` splits it, the three headers the response builder writes on every
-response of this path, the structure rule and the two 401 shapes are pinned by
-`GoogleReaderAuthTests` over a real socket, with the derivation and the JSON write pinned against
-the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`, and the port's answer
-for the path without the trailing slash pinned as a divergence; the timing form of the compare, the
-guard's password half and the one-part structure are named as unpinnable in that header, as are the
-mux rules the router piece brings. The next piece is the Google Reader and Fever routers.
+`UserValidationTests` and `CreateAdminTests`, and the reference cost, the 72-byte rule and the
+marker direction by `BcryptHasherTests`. What those pins cannot show is named in the suite headers —
+the locale wording, the terminal check, the environment path, which marker the port writes, the
+single-row limit of the existence read, the prompt wording of the credentials command (its read
+order is pinned by the flags of the reads), the command's guard that an empty name never reaches the
+storage layer, the blank-name rule this port reads differently from the reference's form, the absent
+enabled flag, the Fever password the reference does not store, and the unique index on
+`fever_token`. The storage reads the routers are built on landed with PR #40 and are pinned by
+`ClientAuthTests`: the Fever lookup lowercases both sides, the Google Reader read compares the name
+as read, both answer nothing when no row matches, and the control pin shows that the account lookup
+lowercases what it is given while this read does not. What that suite cannot show is named in its
+header — the `*_enabled` gate, the single-row limit, the bcrypt compare, the Google read's error
+wording upstream, the empty-string default upstream's columns carry, and `LOWER` on SQLite being
+ASCII-only. The Google Reader auth path merged with PR #41: the login's own field names, the text
+shape by default and the JSON shape only when `output` says `json`, the compare against the stored
+value, the guard that an empty name ends the login before the read, the transport chosen by method,
+the merged form with Go's order, the header read as `strings.Fields` splits it, the three headers
+the response builder writes on every response of this path, the structure rule and the two 401
+shapes are pinned by `GoogleReaderAuthTests` over a real socket, with the derivation and the JSON
+write pinned against the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`,
+and the port's answer for the path without the trailing slash pinned as a divergence; the timing
+form of the compare, the guard's password half and the one-part structure are named as unpinnable in
+that header, as are the mux rules the router piece brings. PR #42 is the contract rules those
+routers read, as pure logic with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x` rules
+and the error wordings — including the space the scan skips before the field, the newline it does
+not skip, and the read per Unicode scalar — the stream branches with the two forms of each prefix as
+an OR and the seven suffixes, the query read with the pair it skips for a `;` or a bad escape, the
+bounds check that runs before the two characters of an escape are read, and the order the pairs
+answer in, and the parameter reads with the order read, the list read's trim as Go's
+`unicode.IsSpace` and its skip of an empty value, and the continuation rule, are pinned by
+`GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
+`GoogleReaderRequestModifiersTests`. What those headers name as unpinnable: the count `fmt.Sscanf`
+reports, the order the two stream prefixes are removed in, the error `r.URL.Query()` discards, the
+`WithOffset` branch the parameter read never reaches, the platform reading `bitSize 0` as 64 bits,
+and which count the continuation rule is given, because that is the handler's choice. The form read
+reports a pair error for the whole form while the query read skips that pair, which is
+`r.URL.Query()`; both are recorded in the code comment. The `output=json` read, the `edit-tag` body
+tags, the `streamIDResponse` shape, the unknown-stream 500 wording and the subpath wildcard stay
+with the handlers, which are the next piece together with the Fever parameter set, `quickadd`
+discovery, the icon route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
@@ -74,25 +89,23 @@ migrations the command runs, and the minimal `status --json` contract the soak r
 stamp stays `null`, the rows are listed in id order, the counts read every row whatever its state,
 `due` is the batch's pick, the environment values reach the totals through the command, and the flag
 gates the migrations. The soak artifact landed with PR #35: the shell is its cadence, its checks
-read the data each round leaves behind rather than the process that produced them, and each
-check is shown to fail on the rule it names; the in-process cadence loop itself waits for
-stage 6, and retention is pinned by `RetentionTests`).
-Stage 4 keeps two open things: the icon image resizing, which needs a dependency that has not
-been approved, and the cadence loop named above.
-Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit criterion
-met: the two sanitizer HTML fixtures are read end to end against the reference's own output, which
-took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack
-gives back to the element around a nested table when it closes — and both are pinned case by case by
+read the data each round leaves behind rather than the process that produced them, and each check is
+shown to fail on the rule it names; the in-process cadence loop itself waits for stage 6, and
+retention is pinned by `RetentionTests`). Stage 4 keeps two open things: the icon image resizing,
+which needs a dependency that has not been approved, and the cadence loop named above. Stage 3 is
+merged, with its remaining findings in its stage-file backlog and every exit criterion met: the two
+sanitizer HTML fixtures are read end to end against the reference's own output, which took two
+insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack gives
+back to the element around a nested table when it closes — and both are pinned case by case by
 `SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to the refresh path
-is met by the pipeline. Keep this line and the plan's
-status table in sync.
+is met by the pipeline. Keep this line and the plan's status table in sync.
 
 ## Toolchain
 
 - Use the latest Swift release installed on the system (currently 6.4.1). Do not target old
   toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
-- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container
-  (see `.github/workflows/ci.yml`).
+- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container (see
+  `.github/workflows/ci.yml`).
 
 ## TDD is mandatory
 
@@ -100,10 +113,10 @@ We work test-first: **red → green → refactor**.
 
 - Write a failing test before writing production code.
 - Bug fixes start with a regression test that reproduces the bug.
-- Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an
-  integration test, not just a unit test.
+- Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
+  test, not just a unit test.
 - Ported Miniflux behavior must bring the corresponding ported tests.
-- Tests are written with Swift Testing (`@Suite`/`@Test`, `#expect`/`#require`, `Test.cancel`);
+- Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
   XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
   genuinely wrong, fix the test in the same commit with a clear explanation.
@@ -114,12 +127,12 @@ We work test-first: **red → green → refactor**.
 - Documentation and tutorials are a project deliverable, not an afterthought. We will collect them
   with DocC and publish them later (planned: GitHub Pages, wired up in stage 8).
 - Every public API gets a DocC documentation comment.
-- DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for
-  the executable): articles for concepts, tutorials for key workflows (setup, feeds, clients,
+- DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
+  executable): articles for concepts, tutorials for key workflows (setup, feeds, clients,
   deployment).
 - Write docs so they can be published as-is: no local-only references, no TODOs in prose.
-- Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs
-  disagree, fix both in the same commit.
+- Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs disagree,
+  fix both in the same commit.
 
 ## Code quality
 
@@ -128,19 +141,19 @@ We work test-first: **red → green → refactor**.
 - Follow SOLID, YAGNI and KISS: the simplest thing that works; no speculative abstractions; keep
   only the seams the plan requires.
 - File size: aim for 150–300 lines per production file, hard cap ~500 — split before you reach it.
-  One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures
-  go to resource files, not inline megablocks.
+  One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
+  to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
 - Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Two things are
   exempt because neither can be broken without changing what it says: a Markdown table row, and an
   inline code span longer than the width, which stays whole on its own line. Code lines are single
   expressions and are not split to meet the width. A commit that only rewraps does not change
   behavior, so it does not reopen a review that already approved the words.
-- Prefer the standard library and existing dependencies. `swift-collections`
-  (`Deque`, `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are
-  pre-approved when they make data structures, algorithms or hashing clearer or more efficient —
-  add them as direct dependencies of the module that uses them when first used (they are already
-  in the dependency graph via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new
+- Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
+  `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved
+  when they make data structures, algorithms or hashing clearer or more efficient — add them as
+  direct dependencies of the module that uses them when first used (they are already in the
+  dependency graph via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new
   dependency needs explicit approval — Linux-first, keep the surface small.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
@@ -182,13 +195,13 @@ swift run rivulet --help
 - Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
 - Ported code keeps a header comment:
-  `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
-  Ported tests keep a comment with the original test name.
+  `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.` Ported tests keep a
+  comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
-  wrapper; never fsync per row. Until the first release the schema is edited in place
-  (`SchemaV1`) — versioned migrations start at the first release.
-- No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals,
-  not oversights.
+  wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`) —
+  versioned migrations start at the first release.
+- No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals, not
+  oversights.
 
 ## Stage workflow
 
@@ -202,8 +215,8 @@ swift run rivulet --help
 - Small, focused commits with imperative subjects; mention the stage when relevant:
   `stage-2: support conditional GET with ETag`.
 - Behavior + its tests + doc updates land in the same commit.
-- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) —
-  see `.gitignore`.
+- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
+  `.gitignore`.
 
 ## Safety
 

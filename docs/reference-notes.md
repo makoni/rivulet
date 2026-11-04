@@ -1,21 +1,20 @@
 # Miniflux reference notes
 
-Verified against the reference implementation: Miniflux **v2.3.3**, commit `c4d54f87`
-(pinned reference clone). These notes are the condensed spec the stage plans rely
-on. When in doubt, re-check the cited files in the reference clone.
+Verified against the reference implementation: Miniflux **v2.3.3**, commit `c4d54f87` (pinned
+reference clone). These notes are the condensed spec the stage plans rely on. When in doubt,
+re-check the cited files in the reference clone.
 
 ## Configuration parsing
 
 Source: `internal/config/parser.go`, `internal/config/options.go`.
 
-- Keys and values are trimmed, empty list items are dropped (`parseLines`,
-  `parseStringListValue`).
-- Empty values fall back to the option default — except options with a validator: validators
-  run before the fallback, so an empty `LOG_LEVEL`/`LOG_FORMAT` is an error.
-- Booleans: case-insensitive `1/yes/true/on` (true) and `0/no/false/off` (false); anything else
-  is an error.
-- `LISTEN_ADDR`: comma-separated list, items trimmed and deduplicated; Unix socket paths are
-  valid entries; default `127.0.0.1:8080`.
+- Keys and values are trimmed, empty list items are dropped (`parseLines`, `parseStringListValue`).
+- Empty values fall back to the option default — except options with a validator: validators run
+  before the fallback, so an empty `LOG_LEVEL`/ `LOG_FORMAT` is an error.
+- Booleans: case-insensitive `1/yes/true/on` (true) and `0/no/false/off` (false); anything else is
+  an error.
+- `LISTEN_ADDR`: comma-separated list, items trimmed and deduplicated; Unix socket paths are valid
+  entries; default `127.0.0.1:8080`.
 - `BASE_URL`: must parse as an absolute URL; a single trailing slash is trimmed
   (`strings.TrimSuffix`).
 
@@ -23,18 +22,18 @@ Source: `internal/config/parser.go`, `internal/config/options.go`.
 
 Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
-- `/liveness` and `/healthz` are liveness probes: `200 OK`, body `OK`, no database access.
-  Upstream registers them method-less, so any method (not only GET) answers.
+- `/liveness` and `/healthz` are liveness probes: `200 OK`, body `OK`, no database access. Upstream
+  registers them method-less, so any method (not only GET) answers.
 - `/readiness` and `/readyz` ping the database; on failure they answer `503 Service Unavailable`
   with `Database Connection Error: ...`.
-- All four are mounted on the root mux — they stay at the server root regardless of the
-  configured base path.
+- All four are mounted on the root mux — they stay at the server root regardless of the configured
+  base path.
 
 ## Scheduling and refresh
 
 - Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
-- Batch selection: `internal/storage/batch.go` — `next_check_at < now() AND parsing_error_count <
-  limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE` (default 100); optional
+- Batch selection: `internal/storage/batch.go` — next_check_at < now() AND parsing_error_count <
+  limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE (default 100); optional
   per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off). Both zeros are switches: the error
   condition and the `LIMIT` clause are added only for a positive number, so a batch size of 0 adds
   no clause and an error limit of 0 excludes nothing. The per-host limit applies while the rows are
@@ -42,11 +41,11 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   is `urllib.Domain` — the parsed host with its port, the input as written when the URL does not
   parse, no `www.` strip. `feedScheduler` passes neither a user nor a category, so the batch is not
   scoped. Upstream has no test for the builder; the port pins each rule in `SchedulerBatchTests`.
-- Manual pass: `internal/cli/refresh_feeds.go` — the same builder with the `config.Opts` values,
-  the jobs pushed to `WORKER_POOL_SIZE` goroutines over one channel, the process waiting for them
-  before it exits: there is no loop. Each job runs `RefreshFeed` with `forceRefresh` false, and a
-  job that fails is logged as a warning without stopping the worker. The values this pass reads
-  are `BATCH_SIZE` (100, validator at least 1), `WORKER_POOL_SIZE` (16, at least 1),
+- Manual pass: `internal/cli/refresh_feeds.go` — the same builder with the `config.Opts` values, the
+  jobs pushed to `WORKER_POOL_SIZE` goroutines over one channel, the process waiting for them before
+  it exits: there is no loop. Each job runs `RefreshFeed` with `forceRefresh` false, and a job that
+  fails is logged as a warning without stopping the worker. The values this pass reads are
+  `BATCH_SIZE` (100, validator at least 1), `WORKER_POOL_SIZE` (16, at least 1),
   `POLLING_PARSING_ERROR_LIMIT` (3, at least 0) and `POLLING_LIMIT_PER_HOST` (0, at least 0);
   `POLLING_FREQUENCY` (60, at least 1, minute type) is read by the loop, not by this pass. The
   closing line reports the size of the whole batch and the duration. Migrations run before the
@@ -75,46 +74,44 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
     `Retry-After` (429), `Cache-Control: max-age` or `Expires`
     (`internal/reader/handler/handler.go`);
   - `next_check_at = now + interval`.
-- Errors: **no backoff and no jitter** (verified — these concepts do not exist in the code).
-  A failed refresh increments `parsing_error_count`; at `POLLING_PARSING_ERROR_LIMIT` (default 3)
-  the feed is excluded from batches until a forced refresh succeeds and resets the counter.
+- Errors: **no backoff and no jitter** (verified — these concepts do not exist in the code). A
+  failed refresh increments `parsing_error_count`; at `POLLING_PARSING_ERROR_LIMIT` (default 3) the
+  feed is excluded from batches until a forced refresh succeeds and resets the counter.
 - Worker pool: `WORKER_POOL_SIZE` (default 16).
 
 ### The refresh path (`RefreshFeed`, `internal/reader/handler/handler.go`, commit `c4d54f87`)
 
 - The row is read through the user-scoped `FeedByID`; the not-found case returns before anything is
   stamped or fetched.
-- Order: `CheckedNow` stamps the check time and puts the feed URL in place of an empty site URL,
-  and `ScheduleNextCheck(weekly_count, 0)` fixes the schedule before the request is built. A `429`
-  recomputes the schedule from `Retry-After` before the failure is reported. The failure is
-  recorded through `UpdateFeedError`, which writes `parsing_error_msg`, `parsing_error_count`,
-  `checked_at` and `next_check_at` only: no conditional-GET header is written on this path.
+- Order: `CheckedNow` stamps the check time and puts the feed URL in place of an empty site URL, and
+  `ScheduleNextCheck(weekly_count, 0)` fixes the schedule before the request is built. A `429`
+  recomputes the schedule from `Retry-After` before the failure is reported. The failure is recorded
+  through `UpdateFeedError`, which writes `parsing_error_msg`, `parsing_error_count`, `checked_at`
+  and `next_check_at` only: no conditional-GET header is written on this path.
 - Conditional headers are not sent on the forced path: the handler treats `forceRefresh` as
   `IgnoreHTTPCache`.
 - A conditional hit stores `Last-Modified` only when the response carries a value, as RFC9111
   sections 3.2 and 4.3.4 read it; the stored `EtagHeader` stays as the row held it. Both branches
   end with `ResetErrorCounter`, so the hit path resets the error state.
 - The modified branch stores the response's validators, recomputes the schedule from
-  `max(ttl, max-age, expires)`, and writes the row through `UpdateFeed`, which carries the title
-  the row already held: the parsed title is never copied on this path.
-- `ProcessFeedEntries` iterates `slices.Backward`, so entries are processed oldest first and the
-  row written first is the item the document declares last. The cleaner replaces an entry URL only
-  when the URL parses — Go's `url.Parse` fails on an unclosed bracket host, so that URL is stored
-  as the feed wrote it — and the hash is the adapter's, taken before the cleaner ran. The
-  entry-update branch is gated by `forceRefresh || (!crawler && !ignore_entry_updates)`.
+  `max(ttl, max-age, expires)`, and writes the row through `UpdateFeed`, which carries the title the
+  row already held: the parsed title is never copied on this path.
+- `ProcessFeedEntries` iterates `slices.Backward`, so entries are processed oldest first and the row
+  written first is the item the document declares last. The cleaner replaces an entry URL only when
+  the URL parses — Go's `url.Parse` fails on an unclosed bracket host, so that URL is stored as the
+  feed wrote it — and the hash is the adapter's, taken before the cleaner ran. The entry-update
+  branch is gated by `forceRefresh || (!crawler && !ignore_entry_updates)`.
 
 ## Retention ("archiving")
 
 - `internal/cli/cleanup_tasks.go` runs on the reference's own scheduler every
-  `CLEANUP_FREQUENCY_HOURS` (default 24; validator requires ≥1); `miniflux -run-cleanup-tasks`
-  runs it once immediately and exits. It archives read entries older than
-  `CLEANUP_ARCHIVE_READ_DAYS` (default 60) and unread older than
-  `CLEANUP_ARCHIVE_UNREAD_DAYS` (default 180); batch size `CLEANUP_ARCHIVE_BATCH_SIZE`
-  (default 10000).
-- The full task set also deletes web sessions older than `CLEANUP_REMOVE_SESSIONS_DAYS`
-  (default 30) and orphan icons. Web sessions belong to the web UI, which Rivulet does not have;
-  orphan-icon cleanup waits for icon fetching (stage 4). Stage 1 ports only the two
-  `ArchiveEntries` calls.
+  `CLEANUP_FREQUENCY_HOURS` (default 24; validator requires ≥1); `miniflux -run-cleanup-tasks` runs
+  it once immediately and exits. It archives read entries older than `CLEANUP_ARCHIVE_READ_DAYS`
+  (default 60) and unread older than `CLEANUP_ARCHIVE_UNREAD_DAYS` (default 180); batch size
+  `CLEANUP_ARCHIVE_BATCH_SIZE` (default 10000).
+- The full task set also deletes web sessions older than `CLEANUP_REMOVE_SESSIONS_DAYS` (default 30)
+  and orphan icons. Web sessions belong to the web UI, which Rivulet does not have; orphan-icon
+  cleanup waits for icon fetching (stage 4). Stage 1 ports only the two `ArchiveEntries` calls.
 - "Archiving" is a hard `DELETE` plus a tombstone (`internal/storage/entry.go` `ArchiveEntries`):
   skips `starred` (and shared entries — a feature Rivulet does not implement); keyed on
   `created_at`.
@@ -126,8 +123,8 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 - SQLite has no data-modifying CTEs: Rivulet deletes with an ordered, limited `DELETE … RETURNING`
   and inserts the tombstones in the same caller-provided transaction
   (`SQLiteStorage.withTransaction`), where the reference uses one statement. `Retention` runs the
-  read and unread passes in two transactions, mirroring the two reference calls, and takes `now`
-  as a parameter for deterministic tests.
+  read and unread passes in two transactions, mirroring the two reference calls, and takes `now` as
+  a parameter for deterministic tests.
 - Entry statuses in the application are only `unread` and `read` (`internal/model/entry.go`); the
   legacy `removed` enum value survives only in old migrations and is no longer used.
 
@@ -144,49 +141,47 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 
 ## Entry queries (`internal/storage/entry_query_builder.go`)
 
-- Every listing is scoped to a user and optionally filtered by a status list, the starred flag,
-  a feed, a category (through a `feeds` join), a list of entry ids, a strict `published_at`
-  window and strict id cursors (`AfterEntryID`/`BeforeEntryID`, used by Fever `since_id`/
-  `max_id`). `GetEntries` returns rows, `GetEntryIDs` returns ids only and `CountEntries` ignores
-  limit/offset. Rivulet exposes the same knobs as `EntryQuery` (`list`, `listIDs`, `count`), but
-  uses `nil` for an unset filter: a set id is applied literally, so callers map zero sentinels
-  to `nil` (`feedID: 0` and `categoryID: 0` select nothing, while `afterID: 0` still means
-  `id > 0`).
+- Every listing is scoped to a user and optionally filtered by a status list, the starred flag, a
+  feed, a category (through a `feeds` join), a list of entry ids, a strict `published_at` window and
+  strict id cursors (`AfterEntryID`/ `BeforeEntryID`, used by Fever `since_id`/ `max_id`).
+  `GetEntries` returns rows, `GetEntryIDs` returns ids only and `CountEntries` ignores limit/offset.
+  Rivulet exposes the same knobs as `EntryQuery` (`list`, `listIDs`, `count`), but uses `nil` for an
+  unset filter: a set id is applied literally, so callers map zero sentinels to `nil` (`feedID: 0`
+  and `categoryID: 0` select nothing, while `afterID: 0` still means `id > 0`).
 - Search uses PostgreSQL `websearch_to_tsquery`; the rank expression
-  `ts_rank(...) - extract(epoch from now() - published_at) * 0.0000001 DESC` is appended after
-  the requested sort by the REST API (`internal/api/entry_handlers.go`) and is the primary order
-  only where no sort is applied (web UI). SQLite searches the FTS5 index over `title` +
-  `content_text` with `bm25()`, weighted 2.5:1 to approximate PostgreSQL's title `A` (1.0) and
-  content `B` (0.4) weights. Rivulet makes relevance primary and the requested sort the
-  tiebreaker (every query carries a sort; a date-first order would defeat search) and does not
-  port the recency component: `ts_rank` and `bm25()` have different scales, so a fixed age term
-  can dominate `bm25()`'s tiny scores for common terms and vanish against its larger scores for
-  rare ones. User input is re-quoted: bare words are ANDed and double quotes group a phrase. FTS5
-  syntax (`OR`, `-`, `*`, `NEAR`) is searched as text: no FTS5 operator is interpreted, and only
-  double quotes group a phrase. `nil` and the empty string mean no filter (the reference skips
-  only `""`); any other input is translated, and input without a term (whitespace, a lone quote)
-  matches nothing.
-- `WithLimit(0)`, negative values and values above `MaxEntryLimit` (1000) are clamped to 1000;
-  no limit at all is how the reference lists every id for Fever's `unread_item_ids`/
-  `saved_item_ids`. Rivulet keeps that distinction (`nil` vs a number) and emits
-  `LIMIT -1 OFFSET n` when an offset has no limit, since SQLite requires a `LIMIT`.
-- Equal `published_at` values have no specified order in the reference builder (the UI appends
-  `id` in some views); Rivulet always appends the entry id in the sort direction, so consecutive
-  pages are stable when no write intervenes.
+  `ts_rank(...) - extract(epoch from now() - published_at) * 0.0000001 DESC` is appended after the
+  requested sort by the REST API (`internal/api/entry_handlers.go`) and is the primary order only
+  where no sort is applied (web UI). SQLite searches the FTS5 index over `title` + `content_text`
+  with `bm25()`, weighted 2.5:1 to approximate PostgreSQL's title `A` (1.0) and content `B` (0.4)
+  weights. Rivulet makes relevance primary and the requested sort the tiebreaker (every query
+  carries a sort; a date-first order would defeat search) and does not port the recency component:
+  `ts_rank` and `bm25()` have different scales, so a fixed age term can dominate `bm25()`'s tiny
+  scores for common terms and vanish against its larger scores for rare ones. User input is
+  re-quoted: bare words are ANDed and double quotes group a phrase. FTS5 syntax (`OR`, `-`, `*`,
+  `NEAR`) is searched as text: no FTS5 operator is interpreted, and only double quotes group a
+  phrase. `nil` and the empty string mean no filter (the reference skips only `""`); any other input
+  is translated, and input without a term (whitespace, a lone quote) matches nothing.
+- `WithLimit(0)`, negative values and values above `MaxEntryLimit` (1000) are clamped to 1000; no
+  limit at all is how the reference lists every id for Fever's `unread_item_ids`/ `saved_item_ids`.
+  Rivulet keeps that distinction (`nil` vs a number) and emits `LIMIT -1 OFFSET n` when an offset
+  has no limit, since SQLite requires a `LIMIT`.
+- Equal `published_at` values have no specified order in the reference builder (the UI appends `id`
+  in some views); Rivulet always appends the entry id in the sort direction, so consecutive pages
+  are stable when no write intervenes.
 - There is no unread-counter table: `CountAllEntries` groups by status, and the web UI's
-  per-feed/per-category counters are `COUNT(*) … GROUP BY` queries. Rivulet derives counts the
-  same way (`count` with the listing filters); client APIs either use those or count the id
-  lists themselves.
-- `MarkFeedAsRead` / `MarkCategoryAsRead` update only unread rows with `published_at < before`
-  and stamp `changed_at`; the category variant joins `feeds` and scopes by `feeds.user_id`.
-  Starred entries are marked too (only the flag survives). Rivulet has no `changed_at` column and
-  stamps `updated_at`, using one `UPDATE` with a `feeds` subquery for the category scope.
+  per-feed/per-category counters are `COUNT(*) … GROUP BY` queries. Rivulet derives counts the same
+  way (`count` with the listing filters); client APIs either use those or count the id lists
+  themselves.
+- `MarkFeedAsRead` / `MarkCategoryAsRead` update only unread rows with `published_at < before` and
+  stamp `changed_at`; the category variant joins `feeds` and scopes by `feeds.user_id`. Starred
+  entries are marked too (only the flag survives). Rivulet has no `changed_at` column and stamps
+  `updated_at`, using one `UPDATE` with a `feeds` subquery for the category scope.
 
 ## Dates (`internal/reader/date/parser.go`)
 
 - Integer Unix timestamp first; then the RFC822/850/1123 group, parsed in UTC — the group name says
-  "local time", but `parseLocalTimeDates` pins UTC with two named-zone exceptions: `PST`/`PDT` →
-  Los Angeles, `EST`/`EDT` → New York; then the layout list after normalization — 3 layouts in the
+  "local time", but `parseLocalTimeDates` pins UTC with two named-zone exceptions: `PST`/ `PDT` →
+  Los Angeles, `EST`/ `EDT` → New York; then the layout list after normalization — 3 layouts in the
   local-time group and 206 in the list, 209 in all — with the offset clamped to −12:00 to +14:00,
   reported as UTC.
 - Normalization is a 79-pair table scanned over the bytes: zone locations written as names,
@@ -205,8 +200,8 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 - `IsRelativePath` rejects a value containing a backslash before parsing, because a browser reads
   `/\evil.com` as an open redirect while Go reads the backslash as an ordinary path character.
   Otherwise a value is relative when it parses and carries neither a scheme nor a host.
-- `IsAbsoluteURL` checks the `http`/`https` prefix on the value as it was read, before parsing, so a
-  value that starts with whitespace is not absolute even though `url.Parse` would trim it.
+- `IsAbsoluteURL` checks the `http`/ `https` prefix on the value as it was read, before parsing, so
+  a value that starts with whitespace is not absolute even though `url.Parse` would trim it.
 - `RootURL` turns a leading `//` into `https://`, and a value that does not parse, or parses with no
   scheme or no host, is answered with as it was read. Otherwise the answer is scheme + `://` + host
   + `/`. `Domain` is the host as the parse reports it, which is the decoded form, and
@@ -217,11 +212,11 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   its default on — and at the last colon for another scheme. The user part of an authority is
   checked against the class RFC 3986 §3.2.1 allows, after the host is read.
 - `resolveToAbsoluteURL` answers three cases before the base is used: a value beginning with the
-  authority marker takes `https:` whatever the base scheme is; an `http`/`https` prefix is returned
+  authority marker takes `https:` whatever the base scheme is; an `http`/ `https` prefix is returned
   as it was read; a value that carries a scheme is returned as it was read. The base is parsed only
   when it has not been parsed already, and the join is `ResolveReference().String()`.
 - Tracking parameters (`internal/reader/urlcleaner`): the parameter name is compared lower-cased
-  against the table, and the `utm_`/`mtm_` prefixes are checked before the table. `ref` is an
+  against the table, and the `utm_`/ `mtm_` prefixes are checked before the table. `ref` is an
   outbound parameter, so it is removed only when one of its values equals the feed host or the site
   host. The query is written back only when something was removed, and then in sorted key order, so
   a URL with no tracker comes back with its pairs in the order the feed declared them.
@@ -248,9 +243,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   can carry script (`noscript`, `script`, `style`), or when it carries the `hidden` attribute.
 - An attribute outside the tag's own list is read and dropped. A value that holds a URL (`src`,
   `href`, `poster`, `cite`) is resolved against the base URL and checked against the scheme
-  allowlist; the tracking parameters are removed from it only when it carries a query. A data URL
-  on an `img` and an in-document anchor (`href` starting with `#`) are kept as they were read,
-  before any resolution.
+  allowlist; the tracking parameters are removed from it only when it carries a query. A data URL on
+  an `img` and an in-document anchor (`href` starting with `#`) are kept as they were read, before
+  any resolution.
 - Three attributes are mandatory, and they decide what happens to the content: `a` needs `href`,
   `iframe` needs `src`, `img` and `source` need `src` or `srcset`. An element missing one writes
   nothing for itself but still writes its content, except an `iframe`, which writes nothing at all.
@@ -259,11 +254,11 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   `loading`, plus `referrerpolicy` for a YouTube embed, which is the only place that attribute is
   written; `img` gets `loading`. None of it is written for an in-document anchor, because the anchor
   branch sets the flag the added attributes check.
-- The `iframe` rules read the source before it is resolved, so a protocol-relative source is
-  judged on the host as it was written. The domain compared with the allowlist is the host without
-  a leading `www.`, and the YouTube override domain and the Invidious instance are compared the
-  same way. The embed prefix replaces `youtube.com` only for the `/embed/` path, and the Vimeo
-  player gets `dnt=1` only for `/video/`.
+- The `iframe` rules read the source before it is resolved, so a protocol-relative source is judged
+  on the host as it was written. The domain compared with the allowlist is the host without a
+  leading `www.`, and the YouTube override domain and the Invidious instance are compared the same
+  way. The embed prefix replaces `youtube.com` only for the `/embed/` path, and the Vimeo player
+  gets `dnt=1` only for `/video/`.
 - `srcset` is read as candidates — a URL up to the first ASCII whitespace, then its descriptors —
   and the value written is the serializer's join of the candidates that survive, so the spacing the
   feed wrote is replaced. A candidate whose URL does not resolve, or whose scheme is invalid or
@@ -297,16 +292,16 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 - Creation rules, in the order `ValidateUserCreationWithPassword` reads them: empty name
   (`error.user_mandatory_fields`) → existing user (`error.user_already_exists`) → character class
   (`error.invalid_username`) → password length (`error.password_min_length`). The port names the
-  rule, not the locale string, so the wording a command prints from a rule is its own; the names
-  are what a client-visible message is traced back to.
+  rule, not the locale string, so the wording a command prints from a rule is its own; the names are
+  what a client-visible message is traced back to.
 - Username class: letters and numbers by Unicode category (`unicode.IsLetter`, `unicode.IsNumber`,
   so a category-No digit such as `①` passes), plus `_`, `-`, `@`, `.`. Read rune by rune, so a
   combining mark after a letter is its own character and fails the class.
-- Password minimum is 6 **bytes**, because `len(password)` counts bytes: three non-ASCII letters
-  are enough, where a character count would not be. There is no maximum; the length limit the
-  hashing package has is the one below.
-- `CreateUser` writes the name as `LOWER($1)` and creates the default "All" category with the row
-  in one transaction; `UserExists` reads `SELECT true FROM users WHERE username=LOWER($1) LIMIT 1`.
+- Password minimum is 6 **bytes**, because `len(password)` counts bytes: three non-ASCII letters are
+  enough, where a character count would not be. There is no maximum; the length limit the hashing
+  package has is the one below.
+- `CreateUser` writes the name as `LOWER($1)` and creates the default "All" category with the row in
+  one transaction; `UserExists` reads `SELECT true FROM users WHERE username=LOWER($1) LIMIT 1`.
 - `create-admin` checks existence before any rule, so a stored name is skipped whatever its
   characters are, and the write sets `IsAdmin: true`. `askCredentials` trims both values and reads
   the password through the terminal's secure path. The two outcomes are `slog` records naming the
@@ -359,14 +354,14 @@ Implemented routes (`handler.go`, Go 1.22 mux):
 - `GET  /reader/api/0/user-info`
 - `GET  /reader/api/0/subscription/list` (embeds `iconUrl`)
 - `POST /reader/api/0/subscription/edit` (`ac=subscribe|edit|unsubscribe`)
-- `POST /reader/api/0/subscription/quickadd` (performs feed discovery on website URLs; the
-  reference finder additionally probes well-known paths and a few site-specific handlers —
-  Rivulet's minimal `<link rel="alternate">` scan is a recorded deviation)
+- `POST /reader/api/0/subscription/quickadd` (performs feed discovery on website URLs; the reference
+  finder additionally probes well-known paths and a few site-specific handlers — Rivulet's minimal
+  `<link rel="alternate">` scan is a recorded deviation)
 - `GET  /reader/api/0/stream/items/ids`
 - `POST /reader/api/0/stream/items/contents`
 - `POST /reader/api/0/mark-all-as-read`
-- catch-all `GET|POST /reader/api/0/*` → `[]` + HTTP 200 for unimplemented endpoints
-  (`unread-count` and `preference/stream/set` are **not** implemented — they hit the catch-all).
+- catch-all `GET|POST /reader/api/0/*` → `[]` + HTTP 200 for unimplemented endpoints (`unread-count`
+  and `preference/stream/set` are **not** implemented — they hit the catch-all).
 
 What the Go 1.22 mux adds around that pattern (probe at the toolchain `go.mod` pins):
 
@@ -384,8 +379,8 @@ Authentication:
 - Separate per-user integration credentials (Google Reader username/password, independent from the
   account password; password stored bcrypt).
 - `ClientLogin` exchanges them for a stateless token:
-  `username + "/" + hex(HMAC-SHA256(key: username+password, message: empty))`; `GET /token`
-  returns the same value.
+  `username + "/" + hex(HMAC-SHA256(key: username+password, message: empty))`; `GET /token` returns
+  the same value.
 - Token transport is method-specific: **POST routes read the `T` form field only; GET routes read
   the `Authorization: GoogleLogin auth=<token>` header only.**
 - `ClientLogin` returns plain text `SID=…\nLSID=…\nAuth=…` by default (`output=json` switches to
@@ -396,11 +391,13 @@ Authentication:
   `ClientLogin` failure returns JSON `{"error_message": "access unauthorized"}`.
 - The `T` field is read through `ParseForm`, which puts the urlencoded body pairs in `r.Form` before
   the query pairs, so `Form.Get` answers the body value when both sides carry the name. Go's
-  `parseQuery`: `;` is not a pair separator, so a pair carrying one is reported as an error for
-  the whole query while the pairs read before it stay in the values; a pair with no `=` is a key
-  with an empty value, empty pairs are skipped, `+` is a space and `%` must be a two-digit hex
-  escape in either case, and a multipart body is never part of the form. The media type is read
-  with its parameters ignored.
+  `parseQuery`: `;` is not a pair separator, so the pair that carries one is reported as the error
+  for that pair and the read continues with the pairs after it; a pair whose name or value cannot be
+  unescaped is skipped the same way, so `parseQuery` answers both the error and what it read —
+  `r.URL.Query()` discards the error and keeps what parsed, while `ParseForm` returns it and the
+  caller answers it before reading any value. A pair with no `=` is a key with an empty value, empty
+  pairs are skipped, `+` is a space and `%` must be a two-digit hex escape in either case, and a
+  multipart body is never part of the form. The media type is read with its parameters ignored.
 - The `Authorization` header is read as `strings.Fields` splits it, which collapses whitespace, with
   exactly two fields, and the second is `strings.Split` on `=`, which keeps empty parts, so a field
   with two equals signs gives three parts and fails the check.
@@ -414,35 +411,101 @@ Authentication:
 
 Contract details worth pinning in golden tests:
 
-- page size `n` clamped to `MaxEntryLimit` = 1000 (0 → 1000);
-  `continuation` is a numeric offset encoded as a JSON string, omitted when 0;
-- `edit-tag` reads its tags from the body (`a`/`r`); item ids (`i`) are accepted in 4 formats;
-- response id formats differ per endpoint; `output=json` is required on some endpoints
-  (`tag/list`, `subscription/list`, `stream/items/ids`, `stream/items/contents`);
+- page size `n` clamped to `MaxEntryLimit` = 1000 (0 → 1000); `continuation` is a numeric offset
+  encoded as a JSON string, omitted when 0;
+- `edit-tag` reads its tags from the body (`a`/ `r`); item ids (`i`) are accepted in 4 formats;
+- response id formats differ per endpoint; `output=json` is required on some endpoints (`tag/list`,
+  `subscription/list`, `stream/items/ids`, `stream/items/contents`);
 - unknown/ambiguous stream selections → HTTP 500; label streams are unsupported on
   `stream/items/ids`.
 
+### The rules the routers read (`item.go`, `stream.go`, `parameters.go`, `request_modifier.go`)
+
+These are the pure halves of the path, taken from the scratch runs at the toolchain `go.mod` pins,
+the same way the fixture corpora were obtained, and pinned by `GoogleReaderItemIDTests`,
+`GoogleReaderStreamTests`, `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`.
+
+Item ids (`item.go`), four input forms:
+
+- the write is `tag:google.com,2005:reader/item/%016x` — 16 lowercase digits, and Go writes the sign
+  before the padding, so the digits fill what the field width leaves: `-1` answers
+  `tag:google.com,2005:reader/item/-000000000000001`;
+- `2f2` is read as 754, `12345` as 12345, `000000000000046f` as 1135, `1234567890123456` as
+  1311768467284833366, which is a different value from the decimal read of the same characters;
+- `len()` counts bytes, so a value of 15 characters that needs 16 bytes is the hex form
+  (`00000000000000é` answers 0);
+- the hex read is `fmt.Sscanf` with `%016x`, not a whole-value parse: the field width counts the
+  sign but not the space the scan skips before the verb, `0x` is not the base marker so
+  `0x0000000000000f` answers the single character `0` and therefore 0, `.../-1000000000000000`
+  answers -72057594037927936 because the sign is inside the field, and the digits stop at the first
+  character that is not one and what was read is kept, so `.../0000000000000001x` answers 1; the
+  space `fmt.Sscanf` skips is what `.../item/ 1` and `.../item/\t1` answer 1 from, and the skip does
+  not count against the width, so `.../item/ 12345678901234567` reads the 16 digits after the space;
+  the scan reads one rune at a time, so the character `0` with a combining mark answers the single
+  `0`;
+- for a 16-byte value the hex read runs first and its failure falls through to the decimal read, so
+  `8000000000000000` answers 8000000000000000 from the decimal read;
+- the zero check belongs to the long form only, so the bare form answers 0 for `000000000000000g`;
+- the wordings the 500 answer writes: `EOF` when the field ran out (a field that is only a sign or
+  only a space is EOF), `expected integer` when the character there is not one, `unexpected newline`
+  where the space the scan skips runs into a newline — a newline is not one of the characters the
+  skip takes — `item ID is zero` for the long form, and the out-of-range wording names the token the
+  scan read rather than the whole input (`.../8000000000000000x` names `8000000000000000`).
+  `strconv.ParseInt` accepts a `+` sign, and the most negative value reads as
+  `-9223372036854775808`.
+
+Streams (`stream.go`): the feed branch keeps what is after `feed/`; the two forms of each prefix are
+an OR in the reference's `switch`, so `user/-/state/com.google/starred` matches whatever user the
+read is for; a value that matches no prefix is the fallback error naming the whole value, and a
+stream prefix with a suffix that is not one of the seven answers the error naming what is left after
+the prefix. The seven suffixes are `read`, `starred`, `reading-list`, `kept-unread`, `broadcast`,
+`broadcast-friends`, `like`. An empty value is no stream with no error.
+
+The query read (`params.go`), which `r.URL.Query()` answers:
+
+- `Values.Get` answers the first value with the name; `Values[name]` is the list in the order the
+  pairs came in, and a pair with no `=` is one empty value, so `?a=b&a` answers `["b", ""]`;
+- `QueryStringParamList` trims each value with Go's `unicode.IsSpace` and skips the empty ones,
+  while `Values` itself does not — `?s=+feed/1&s=&s=%20feed/2` answers the list `feed/1`, `feed/2`
+  and the values `feed/1`, `, ` feed/2 `, because the `+ is the space the pair read gives and the
+  trim is what removes it. The character set is wider than this port's `.whitespaces`:
+  `unicode.IsSpace` also has the newline, the vertical tab, the form feed, the carriage return and
+  U+0085, so `?s=%0Afeed/1` answers `feed/1` as a stream id rather than the whole value;
+- `QueryIntParam` and `QueryInt64Param` answer the default for an empty, unparseable or negative
+  value, and the number is parsed from the value as the pair read gave it: `n=+50` is the pair
+  read's space, so it answers the default, while `n=%2B12` is the character itself and answers 12.
+  `bitSize 0` is 64 bits on this platform, so the two reads answer the same for the same value;
+- the order read's default is `d`, which is descending, and only the exact lowercase `o` is
+  ascending, compared as the pair read gives it (`r=O` and `r=%20o` are not it).
+
+The stream filter (`request_modifier.go`): the order is read first, then `s`, then `xt`, then `it`,
+so the first error is from the list read first; the page size is the value the read answers, and the
+clamp to `model.MaxEntryLimit` = 1000 is a separate rule pinned by `EntryQueryTests`. The
+continuation value is `count + offset` only while that is below the total, otherwise 0, which is
+what the JSON shape leaves out, and `count` is what the page returned, not the page size asked for.
+Goldens at the pins: (2, 0, 5) → 2, (2, 0, 2) → 0, (1, 0, 1) → 0, (3, 2, 5) → 0, (4, 1, 6) → 5, (5,
+5, 5) → 0.
+
 ## Fever API (`internal/fever`)
 
-Implemented parameters (`handler.go` dispatch): `groups`, `feeds`, `favicons`,
-`unread_item_ids`, `saved_item_ids`, `items`, `mark=item|feed|group`; unknown requests get an
-empty base response.
+Implemented parameters (`handler.go` dispatch): `groups`, `feeds`, `favicons`, `unread_item_ids`,
+`saved_item_ids`, `items`, `mark=item|feed|group`; unknown requests get an empty base response.
 
 Semantics:
 
 - `mark=item`: read/unread/saved/unsaved.
 - `mark=feed`: `id ≤ 0` → empty 200; `id > 0` → that feed read before `before`.
-- `mark=group`: `id < 0` → empty 200; **`id = 0` → mark *all* items as read (user-wide, `before`
-  is ignored)** — real clients use this; `id > 0` → that category read before `before`.
-- Items: fixed limit 50; precedence `since_id` > `max_id` > `with_ids`; `as=saved|unsaved`
-  toggles; invalid id → id 0; `id<=0` → empty 200.
+- `mark=group`: `id < 0` → empty 200; ** `id = 0` → mark *all* items as read (user-wide, `before` is
+  ignored)** — real clients use this; `id > 0` → that category read before `before`.
+- Items: fixed limit 50; precedence `since_id` > `max_id` > `with_ids`; `as=saved|unsaved` toggles;
+  invalid id → id 0; `id<=0` → empty 200.
 - Every response carries `last_refreshed_on_time` (server time at response time; `0` on auth
   failure); `items` additionally carries `total_items`.
 - Reported API version: 3. No `keys` or `hot` endpoints.
 - Auth: `api_key` = stored MD5 token of `fever_username:fever_password` (lookup case-insensitive).
   Failure → HTTP 200 with `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`.
-- `internal/fever` has no tests upstream — the code is the spec, so our contract tests are
-  written from the handler.
+- `internal/fever` has no tests upstream — the code is the spec, so our contract tests are written
+  from the handler.
 
 ## Fetching
 
@@ -460,8 +523,8 @@ Semantics:
 - Request defaults: 20 second timeout (`HTTP_CLIENT_TIMEOUT`), 15 MiB body cap
   (`HTTP_CLIENT_MAX_BODY_SIZE`), a redirect cap of 10 requests (`CheckRedirect` refuses the 10th, so
   at most 9 are followed — see the deviation below), `Connection: close`, and the `Accept` value
-  `application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+j
-  son,text/html,*/*;q=0.9`.
+  application/xml,application/atom+xml,application/rss+xml,application/rdf+xml,application/feed+j
+  son,text/html,*/*;q=0.9 .
 - Rivulet's deviations, recorded here so they are not mistaken for upstream behavior:
   - Rivulet has no connect-time hook, so the private-network check runs on the answers the resolver
     seam returns for a named host, or on the address itself when the URL already carries one and no
@@ -575,16 +638,16 @@ Semantics:
 - `internal/reader/encoding/encoding.go`: `CharsetReader` does not convert when the document is
   already valid UTF-8, so a prolog label that contradicts the bytes is ignored and a mislabeled
   UTF-8 document is not re-decoded. With a label, conversion follows the WHATWG label map; the
-  content-type path is BOM → content-type `charset` → meta prescan in the first 1024 bytes →
-  "looks like UTF-8" heuristic → default `windows-1252`, and an unknown label in the content type
-  is not an error there: it falls through to the next step.
+  content-type path is BOM → content-type `charset` → meta prescan in the first 1024 bytes → "looks
+  like UTF-8" heuristic → default `windows-1252`, and an unknown label in the content type is not an
+  error there: it falls through to the next step.
 - `internal/reader/xml/decoder.go`: when the prolog declares UTF-8, invalid XML characters are
   filtered in place rather than converted; unknown entities come from the HTML entity table,
   `Strict = false` accepts junk before the prolog, and illegal characters are dropped.
 - `hasUTF8XMLDeclaration` scans the whole document (not just the prolog) for the first `encoding=`
-  and compares the quoted value with `utf-8` case-insensitively, so the valid alias `utf8` does
-  not count as a UTF-8 declaration — the document then takes the `CharsetReader` path, where its
-  valid UTF-8 bytes still win and nothing is converted.
+  and compares the quoted value with `utf-8` case-insensitively, so the valid alias `utf8` does not
+  count as a UTF-8 declaration — the document then takes the `CharsetReader` path, where its valid
+  UTF-8 bytes still win and nothing is converted.
 
 ### Tolerant tokenizer (`encoding/xml`, as the reference configures it)
 
@@ -598,8 +661,8 @@ rests on.
   characters `attrval` lists — letters, digits, `_`, `:`, `-` — which is not the class `readName`
   reads a name over, because `isNameByte` also has `.`, and the character that stops the value is
   put back, so `href=a.b` gives `a` and the dot is left for the next attribute position.
-- A mismatched end tag closes the element that is open, and the name as written is kept for
-  after it.
+- A mismatched end tag closes the element that is open, and the name as written is kept for after
+  it.
 - Unknown, malformed and oversized character references stay as written; the five references XML
   requires are resolved before the HTML table, which has 252 entries. A numeric reference to a
   surrogate resolves to U+FFFD, because the reference writes `string(rune(n))` for every value up to
@@ -611,9 +674,9 @@ rests on.
   started with; `name()` and `attrval()` clear it before reading. A name that reads but is not one
   (`1tag`, `.b`) fails `isName`, because a name cannot start with a digit or a dot.
 - `text` puts back the `<` that ends it, reports an unescaped `<` inside a quoted value and an
-  unescaped `]]>` outside a CDATA section, rewrites unescaped `CR` and `CRLF` as `LF`, and
-  checks the characters it returns against XML's `Char` production, which a numeric character
-  reference can still reach because the document is filtered before decoding.
+  unescaped `]]>` outside a CDATA section, rewrites unescaped `CR` and `CRLF` as `LF`, and checks
+  the characters it returns against XML's `Char` production, which a numeric character reference can
+  still reach because the document is filtered before decoding.
 - `text` reports nothing in the reference only when it never wrote a byte at all: `Bytes()` on a
   buffer that was emptied is an empty but non-nil slice, so the three `data == nil` checks in
   `rawToken` are reached only when an error is already recorded. Every path that calls `text` has
@@ -621,25 +684,23 @@ rests on.
   attribute value, and the two `]` of a CDATA terminator, which are written before the `]]>` check —
   so no input reaches the two states separately, and the ported empty string matches the reference
   for every input, including `<![CDATA[]]>`, which is empty text.
-- A comment inside a directive is written as a single space, so that the markup parts it
-  separated do not become new markup when the directive is written back out; a partial match of
-  `!--` keeps the characters it matched, and the character that stopped it is handled again, so a
-  `>` in it still counts against the nesting. The content of a comment is the buffer without the
-  `-->` that ends it.
-- The end of the document is recorded as the failure as soon as `getc` reaches it, and nothing
-  is read after a failure; putting a byte back after one changes nothing, which is what `ungetc`
-  gets from `getc` rather than from checking the failure itself. A primitive that can still return
-  what it has read at the end — `text` outside a CDATA section — does so, and the failure is
-  reported on the next read, which is what `mustgetc` does not. In a CDATA section the end is
-  reported at once.
+- A comment inside a directive is written as a single space, so that the markup parts it separated
+  do not become new markup when the directive is written back out; a partial match of `!--` keeps
+  the characters it matched, and the character that stopped it is handled again, so a `>` in it
+  still counts against the nesting. The content of a comment is the buffer without the `-->` that
+  ends it.
+- The end of the document is recorded as the failure as soon as `getc` reaches it, and nothing is
+  read after a failure; putting a byte back after one changes nothing, which is what `ungetc` gets
+  from `getc` rather than from checking the failure itself. A primitive that can still return what
+  it has read at the end — `text` outside a CDATA section — does so, and the failure is reported on
+  the next read, which is what `mustgetc` does not. In a CDATA section the end is reported at once.
 - `Decode` stops at the end of the root element, so markup after the root is not read, and the
   `AutoClose` list is never set by the reference, so it does not invent end tags.
 - Format detection (`parser/format.go`): JSON is decided by the first character that is not
-  whitespace before any XML token is read, with Go's `unicode.IsSpace` class, which counts
-  U+0085 and U+00A0 as whitespace; at most 50 tokens are considered; roots are matched on the
-  local name alone,
-  which is why `rdf:RDF` is `RDF`; a failure ends the scan without an answer, so the answer is
-  `unknown`; an Atom root with no `version` attribute reports `1.0`.
+  whitespace before any XML token is read, with Go's `unicode.IsSpace` class, which counts U+0085
+  and U+00A0 as whitespace; at most 50 tokens are considered; roots are matched on the local name
+  alone, which is why `rdf:RDF` is `RDF`; a failure ends the scan without an answer, so the answer
+  is `unknown`; an Atom root with no `version` attribute reports `1.0`.
 
 ### Tolerance decision table (the quirks the plan names)
 
@@ -701,11 +762,11 @@ The typed error on the parser path (`parser/parser.go`)
 
 The reference has one error on this path: the sentinel `ErrFeedFormatNotDetected`
 (`internal/reader/parser/parser.go:17`), reported for any document `DetectFeedFormat` answers
-`unknown` for. `ParseFeed` routes the four formats it can decide on to their adapters and
-reports the sentinel for the rest, and the port models the failure as one case,
-`ParserError.feedFormatNotDetected`. The version `DetectFeedFormat` answers is read only by
-the Atom branch: `atom.Parse` calls the parser for Atom 0.3 when the version says `0.3` and
-the one for Atom 1.0 for anything else.
+`unknown` for. `ParseFeed` routes the four formats it can decide on to their adapters and reports
+the sentinel for the rest, and the port models the failure as one case,
+`ParserError.feedFormatNotDetected`. The version `DetectFeedFormat` answers is read only by the Atom
+branch: `atom.Parse` calls the parser for Atom 0.3 when the version says `0.3` and the one for Atom
+1.0 for anything else.
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
@@ -727,23 +788,21 @@ an angle bracket inside an attribute value | a scan that fails before a root is 
 an answer | | A document with no root the switch reads, or text only | `unknown`, so the sentinel |
 the scan ends with the answer unknown for a document with no root the switch reads |
 
-The corpus the rows rest on is
-`Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`, read by
-`Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
-cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because
-a larger buffer writes the same decision for every case; the characters above ASCII that Go's
+The corpus the rows rest on is `Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`,
+read by `Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
+cannot pin, and says so on its own lines: the size of the buffer the JSON rule reads, because a
+larger buffer writes the same decision for every case; the characters above ASCII that Go's
 whitespace class counts, U+0085 and U+00A0, because no case here has one; the wording of the
-sentinel, because the port keeps one case for each failure; and which adapter is called, since
-the outcome names the branch the switch takes. The number the cap counts is pinned only by the
-pair whose roots sit on the two sides of the boundary — a cap read as 49 fails the case read
-as the 50th token and a cap read as 60 the case read as the 51st — and a case for a root read
-far past the cap is left out because a wrong number writes the same answer for it. Nine of the
-ten end states map to one case, so those pins fail only on the case the mapping can tell
-apart.
+sentinel, because the port keeps one case for each failure; and which adapter is called, since the
+outcome names the branch the switch takes. The number the cap counts is pinned only by the pair
+whose roots sit on the two sides of the boundary — a cap read as 49 fails the case read as the 50th
+token and a cap read as 60 the case read as the 51st — and a case for a root read far past the cap
+is left out because a wrong number writes the same answer for it. Nine of the ten end states map to
+one case, so those pins fail only on the case the mapping can tell apart.
 
 ## Test fixtures in the reference
 
 
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
-  `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files
-  (plus most cases live inline in Go tests).
+  `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
+  inline in Go tests).

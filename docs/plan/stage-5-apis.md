@@ -16,30 +16,28 @@ Stage 4.
       cross-marker compatibility by `BcryptHasherTests`. The locale wording, the terminal check and
       the environment path are named as not pinned in the suite header; the environment path arrives
       with `serve`.
-- [x] Integration credentials command: `rivulet integration-credentials` sets per-user Google
-      Reader username/password (stored bcrypt) and Fever username/password (stored as the MD5
-      token); prints the derived Fever `api_key`.
-      Landed with PR #39: the join, the lowercase hex form, the parts read as given, the order the
-      two duplicate checks are read in, the guard inside the rule function that an empty name is not
-      read against the answer, the per-user exclusion, the values compared as read, each check
-      reading its own column, and the rule that a blank password read keeps the stored value are
-      pinned by `FeverTokenTests`, `IntegrationValidationTests`, `UserRepositoryTests` and
-      `IntegrationCredentialsTests`. The goldens are the reference's own output at the toolchain
-      `go.mod` pins. What the header names as not pinned: the prompt wording, which is the port's
-      own, though the order the reads happen in is pinned by the flags of those reads; the command's
-      guard that an empty name never reaches the storage layer; the blank-name rule (this port keeps
-      the stored value where the form writes what was submitted), the absent flag that would turn an
-      integration off, the Fever password the reference does not store, and the unique index on
-      `fever_token`. These are recorded in `docs/parity.md`.
+- [x] Integration credentials command: `rivulet integration-credentials` sets per-user Google Reader
+      username/password (stored bcrypt) and Fever username/password (stored as the MD5 token);
+      prints the derived Fever `api_key`. Landed with PR #39: the join, the lowercase hex form, the
+      parts read as given, the order the two duplicate checks are read in, the guard inside the rule
+      function that an empty name is not read against the answer, the per-user exclusion, the values
+      compared as read, each check reading its own column, and the rule that a blank password read
+      keeps the stored value are pinned by `FeverTokenTests`, `IntegrationValidationTests`,
+      `UserRepositoryTests` and `IntegrationCredentialsTests`. The goldens are the reference's own
+      output at the toolchain `go.mod` pins. What the header names as not pinned: the prompt
+      wording, which is the port's own, though the order the reads happen in is pinned by the flags
+      of those reads; the command's guard that an empty name never reaches the storage layer; the
+      blank-name rule (this port keeps the stored value where the form writes what was submitted),
+      the absent flag that would turn an integration off, the Fever password the reference does not
+      store, and the unique index on `fever_token`. These are recorded in `docs/parity.md`.
 - [ ] Google Reader API — port the reference router exactly (see `docs/reference-notes.md`):
       `ClientLogin`; `token`; `edit-tag`; `rename-tag`; `disable-tag`; `tag/list`; `user-info`;
-      `subscription/list` (embeds `iconUrl`); `subscription/edit`
-      (`ac=subscribe|edit|unsubscribe`); `subscription/quickadd` (includes minimal feed discovery
-      on website URLs — scan the HTML head for `<link rel="alternate">`; known deviation: the
-      reference finder also probes well-known paths and site-specific handlers — record it in
-      `docs/parity.md`); `stream/items/ids`; `stream/items/contents`; `mark-all-as-read`;
-      catch-all `/reader/api/0/*` → `[]` + HTTP 200 (parity: `unread-count`,
-      `preference/stream/set` etc. stay unimplemented).
+      `subscription/list` (embeds `iconUrl`); `subscription/edit` (`ac=subscribe|edit|unsubscribe`);
+      `subscription/quickadd` (includes minimal feed discovery on website URLs — scan the HTML head
+      for `<link rel="alternate">`; known deviation: the reference finder also probes well-known
+      paths and site-specific handlers — record it in `docs/parity.md`); `stream/items/ids`;
+      `stream/items/contents`; `mark-all-as-read`; catch-all `/reader/api/0/*` → `[]` + HTTP 200
+      (parity: `unread-count`, `preference/stream/set` etc. stay unimplemented).
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -51,31 +49,40 @@ Stage 4.
       read `Authorization: GoogleLogin auth=…`**. Response shapes are client-visible: `ClientLogin`
       returns plain text `SID=…/LSID=…/Auth=…` by default (JSON only with `output=json`), the token
       endpoint returns bare text, write operations return plain text `OK`. Failure semantics: 401,
-      `text/plain`, `Unauthorized`, `X-Reader-Google-Bad-Token: true`.
-      Landed with PR #41 for the endpoints this piece answers: `ClientLogin`, the token endpoint and
-      the catch-all's `[]` + 200. The field names the login reads, the text shape by default and the
-      JSON shape only when `output` says `json`, the compare against the stored value with a stored
-      value the compare cannot read answering the same as a mismatch, the guard that an empty name
-      ends the login before the read — only its name half can fail, and the suite header names the
-      password half — the transport chosen by method, the merged form with Go's order and its two
-      pair-level errors, the header read as `strings.Fields` splits it, the three headers the
-      response builder writes on every response of this path, and the two 401 shapes that differ
-      between the login path and the protected path are pinned by `GoogleReaderAuthTests` over a
-      real socket; the derivation and the JSON write are pinned against the reference's own output
-      by `GoogleReaderTokenTests` and `JSONValueTests`. Plain text `OK` for the write operations
-      follows with the routers, and so do the mux rules above, except the no-slash path, where this
-      port has no rule that reads the trailing slash and the pin records that divergence.
-- [ ] Contract details pinned by golden tests: `n` clamped to 1000 (0 → 1000); `continuation` is a
-      numeric offset encoded as a JSON string, omitted when 0; `edit-tag` reads tags from the body;
-      item ids accepted in 4 formats; `output=json` on the affected endpoints; unknown streams →
-      500; text-vs-JSON response shapes and the token-transport split above.
+      `text/plain`, `Unauthorized`, `X-Reader-Google-Bad-Token: true`. Landed with PR #41 for the
+      endpoints this piece answers: `ClientLogin`, the token endpoint and the catch-all's `[]` +
+      200. The field names the login reads, the text shape by default and the JSON shape only when
+      `output` says `json`, the compare against the stored value with a stored value the compare
+      cannot read answering the same as a mismatch, the guard that an empty name ends the login
+      before the read — only its name half can fail, and the suite header names the password half —
+      the transport chosen by method, the merged form with Go's order and its two pair-level errors,
+      the header read as `strings.Fields` splits it, the three headers the response builder writes
+      on every response of this path, and the two 401 shapes that differ between the login path and
+      the protected path are pinned by `GoogleReaderAuthTests` over a real socket; the derivation
+      and the JSON write are pinned against the reference's own output by `GoogleReaderTokenTests`
+      and `JSONValueTests`. Plain text `OK` for the write operations follows with the routers, and
+      so do the mux rules above, except the no-slash path, where this port has no rule that reads
+      the trailing slash and the pin records that divergence.
+- [ ] Contract details pinned by golden tests. The pure rules landed with PR #42, with no HTTP: the
+      four item-id forms with the `fmt.Sscanf` `%016x` rules and the error wordings — the space the
+      scan skips before the field, the newline it does not skip, and the read per Unicode scalar —
+      the stream branches with the two forms of each prefix as an OR and the seven suffixes, the
+      query read — which pairs are read, the order they answer in, the escape rules and the bounds
+      check that runs before the escape's two characters are read — and the parameter reads with the
+      order read, the list read's trim as Go's `unicode.IsSpace` and its skip of an empty value, and
+      the continuation rule, pinned by `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`,
+      `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. What follows with the
+      handlers: `n` clamped to 1000 where the query builder applies it, `continuation` as a numeric
+      offset written as a JSON string and omitted when 0, `edit-tag` reading tags from the body,
+      `output=json` on the affected endpoints, unknown streams answering 500, and the text-vs-JSON
+      response shapes and the token-transport split above.
 - [ ] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
       `saved_item_ids`, `items`, `mark=item|feed|group` with reference semantics (limit 50;
       `since_id` > `max_id` > `with_ids` precedence; `as=saved|unsaved`; invalid id → 0; `mark=feed`
-      with `id<=0` → empty 200; `mark=group` with `id<0` → empty 200, **`id=0` → mark all items
+      with `id<=0` → empty 200; `mark=group` with `id<0` → empty 200, ** `id=0` → mark all items
       read (user-wide, ignores `before`)**, `id>0` → category read before `before`). Every response
-      carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`.
-      Auth: `api_key` (MD5 token); failure is HTTP 200 with
+      carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`. Auth:
+      `api_key` (MD5 token); failure is HTTP 200 with
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
 - [ ] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
       `Cache-Control`; Fever `favicons` returns `mime;base64,…`.
@@ -94,25 +101,24 @@ Stage 4.
 
 ### Unit
 
-- Token derivation; Google Reader response encoders (JSON + plain text); OPML round-trip;
-  pagination math.
+- Token derivation; Google Reader response encoders (JSON + plain text); OPML round-trip; pagination
+  math.
 
 ### Integration (the acceptance backbone, real sockets through Vapor's client)
 
-- Full journey: `create-admin` + integration credentials via CLI → OPML import adds feeds →
-  refresh fetches entries (stub server) → Google Reader: `ClientLogin` (plain-text `SID/LSID/Auth`
-  lines — the JSON path only with `output=json`) → `subscription/list` → `stream/items/ids` with
-  `xt=…read` (unread counts) → `stream/items/contents` → `edit-tag` read → counts changed;
-  Fever: `groups` → `feeds` → `items` → `mark=item` read/saved → `unread_item_ids`/
-  `saved_item_ids` changed.
+- Full journey: `create-admin` + integration credentials via CLI → OPML import adds feeds → refresh
+  fetches entries (stub server) → Google Reader: `ClientLogin` (plain-text `SID/LSID/Auth` lines —
+  the JSON path only with `output=json`) → `subscription/list` → `stream/items/ids` with `xt=…read`
+  (unread counts) → `stream/items/contents` → `edit-tag` read → counts changed; Fever: `groups` →
+  `feeds` → `items` → `mark=item` read/saved → `unread_item_ids`/ `saved_item_ids` changed.
 - Contract matrix: every route listed above (including the `[]`/200 catch-all) and every Fever
   parameter; golden response shapes, including the text responses and the token-transport split
   (POST `T` vs GET `Authorization: GoogleLogin`).
-- Auth failures per API: Google Reader 401 + bad-token header; ClientLogin JSON error; Fever
-  200/`auth: 0` with `last_refreshed_on_time: 0`.
+- Auth failures per API: Google Reader 401 + bad-token header; ClientLogin JSON error; Fever 200/
+  `auth: 0` with `last_refreshed_on_time: 0`.
 - Pagination and ids: >1000 items with continuations; `n` edge cases; the 4 item-id formats.
-- Fever edge semantics: `mark=group` with `id=0` marks everything read; `id<0` and `mark=feed`
-  with `id<=0` return empty 200.
+- Fever edge semantics: `mark=group` with `id=0` marks everything read; `id<0` and `mark=feed` with
+  `id<=0` return empty 200.
 - `quickadd`: website URL (discovery) and direct feed URL.
 - Icon route: works without auth; `ETag` and cache headers set.
 
@@ -126,11 +132,11 @@ Stage 4.
 
 Findings from the runs on PR #41 that do not change behavior:
 
-- `GoogleReaderAuthTests`' assertion that no `Location` is written for the path without the
-  trailing slash states the divergence rather than pinning it: a wrong read that writes the
-  reference's redirect cannot be observed here, because Vapor's client follows a redirect and
-  reports the answer after the follow. The pin's comment says this, and the pin fails on a read
-  that distinguishes the trailing slash.
+- `GoogleReaderAuthTests`' assertion that no `Location` is written for the path without the trailing
+  slash states the divergence rather than pinning it: a wrong read that writes the reference's
+  redirect cannot be observed here, because Vapor's client follows a redirect and reports the answer
+  after the follow. The pin's comment says this, and the pin fails on a read that distinguishes the
+  trailing slash.
 - `docs/testing.md` is over the file-size aim for a document (597 lines): it is one file for the
   levels, the support helpers and the CI rules, and splitting it by level is a style matter.
 

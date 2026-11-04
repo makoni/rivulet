@@ -2,33 +2,33 @@
 
 Where Rivulet differs from Miniflux, and why. Reference-verified behavior itself lives in
 [reference-notes.md](reference-notes.md); this file records the places where the port knowingly
-diverges — because a platform facility behaves differently, or because the reference does
-something we choose not to copy. Stage 7 consolidates and re-checks these notes.
+diverges — because a platform facility behaves differently, or because the reference does something
+we choose not to copy. Stage 7 consolidates and re-checks these notes.
 
 ## Charset decoding (stage 3)
 
 **Matching the reference.**
 
-- The WHATWG label table is transcribed from `golang.org/x/text` `encoding/htmlindex`
-  (BSD-3-Clause, attributed in `NOTICE`) — the same data the reference resolves labels against,
-  including the aliases the IANA registry gets wrong (`iso-8859-1` → windows-1252, `gb2312` → GBK,
-  `utf-16` → little-endian, `iso-2022-kr` and `hz-gb-2312` → replacement). `miniflux/go.mod` pins
-  v0.40.0, and the 228 labels in the port are checked against the module cache at that pinned
-  version: every label resolves to the encoding the port maps it to.
+- The WHATWG label table is transcribed from `golang.org/x/text` `encoding/htmlindex` (BSD-3-Clause,
+  attributed in `NOTICE`) — the same data the reference resolves labels against, including the
+  aliases the IANA registry gets wrong (`iso-8859-1` → windows-1252, `gb2312` → GBK, `utf-16` →
+  little-endian, `iso-2022-kr` and `hz-gb-2312` → replacement). `miniflux/go.mod` pins v0.40.0, and
+  the 228 labels in the port are checked against the module cache at that pinned version: every
+  label resolves to the encoding the port maps it to.
 - A document that is already valid UTF-8 is never converted, whatever label it declares; a wrong
   prolog cannot double-encode it. An unknown label is only an error when the bytes are not valid
   UTF-8.
 - Detection follows the reference order: BOM → content-type `charset` → `<meta>` prescan over the
-  first 1024 bytes → "looks like UTF-8" heuristic → `windows-1252` default. A `utf-16` `<meta>`
-  and the heuristic leave the bytes as they are, because the reference uses `encoding.Nop` there.
-- The UTF-8 path replaces each maximal subpart of an ill-formed subsequence with one U+FFFD, the
-  way `x/text`'s `utf8Decoder` does. This is what makes the output always valid UTF-8, and the
-  tests pin the boundaries of the W3C error table (overlong forms, surrogates, forms above
-  U+10FFFF, sequences cut off by the end of the document).
-- Undefined positions of single-byte encodings become U+FFFD, like the reference decoders; the
-  test pins the windows-1252 positions (`81`, `8D`).
-- A UTF-16 byte-order mark is kept in the output as U+FEFF, matching the reference's
-  `IgnoreBOM` decoder policy.
+  first 1024 bytes → "looks like UTF-8" heuristic → `windows-1252` default. A `utf-16` `<meta>` and
+  the heuristic leave the bytes as they are, because the reference uses `encoding.Nop` there.
+- The UTF-8 path replaces each maximal subpart of an ill-formed subsequence with one U+FFFD, the way
+  `x/text`'s `utf8Decoder` does. This is what makes the output always valid UTF-8, and the tests pin
+  the boundaries of the W3C error table (overlong forms, surrogates, forms above U+10FFFF, sequences
+  cut off by the end of the document).
+- Undefined positions of single-byte encodings become U+FFFD, like the reference decoders; the test
+  pins the windows-1252 positions (`81`, `8D`).
+- A UTF-16 byte-order mark is kept in the output as U+FEFF, matching the reference's `IgnoreBOM`
+  decoder policy.
 - `x-user-defined` (high bytes → U+F780–U+F7FF) and the replacement encoding (one U+FFFD) are
   implemented directly.
 - `hasUTF8XMLDeclaration` compares the declared value with `utf-8` ASCII-only, as the reference's
@@ -70,14 +70,14 @@ table below. The entity table is transcribed from it and attributed in `NOTICE`.
 The four quirk classes — the byte-order mark, garbage before the prolog, character references and
 `<![CDATA[` — were checked by running the reference over 52 inputs through the reader path, and no
 difference was found, so `docs/reference-notes.md` records the rules as the reference reports them
-and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot
-tell apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
+and the pinned corpus cases name them. The end of the stream is the one thing those pins cannot tell
+apart, and it is the equivalence recorded below, where the reference's bare `io.EOF` and its
 `unexpected EOF` are the same case here.
 
-The parser path was checked the same way over ten inputs — the sentinel, the branch the switch
-takes for it, and how the scan ends, where the recorded end states are the reference's own
-messages — and there too no difference was found, so `docs/reference-notes.md` records the
-rules as the reference reports them.
+The parser path was checked the same way over ten inputs — the sentinel, the branch the switch takes
+for it, and how the scan ends, where the recorded end states are the reference's own messages — and
+there too no difference was found, so `docs/reference-notes.md` records the rules as the reference
+reports them.
 
 **Known differences.**
 
@@ -149,13 +149,12 @@ is stored in document order | None; the difference between the two is pinned by 
   replacement, so the two rules give the same output for every input, and the scan advances by the
   pattern length rather than by the replacement.
 - The reading primitives (`skip`, `getnum`, `getnum3`, `lookup`, `atoi`, `parseTimeZone`,
-  `parseGMT`, `parseSignedOffset`, `parseNanoseconds`) follow Go 1.22 `time/format.go` line by
-  line, over UTF-8 bytes: a layout space matches a run of spaces, `lookup` is a case-insensitive
-  ASCII prefix match, and a fractional kind keeps only the digit count because `parseNanoseconds`
-  accepts `.` or `,` whichever the layout writes. `atoi` accepts a leading sign, which is what lets
-  the two-character year read `+6` and an exact fractional run read `.+5`, while `getnum` does not,
-  so the offset fields take digits only; `parseNanoseconds` reports a negative result as out of
-  range.
+  `parseGMT`, `parseSignedOffset`, `parseNanoseconds`) follow Go 1.22 `time/format.go` line by line,
+  over UTF-8 bytes: a layout space matches a run of spaces, `lookup` is a case-insensitive ASCII
+  prefix match, and a fractional kind keeps only the digit count because `parseNanoseconds` accepts
+  `.` or `,` whichever the layout writes. `atoi` accepts a leading sign, which is what lets the
+  two-character year read `+6` and an exact fractional run read `.+5`, while `getnum` does not, so
+  the offset fields take digits only; `parseNanoseconds` reports a negative result as out of range.
 - The zone resolution keeps Go's sentinel: `zoneOffset` starts at −1 to mean "no offset was read",
   so a value of exactly −1 second is read as no offset at all, and the zone falls back to the
   default location, which is UTC in both.
@@ -190,7 +189,7 @@ is stored in document order | None; the difference between the two is pinned by 
 |
 | --- | --- | --- | --- |
 | Zone abbreviations | `lookupName` asks the machine's local `Location`, so the offset depends on
-the instant and on tzdata; the reference's `PST`/`PDT` and `EST`/`EDT` names resolve through Los
+the instant and on tzdata; the reference's `PST`/ `PDT` and `EST`/ `EDT` names resolve through Los
 Angeles and New York at the parsed instant | a fixed table: `PST` −28800, `PDT` −25200, `EST`
 −18000, `EDT` −14400, `UTC` and `GMT` 0, `GMT±hh` from the name, and the documented fallback 0 for
 everything else | An abbreviation the machine's zone knows resolves to a different offset here, and
@@ -288,8 +287,8 @@ and the reader acts on the failure, not on the text |
 
 **Matching the reference.**
 
-- The sanitizer does not read through SwiftSoup, which the stage 3 plan named for it. The output
-  the reference writes is the string it builds itself — the element name, then the attributes in the
+- The sanitizer does not read through SwiftSoup, which the stage 3 plan named for it. The output the
+  reference writes is the string it builds itself — the element name, then the attributes in the
   order they were read, except for a formatting element, which is the case below — so attribute
   order, name lowercasing, entity decoding, the raw-text states and the open-element depth guard
   have to be the port's own. SwiftSoup does not expose the attributes it parsed (`Node.attributes`
@@ -299,26 +298,26 @@ and the reader acts on the failure, not on the text |
   `miniflux/go.mod` pins v0.57.0, which is what the reference parses with, and the copy the rules
   were read from is the module cache at that version, which is also what a corpus value can be
   checked against, since the reference runs with it.
-  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment
-  state is entered only through the two dashes of `<!--`, and a comment closes only after two dashes
-  (`-->` or `--!>`), so a `>` inside its data is data; a doctype, a processing instruction and any
-  other `<!` or `<?` close at the first `>`. A tag name, an attribute key and an attribute value
-  have NUL replaced with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed
-  by the insertion mode, because the tokenizer flags only CDATA and the raw-text state as
-  converting, and `Text()` converts a comment through its own check. A named reference without its
-  semicolon is resolved outside the attribute mode only, and the semicolon stays part of the name
-  because the reader is already past the character it stopped on, which a name outside the 106 short
-  names shows. A duplicate attribute name is kept once. `readTagAttrVal` skips whitespace before the
-  `=`, and a solidus after the `=` is the unquoted value. `>`, `<` and a nested tag inside a raw
-  state are data, which the content of the two raw states that are still written (`title`,
-  `textarea`) shows. A newline at the start of a `pre` or `listing` block is dropped when it is the
-  first thing in the data as the token was read, before the NUL is removed, and the escape forms are
-  `&#34;`, `&#39;` and `&#13;`, pinned in text and in an attribute value. Four pins cannot be seen
-  through the sanitizer output and are asserted through the tokenizer itself: the tag name and the
-  attribute key carrying a NUL, the shape of the entity table, and where comment data ends, because
-  the renderer writes nothing for a comment. `Tests/RivuletCoreTests/SanitizerTests.swift` pins what
-  the insertion modes answer with: `</p>` with no open `p` in `buttonScope` inserts an empty one,
-  and `</br>` is read as a start tag. Only `hr` and the block list close an open `p` — `button` does
+  `Tests/RivuletCoreTests/HTMLTokenizerTests.swift` pins the tokenizer: the comment state is entered
+  only through the two dashes of `<!--`, and a comment closes only after two dashes (`-->` or
+  `--!>`), so a `>` inside its data is data; a doctype, a processing instruction and any other `<!`
+  or `<?` close at the first `>`. A tag name, an attribute key and an attribute value have NUL
+  replaced with U+FFFD, which `TagName` and `TagAttr` do, while a text token has it removed by the
+  insertion mode, because the tokenizer flags only CDATA and the raw-text state as converting, and
+  `Text()` converts a comment through its own check. A named reference without its semicolon is
+  resolved outside the attribute mode only, and the semicolon stays part of the name because the
+  reader is already past the character it stopped on, which a name outside the 106 short names
+  shows. A duplicate attribute name is kept once. `readTagAttrVal` skips whitespace before the `=`,
+  and a solidus after the `=` is the unquoted value. `>`, `<` and a nested tag inside a raw state
+  are data, which the content of the two raw states that are still written (`title`, `textarea`)
+  shows. A newline at the start of a `pre` or `listing` block is dropped when it is the first thing
+  in the data as the token was read, before the NUL is removed, and the escape forms are `&#34;`,
+  `&#39;` and `&#13;`, pinned in text and in an attribute value. Four pins cannot be seen through
+  the sanitizer output and are asserted through the tokenizer itself: the tag name and the attribute
+  key carrying a NUL, the shape of the entity table, and where comment data ends, because the
+  renderer writes nothing for a comment. `Tests/RivuletCoreTests/SanitizerTests.swift` pins what the
+  insertion modes answer with: `</p>` with no open `p` in `buttonScope` inserts an empty one, and
+  `</br>` is read as a start tag. Only `hr` and the block list close an open `p` — `button` does
   not, and `br`, `img` and `wbr` do not, and `table` pops `p` only outside quirks mode, which is
   never the case on the reference's path. `td` and `th` outside a table are not elements at all,
   while inside one the escaped attribute value is written, and `</table>` switches back to the
@@ -352,12 +351,12 @@ and the reader acts on the failure, not on the text |
   64-bit value; only the width is written back, so the height is observable only through the rule
   that makes a height-only descriptor invalid. Both are pinned by `SrcSetParserTests`.
 - The entity table is the data `x/net/html` builds from the HTML5 named character references,
-  generated from the module-cache copy at the pinned v0.57.0, and its shape is
-  pinned by `HTMLTokenizerTests`. The `entity` map has 2138 entries, 106 of them without a
-  semicolon, and every one of those 106 resolves to the value its semicolon form resolves to, so the
-  table stores the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries
-  are kept apart because they resolve to two code points. The XML reader's table is `encoding/xml`'s
-  smaller HTML4 set, so the two tables are kept apart rather than merged.
+  generated from the module-cache copy at the pinned v0.57.0, and its shape is pinned by
+  `HTMLTokenizerTests`. The `entity` map has 2138 entries, 106 of them without a semicolon, and
+  every one of those 106 resolves to the value its semicolon form resolves to, so the table stores
+  the 2032 semicolon forms once and the short names as a set. The 93 `entity2` entries are kept
+  apart because they resolve to two code points. The XML reader's table is `encoding/xml`'s smaller
+  HTML4 set, so the two tables are kept apart rather than merged.
 - The text layer reads through the same tokenizer and writes what `Text()` gives for a text token:
   the data decoded for the states that are not raw, `title` and `textarea` decoded, the other raw
   states written as read, and newlines normalized. A data-state text token keeps its NUL, because
@@ -384,19 +383,19 @@ the corpus covers it | | Attribute order inside `math` or `svg` | the sort belon
 `addFormattingElement`, but content there is inserted through the foreign-content rules, which do
 not sort | the sort is applied whatever the content is, because the foreign-content mode is not
 ported | An `a` with more than one attribute inside `math` or `svg` writes its attributes sorted
-here and as read in the reference; the corpus cannot pin it, so no case asserts it | | Caption,
-the mode the open stack gives, and the scope markers | each mode has its own rules, including
-the markers the scope checks stop at | the table modes are the scopes `clearStackToContext` answers
-for, with the implied `tbody` and `tr`, and the caption mode is ported; the mode is read from the
-open stack the way `resetInsertionMode` computes it, so a nested table reads in the table mode and
-gives the mode back to the element around it when it closes; `colgroup` answers with the table mode,
+here and as read in the reference; the corpus cannot pin it, so no case asserts it | | Caption, the
+mode the open stack gives, and the scope markers | each mode has its own rules, including the
+markers the scope checks stop at | the table modes are the scopes `clearStackToContext` answers for,
+with the implied `tbody` and `tr`, and the caption mode is ported; the mode is read from the open
+stack the way `resetInsertionMode` computes it, so a nested table reads in the table mode and gives
+the mode back to the element around it when it closes; `colgroup` answers with the table mode,
 because the column-group mode is not ported | Content inside `colgroup` nests here where the
 reference closes the section, and a caption outside the table scope is not popped here; the ported
-half is pinned by `SanitizerTableModeTests` | | Text inside a table | only whitespace text is added to
-the table element; anything else is foster parented | added to the insertion point | Same for
+half is pinned by `SanitizerTableModeTests` | | Text inside a table | only whitespace text is added
+to the table element; anything else is foster parented | added to the insertion point | Same for
 whitespace; non-whitespace text can be inside the table here | | Comment nodes | kept as nodes in
 the tree | not recorded at all | None, because the renderer writes nothing for them; the tree is the
-shape the sanitizer sees | | A heading start tag | pops an open `h1`–`h6` before the new heading is
+shape the sanitizer sees | | A heading start tag | pops an open `h1`– `h6` before the new heading is
 inserted | only the `p` pop is ported | `<h1>a<h1>b</h1>` nests the second heading inside the first
 here | | `li`, `dd` and `dt` start tags | pop an open ancestor of the same kind, then `p` | the `p`
 pop is ported, the ancestor loop is not | `<ul><li>a<li>b</ul>` keeps the second item inside the
@@ -412,19 +411,20 @@ port tracks every value read | | A `<![CDATA[` | a CDATA token inside foreign co
 writes `x` in the reference and nothing here | | Script escaping states | the script data can end at
 a different position through the escaping states, which can pass a `</script>` as data | the raw
 state ends at the end tag | The renderer writes nothing for `script`, but the text layer writes the
-content of a raw state, so the difference is observable there: for `<script><!--<script
-</script>x</script>` the reference writes `<!--<script </script>x` and the port writes `<!--<script
-x`, which `StripTagsTests` pins | | Content in `head` | read through the insertion mode for the
-head, so markup there is not part of the node the renderer walks | `html` and `head` do not put a
-node on the tree, so it is read in the body | `<head><title>x</title></head>` writes `x` here and
-nothing in the reference | | Implied end tags | `generateImpliedEndTags` pops `p`, `li`, `dd` and
-`dt` before `hr` and `button` in some cases | the open `p` is popped, which is the same answer while
-the stack is well formed | A list item or definition inside a `p` nests through the ancestor loop,
-which is the row above | | Positions and counts | the tokenizer measures bytes and the character
-walks count runes | `Character` graphemes, except the text layer, which walks the scalars so the
-count is per code point | A combining sequence or a ZWJ sequence is one position here where the
-reference counts more; the `&#13;&#10;` pair is one instance of that | | The reader error
-`stripIter` reports | `StripTags` and `TruncateHTML` write nothing when the reader reports an error
+content of a raw state, so the difference is observable there: for <script><!--<script
+</script>x</script> ` the reference writes `<!--<script </script>x
+` and the port writes `<!--<script x `, which `StripTagsTests ` pins | | Content in `head | read
+through the insertion mode for the head, so markup there is not part of the node the renderer walks
+| `html` and `head` do not put a node on the tree, so it is read in the body |
+`<head><title>x</title></head>` writes `x` here and nothing in the reference | | Implied end tags |
+`generateImpliedEndTags` pops `p`, `li`, `dd` and `dt` before `hr` and `button` in some cases | the
+open `p` is popped, which is the same answer while the stack is well formed | A list item or
+definition inside a `p` nests through the ancestor loop, which is the row above | | Positions and
+counts | the tokenizer measures bytes and the character walks count runes | `Character` graphemes,
+except the text layer, which walks the scalars so the count is per code point | A combining sequence
+or a ZWJ sequence is one position here where the reference counts more; the `&#13;&#10;` pair is one
+instance of that | | The reader error `stripIter` reports | `StripTags` and `TruncateHTML` write
+nothing when the reader reports an error
 | no equivalent, because the input is a string and the walk always completes | Nothing differs for
 an input that is already a string; the path is only reachable through a reader | | A byte that is
 not valid UTF-8 | counted as one against the limit and written as the byte it was read as | a Swift
@@ -445,10 +445,9 @@ namespaces the reference's field tags name, so the chains, the fallback orders a
 trimmed are the reference's. The shape the struct has decides where a value is read from, which is
 why the RDF items are read at the root level rather than through the channel, and a single-value
 field takes the last element that matches at its own level, because the reference assigns the field
-for every match.
-The model is ours: the fields `model.Feed` carries for the storage layer (the fetch time, the
-conditional-GET headers, the error counters) are not parsing results, so they are not modelled, and
-adapters do not sanitize content — sanitization is the layer after this one.
+for every match. The model is ours: the fields `model.Feed` carries for the storage layer (the fetch
+time, the conditional-GET headers, the error counters) are not parsing results, so they are not
+modelled, and adapters do not sanitize content — sanitization is the layer after this one.
 
 **Known differences.**
 
@@ -527,15 +526,15 @@ through `encoding/json`, so this layer mirrors the part of that source the reade
 `stateX` productions. For a byte inside the value the context of a failure is the words the
 production names, which is what lets a pin compare it against what the reference reports; for input
 that ends the path `Decode` takes reports the end of input itself, so no context is pinned there,
-and the contexts the states name belong to `checkValid`. The rules that belong to the
-machine are the machine's: the four ASCII separators rather than any byte below the printable range,
-the escape set `stateInStringEsc` accepts, the number states with the fall-throughs `state1` has to
-`state0` and `stateE` to `stateESign`, the literal words walked letter by letter, the depth
-`pushParseState` limits to, and the way `unquoteBytes` makes the bytes well-formed. No dependency is
-added: the reader is our own over the bytes, because a platform JSON decoder cannot reproduce the
-per-field error semantics or the leniency the reference has. The two separators the token machine
-reports are the opcodes `scanObjectKey` and `scanObjectValue`/`scanArrayValue`, which are what
-`Token` elides, so they are kept because the tree is built from them.
+and the contexts the states name belong to `checkValid`. The rules that belong to the machine are
+the machine's: the four ASCII separators rather than any byte below the printable range, the escape
+set `stateInStringEsc` accepts, the number states with the fall-throughs `state1` has to `state0`
+and `stateE` to `stateESign`, the literal words walked letter by letter, the depth `pushParseState`
+limits to, and the way `unquoteBytes` makes the bytes well-formed. No dependency is added: the
+reader is our own over the bytes, because a platform JSON decoder cannot reproduce the per-field
+error semantics or the leniency the reference has. The two separators the token machine reports are
+the opcodes `scanObjectKey` and `scanObjectValue`/ `scanArrayValue`, which are what `Token` elides,
+so they are kept because the tree is built from them.
 
 **Known differences.**
 
@@ -548,8 +547,8 @@ the failure at the first byte after the value | the `Decode` path: for a contain
 closes it is the last byte read, because `readValue` tests `scanEnd` against an invented space, and
 for a scalar the byte that ends the literal is read, because it is what decides whether the literal
 had ended, but `stateEndTop` reports `scanEnd` for whatever it is, so the machine stops there |
-`1garbage`, `1 2` and `{"a":1}garbage` read here without a failure. `Unmarshal` reports `invalid
-character 'g' after top-level value` for `1garbage` and the same for the other two, and `Decode`
+`1garbage`, `1 2` and `{"a":1}garbage` read here without a failure. `Unmarshal` reports invalid
+character 'g' after top-level value ` for `1garbage ` and the same for the other two, and `Decode
 reports no syntax error at all for them | | An empty document | `Decode` reports `io.EOF` when
 nothing was read and `io.ErrUnexpectedEOF` when a value is left open; `checkValid` reports both as
 `unexpected end of JSON input` | one failure, `unexpectedEnd`, for the two | Only the error identity
@@ -581,22 +580,22 @@ past 10000 | the same limit, reported as `maxDepthExceeded` | None |
 
 ## JSON Feed adapter (stage 3)
 
-**Matching the reference.** Miniflux has no field-read code to port either: the adapter decodes
-the document straight into the structs `json.go` declares, so `JSONFieldRead` mirrors what
-`decode.go` answers for one field — `d.object`, `d.array` and `literalStore` — over the members
-the tree keeps. The order the model fields are written in is `adapter.go`'s: language, URL,
-title, content, date, author, enclosures, tags, hash, and each chain stops at the first value
-it can read, resolve or parse. Three rules the reference reads as a property of the target
-type are pinned here: `null` sets a slice to empty but leaves a string, a bool, an `int64` or
-a struct field as it started — which is what a repeated key separates — a number is converted
-per target (`ParseInt` for the size field), so a literal that conversion cannot read is reported
-with the literal as the value, and `JSONAuthors.UnmarshalJSON` returns without assigning when
-neither branch can read the value, so a field keeps what an earlier member gave it. The shape
-keeps every field the struct declares, not only the ones the adapter writes, because the type
-check is what decides whether the document fails and, for `authors`, whether the leniency
-keeps the whole array or none of it. Because the field read walks the members in the order
-the document wrote them and `saveError` keeps the first failure, the failure the document
-reports is the first member the field's type cannot accept, not the first field the table has.
+**Matching the reference.** Miniflux has no field-read code to port either: the adapter decodes the
+document straight into the structs `json.go` declares, so `JSONFieldRead` mirrors what `decode.go`
+answers for one field — `d.object`, `d.array` and `literalStore` — over the members the tree keeps.
+The order the model fields are written in is `adapter.go`'s: language, URL, title, content, date,
+author, enclosures, tags, hash, and each chain stops at the first value it can read, resolve or
+parse. Three rules the reference reads as a property of the target type are pinned here: `null` sets
+a slice to empty but leaves a string, a bool, an `int64` or a struct field as it started — which is
+what a repeated key separates — a number is converted per target (`ParseInt` for the size field), so
+a literal that conversion cannot read is reported with the literal as the value, and
+`JSONAuthors.UnmarshalJSON` returns without assigning when neither branch can read the value, so a
+field keeps what an earlier member gave it. The shape keeps every field the struct declares, not
+only the ones the adapter writes, because the type check is what decides whether the document fails
+and, for `authors`, whether the leniency keeps the whole array or none of it. Because the field read
+walks the members in the order the document wrote them and `saveError` keeps the first failure, the
+failure the document reports is the first member the field's type cannot accept, not the first field
+the table has.
 
 **Known differences.**
 
@@ -618,8 +617,8 @@ the message; the pins name the two words |
 compares the port against what the reference produces for them. Upstream uses these files only as
 benchmark and fuzz inputs, so no upstream test states what a parse produces and nothing could be
 ported; the golden files carry the reference's own values, written by running Miniflux v2.3.3 with
-Go 1.26 — the version `miniflux/go.mod` pins — over the byte-for-byte copies with the clock fixed
-to UTC, through a scratch package inside a verbatim copy of the clone, because the reference's
+Go 1.26 — the version `miniflux/go.mod` pins — over the byte-for-byte copies with the clock fixed to
+UTC, through a scratch package inside a verbatim copy of the clone, because the reference's
 `internal/` packages cannot be imported from another module. Each golden file says on its own line
 that the values below it are the reference's output for that fixture. The method is recorded in
 `docs/testing.md`. On the pinned subset the port agrees with the reference on every value, so the
@@ -658,8 +657,8 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - The reference opens one transaction per entry, in `RefreshFeedEntries`, and writes the failure
   record as its own statement. Rivulet keeps every write of one refresh in a single write
   transaction, as the project conventions require, and the failure record is committed inside it
-  before the error leaves, so the row the reference would write is still stored when the caller
-  sees the error.
+  before the error leaves, so the row the reference would write is still stored when the caller sees
+  the error.
 - The reference reads `time.Now()` inside `CheckedNow` and `ScheduleNextCheck`. The port reads the
   clock through an injected seam, which `docs/plan/stage-4-ingestion.md` asks for; the rule applied
   to the value is the same, and the seam is what lets a test pin the stamp.
@@ -689,8 +688,8 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   kept — and the host as `urllib.Domain` reads it: the parsed host with its port, no `www.` strip,
   the string as written when Go's parse fails. The scheduler calls the builder without a user or a
   category, so the batch is not scoped to the user. A failing run does not stop the batch: the
-  reference worker keeps reading the channel, here the worker keeps pulling from the queue. Each
-  job runs exactly once.
+  reference worker keeps reading the channel, here the worker keeps pulling from the queue. Each job
+  runs exactly once.
 
 **What differs.**
 
@@ -699,11 +698,11 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   layer, so `tick()` answers with one outcome per job, and the pins compare the typed error case,
   not the wording.
 - The reference pushes the batch to the channel and does not await it, so a slow batch can overlap
-  the next tick there; here `tick()` runs the whole batch before it returns. The loop that makes
-  the two shapes meet lands with `rivulet serve`.
-- The pool is workers reading a queue instead of goroutines reading a channel. The toolchain has
-  no bounded `withTaskGroup` overload, so the window is kept by hand; the cap itself is not pinned
-  — pinning a cap would need a timed wait, which `docs/testing.md` forbids — and the suite header
+  the next tick there; here `tick()` runs the whole batch before it returns. The loop that makes the
+  two shapes meet lands with `rivulet serve`.
+- The pool is workers reading a queue instead of goroutines reading a channel. The toolchain has no
+  bounded `withTaskGroup` overload, so the window is kept by hand; the cap itself is not pinned —
+  pinning a cap would need a timed wait, which `docs/testing.md` forbids — and the suite header
   states it honestly.
 - The due rule compares the instant the caller passes instead of SQL `now()`; this is the injected
   clock the pipeline section already records, and the pins read only instants after the process
@@ -714,8 +713,8 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   as the reference does. The reference reads the count only for the entry-frequency mode, and the
   port keeps that gate, which is what `docs/reference-notes.md` records.
 - The reference writes the count rule with `CEIL`, which this SQLite driver has no equivalent of at
-  runtime. The port keeps the same value with exact integer arithmetic — `(week × (count - 1) + span
-  - 1) / span`, the ceiling of the reference's real division written as integers. The shape itself
+  runtime. The port keeps the same value with exact integer arithmetic — (week × (count - 1) + span
+  - 1) / span , the ceiling of the reference's real division written as integers. The shape itself
   cannot be pinned: an implementation that computes the same rounding a different way answers the
   same value for every case here, so what is pinned is the rounding and that the gap keeps its
   fraction, which is what the reference's division does.
@@ -742,12 +741,11 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 
 - The pass is the reference's manual path (`internal/cli/refresh_feeds.go` at commit `c4d54f87`):
   one read of the batch with the values the configuration gives the builder — `BATCH_SIZE`,
-  `POLLING_PARSING_ERROR_LIMIT`, `POLLING_LIMIT_PER_HOST`, the disabled gate and the due condition
-  — each job run once through the worker's path with the forced flag false, and the process waits
-  for the jobs and then exits; there is no loop. The five values are the reference's defaults with
-  its validators: the three read as a positive number require at least one, while the two switches
-  accept zero because for them zero is off, and `POLLING_FREQUENCY` is the reference's minute
-  type.
+  `POLLING_PARSING_ERROR_LIMIT`, `POLLING_LIMIT_PER_HOST`, the disabled gate and the due condition —
+  each job run once through the worker's path with the forced flag false, and the process waits for
+  the jobs and then exits; there is no loop. The five values are the reference's defaults with its
+  validators: the three read as a positive number require at least one, while the two switches
+  accept zero because for them zero is off, and `POLLING_FREQUENCY` is the reference's minute type.
 - A job that fails does not stop the rest, which is the worker's rule, and the migrations run when
   `RUN_MIGRATIONS` is on, as the reference CLI runs them before dispatching a command.
 
@@ -761,23 +759,23 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 - A batch read that fails is logged and the function returns there, which leaves the process exit
   code 0; here the error leaves the command and the entry point reports it.
 - The reference starts `WORKER_POOL_SIZE` goroutines whatever the batch holds; `Scheduler` here
-  starts `min(pool size, jobs)`, the shape its own header states, and `SchedulerTickTests` names
-  the cap as unpinnable.
-- The scheduling rule this pass uses is `NextCheckPolicy()` with the reference defaults, so the
-  mode and the intervals are not read from the environment here (`POLLING_SCHEDULER` and the
-  `SCHEDULER_*` values), unlike the reference, which reads them through `config.Opts`. Loading
-  those variables is stage 6 work.
+  starts `min(pool size, jobs)`, the shape its own header states, and `SchedulerTickTests` names the
+  cap as unpinnable.
+- The scheduling rule this pass uses is `NextCheckPolicy()` with the reference defaults, so the mode
+  and the intervals are not read from the environment here (`POLLING_SCHEDULER` and the
+  `SCHEDULER_*` values), unlike the reference, which reads them through `config.Opts`. Loading those
+  variables is stage 6 work.
 - The reference CLI is a flag (`--refresh-feeds`) on one binary; here it is the `refresh`
-  subcommand, which is the CLI shape `docs/plan/README.md` chose. The reference also checks that
-  the schema is up to date, and that check sits on the daemon path — after the migrations and
-  before the branch that runs the pass, so it covers this pass but not the flags that return
-  earlier. This port does not port that check, so a pin can only show the flag gates this command.
+  subcommand, which is the CLI shape `docs/plan/README.md` chose. The reference also checks that the
+  schema is up to date, and that check sits on the daemon path — after the migrations and before the
+  branch that runs the pass, so it covers this pass but not the flags that return earlier. This port
+  does not port that check, so a pin can only show the flag gates this command.
 
 **What cannot be pinned.**
 
-- That the pass is one pass: no test can show that a loop is absent, and the cadence belongs to
-  the loop `serve` runs. The pool cap, the closing of the fetcher the command created, and the
-  words of the console report are the findings the suite header states.
+- That the pass is one pass: no test can show that a loop is absent, and the cadence belongs to the
+  loop `serve` runs. The pool cap, the closing of the fetcher the command created, and the words of
+  the console report are the findings the suite header states.
 
 
 ## Status contract (stage 4)
@@ -790,44 +788,44 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   command, its `--json` document and its console form are the port's own, and
   `docs/plan/stage-6-cli.md` keeps the document stable for monitoring and for the stage-4 soak.
 - What the document reports is read through the rules the reference does have: the batch builder's
-  pick answers `due`, and the columns of the `feeds` row answer the rest. The keys mirror the
-  column names — `id`, `user_id`, `title`, `url`, `site_url`, `fetched_at`, `next_check_at`,
-  `parsing_error_count`, `parsing_error_message` — because a contract a script compares between
-  two runs must not rename what it reports. The one key that is not a column is `enabled`, which
-  reports the `disabled` column as its positive form.
+  pick answers `due`, and the columns of the `feeds` row answer the rest. The keys mirror the column
+  names — `id`, `user_id`, `title`, `url`, `site_url`, `fetched_at`, `next_check_at`,
+  `parsing_error_count`, `parsing_error_message` — because a contract a script compares between two
+  runs must not rename what it reports. The one key that is not a column is `enabled`, which reports
+  the `disabled` column as its positive form.
 
 **What differs.**
 
 - An absent stamp is reported as `null` rather than dropped: `JSONEncoder` omits a nil property by
   default, so this contract writes the key explicitly, which is what a script reading two runs
   needs.
-- The rows are listed in id order, which the reference never answers for a batch: its builder
-  orders by `next_check_at`. The counts read every row whatever its state, where the reference's
-  builder answers only the rows its conditions keep.
+- The rows are listed in id order, which the reference never answers for a batch: its builder orders
+  by `next_check_at`. The counts read every row whatever its state, where the reference's builder
+  answers only the rows its conditions keep.
 - `at_error_limit` is counted only for a positive limit, because for the switch that reads zero as
   off there is no filter a row could be at.
-- The snapshot is not scoped to a user, as the batch is not. The reference checks that the schema
-  is up to date on the daemon path, after the migrations and before the branch that runs the
-  refresh pass, and this port ports neither that check nor any gating beyond `RUN_MIGRATIONS`.
+- The snapshot is not scoped to a user, as the batch is not. The reference checks that the schema is
+  up to date on the daemon path, after the migrations and before the branch that runs the refresh
+  pass, and this port ports neither that check nor any gating beyond `RUN_MIGRATIONS`.
 - Without `--json` the same values print as console lines, one per row, and the wording of those
   lines is the port's own, so the tests read the values on the line rather than the words.
 
 **What cannot be pinned.**
 
-- That the command fetches nothing and sleeps nothing; which clock it is built with, since a pin
-  can only read the instant that clock answers; the order of the JSON keys, which a
-  machine-readable contract does not promise; the wording of the human lines; which number on a
-  human line belongs to which field, since the pin reads them as a set; and the order a table scan
-  answers without the ordering clause, which for the rows these pins seed is already the id order.
-  These are the findings the two suite headers state.
+- That the command fetches nothing and sleeps nothing; which clock it is built with, since a pin can
+  only read the instant that clock answers; the order of the JSON keys, which a machine-readable
+  contract does not promise; the wording of the human lines; which number on a human line belongs to
+  which field, since the pin reads them as a set; and the order a table scan answers without the
+  ordering clause, which for the rows these pins seed is already the id order. These are the
+  findings the two suite headers state.
 
 ## Icon finder (stage 4)
 
 **Matching the reference.**
 
 - The selector is the reference's four branches (`internal/reader/icon/finder.go` at commit
-  `c4d54f87`): `link[rel='icon' i][href]`, `link[rel='shortcut icon' i]`, `link[rel='icon shortcut'
-  i]` and `link[rel='apple-touch-icon'][href]`. Only the three `icon` branches carry the
+  `c4d54f87`): `link[rel='icon' i][href]`, `link[rel='shortcut icon' i]`, link[rel='icon shortcut'
+  i] ` and `link[rel='apple-touch-icon'][href] `. Only the three `icon branches carry the
   case-insensitive flag, every branch compares the whole value, the attribute name is compared
   lower-cased, the href must be present and not whitespace-only, and the order is document order.
   The document bytes go through the charset layer, which answers unchanged for bytes that are
@@ -848,13 +846,11 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   `data:` href is answered without a request, which is the reference's own branch.
 - The checker half (`internal/reader/icon/checker.go`) is the guard and the two storage decisions:
   the guard reads the mapping for this feed rather than the icon table, and it belongs to the path
-  the
-  reference runs when the feed is not being forced, so the other path writes and points even for a
-  feed
-  that already has an icon. The store and the link are two decisions that both run on either branch:
-  the row is written only when the hash is not stored yet, and the mapping is written after it on
-  the
-  reuse branch too. The user agent is the value the feed row carries, handed to the builder.
+  the reference runs when the feed is not being forced, so the other path writes and points even for
+  a feed that already has an icon. The store and the link are two decisions that both run on either
+  branch: the row is written only when the hash is not stored yet, and the mapping is written after
+  it on the reuse branch too. The user agent is the value the feed row carries, handed to the
+  builder.
 - The refresh path runs the checker only on the branch the reference calls it on: the modified
   branch, and the conditional-hit branch does not reach it. The fork the flag selects is the
   reference's, and the values the checker is built from are the row's — the site URL with the empty
@@ -913,27 +909,22 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   nothing and fails at the client with a different class, so the guard is the port's own rule,
   recorded in `docs/reference-notes.md`.
 - The checker half (`internal/reader/icon/checker.go`) reads the mapping through `HasFeedIcon`,
-  which
-  answers `false` when its scan reports nothing because it does not look at the error the scan gives
-  it; this port answers `false` the same way for a read that reports nothing, and for a feed with no
-  row at all, so the pins cannot tell a failing read from an empty one.
+  which answers `false` when its scan reports nothing because it does not look at the error the scan
+  gives it; this port answers `false` the same way for a read that reports nothing, and for a feed
+  with no row at all, so the pins cannot tell a failing read from an empty one.
 - The reference's storage calls each open their own transaction, so the icon row and the mapping
   commit apart from the entry batch. Rivulet runs the checker inside the refresh's single write
   transaction, so the three writes commit together, which no pin can separate: the pins read what
-  the
-  commit left, not the order the statements ran in. The reference also has no `feeds.icon_url`
+  the commit left, not the order the statements ran in. The reference also has no `feeds.icon_url`
   column, so the icon URL the parse produced reaches only the checker and nothing is stored for it;
   this port has the same shape — the mapping is stored, the URL is not.
 - The reference logs each checker failure and continues. This port has no logging layer, so a
-failure
-  ends inside the checker without a record: the pins can read only that the call completes and
-  nothing was written.
+failure ends inside the checker without a record: the pins can read only that the call completes and
+nothing was written.
 - The checker hands the builder the user agent as the value the feed row carries, which is the
   `WithUserAgent` precedence the port's builder already implements. The reference reads the value
-  from
-  the feed model and the port takes it as an argument, so the pin can fail only on the checker
-  handing
-  it on, not on which value wins when it is empty.
+  from the feed model and the port takes it as an argument, so the pin can fail only on the checker
+  handing it on, not on which value wins when it is empty.
 - Image resizing is not ported, because decoding an image needs a dependency that has not been
   approved. The reference decodes the icon, rejects one whose side exceeds 4096 or whose pixel count
   exceeds 4096×4096, and leaves an icon at or under 32×32 as it is; this port stores the bytes the
@@ -953,8 +944,8 @@ failure
   stored name is skipped whatever its characters are. The pin seeds a name the character class
   rejects, and only the skip path can end that run without a failure, so the run completing is what
   shows the order. The trim and the secure read are `askCredentials`'s, and `TestConsole` records
-  the flag of each read, which is what lets a pin name which path the read took rather than only
-  the value that came back.
+  the flag of each read, which is what lets a pin name which path the read took rather than only the
+  value that came back.
 - The 72-byte rule is the reference's on the hash path, and the port keeps it there. On the compare
   path the port answers as the reference does, which has no length check there: its comparison reads
   at most the first 72 key bytes, so a 73-byte plaintext that shares those bytes with the stored
@@ -1047,11 +1038,16 @@ failure
 - The form read is Go's `ParseForm`: the urlencoded body pairs are read into `r.Form` before the
   query pairs, so the value `Form.Get` answers for a name both sides carry is the body one. A pair
   with no `=` is a name with an empty value, empty pairs are skipped, `+` is a space while `%2B` is
-  the character, a `;` pair and a malformed escape are errors for the whole form rather than for one
-  pair, and a multipart body is never part of the form. The media type is read with its parameters
-  ignored and compared lowercased, as Go's `mime.ParseMediaType` reads a type with its parameters
-  dropped, which the pins read with a charset parameter and with the type written in upper case. The
-  plan's earlier note had the query first; Go puts the body first, so that note is corrected here.
+  the character, `;` is not a pair separator, and the error is reported for one pair — a pair that
+  carries a `;` anywhere, or whose name or value cannot be unescaped, is skipped and the read
+  continues with the pairs after it — so `ParseForm` answers both that error and what it read, and
+  the handler answers the error before reading any value; `r.URL.Query()` discards the error and
+  keeps what parsed, which is what `GoogleReaderQuery` is, and `GoogleReaderQueryTests` pins which
+  pairs answer. A multipart body is never part of the form. The media type is read with its
+  parameters ignored and compared lowercased, as Go's `mime.ParseMediaType` reads a type with its
+  parameters dropped, which the pins read with a charset parameter and with the type written in
+  upper case. The plan's earlier note had the query first; Go puts the body first, so that note is
+  corrected here.
 
 - The header is read as Go's `strings.Fields` splits it, which collapses the whitespace between the
   fields: exactly two fields, the second split on exactly one `=` with the empty part kept, so a
@@ -1059,6 +1055,16 @@ failure
 
 - The two 401 answers are the reference's two: the login path answers the JSON document without the
   bad-token header, the protected path answers the text shape with it.
+
+- The contract rules the routers read are ported as the reference answers them, and the three places
+  where a Swift reading would have differed are read as Go reads them: the hex scan skips the space
+  before the field and reports `unexpected newline` where a newline is what it runs into, because a
+  newline is not one of the characters that skip takes; the scan works per Unicode scalar, so a base
+  character with a combining mark is the base character; the trim is Go's `unicode.IsSpace`, not
+  this port's `.whitespaces`, which does not have the control forms; and the escape reads its two
+  characters only after checking that both are there, so a `%` that runs off the end of the pair is
+  the error rather than a read past the end. `GoogleReaderItemIDTests` and `GoogleReaderQueryTests`
+  pin each of these, and the values are in `docs/reference-notes.md`.
 
 - The catch-all answer is pinned on the exact path the reference registers; the no-slash path is
   pinned as the divergence below.
@@ -1068,6 +1074,7 @@ failure
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
 | JSON write | `encoding/json` | the same rules, written by `JSONValue`, because the platform encoder writes its dictionary order (sorted on Darwin), escapes the solidus and leaves the HTML class as it is | No observable difference; the port has its own writer because the platform one cannot reproduce the reference's bytes, and the pins read that writer |
+| Error wording | `strconv.ParseInt` names the token with `%q`, so a control character inside it is written escaped, as `parsing "\t12345"`, while the input part of the sentence is written raw | the token is written as it is, so a control character inside it appears raw | The words are the same; only a value that carries a control character is written differently, and the pins read values that have none |
 | Bytes that are not valid UTF-8 | a string holding an invalid byte is written as `\ufffd`, and a form value can hold one because Go's `unescape` returns raw bytes | a writer cannot receive an invalid byte, because a Swift `String` holds valid UTF-8, but the form read can build one: a percent escape whose bytes are not valid UTF-8 answers U+FFFD here, where Go keeps the byte | Only the reference has the write case; the pins read what this port writes for a valid replacement character, and the form half is recorded in the code comment |
 | The compare | `crypto/subtle.ConstantTimeCompare` | the same form, one pass over the bytes | No pin can read the timing, so the answer is pinned, including that the value is compared whole rather than as a prefix |
 | Path matching | the catch-all pattern is Go's subtree pattern, so it answers for any path under `/reader/api/0/` | only the exact path is registered today, so a path under it answers Vapor's own 404 without the builder headers | The subpath answer arrives with the router piece, which is what the acceptance matrix will read |
