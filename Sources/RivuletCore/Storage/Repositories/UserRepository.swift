@@ -144,4 +144,12 @@ public struct UserRepository {
             .first()
         return row?.googleReaderPasswordHash
     }
+
+    /// The same row the hash read finds, with its id, for the handler that reads the user back from
+    /// the id the transport found. The name is compared as read, like the hash read.
+    public func googleReaderUser(username: String) async throws -> User? {
+        try await User.query(on: database)
+            .filter(\User.$googleReaderUsername == username)
+            .first()
+    }
 }

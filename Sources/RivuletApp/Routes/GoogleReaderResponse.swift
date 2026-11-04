@@ -26,6 +26,23 @@ struct GoogleReaderResponse {
         .object([(key: "error_message", value: .string(message))])
     }
 
+    /// `response.JSONBadRequest`, the shape the handlers answer with for an input read error.
+    static func badRequest(_ message: String) -> Response {
+        Self.json(errorDocument(message), status: .badRequest)
+    }
+
+    /// `response.JSONServerError`, the shape the handlers answer with for a stream, tag, or storage
+    /// read error.
+    static func serverError(_ message: String) -> Response {
+        Self.json(errorDocument(message), status: .internalServerError)
+    }
+
+    /// `response.JSONNotFound`, the shape the handler answers with when its storage read finds no
+    /// row.
+    static func notFound() -> Response {
+        Self.json(errorDocument("resource not found"), status: .notFound)
+    }
+
     /// `loginResponse`: the three fields in the order the reference declares them.
     static func loginDocument(_ token: String) -> JSONValue {
         .object([(key: "SID", value: .string(token)), (key: "LSID", value: .string(token)),

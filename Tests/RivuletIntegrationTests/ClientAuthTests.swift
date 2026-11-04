@@ -14,7 +14,10 @@ import Testing
 /// Google Reader read compares the name as read, unlike the account-name lookup, which a patch that
 /// lowercases the input fails; and both reads answer nothing when no row matches. The pin that
 /// reads a row with nothing stored is the divergent half: the reference's integration columns
-/// default to an empty string, so its side of that rule has nothing to pin here. What these pins
+/// default to an empty string, so its side of that rule has nothing to pin here. The read that
+/// answers the row itself is the same row the hash read finds, and its pin names the column it reads
+/// and the name as given, so a patch that looked at the account-name column or lowercased the input
+/// fails. What these pins
 /// cannot fail on: the reference's `*_enabled` flags, which this port has no column for, so the
 /// branch those flags select has nothing to pin here; the single-row limit, which a lookup that
 /// fetched every matching row answers the same way, so the code states it; the bcrypt compare,
@@ -126,6 +129,30 @@ import Testing
         }
     }
 
+    @Test func theAuthReadReturnsTheRowTheNameAsReadFinds() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let sql = try sqlDatabase(connection)
+                let grRowID = try await insertReturningID(sql, username: "alice",
+                    googleReaderUsername: "GrName", googleReaderPasswordHash: "stored-hash")
+                let lowerRowID = try await insertReturningID(sql, username: "grname",
+                    googleReaderUsername: "GRNAME", googleReaderPasswordHash: "other-hash")
+
+                // The read compares the name as given, so the mixed-case row wins over the
+                // lower-case control row. A patch that lowercased the input answered the control
+                // row here.
+                let row = try #require(try await users.googleReaderUser(username: "GrName"),
+                    "the row matched by the name as read")
+                #expect(row.id == grRowID, "the same row the hash read finds: \(row.id)")
+                #expect(row.googleReaderPasswordHash == "stored-hash", "and the same hash")
+
+                #expect(try await users.googleReaderUser(username: "grname") == nil,
+                    "the lowercased form does not reach either row")
+            }
+        }
+    }
+
     // MARK: - Setup
 
     /// Seeds a row through SQL, so a stored value can be one this port would not write itself: the
@@ -134,7 +161,16 @@ import Testing
     private func insert(_ sql: any SQLDatabase, username: String, feverUsername: String? = nil,
         feverToken: String? = nil, googleReaderUsername: String? = nil,
         googleReaderPasswordHash: String? = nil) async throws {
-        try await sql.raw("""
+        _ = try await insertReturningID(sql, username: username, feverUsername: feverUsername,
+            feverToken: feverToken, googleReaderUsername: googleReaderUsername,
+            googleReaderPasswordHash: googleReaderPasswordHash)
+    }
+
+    /// The same row, and the id it receives, which is what the handler reads back for `user-info`.
+    private func insertReturningID(_ sql: any SQLDatabase, username: String,
+        feverUsername: String? = nil, feverToken: String? = nil, googleReaderUsername: String? = nil,
+        googleReaderPasswordHash: String? = nil) async throws -> Int {
+        let row = try await sql.raw("""
             INSERT INTO users (username, password_hash, is_admin, fever_username, fever_token,
                 google_reader_username, google_reader_password_hash,
                 created_at, updated_at)
@@ -142,6 +178,8 @@ import Testing
                 \(bind: feverUsername), \(bind: feverToken),
                 \(bind: googleReaderUsername), \(bind: googleReaderPasswordHash),
                 \(bind: 1_000_000_000), \(bind: 1_000_000_000))
-            """).run()
+            RETURNING id
+            """).first()
+        return try row?.decode(column: "id", as: Int.self) ?? 0
     }
 }

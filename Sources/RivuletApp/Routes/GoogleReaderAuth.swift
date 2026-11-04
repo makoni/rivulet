@@ -26,8 +26,9 @@ struct GoogleReaderAuth: Sendable {
 
     /// `withApiKeyAuth`: the wrapper the reference's mux puts on every route of this path, which is
     /// why it is applied per route here rather than as application middleware that would cover
-    /// `/healthz`.
-    func withAuth(_ handler: @Sendable @escaping (Request, String) async throws -> Response)
+    /// `/healthz`. The handler is given the row id the transport read found, which is the same row
+    /// `request.UserID` answers for these routes.
+    func withAuth(_ handler: @Sendable @escaping (Request, Int, String) async throws -> Response)
         -> @Sendable (Request) async throws -> Response {
         { request in
             let token: String?
@@ -39,21 +40,21 @@ struct GoogleReaderAuth: Sendable {
                 return GoogleReaderResponse.unauthorizedText()
             }
 
-            guard let token, let name = GoogleReaderToken.name(ofToken: token) else {
-                return GoogleReaderResponse.unauthorizedText()
-            }
-            guard let storedHash = try await self.storedHash(name: name) else {
+            guard let token, let name = GoogleReaderToken.name(ofToken: token),
+                let user = try await self.storedUser(name: name),
+                let storedHash = user.googleReaderPasswordHash, let userID = user.id else {
                 return GoogleReaderResponse.unauthorizedText()
             }
 
             // Upstream compares against the token the stored name and the stored value build; here
-            // the stored name is the one the read matched, so it is the same value.
+            // the stored name is the one the read matched, so it is the same value. A row the name
+            // finds that stores nothing is not a match, which is the rule `ClientAuthTests` pins.
             let expected = GoogleReaderToken.derive(username: name, storedHash: storedHash)
             guard GoogleReaderToken.matches(expected: expected, given: token) else {
                 return GoogleReaderResponse.unauthorizedText()
             }
 
-            return try await handler(request, token)
+            return try await handler(request, userID, token)
         }
     }
 
@@ -93,12 +94,12 @@ struct GoogleReaderAuth: Sendable {
         return String(parts[1])
     }
 
-    /// The stored hash for the row the name part finds. Upstream reads the integration row and then
-    /// the user row by id; here that is one row, and the answer for no row is the rule
-    /// `ClientAuthTests` pins. `ClientLogin` reads the same row for the same name.
-    func storedHash(name: String) async throws -> String? {
+    /// The row the name part finds. Upstream reads the integration row and then the user row by id;
+    /// here that is one row, and the answer for no row is the rule `ClientAuthTests` pins. The
+    /// handler uses the row id, and `ClientLogin` reads the stored hash from the same row.
+    func storedUser(name: String) async throws -> User? {
         try await storage.withConnection { connection in
-            try await UserRepository(connection).googleReaderPasswordHash(username: name)
+            try await UserRepository(connection).googleReaderUser(username: name)
         }
     }
 }

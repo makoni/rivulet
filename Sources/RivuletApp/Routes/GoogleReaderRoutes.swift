@@ -14,6 +14,7 @@ public enum GoogleReaderRoutes {
     public static func register(on application: Application, storage: SQLiteStorage,
         hasher: BcryptHasher) {
         let auth = GoogleReaderAuth(storage: storage)
+        let handlers = GoogleReaderHandlers(storage: storage)
 
         application.post("accounts", "ClientLogin") { request in
             try await Self.clientLogin(request, auth: auth, hasher: hasher)
@@ -24,16 +25,32 @@ public enum GoogleReaderRoutes {
         // `tokenHandler` writes the value the transport read gave, as bare text. Its own
         // `IsAuthenticated` guard is the answer the auth path already gives, so it is not repeated
         // here.
-        protected.get("token", use: auth.withAuth { request, token in
+        protected.get("token", use: auth.withAuth { _, _, token in
             GoogleReaderResponse.text(token)
         })
 
-        // The catch-all answer for an endpoint that is not implemented. Only the exact path is
-        // matched here; the subpath match — the streams and tags the router will answer — and the
-        // redirect the reference's mux writes for this pattern when the request path has no
-        // trailing slash follow with that router, as `docs/parity.md` records.
-        protected.on(.GET, use: auth.withAuth { _, _ in GoogleReaderResponse.json(.array([])) })
-        protected.on(.POST, use: auth.withAuth { _, _ in GoogleReaderResponse.json(.array([])) })
+        // The reference registers the exact paths it implements before its subtree pattern, so the
+        // most specific pattern wins. The handler names the endpoints this piece implements.
+        protected.post("edit-tag", use: auth.withAuth { request, userID, _ in
+            try await handlers.editTag(form: try auth.form(for: request), userID: userID)
+        })
+        protected.get("tag", "list", use: auth.withAuth { request, userID, _ in
+            try await handlers.tagList(query: request.url.query ?? "", userID: userID)
+        })
+        protected.get("user-info", use: auth.withAuth { _, userID, _ in
+            try await handlers.userInfo(userID: userID)
+        })
+        protected.get("stream", "items", "ids", use: auth.withAuth { request, userID, _ in
+            try await handlers.streamItemIDs(query: request.url.query ?? "", userID: userID)
+        })
+
+        // The catch-all answer for an endpoint that is not implemented. The exact path is matched
+        // on its own, and the subpath match is what the reference's subtree pattern answers for, as
+        // `docs/parity.md` records.
+        protected.on(.GET, "**", use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
+        protected.on(.POST, "**", use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
+        protected.on(.GET, use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
+        protected.on(.POST, use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
     }
 
     // MARK: - Handlers
@@ -56,7 +73,8 @@ public enum GoogleReaderRoutes {
             return GoogleReaderResponse.unauthorizedJSON()
         }
 
-        guard let storedHash = try await auth.storedHash(name: name) else {
+        let storedUser = try await auth.storedUser(name: name)
+        guard let storedHash = storedUser?.googleReaderPasswordHash else {
             return GoogleReaderResponse.unauthorizedJSON()
         }
 

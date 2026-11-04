@@ -35,6 +35,10 @@ public struct EntryQuery: Sendable, Equatable {
     /// `WithStatuses`); an empty list means "any status".
     public var statuses: [EntryStatus]
 
+    /// When set, entries with this status are not returned (upstream
+    /// `WithoutStatus`); `nil` means no status is excluded.
+    public var excludeStatus: EntryStatus?
+
     /// When set, only entries whose starred flag has this value (upstream
     /// `WithStarred`).
     public var starred: Bool?
@@ -87,6 +91,7 @@ public struct EntryQuery: Sendable, Equatable {
     ///   - categoryID: When set, restrict to the feeds of this category.
     ///   - entryIDs: When non-empty, restrict to these ids.
     ///   - statuses: When non-empty, restrict to these statuses.
+    ///   - excludeStatus: When set, remove entries with this status.
     ///   - starred: When set, restrict to this starred flag.
     ///   - publishedAfter: Strict lower bound on `published_at` (Unix seconds).
     ///   - publishedBefore: Strict upper bound on `published_at` (Unix seconds).
@@ -102,6 +107,7 @@ public struct EntryQuery: Sendable, Equatable {
         categoryID: Int? = nil,
         entryIDs: [Int] = [],
         statuses: [EntryStatus] = [],
+        excludeStatus: EntryStatus? = nil,
         starred: Bool? = nil,
         publishedAfter: Int? = nil,
         publishedBefore: Int? = nil,
@@ -117,6 +123,7 @@ public struct EntryQuery: Sendable, Equatable {
         self.categoryID = categoryID
         self.entryIDs = entryIDs
         self.statuses = statuses
+        self.excludeStatus = excludeStatus
         self.starred = starred
         self.publishedAfter = publishedAfter
         self.publishedBefore = publishedBefore

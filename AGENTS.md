@@ -73,10 +73,26 @@ when it is 0, and the empty list written as `[]` because the reference builds th
 — are pinned by `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and `GoogleReaderShapeTests`.
 What those headers name as unpinnable: the guard inside the add loop, which asks for the map key
 that loop never writes so it can never fire, the guard that an empty add and an empty remove answer
-the reference's own wording, and which endpoints apply the output check, both being the handler's
-choice. The handlers, the status these errors and the unknown-stream wording answer with, and the
-subpath wildcard stay with the next piece, together with the Fever parameter set, `quickadd`
-discovery, the icon route, OPML and the acceptance journey.
+the reference's own wording, which the handler suite now pins over a socket, and which document a
+handler builds, which stays the handler's choice. PR #44 landed the handlers for the four endpoints
+this piece implements — `edit-tag`, `tag/list`, `user-info` and `stream/items/ids` — over a real
+socket: the subpath wildcard with the exact registered path winning for its method, the row id the
+auth read hands the handler, which endpoints apply the output check, `edit-tag` reading `a` and `r`
+from the body and `i` from the merged form, the storage values the tag branches write, the handler
+order that reports the tag error before the item read, the status each error answer writes, the
+branch switch with the two ways it reads the same exclude name and the feed filter that only a
+positive parsed value applies, the two times every branch applies, the order the parameter read
+answers, the continuation rule with the count the handler gives it, and the page-size clamp, are
+pinned by `GoogleReaderHandlerTests`, with the status mapping pinned
+directly by `GoogleReaderResponseStatusTests` and the storage reads the handlers use pinned by
+`EntryQueryTests`, `CategoryRepositoryTests` and `ClientAuthTests`. What that header names as
+unpinnable: the user-info guard that a row found by auth is read back, the handler's own answer for
+a form the read cannot parse, which the transport reports as 401 first, the order of the two storage
+write sets, which are disjoint for every input that reaches them, the integration settings the
+reference reads after the write, a storage-layer failure this suite cannot trigger, and the method
+mismatch, where the reference answers 405 and this port answers Vapor's 404, recorded in
+`docs/parity.md`. What follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML
+and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

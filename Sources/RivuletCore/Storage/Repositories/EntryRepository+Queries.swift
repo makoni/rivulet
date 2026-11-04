@@ -148,6 +148,9 @@ extension EntryRepository {
         if !query.statuses.isEmpty {
             conditions.append("e.status IN (\(binds: query.statuses.map(\.rawValue)))")
         }
+        if let excludeStatus = query.excludeStatus {
+            conditions.append("e.status != \(bind: excludeStatus.rawValue)")
+        }
         if let starred = query.starred {
             conditions.append("e.starred = \(bind: starred)")
         }
