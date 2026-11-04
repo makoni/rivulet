@@ -162,7 +162,7 @@ Findings from the runs on PR #41 that do not change behavior:
   redirect cannot be observed here, because Vapor's client follows a redirect and reports the answer
   after the follow. The pin's comment says this, and the pin fails on a read that distinguishes the
   trailing slash.
-- `docs/testing.md` is over the file-size aim for a document (624 lines): it is one file for the
+- `docs/testing.md` is over the file-size aim for a document (648 lines): it is one file for the
   levels, the support helpers and the CI rules, and splitting it by level is a style matter.
 
 Findings from review run 1 on PR #38 that do not change behavior:

@@ -54,8 +54,9 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   form body is sent as the bytes are given, so a rule about what the form read sees is shown by the
   bytes rather than by an encoding the client added.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
-  with a chosen status/starred state, bulk-seeds entries for pagination limits, builds entry inputs,
-  counts entries, tombstones and FTS matches, and backdates timestamps for the retention suites.
+  with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
+  set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
+  and backdates timestamps for the retention suites.
 - `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page 2, the
   `_fluent_migrations` root, using the page size from the file header) so integrity tests observe
   `PRAGMA quick_check` failures without shipping a corrupt database fixture.
