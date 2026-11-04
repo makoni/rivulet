@@ -17,8 +17,9 @@ import Testing
 /// What this suite cannot show is named here: the row order the delete's read answers its rows in,
 /// which the statement does not order, so a patch that took any remaining row in that order
 /// answered the same as the pick; the transaction boundary, which is the caller's, because no pin
-/// can make a statement fail in the middle of one; and the order of the guard, the reassignment and
-/// the delete, which is the same for every input that reaches them.
+/// can make a statement fail in the middle of one; and the order of the reassignment and the
+/// delete, which is the same for every input that reaches them — the guard is pinned as running
+/// before both.
 @Suite struct CategoryRepositoryTests {
     @Test func createStoresTheFieldsAndDefaultsPositionToZero() async throws {
         try await withMigratedStorage { _, storage in
@@ -236,9 +237,7 @@ import Testing
                 #expect(try await feeds.fetch(id: zetaFeedID)?.categoryID == zetaID,
                     "a feed in a row that is not named is not moved")
                 #expect(try await categories.fetch(id: bobTechID) != nil,
-                    "another user's row with the same title is not named by this read")
-                #expect(try await categories.fetch(id: bobZetaID) != nil,
-                    "and not deleted by it, which is what the delete statement is pinned on")
+                    "the delete statement is per user, which is what this assertion fails on")
 
                 // The titles are compared as read, so the mixed-case form names nothing: the list
                 // is empty, nothing is written, and the rows that are not named stay where they
@@ -249,8 +248,10 @@ import Testing
                 #expect(try await categories.fetch(id: bobZetaID) != nil,
                     "the mixed-case form names another user's row, which this read does not name")
 
-                // The guard runs before any write: the input that would leave nothing answers the
-                // error and leaves the rows where they are.
+                // The guard counts the rows that are not named, and only this user's: the input
+                // below names every row this user has left, so the error answers, and a patch that
+                // counted every user's rows would count bob's row, which this input does not name.
+                // The guard runs before any write, so the rows stay where they are.
                 do {
                     try await categories.removeAndReplaceNamed(userID: userID,
                         titles: ["Zeta", "Amy"])

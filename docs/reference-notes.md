@@ -573,14 +573,17 @@ check, which is what makes the handler's choice read as the answer rather than a
   handlers that read one value with the same name, and its guard runs per value in the order the
   list was read, before any title is collected.
 - `mark-all-as-read` maps the integer read to 400, where the same read answers 500 for
-  `stream/items/ids`, and its switch has four branches and no default, so a stream type it does not
-  handle answers `OK` writing nothing. The reading-list branch has no feed filter, and the label
-  branch reaches the entries through the category row and through the feeds of the same user.
+  `stream/items/ids`, and its switch has three cases, so a stream type it does not handle falls
+  through and answers `OK` writing nothing; the port models that with an explicit no-op default
+  branch, which is the same answer. The reading-list branch has no feed filter, and the label branch
+  reaches the entries through the category row and through the feeds of the same user.
 - `ts`: the integer read, then the unit decided by the length of the value as read — 16 characters
   or more are microseconds, fewer are seconds — and a value that is not positive leaves the zero
   time, which the handler replaces with the time it is running at, so the default is not a value the
-  read answers. The storage comparison is strictly before, and the reference reads `status = unread`
-  on every branch, which this port's `EntryRepository+UserState` statements carry.
+  read answers. The reference keeps the part below a second in the time it bounds the pass by, which
+  this port cannot answer because its entry column holds whole seconds; that difference is recorded
+  in `docs/parity.md`. The storage comparison is strictly before, and the reference reads status =
+  unread on every branch, which this port's `EntryRepository+UserState` statements carry.
 - The base-10 integer read is the same rule at three call sites of this path — `ts`, the decimal
   form of an item id, and the part left after the `feed/` prefix — so its wordings are written once
   in `Sources/RivuletCore/Integration/GoParseInt.swift` and read from there.

@@ -98,20 +98,22 @@ before the empty-destination guard, the two type-check wordings that name differ
 the category read answers for a title it does not find, the rule order that reads the row before the
 duplicate answer and writes after it with the duplicate read's exclusion of the row it is checking,
 the delete guard that counts before any write and the pick it makes for the feeds of the rows it
-names, the handler with no default branch so the stream types it does not handle answer `OK` writing
+names, the switch with three cases so the stream types it does not handle answer `OK` writing
 nothing, the status the integer read maps to here — 400 where the same read answers 500 for
-`stream/items/ids` — and the `ts` length rule with its two units, the sign guard, the default that
-is the time the handler runs at, and the comparison that is strictly before, are pinned by
-`GoogleReaderWriteHandlerTests`, with the storage reads it uses pinned by `CategoryRepositoryTests`
-and the `ts` rule as pure logic by `GoogleReaderTimestampTests`; the integer read's wordings are
-written once in `GoParseInt`, which the three call sites of this path read from. What that header
-names as unpinnable: the transaction boundary the delete path runs inside, the row order the
-delete's read answers its rows in, which the statement does not order, the rule that a feed id of 0
-selects nothing, the message the handler writes for the rule the socket cannot reach, the
-reference's localized strings for the two category rules — the port names the rule, so the answer is
-the rule name, and the keys are recorded in `docs/reference-notes.md` — and the order of the two
-statements of the delete path. What follows: the Fever parameter set, `quickadd` discovery, the icon
-route, OPML and the acceptance journey.
+`stream/items/ids` — and the `ts` length rule with its two units, the sign guard's presence, the
+default that is the time the handler runs at, and the comparison that is strictly before, are pinned
+by `GoogleReaderWriteHandlerTests`, with the storage reads it uses pinned by
+`CategoryRepositoryTests` and the `ts` rule as pure logic by `GoogleReaderTimestampTests`; the
+integer read's wordings are written once in `GoParseInt`, which the three call sites of this path
+read from. What that header names as unpinnable: the transaction boundary the delete path runs
+inside, the row order the delete's read answers its rows in, which the statement does not order, the
+rule that a feed id of 0 selects nothing, the message the handler writes for the rule the socket
+cannot reach, the reference's localized strings for the two category rules — the port names the
+rule, so the answer is the rule name, and the keys are recorded in `docs/reference-notes.md` — the
+order of the two statements of the delete path, and the order of the sign guard and the `ts` length
+test, which no input can tell apart because both apply to every value the guard accepts. What
+follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance
+journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

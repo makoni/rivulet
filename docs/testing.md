@@ -589,7 +589,7 @@ is recorded in `docs/parity.md` rather than pinned here.
 
 `rename-tag`, `disable-tag` and `mark-all-as-read` are pinned over the same socket, with the storage
 reads they use pinned by `CategoryRepositoryTests` and the `ts` rule pinned as pure logic by
-`GoogleReaderTimestampTests`. 49 probes, one per rule, each showing its pin failing on the rule it
+`GoogleReaderTimestampTests`. 51 probes, one per rule, each showing its pin failing on the rule it
 names, all of them biting on the first attempt.
 
 One probe patches three places, because the rule it names is which handlers apply the output check:
@@ -599,17 +599,23 @@ storage pin and the socket pin — because the socket pin is the handler reading
 pins need an input that applies to both halves of the rule: the input that fails the type check and
 the empty-destination guard at once, which is what shows which of the two runs first, and the input
 where the first value of the list passes the guard and the second does not, which is what pins that
-the guard runs per value rather than on the first value only.
+the guard runs per value rather than on the first value only. The guard-before-delete pin needs a
+row it can actually delete: the pin seeds the row the failing input names, so a patch that ran the
+guard after the delete answered `OK` and deleted that row. The pin then runs a write that does
+delete it, so the two halves of the rule are shown by the same pin.
 
 The delete pin needs data where the pick has two rows to choose between, because a pick with one
 candidate answers the same whatever it compares; its input names two of the user's categories and
 leaves two, and the pick is pinned as the smallest title left, which a patch that reversed the
 comparison fails on. What the row order that read answers its rows in cannot be pinned: the
 statement has no `ORDER BY`, so the rule the pins read is the comparison, not the order the rows
-come back in. The two per-user filters of the delete path are pinned separately, because each has
-its own: the guard read is pinned by the input that would leave this user with no row while another
-user has rows the same input names, and the delete statement is pinned by another user's row with
-the same title as one of the names, which the read that builds the ids cannot show.
+come back in. Each `ts` pin reads its own feed, so a request that marks the whole feed cannot mark
+the row another assertion reads, and what the sign guard pins is its presence rather than its order
+against the length test, because both apply to every value the guard accepts. The two per-user
+filters of the delete path are pinned separately, because each has its own: the guard read is pinned
+by the input that would leave this user with no row while another user has rows the same input
+names, and the delete statement is pinned by another user's row with the same title as one of the
+names, which the read that builds the ids cannot show.
 
 What these pins cannot fail on is named in the suite header: the handler's own answer for a form the
 read cannot parse, which the transport reports as 401 first; the transaction boundary the delete

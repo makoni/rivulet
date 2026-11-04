@@ -53,10 +53,10 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
       runs the type check before the empty-destination guard, the two type-check wordings that name
       different things, the 404 the category read answers, the rule order that reads the row before
       the duplicate answer and writes after it, the delete guard that counts before any write and
-      the pick it makes for the feeds of the rows it names, the switch with no default branch, the
-      status the integer read maps to here, and the `ts` length rule with its two units, the sign
-      guard and the comparison that is strictly before. The rest stays on the catch-all answer until
-      its handler lands.
+      the pick it makes for the feeds of the rows it names, the switch with three cases so the types
+      it does not handle write nothing, the status the integer read maps to here, and the `ts`
+      length rule with its two units, the sign guard and the comparison that is strictly before. The
+      rest stays on the catch-all answer until its handler lands.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -160,16 +160,20 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
 
 Findings from the work on PR #45 that do not change behavior:
 
-- `GoogleReaderWriteHandlerTests.swift` is 524 lines, just over the ≤500 aim for a test file. The
-  three handlers are one concern — the POST write path — and the pins that name the storage reads
-  the handlers use are already separate suites, so the file splits by handler only when the next
-  slice adds tests to it.
+- `GoogleReaderWriteHandlerTests.swift` is 554 lines, past the ≤500 aim for a test file. The three
+  handlers are one concern — the POST write path — and the pins that name the storage reads the
+  handlers use are already separate suites, so the file splits by handler only when the next slice
+  adds tests to it.
+- In `GoogleReaderHandlers+Write.swift`, `renameTag` is 47 lines and `markAllAsRead` 44, past the
+  ~40 aim. Each is the handler's own sequence of guards and branches with no nesting to flatten, so
+  the split would be a style matter.
 
 Findings from review run 1 on PR #44 that do not change behavior:
 
 - `GoogleReaderHandlers.swift` is 317 lines, a little over the ~300 aim for a production file: the
   handlers are one function per endpoint, so the file can only be split by grouping endpoints, which
-  is a style matter.
+  is a style matter. Closed by PR #45, which put the three POST write handlers in their own file and
+  left this one at 295 lines.
 
 Findings from the runs on PR #41 that do not change behavior:
 
@@ -178,8 +182,9 @@ Findings from the runs on PR #41 that do not change behavior:
   redirect cannot be observed here, because Vapor's client follows a redirect and reports the answer
   after the follow. The pin's comment says this, and the pin fails on a read that distinguishes the
   trailing slash.
-- `docs/testing.md` is over the file-size aim for a document (648 lines): it is one file for the
-  levels, the support helpers and the CI rules, and splitting it by level is a style matter.
+- `docs/testing.md` is over the file-size aim for a document (691 lines as PR #45 landed): it is one
+  file for the levels, the support helpers and the CI rules, and splitting it by level is a style
+  matter.
 
 Findings from review run 1 on PR #38 that do not change behavior:
 

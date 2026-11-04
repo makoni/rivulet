@@ -6,12 +6,14 @@ import Testing
 /// What these pins can fail on, each checked by patching the rule and reverting: the empty value
 /// answers the default rather than a time, the length test is the length of the value as read, the
 /// two units the same digits give at the two sides of that length, the sign guard that a value
-/// which is not positive leaves the default, and the wording the read reports.
+/// which is not positive leaves the default, that the microsecond value is cut to whole seconds
+/// rather than rounded, and the wording the read reports.
 ///
-/// What these pins cannot fail on: the part below a second. The reference builds a `time.Time`, and
-/// this port's entry column holds whole seconds, so a microsecond value that is not a whole number
-/// of seconds cannot be told from its truncated form here; the second boundary itself is pinned by
-/// the storage read, which uses `<`.
+/// What these pins cannot fail on: the order of the sign guard and the length test, because both
+/// apply to every value the guard accepts, so an input that fails one fails the other the same way;
+/// and the part below a second, which the reference keeps in the time it bounds the pass by while
+/// this port answers whole seconds — the divergence is recorded in `docs/parity.md`, and the second
+/// boundary itself is pinned by the storage read, which uses `<`.
 @Suite struct GoogleReaderTimestampTests {
     @Test func anEmptyValueAnswersTheDefault() async throws {
         #expect(try GoogleReaderTimestamp.before(value: "", now: 500) == 500)
@@ -35,7 +37,7 @@ import Testing
         #expect(try GoogleReaderTimestamp.before(value: "0", now: 500) == 500)
         #expect(try GoogleReaderTimestamp.before(value: "-1000000000", now: 500) == 500)
         #expect(try GoogleReaderTimestamp.before(value: "-1000000000000000", now: 500) == 500,
-            "the sign guard runs before the length test")
+            "the guard is what answers the default, not the length test")
     }
 
     @Test func theReadReportsTheValueItCannotParse() async throws {
@@ -46,9 +48,10 @@ import Testing
             "strconv.ParseInt: parsing \"9223372036854775808\": value out of range")
     }
 
-    @Test func theSubSecondPartIsNotWhatTheStorageReadCanShow() async throws {
-        // 1_000_000_000_500_000 microseconds is 1_000_000_000.5 seconds; the entry column holds
-        // whole seconds, so the answer is the whole part.
+    @Test func theMicrosecondValueIsCutToWholeSecondsRatherThanRounded() async throws {
+        // 1_000_000_000_500_000 microseconds is 1_000_000_000.5 seconds, and the answer is the
+        // whole part. The reference keeps the half second in the time it bounds the pass by, which
+        // this port cannot answer because its entry column holds whole seconds.
         #expect(try GoogleReaderTimestamp.before(value: "1000000000500000", now: 500) == 1_000_000_000)
     }
 

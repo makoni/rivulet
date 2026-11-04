@@ -16,11 +16,12 @@ import RivuletApp
 /// after it, and the duplicate read's exclusion of the row it is checking; the delete guard that
 /// counts before it writes, which this suite can trigger by naming the only category the user has,
 /// and the pick the delete path makes for the feeds of the rows it names, which is the smallest
-/// title left rather than the last of the rows it read; the handler with no default branch, so the
-/// stream types it does not handle answer `OK` writing nothing; the status the integer read error
-/// maps to here, which is 400 where the same read answers 500 for `stream/items/ids`; the `ts`
-/// length rule, the two units it gives, the sign guard, the default that is the time the handler
-/// runs at, and the comparison that is strictly before.
+/// title left rather than the last of the rows it read; the guard that reports before the delete
+/// writes, and the switch with no branch for the stream types it does not handle, so they answer
+/// `OK` writing nothing; the status the integer read error maps to here, which is 400 where the
+/// same read answers 500 for `stream/items/ids`; the `ts` length rule, the two units it gives, the
+/// sign guard's presence, the default that is the time the handler runs at, and the comparison that
+/// is strictly before.
 ///
 /// What these pins cannot show: the handler's own answer for a form the read cannot parse, which
 /// the transport reports as 401 first; the transaction boundary the delete path runs inside,
@@ -33,7 +34,9 @@ import RivuletApp
 /// rules, which the port does not reproduce — it names the rule, so the message is the rule name,
 /// and the keys are recorded in `docs/reference-notes.md`; the order of the two statements of the
 /// delete path, which is the same for every input that reaches them; and the row order the delete's
-/// read answers its rows in, which the statement does not order and which no pin can show.
+/// read answers its rows in, which the statement does not order and which no pin can show, and the
+/// order of the sign guard and the `ts` length test, which no input can tell apart because both
+/// apply to every value the guard accepts.
 @Suite struct GoogleReaderWriteHandlerTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -171,7 +174,7 @@ import RivuletApp
             #expect(try requests.body(of: renamed) == "OK")
             #expect(try await storedTitle(storage, userID: userID, title: "Tech") == nil)
             #expect(try await storedTitle(storage, userID: userID, title: "New") != nil,
-                "the title is compared as read, so the mixed-case form names nothing here")
+                "the title the request carries is written as the read gave it")
         }
     }
 
@@ -266,20 +269,34 @@ import RivuletApp
             let token = GoogleReaderToken.derive(username: "alice", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
 
+            try await storage.withConnection { connection in
+                _ = try await seedCategory(connection, userID: userID, title: "Tech")
+            }
+
             // The wording this handler has, which is not the one `rename-tag` has. The first value
-            // passes this guard, so a patch that checked only the first value answered `OK` here.
+            // passes this guard, so a patch that checked only the first value answered `OK` here,
+            // and a patch that ran the guard after the delete answered `OK` too and deleted the row
+            // the first value names, because a guard that reports before any title is collected
+            // cannot write.
             let type = try await requests.post(catchAll + "disable-tag",
                 raw: requests.body(token: token, pairs: ["s=user/-/label/Tech", "s=\(state)read"]),
                 header: header)
             #expect(type.status == .badRequest)
             #expect(try requests.body(of: type) ==
                 "{\"error_message\":\"googlereader: only labels are supported\"}",
-                "the guard runs per value, in the order the list is read")
-            #expect(try await storedTitle(storage, userID: userID, title: "All") != nil,
-                "and the guard answers before anything is deleted")
+                "the guard runs per value, and the second value is what fails it")
+            #expect(try await storedTitle(storage, userID: userID, title: "Tech") != nil,
+                "the guard answers before anything is deleted")
 
-            // The input that would leave the user with no category at all: the guard counts what
-            // the input does not name, and this is the storage failure this suite can trigger.
+            // The guard counts the rows the input does not name. The input below leaves "All", so
+            // the write happens, and the next one leaves nothing, which is the storage failure this
+            // suite can trigger.
+            let written = try await requests.post(catchAll + "disable-tag",
+                raw: requests.body(token: token, pairs: ["s=user/-/label/Tech"]), header: header)
+            #expect(written.status == .ok)
+            #expect(try await storedTitle(storage, userID: userID, title: "Tech") == nil,
+                "the write happens when a row is left")
+
             let none = try await requests.post(catchAll + "disable-tag",
                 raw: requests.body(token: token, pairs: ["s=user/-/label/All"]), header: header)
             #expect(none.status == .internalServerError, "the storage failure answers 500")
@@ -287,11 +304,11 @@ import RivuletApp
                 "{\"error_message\":\"store: at least 1 category must remain after deletion\"}",
                 "the wording the reference reports for this rule")
             #expect(try await storedTitle(storage, userID: userID, title: "All") != nil,
-                "the guard runs before any write")
+                "and the guard runs before that write")
         }
     }
 
-    @Test func markAllAsReadHasNoDefaultBranchSoTheTypesItDoesNotHandleWriteNothing() async throws {
+    @Test func markAllAsReadHasNoBranchForTheTypesItDoesNotHandleSoTheyWriteNothing() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
             let userID = try await requests.seedIntegrationUser(storage, name: "alice",
@@ -307,7 +324,9 @@ import RivuletApp
                     publishedAt: 200)
             }
 
-            // A patch that gave this switch a default branch marked the entry for these types.
+            // The reference's switch has three cases, so a type it does not handle falls through
+            // and writes nothing. A patch that answered the reading-list rule for these types
+            // marked the entry.
             for type in ["like", "broadcast", "broadcast-friends", "kept-unread", "starred"] {
                 let response = try await requests.post(catchAll + "mark-all-as-read",
                     raw: requests.body(token: token, pairs: ["s=\(state)\(type)"]), header: header)
@@ -410,11 +429,11 @@ import RivuletApp
                 header: header)
             #expect(seconds.status == .ok)
             #expect(try await storedStatus(storage, entryID: exactlyID) == .read,
-                "the length of the value as read, not the number of digits of the parsed value")
+                "the same digits one character shorter take the seconds branch")
         }
     }
 
-    @Test func markAllAsReadDefaultIsTheTimeTheHandlerRunsAtAndTheSignGuardLeavesIt() async throws {
+    @Test func markAllAsReadDefaultIsTheTimeTheHandlerRunsAtAndTheSignGuardIsWhatLeavesIt() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
             let userID = try await requests.seedIntegrationUser(storage, name: "alice",
@@ -422,40 +441,51 @@ import RivuletApp
             let token = GoogleReaderToken.derive(username: "alice", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
 
-            let (feedID, pastID, futureID) = try await storage.withConnection { connection in
-                let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
-                let feed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
-                    url: "https://example.com/1")
-                let past = try await seedEntry(connection, userID: userID, feedID: feed, hash: "h1",
-                    publishedAt: 200)
-                let future = try await seedEntry(connection, userID: userID, feedID: feed, hash: "h2",
-                    publishedAt: nowInSeconds() + 3_600)
-                return (feed, past, future)
-            }
+            // Each rule reads its own feed, so a request that marks the whole feed cannot mark the
+            // row another assertion reads.
+            let (zeroFeed, zeroRow, negativeFeed, negativeRow, defaultFeed, futureRow) =
+                try await storage.withConnection { connection in
+                    let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
+                    let zeroFeed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
+                        url: "https://example.com/1")
+                    let negativeFeed = try await seedFeed(connection, userID: userID,
+                        categoryID: categoryID, url: "https://example.com/2")
+                    let defaultFeed = try await seedFeed(connection, userID: userID,
+                        categoryID: categoryID, url: "https://example.com/3")
+                    let zero = try await seedEntry(connection, userID: userID, feedID: zeroFeed,
+                        hash: "h1", publishedAt: 200)
+                    let negative = try await seedEntry(connection, userID: userID, feedID: negativeFeed,
+                        hash: "h2", publishedAt: 200)
+                    let future = try await seedEntry(connection, userID: userID, feedID: defaultFeed,
+                        hash: "h3", publishedAt: nowInSeconds() + 3_600)
+                    return (zeroFeed, zero, negativeFeed, negative, defaultFeed, future)
+                }
 
-            // A patch that used the parsed value for an unpositive one answered the epoch here,
-            // which marks nothing.
+            // The guard's presence is what keeps the default for an unpositive value: without it
+            // the boundary is the parsed value, which is in the past and marks nothing. The order
+            // of the guard and the length test is not pinned, because a patch that ran the length
+            // test first answers the same for a negative value.
             let zero = try await requests.post(catchAll + "mark-all-as-read",
-                raw: requests.body(token: token, pairs: ["s=feed/\(feedID)", "ts=0"]), header: header)
+                raw: requests.body(token: token, pairs: ["s=feed/\(zeroFeed)", "ts=0"]), header: header)
             #expect(zero.status == .ok)
-            #expect(try await storedStatus(storage, entryID: pastID) == .read,
-                "the sign guard leaves the default")
-            #expect(try await storedStatus(storage, entryID: futureID) == .unread,
-                "and the default is the time the handler runs at")
+            #expect(try await storedStatus(storage, entryID: zeroRow) == .read,
+                "the guard leaves the default for zero, where the length test would have answered 0")
 
-            // The negative side, where the length rule would have taken the microsecond branch.
             let negative = try await requests.post(catchAll + "mark-all-as-read",
                 raw: requests.body(token: token,
-                    pairs: ["s=feed/\(feedID)", "ts=-10000000000000000"]), header: header)
+                    pairs: ["s=feed/\(negativeFeed)", "ts=-10000000000000000"]), header: header)
             #expect(negative.status == .ok)
-            #expect(try await storedStatus(storage, entryID: futureID) == .unread,
-                "the sign guard runs before the length test")
+            #expect(try await storedStatus(storage, entryID: negativeRow) == .read,
+                "the guard leaves the default on the negative side too")
 
-            // The value the form does not carry answers the same as the empty one, which is why the
-            // guard reads the answer rather than the presence.
+            // The default itself, on a feed that reads nothing else. The row is published after the
+            // time the handler runs at, so the default does not reach it; a patch that used a fixed
+            // time in the future marked it, which is what this assertion fails on.
             let absent = try await requests.post(catchAll + "mark-all-as-read",
-                raw: requests.body(token: token, pairs: ["s=feed/\(feedID)"]), header: header)
+                raw: requests.body(token: token, pairs: ["s=feed/\(defaultFeed)"]), header: header)
             #expect(absent.status == .ok)
+            #expect(try await storedStatus(storage, entryID: futureRow) == .unread,
+                "the default is the time the handler runs at, which is earlier than this row")
         }
     }
 

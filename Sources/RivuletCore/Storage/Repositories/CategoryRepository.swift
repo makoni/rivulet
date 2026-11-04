@@ -63,7 +63,8 @@ public struct CategoryRepository {
     /// `AnotherCategoryExists`: both sides are read through `LOWER`, and the category being checked
     /// is excluded, so a rename to its own title is not a duplicate. The single row is what the
     /// reference reads, and `LOWER` on SQLite is ASCII-only, which `ClientAuthTests` names.
-    public func anotherTitleExists(userID: Int, categoryID: Int, title: String) async throws -> Bool {
+    public func anotherTitleExists(userID: Int, categoryID: Int, title: String)
+        async throws -> Bool {
         let row = try await RawSQL.sql(on: database).raw("""
             SELECT 1 FROM categories
             WHERE user_id = \(bind: userID)
