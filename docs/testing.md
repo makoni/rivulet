@@ -52,7 +52,12 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
   is removed here, so the teardown rule stays in one place.
 - `GoogleReaderRequests.swift` — the requests and answer reads the Google Reader suite shares: the
   form body is sent as the bytes are given, so a rule about what the form read sees is shown by the
-  bytes rather than by an encoding the client added.
+  bytes rather than by an encoding the client added. `body(token:pairs:)` builds the POST body with
+  the token as the `T` field of the merged form, which is what a POST request has to carry, and
+  `seedIntegrationUser` creates the user the way `UserRepository.create` does — with the default
+  "All" category — and sets the integration credentials the token read needs, so a pin that depends
+  on which categories a user has reads the graph the command creates rather than a set the test
+  made.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
   with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
   set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
@@ -530,13 +535,13 @@ of answering, which is what the pin says that rule does: it reads past the end o
 that were written and then removed are recorded here because they cannot fail on their own: the
 continuation rule answers the sum for whatever count it is given, so which count the handler gives
 it is not a rule the pure side can pin — the handler suite pins it over a socket, on the page where
-the sum is below the total and the page where it is not; and the pin
-that only said the read reports no error for `?s=`, which the list read's skip of the empty value
-already settles, so it could not fail on its own. The other rules these four headers name as
-unpinnable are the count `fmt.Sscanf` reports, which has no input that can fail, the order the two
-stream prefixes are removed in, which no input this side can build is affected by, the error
-`r.URL.Query()` discards, which has no answer this side can show, and the read `WithOffset` never
-reaches, because the parameter read already answers the default for the value that would reach it.
+the sum is below the total and the page where it is not; and the pin that only said the read reports
+no error for `?s=`, which the list read's skip of the empty value already settles, so it could not
+fail on its own. The other rules these four headers name as unpinnable are the count `fmt.Sscanf`
+reports, which has no input that can fail, the order the two stream prefixes are removed in, which
+no input this side can build is affected by, the error `r.URL.Query()` discards, which has no answer
+this side can show, and the read `WithOffset` never reaches, because the parameter read already
+answers the default for the value that would reach it.
 
 PR #43 adds three suites pinned the same way: `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and
 `GoogleReaderShapeTests` — one probe per rule, 28 probes, all showing their pin failing. Four probes
@@ -579,6 +584,43 @@ order cannot be read; the reference reads the integration settings after the wri
 has none of; a storage-layer failure has no input this suite can make it report; and the method
 mismatch, where the reference answers 405 for a path that has an exact pattern for another method,
 is recorded in `docs/parity.md` rather than pinned here.
+
+### The three write handlers (`GoogleReaderWriteHandlerTests`, PR #45)
+
+`rename-tag`, `disable-tag` and `mark-all-as-read` are pinned over the same socket, with the storage
+reads they use pinned by `CategoryRepositoryTests` and the `ts` rule pinned as pure logic by
+`GoogleReaderTimestampTests`. 49 probes, one per rule, each showing its pin failing on the rule it
+names, all of them biting on the first attempt.
+
+One probe patches three places, because the rule it names is which handlers apply the output check:
+a patch that added the check to one handler left the other two answering the write, so the three are
+patched at once. One probe reads the same pick patch through both pins the pick reaches — the
+storage pin and the socket pin — because the socket pin is the handler reading the same rule. Two
+pins need an input that applies to both halves of the rule: the input that fails the type check and
+the empty-destination guard at once, which is what shows which of the two runs first, and the input
+where the first value of the list passes the guard and the second does not, which is what pins that
+the guard runs per value rather than on the first value only.
+
+The delete pin needs data where the pick has two rows to choose between, because a pick with one
+candidate answers the same whatever it compares; its input names two of the user's categories and
+leaves two, and the pick is pinned as the smallest title left, which a patch that reversed the
+comparison fails on. What the row order that read answers its rows in cannot be pinned: the
+statement has no `ORDER BY`, so the rule the pins read is the comparison, not the order the rows
+come back in. The two per-user filters of the delete path are pinned separately, because each has
+its own: the guard read is pinned by the input that would leave this user with no row while another
+user has rows the same input names, and the delete statement is pinned by another user's row with
+the same title as one of the names, which the read that builds the ids cannot show.
+
+What these pins cannot fail on is named in the suite header: the handler's own answer for a form the
+read cannot parse, which the transport reports as 401 first; the transaction boundary the delete
+path runs inside, because no pin can make a statement fail in the middle of one; the rule that a
+feed id of 0 selects nothing, which a patch that skipped a non-positive value answers the same way;
+the message the handler writes for the rule the socket cannot reach, because the empty-destination
+guard answers before it; the storage wordings for a failure this suite cannot trigger, apart from
+the guard the delete path makes itself; the reference's localized strings for the two category
+rules, which the port does not reproduce — it writes the rule name, and the keys are recorded in
+`docs/reference-notes.md`; and the order of the two statements of the delete path, which is the same
+for every input that reaches them.
 
 ## Soak
 

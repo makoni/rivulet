@@ -10,7 +10,8 @@ import Vapor
 /// the handler's own choices: which endpoints apply the output check, which error becomes 400 and
 /// 500, and which storage values each handler writes.
 struct GoogleReaderHandlers: Sendable {
-    private let storage: SQLiteStorage
+    /// Module-internal because the write-handlers file of this path uses the same storage seam.
+    let storage: SQLiteStorage
 
     init(storage: SQLiteStorage) {
         self.storage = storage
@@ -155,7 +156,10 @@ struct GoogleReaderHandlers: Sendable {
 
     // MARK: - Handler rules
 
-    private static func streams(_ values: [String], userID: Int) throws -> [GoogleReaderStream] {
+    /// The three rules below are shared by the two handler files of this path, so they are
+    /// module-internal rather than private.
+
+    static func streams(_ values: [String], userID: Int) throws -> [GoogleReaderStream] {
         try values.map { try GoogleReaderStream.parse(streamID: $0, userID: userID) }
     }
 
@@ -174,16 +178,8 @@ struct GoogleReaderHandlers: Sendable {
 
     /// What the feed branch does with the value the stream read left after the prefix: the
     /// reference's `strconv.ParseInt`, not the stream read's text answer.
-    private static func parseFeedID(_ value: String) throws -> Int {
-        let signed = value.hasPrefix("-") || value.hasPrefix("+")
-        let digits = value.dropFirst(signed ? 1 : 0)
-        guard !digits.isEmpty, digits.allSatisfy(isDigit) else {
-            throw IntegerParseError.invalidSyntax(value)
-        }
-        guard let parsed = Int(value) else {
-            throw IntegerParseError.outOfRange(value)
-        }
-        return parsed
+    static func parseFeedID(_ value: String) throws -> Int {
+        Int(try GoParseInt.parse(value))
     }
 
     /// The part every branch handler builds the same way: the page size, the continuation value,
@@ -281,10 +277,6 @@ struct GoogleReaderHandlers: Sendable {
         }
     }
 
-    private static func isDigit(_ character: Character) -> Bool {
-        character >= "0" && character <= "9"
-    }
-
     private static let emptyTagsMessage = "googlreader: add or/and remove tags should be supplied"
 
     private enum ItemIDReadError: Error, CustomStringConvertible, Sendable {
@@ -297,20 +289,6 @@ struct GoogleReaderHandlers: Sendable {
                 return "googlereader: no items requested"
             case .parse(let input, let reason):
                 return "googlereader: failed to parse item ID \(input): \(reason)"
-            }
-        }
-    }
-
-    private enum IntegerParseError: Error, CustomStringConvertible, Sendable {
-        case invalidSyntax(String)
-        case outOfRange(String)
-
-        var description: String {
-            switch self {
-            case .invalidSyntax(let value):
-                return "strconv.ParseInt: parsing \"\(value)\": invalid syntax"
-            case .outOfRange(let value):
-                return "strconv.ParseInt: parsing \"\(value)\": value out of range"
             }
         }
     }

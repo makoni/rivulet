@@ -58,6 +58,30 @@ struct GoogleReaderRequests {
         response.headers.first(name: "Content-Type") ?? ""
     }
 
+    /// The POST body as the transport reads it for this method: the token is the `T` field of the
+    /// merged form, so for a POST request it has to be part of the bytes that are sent.
+    func body(token: String, pairs: [String]) -> String {
+        "T=\(token)" + pairs.map { "&\($0)" }.joined()
+    }
+
+    /// Seeds a user the way `UserRepository.create` builds one — with the default "All" category —
+    /// and the integration credentials the token read needs, so a pin that depends on which
+    /// categories a user has reads the graph the command creates rather than a set the test made.
+    func seedIntegrationUser(_ storage: SQLiteStorage, name: String, storedHash: String)
+        async throws -> Int {
+        try await storage.withConnection { connection in
+            let user = try await UserRepository(connection)
+                .create(username: name, passwordHash: "hash", isAdmin: false)
+            let userID = try #require(user.id)
+            try await sqlDatabase(connection).raw("""
+                UPDATE users SET google_reader_username = \(bind: name),
+                    google_reader_password_hash = \(bind: storedHash)
+                WHERE id = \(bind: userID)
+                """).run()
+            return userID
+        }
+    }
+
     /// Seeds a row through SQL, as the other storage pins do: the account name is stored lowercase
     /// and the integration name as it is given.
     func seed(_ storage: SQLiteStorage, name: String, storedHash: String,

@@ -83,16 +83,35 @@ order that reports the tag error before the item read, the status each error ans
 branch switch with the two ways it reads the same exclude name and the feed filter that only a
 positive parsed value applies, the two times every branch applies, the order the parameter read
 answers, the continuation rule with the count the handler gives it, and the page-size clamp, are
-pinned by `GoogleReaderHandlerTests`, with the status mapping pinned
-directly by `GoogleReaderResponseStatusTests` and the storage reads the handlers use pinned by
+pinned by `GoogleReaderHandlerTests`, with the status mapping pinned directly by
+`GoogleReaderResponseStatusTests` and the storage reads the handlers use pinned by
 `EntryQueryTests`, `CategoryRepositoryTests` and `ClientAuthTests`. What that header names as
 unpinnable: the user-info guard that a row found by auth is read back, the handler's own answer for
 a form the read cannot parse, which the transport reports as 401 first, the order of the two storage
 write sets, which are disjoint for every input that reaches them, the integration settings the
 reference reads after the write, a storage-layer failure this suite cannot trigger, and the method
 mismatch, where the reference answers 405 and this port answers Vapor's 404, recorded in
-`docs/parity.md`. What follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML
-and the acceptance journey.
+`docs/parity.md`. PR #45 merged the three POST write handlers of this path over the same socket: the
+list `s` the merged form gives `disable-tag`, the parameter name the read error names, which is the
+handler's own wrap rather than the stream read's wording, the guard order that runs the type check
+before the empty-destination guard, the two type-check wordings that name different things, the 404
+the category read answers for a title it does not find, the rule order that reads the row before the
+duplicate answer and writes after it with the duplicate read's exclusion of the row it is checking,
+the delete guard that counts before any write and the pick it makes for the feeds of the rows it
+names, the handler with no default branch so the stream types it does not handle answer `OK` writing
+nothing, the status the integer read maps to here — 400 where the same read answers 500 for
+`stream/items/ids` — and the `ts` length rule with its two units, the sign guard, the default that
+is the time the handler runs at, and the comparison that is strictly before, are pinned by
+`GoogleReaderWriteHandlerTests`, with the storage reads it uses pinned by `CategoryRepositoryTests`
+and the `ts` rule as pure logic by `GoogleReaderTimestampTests`; the integer read's wordings are
+written once in `GoParseInt`, which the three call sites of this path read from. What that header
+names as unpinnable: the transaction boundary the delete path runs inside, the row order the
+delete's read answers its rows in, which the statement does not order, the rule that a feed id of 0
+selects nothing, the message the handler writes for the rule the socket cannot reach, the
+reference's localized strings for the two category rules — the port names the rule, so the answer is
+the rule name, and the keys are recorded in `docs/reference-notes.md` — and the order of the two
+statements of the delete path. What follows: the Fever parameter set, `quickadd` discovery, the icon
+route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

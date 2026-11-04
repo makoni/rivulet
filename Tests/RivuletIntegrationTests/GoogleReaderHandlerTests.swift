@@ -125,7 +125,7 @@ import RivuletApp
             // error here. A patch that read `a` from the query rather than from the body answered
             // the read value for the row.
             let response = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)starred"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)starred"]),
                 query: "a=\(state)read&i=\(entryID)",
                 header: "GoogleLogin auth=\(token)")
             #expect(response.status == .ok, "the body value alone makes this request valid")
@@ -143,7 +143,7 @@ import RivuletApp
             // because `a` is on the body side, so the value the add loop wrote stands. A patch that
             // read `r` through the merged form answered the pair error here.
             let removeHalf = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)read", "i=\(entryID)"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)read", "i=\(entryID)"]),
                 query: "r=\(state)read", header: "GoogleLogin auth=\(token)")
             #expect(removeHalf.status == .ok, "the query half is not read for `r`")
         }
@@ -159,7 +159,7 @@ import RivuletApp
 
             // The endpoint does not apply the output check, so `atom` still reaches the handler.
             let read = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)read", "i=\(entryID)", "output=atom"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)read", "i=\(entryID)", "output=atom"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(read.status == .ok, "the handler's choice, not the output read, decides this endpoint")
             #expect(try requests.body(of: read) == "OK", "the write operation answers text")
@@ -171,7 +171,7 @@ import RivuletApp
             // The same type answers the other value on add, so the row that is now read becomes
             // unread again.
             let kept = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)kept-unread", "i=\(entryID)", "output=atom"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)kept-unread", "i=\(entryID)", "output=atom"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(kept.status == .ok, "the same endpoint answers text for this request too")
             try await storage.withConnection { connection in
@@ -190,7 +190,7 @@ import RivuletApp
             let unstarred = try await seedEntryForUser(storage, userID: userID, status: .read, starred: false)
 
             let add = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)starred", "i=\(unstarred)"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)starred", "i=\(unstarred)"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(add.status == .ok, "add starred writes the entry")
             try await storage.withConnection { connection in
@@ -201,7 +201,7 @@ import RivuletApp
             // `a=read` with `r=starred` is not the guard conflict: the read value is already true,
             // and the starred value becomes false for the entry that was starred.
             let remove = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)read", "r=\(state)starred", "i=\(unstarred)"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)read", "r=\(state)starred", "i=\(unstarred)"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(remove.status == .ok, "the two branches answer values that do not conflict here")
             try await storage.withConnection { connection in
@@ -220,7 +220,7 @@ import RivuletApp
 
             // A wrong read that ran the item ids first answered the no-items or parse error here.
             let unsupported = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=user/-/label/x", "i=g"]),
+                raw: requests.body(token: token, pairs: ["a=user/-/label/x", "i=g"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(unsupported.status == .internalServerError,
                 "the tag read runs before the item read on this handler")
@@ -248,7 +248,7 @@ import RivuletApp
             let token = GoogleReaderToken.derive(username: "alice", storedHash: storedHash)
 
             let response = try await requests.post(catchAll + "edit-tag",
-                raw: body(token: token, pairs: ["a=\(state)read", "i=g"]),
+                raw: requests.body(token: token, pairs: ["a=\(state)read", "i=g"]),
                 header: "GoogleLogin auth=\(token)")
             #expect(response.status == .badRequest, "the item read answers 400, not 500")
             #expect(try requests.body(of: response) ==

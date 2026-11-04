@@ -46,8 +46,17 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
       body and `i` from the merged form, the storage values the tag branches write, the branch
       switch with the two ways it reads the same exclude name and the feed filter that only a
       positive parsed value applies, the two times every branch applies, the order the parameter
-      read answers, the continuation rule, the page-size clamp, and which endpoints the output
-      check applies to. The rest stays on the catch-all answer until its handler lands.
+      read answers, the continuation rule, the page-size clamp, and which endpoints the output check
+      applies to. `rename-tag`, `disable-tag` and `mark-all-as-read` landed with PR #45, pinned by
+      `GoogleReaderWriteHandlerTests` over the same socket: the merged list `s` that handler reads,
+      the parameter name the read error names rather than the error itself, the guard order that
+      runs the type check before the empty-destination guard, the two type-check wordings that name
+      different things, the 404 the category read answers, the rule order that reads the row before
+      the duplicate answer and writes after it, the delete guard that counts before any write and
+      the pick it makes for the feeds of the rows it names, the switch with no default branch, the
+      status the integer read maps to here, and the `ts` length rule with its two units, the sign
+      guard and the comparison that is strictly before. The rest stays on the catch-all answer until
+      its handler lands.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -149,11 +158,18 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
 
 ## Backlog
 
+Findings from the work on PR #45 that do not change behavior:
+
+- `GoogleReaderWriteHandlerTests.swift` is 524 lines, just over the ≤500 aim for a test file. The
+  three handlers are one concern — the POST write path — and the pins that name the storage reads
+  the handlers use are already separate suites, so the file splits by handler only when the next
+  slice adds tests to it.
+
 Findings from review run 1 on PR #44 that do not change behavior:
 
 - `GoogleReaderHandlers.swift` is 317 lines, a little over the ~300 aim for a production file: the
-  handlers are one function per endpoint, so the file can only be split by grouping endpoints,
-  which is a style matter.
+  handlers are one function per endpoint, so the file can only be split by grouping endpoints, which
+  is a style matter.
 
 Findings from the runs on PR #41 that do not change behavior:
 

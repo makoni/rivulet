@@ -124,25 +124,17 @@ public enum GoogleReaderItemID {
         return negative ? -scanned : scanned
     }
 
-    /// `strconv.ParseInt` with base 10, which is what answers for a value that is not the hex form.
+    /// `strconv.ParseInt` with base 10, which is what answers for a value that is not the hex form. The
+    /// wording is the integer read's, composed here into the prefix this read reports.
     private static func parseDecimal(_ value: String) throws -> Int64 {
-        let digits = value.dropFirst(value.hasPrefix("-") || value.hasPrefix("+") ? 1 : 0)
-        if digits.isEmpty || !digits.allSatisfy(isDigit) {
-            throw ReadError(form: .decimal, input: value,
-                reason: "strconv.ParseInt: parsing \"\(value)\": invalid syntax")
+        do {
+            return try GoParseInt.parse(value)
+        } catch let error as GoParseInt.ParseError {
+            throw ReadError(form: .decimal, input: value, reason: error.description)
         }
-        guard let parsed = Int64(value) else {
-            throw ReadError(form: .decimal, input: value,
-                reason: "strconv.ParseInt: parsing \"\(value)\": value out of range")
-        }
-        return parsed
     }
 
     private static func isHexDigit(_ scalar: Unicode.Scalar) -> Bool {
         ("0"..."9").contains(scalar) || ("a"..."f").contains(scalar) || ("A"..."F").contains(scalar)
-    }
-
-    private static func isDigit(_ character: Character) -> Bool {
-        character >= "0" && character <= "9"
     }
 }
