@@ -90,8 +90,12 @@ public struct CategoryRepository {
     /// `RemoveAndReplaceCategoriesByName`: the guard counts the categories that are not named, so
     /// an input that would leave the user with none is reported before anything is written; the
     /// feeds of the named rows go to the first remaining category by title, and the titles are
-    /// compared as read. The reference runs its three statements in a transaction; this port's
-    /// transaction boundary is the caller's, so the pins name the statements and not the boundary.
+    /// compared as read. The reference reads the count and the pick as two statements; this port
+    /// reads the rows and takes the smallest title, which answers the same for every input that
+    /// reaches them, and its comparison is Swift's `<`, which is the reference's
+    /// `ORDER BY title ASC` order for the titles pinned here and not for the non-ASCII ones. The
+    /// reference runs its three statements in a transaction; this port's transaction boundary is
+    /// the caller's, so the pins name the statements and not the boundary.
     public func removeAndReplaceNamed(userID: Int, titles: [String]) async throws {
         let named = try await Category.query(on: database)
             .filter(\Category.$userID == userID)

@@ -17,11 +17,11 @@ import RivuletApp
 /// counts before it writes, which this suite can trigger by naming the only category the user has,
 /// and the pick the delete path makes for the feeds of the rows it names, which is the smallest
 /// title left rather than the last of the rows it read; the guard that reports before the delete
-/// writes, and the switch with no branch for the stream types it does not handle, so they answer
-/// `OK` writing nothing; the status the integer read error maps to here, which is 400 where the
-/// same read answers 500 for `stream/items/ids`; the `ts` length rule, the two units it gives, the
-/// sign guard's presence, the default that is the time the handler runs at, and the comparison that
-/// is strictly before.
+/// writes, and the types the reference's switch has no case for, which answer `OK` writing nothing
+/// — the port's explicit no-op default is the same answer; the status the integer read error maps
+/// to here, which is 400 where the same read answers 500 for `stream/items/ids`; the `ts` length
+/// rule, the two units it gives, the sign guard's presence, the default that is the time the
+/// handler runs at, and the comparison that is strictly before.
 ///
 /// What these pins cannot show: the handler's own answer for a form the read cannot parse, which
 /// the transport reports as 401 first; the transaction boundary the delete path runs inside,
@@ -308,7 +308,7 @@ import RivuletApp
         }
     }
 
-    @Test func markAllAsReadHasNoBranchForTheTypesItDoesNotHandleSoTheyWriteNothing() async throws {
+    @Test func markAllAsReadWritesNothingForTheTypesTheReferenceSwitchHasNoCaseFor() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
             let userID = try await requests.seedIntegrationUser(storage, name: "alice",

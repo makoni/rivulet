@@ -590,7 +590,9 @@ is recorded in `docs/parity.md` rather than pinned here.
 `rename-tag`, `disable-tag` and `mark-all-as-read` are pinned over the same socket, with the storage
 reads they use pinned by `CategoryRepositoryTests` and the `ts` rule pinned as pure logic by
 `GoogleReaderTimestampTests`. 51 probes, one per rule, each showing its pin failing on the rule it
-names, all of them biting on the first attempt.
+names, all of them biting on the first attempt. A probe is a patch run, so the counts are records of
+the runs rather than counts of assertions: one probe can patch several places, and one patch can be
+read through two pins.
 
 One probe patches three places, because the rule it names is which handlers apply the output check:
 a patch that added the check to one handler left the other two answering the write, so the three are
