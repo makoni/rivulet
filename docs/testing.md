@@ -560,12 +560,14 @@ now pinned by the handler suite.
 ### The handlers (`GoogleReaderHandlerTests`, PR #44)
 
 The handlers are pinned over a real socket, and the status the response builder writes for each
-error is pinned by `GoogleReaderResponseStatusTests`, which reads the builder directly. 37 probes,
+error is pinned by `GoogleReaderResponseStatusTests`, which reads the builder directly. 40 probes,
 one per rule, each showing its pin failing on the rule it names, all of them biting on the first
 attempt. Two rules need two patches because the wrong handler is a place the code does not read: the
 output check `user-info` does not apply has to be added to the handler and the query has to reach it
 through the route, and the order that reports the tag error before the item read needs the guard
-moved as well as the read moved.
+moved as well as the read moved. The form read's PostForm rule needs two inputs so each side name
+bites on its own assertion: the input where the body has no `a` at all, and the input where only `r`
+is in the query.
 
 What the handler pins cannot fail on is named in the suite header. The user-info guard that a row
 found by the auth read is read back has no request this suite can build, because a request that

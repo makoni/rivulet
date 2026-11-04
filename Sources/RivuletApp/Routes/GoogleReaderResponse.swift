@@ -37,7 +37,8 @@ struct GoogleReaderResponse {
         Self.json(errorDocument(message), status: .internalServerError)
     }
 
-    /// `response.JSONNotFound`, the shape the handler answers with when its storage read finds no row.
+    /// `response.JSONNotFound`, the shape the handler answers with when its storage read finds no
+    /// row.
     static func notFound() -> Response {
         Self.json(errorDocument("resource not found"), status: .notFound)
     }

@@ -133,7 +133,14 @@ struct GoogleReaderHandlers: Sendable {
             case .read:
                 entryQuery.statuses = [.read]
             case .feed:
-                entryQuery.feedID = try Self.parseFeedID(stream.id)
+                // `WithFeedID` adds its condition only for a positive value, so a parsed 0 or a
+                // negative value leaves the filter unset and answers the user's entries. This is
+                // the caller the query's own convention names: the value is mapped before it is
+                // given.
+                let feedID = try Self.parseFeedID(stream.id)
+                if feedID > 0 {
+                    entryQuery.feedID = feedID
+                }
                 entryQuery.excludeStatus = Self.feedExcludedStatus(modifiers.excludeTargets)
             default:
                 return GoogleReaderResponse.serverError(

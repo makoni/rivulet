@@ -80,9 +80,10 @@ socket: the subpath wildcard with the exact registered path winning for its meth
 auth read hands the handler, which endpoints apply the output check, `edit-tag` reading `a` and `r`
 from the body and `i` from the merged form, the storage values the tag branches write, the handler
 order that reports the tag error before the item read, the status each error answer writes, the
-branch switch with the two ways it reads the same exclude name, the two times every branch applies,
-the order the parameter read answers, the continuation rule with the count the handler gives it, and
-the page-size clamp, are pinned by `GoogleReaderHandlerTests`, with the status mapping pinned
+branch switch with the two ways it reads the same exclude name and the feed filter that only a
+positive parsed value applies, the two times every branch applies, the order the parameter read
+answers, the continuation rule with the count the handler gives it, and the page-size clamp, are
+pinned by `GoogleReaderHandlerTests`, with the status mapping pinned
 directly by `GoogleReaderResponseStatusTests` and the storage reads the handlers use pinned by
 `EntryQueryTests`, `CategoryRepositoryTests` and `ClientAuthTests`. What that header names as
 unpinnable: the user-info guard that a row found by auth is read back, the handler's own answer for

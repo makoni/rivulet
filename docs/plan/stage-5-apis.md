@@ -44,10 +44,10 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
       `stream/items/ids` — pinned by `GoogleReaderHandlerTests` over a real socket: the subpath
       wildcard, the row id the auth read hands the handler, `edit-tag` reading `a` and `r` from the
       body and `i` from the merged form, the storage values the tag branches write, the branch
-      switch with the two ways it reads the same exclude name, the two times every branch applies,
-      the order the parameter read answers, the continuation rule, the page-size clamp, and which
-      endpoints the output check applies to. The rest stays on the catch-all answer until its
-      handler lands.
+      switch with the two ways it reads the same exclude name and the feed filter that only a
+      positive parsed value applies, the two times every branch applies, the order the parameter
+      read answers, the continuation rule, the page-size clamp, and which endpoints the output
+      check applies to. The rest stays on the catch-all answer until its handler lands.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -148,6 +148,12 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
       instance (manual check; repeated with the full client matrix in stage 7).
 
 ## Backlog
+
+Findings from review run 1 on PR #44 that do not change behavior:
+
+- `GoogleReaderHandlers.swift` is 316 lines, a little over the ~300 aim for a production file: the
+  handlers are one function per endpoint, so the file can only be split by grouping endpoints,
+  which is a style matter.
 
 Findings from the runs on PR #41 that do not change behavior:
 

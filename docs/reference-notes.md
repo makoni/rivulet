@@ -549,7 +549,10 @@ the status mapping itself pinned by `GoogleReaderResponseStatusTests`.
   same exclude name two different ways: the reading-list branch adds the status that is the other
   side of the name (`WithStatuses(unread)`), the feed branch excludes the status the name itself
   says (`WithoutStatus(read)`), and a target of another type adds nothing on either branch. The two
-  times are applied on all four branches, and only a positive value is applied. The feed branch
+  times are applied on all four branches, and only a positive value is applied. `WithFeedID` adds
+  its condition only for a positive value, so a parsed `0` or a negative value leaves the feed
+  filter unset and the request answers the whole listing rather than an empty page; the handler maps
+  the value before giving it, which is the convention the port's query type states. The feed branch
   parses the part the stream read left as text, so `feed/x` is this handler's `strconv.ParseInt`
   error rather than the stream read's. A stream type that is not one of the four branches answers
   500 with the wording that names the type, which is not the query read's colon wording.

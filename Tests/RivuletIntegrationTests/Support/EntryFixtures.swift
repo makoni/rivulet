@@ -47,8 +47,8 @@ func seedFeed(
 
 /// Inserts an entry through the repository, applies the user state and returns its id.
 ///
-/// Seeding runs in autocommit: fixtures are not concurrent with retention, so
-/// the atomicity the repository expects from a caller transaction is irrelevant.
+/// Seeding runs in autocommit: fixtures are not concurrent with retention, so the atomicity the
+/// repository expects from a caller transaction is irrelevant.
 @discardableResult
 func seedEntry(
     _ connection: any Database,
@@ -112,6 +112,27 @@ func seedManyEntries(
             '', '', \(bind: firstPublishedAt) + n, 0, 0
         FROM seq
         """).run()
+}
+
+/// Four entries with the states the stream branch switches read: the four publication times order
+/// the listing by, and the two status and starred combinations the filters select on.
+func seedStreamEntries(_ connection: any Database, userID: Int) async throws
+    -> (first: Int, second: Int, third: Int, fourth: Int) {
+    let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
+    let firstFeed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
+        url: "https://example.com/1")
+    let secondFeed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
+        url: "https://example.com/2")
+
+    let first = try await seedEntry(connection, userID: userID, feedID: firstFeed, hash: "1",
+        publishedAt: 100)
+    let second = try await seedEntry(connection, userID: userID, feedID: firstFeed, hash: "2",
+        publishedAt: 200, status: .read, starred: true)
+    let third = try await seedEntry(connection, userID: userID, feedID: secondFeed, hash: "3",
+        publishedAt: 300, starred: true)
+    let fourth = try await seedEntry(connection, userID: userID, feedID: secondFeed, hash: "4",
+        publishedAt: 400, status: .read)
+    return (first, second, third, fourth)
 }
 
 /// Setup failures that the fixtures themselves cannot express.

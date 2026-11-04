@@ -26,8 +26,8 @@ struct GoogleReaderAuth: Sendable {
 
     /// `withApiKeyAuth`: the wrapper the reference's mux puts on every route of this path, which is
     /// why it is applied per route here rather than as application middleware that would cover
-    /// `/healthz`. The handler is given the row id the transport read found, because `request.UserID`
-    /// is the same row for these routes.
+    /// `/healthz`. The handler is given the row id the transport read found, which is the same row
+    /// `request.UserID` answers for these routes.
     func withAuth(_ handler: @Sendable @escaping (Request, Int, String) async throws -> Response)
         -> @Sendable (Request) async throws -> Response {
         { request in

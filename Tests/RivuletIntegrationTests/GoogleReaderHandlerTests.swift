@@ -14,14 +14,15 @@ import RivuletApp
 /// endpoints apply the output check, which a patch that applied it everywhere fails on; the
 /// category list order, which a patch that ordered by position fails on; `edit-tag` reading `i`
 /// from the merged form while `a` and `r` are the body side, which a patch that read `i` from
-/// `PostForm` fails on and which the empty-add guard shows for `a` on the input where the body has
-/// no `a` at all; the storage values the tag branches write, which a patch that read the wrong
-/// value for one branch or from the query instead of the body fails on; the handler order that
-/// reports a tag error before the item read, which a patch that read the item ids first fails on;
-/// the status the answer writes for the output and item-read errors, which a patch that swapped 400
-/// and 500 fails on; the branch switch with the two readings of the same exclude list, the two
-/// times that every branch applies, the order the parameter read answers, the continuation rule,
-/// and the page-size clamp, each named by an input a wrong handler answers differently.
+/// `PostForm` fails on, and which the guard for an empty add shows for `a` on the input where the
+/// body has no `a` at all and for `r` on the input where only `r` is in the query; the storage
+/// values the tag branches write, which a patch that read the wrong value for one branch or from
+/// the query instead of the body fails on; the handler order that reports a tag error before the
+/// item read, which a patch that read the item ids first fails on; the status the answer writes for
+/// the output and item-read errors, which a patch that swapped 400 and 500 fails on; the branch
+/// switch with the two readings of the same exclude list, the feed filter that only a positive
+/// value applies, the two times that every branch applies, the order the parameter read answers,
+/// the continuation rule, and the page-size clamp.
 ///
 /// What these pins cannot fail on: the user-info guard that a row found by auth is read back,
 /// because no request this suite can build authenticates against a row that is not there, and the
@@ -137,6 +138,14 @@ import RivuletApp
                 #expect(stored.starred, "the body value is the one read for `a`")
                 #expect(stored.status == .unread, "the query value is not read for `a`")
             }
+
+            // `r` is the body side as well: with `r` only in the query the guard still passes
+            // because `a` is on the body side, so the value the add loop wrote stands. A patch that
+            // read `r` through the merged form answered the pair error here.
+            let removeHalf = try await requests.post(catchAll + "edit-tag",
+                raw: body(token: token, pairs: ["a=\(state)read", "i=\(entryID)"]),
+                query: "r=\(state)read", header: "GoogleLogin auth=\(token)")
+            #expect(removeHalf.status == .ok, "the query half is not read for `r`")
         }
     }
 
@@ -256,7 +265,9 @@ import RivuletApp
             let token = GoogleReaderToken.derive(username: "7", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
 
-            let (first, second, third, fourth) = try await seedStreamEntries(storage, userID: userID)
+            let (first, second, third, fourth) = try await storage.withConnection { connection in
+                try await seedStreamEntries(connection, userID: userID)
+            }
 
             let badOutput = try await requests.get(catchAll + "stream/items/ids?output=atom", header: header)
             #expect(badOutput.status == .badRequest, "this handler applies the output check before the filter read")
@@ -322,7 +333,9 @@ import RivuletApp
             let userID = try await storedUserID(storage, username: "alice")
             let token = GoogleReaderToken.derive(username: "7", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
-            let (first, second, third, fourth) = try await seedStreamEntries(storage, userID: userID)
+            let (first, second, third, fourth) = try await storage.withConnection { connection in
+                try await seedStreamEntries(connection, userID: userID)
+            }
 
             // The reading-list branch keeps the status the exclude name is the other side of, so a
             // patch that read it as an exclusion answered the read rows here.
@@ -348,6 +361,14 @@ import RivuletApp
             #expect(try requests.body(of: feedBranch) ==
                 "{\"itemRefs\":[{\"id\":\"\(third)\"}]}",
                 "the feed branch applies the status exclusion")
+
+            // `WithFeedID` adds its condition only for a positive value, so `feed/0` and `feed/-5`
+            // answer the whole listing, which a patch that applied the parsed value as read could
+            // not.
+            for value in ["feed/0", "feed/-5"] {
+                let response = try await requests.get(catchAll + "stream/items/ids?output=json&s=\(value)&n=4", header: header)
+                #expect(try requests.body(of: response) == "{\"itemRefs\":[{\"id\":\"\(fourth)\"},{\"id\":\"\(third)\"},{\"id\":\"\(second)\"},{\"id\":\"\(first)\"}]}", "the whole listing for a value that is not positive")
+            }
 
             // Both times are read on every branch, and only a positive value is applied. A patch
             // that applied them on one branch answered all the starred rows here.
@@ -449,29 +470,6 @@ import RivuletApp
                 url: "https://example.com/1")
             return try await seedEntry(connection, userID: userID, feedID: feedID, hash: "h1",
                 status: status, starred: starred)
-        }
-    }
-
-    /// Four entries with the states the branch switches read: the four publication times order the
-    /// listing by, and the two status and starred combinations the filters select on.
-    private func seedStreamEntries(_ storage: SQLiteStorage, userID: Int) async throws
-        -> (first: Int, second: Int, third: Int, fourth: Int) {
-        try await storage.withConnection { connection in
-            let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
-            let firstFeed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
-                url: "https://example.com/1")
-            let secondFeed = try await seedFeed(connection, userID: userID, categoryID: categoryID,
-                url: "https://example.com/2")
-
-            let first = try await seedEntry(connection, userID: userID, feedID: firstFeed, hash: "1",
-                publishedAt: 100)
-            let second = try await seedEntry(connection, userID: userID, feedID: firstFeed, hash: "2",
-                publishedAt: 200, status: .read, starred: true)
-            let third = try await seedEntry(connection, userID: userID, feedID: secondFeed, hash: "3",
-                publishedAt: 300, starred: true)
-            let fourth = try await seedEntry(connection, userID: userID, feedID: secondFeed, hash: "4",
-                publishedAt: 400, status: .read)
-            return (first, second, third, fourth)
         }
     }
 

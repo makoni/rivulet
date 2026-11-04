@@ -44,8 +44,8 @@ public enum GoogleReaderRoutes {
             try await handlers.streamItemIDs(query: request.url.query ?? "", userID: userID)
         })
 
-        // The catch-all answer for an endpoint that is not implemented. The exact path is matched on
-        // its own, and the subpath match is what the reference's subtree pattern answers for, as
+        // The catch-all answer for an endpoint that is not implemented. The exact path is matched
+        // on its own, and the subpath match is what the reference's subtree pattern answers for, as
         // `docs/parity.md` records.
         protected.on(.GET, "**", use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
         protected.on(.POST, "**", use: auth.withAuth { _, _, _ in GoogleReaderResponse.json(.array([])) })
