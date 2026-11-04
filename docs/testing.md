@@ -526,7 +526,7 @@ four suites are `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleRea
 reverting — one probe per rule. The probe for the escape bounds traps instead of answering, which is
 what the pin says that rule does: it reads past the end of the pair. Two pins that were written and
 then removed are recorded here because they cannot fail on their own: the continuation rule answers
-the same whatever count it is given, so which count the handler passes it is not a rule this side
+the sum for whatever count it is given, so which count the handler gives it is not a rule this side
 can pin, and the header names it as landing with the handler; and the pin that only said the read
 reports no error for `?s=`, which the list read's skip of the empty value already settles, so it
 could not fail on its own. The other rules these four headers name as unpinnable are the count
