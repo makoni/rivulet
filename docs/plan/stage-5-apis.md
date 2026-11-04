@@ -3,9 +3,9 @@
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
 **Status:** in progress — the first two slices are merged: `create-admin` with the user rules and
 the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
-duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40 and the
-Google Reader auth path with PR #41; the routers are not started. **Effort:** XL. **Depends on:**
-Stage 4.
+duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40, the Google
+Reader auth path with PR #41, and the contract rules the routers read with PR #42; the routers
+themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
 
@@ -137,7 +137,7 @@ Findings from the runs on PR #41 that do not change behavior:
   redirect cannot be observed here, because Vapor's client follows a redirect and reports the answer
   after the follow. The pin's comment says this, and the pin fails on a read that distinguishes the
   trailing slash.
-- `docs/testing.md` is over the file-size aim for a document (597 lines): it is one file for the
+- `docs/testing.md` is over the file-size aim for a document (604 lines): it is one file for the
   levels, the support helpers and the CI rules, and splitting it by level is a style matter.
 
 Findings from review run 1 on PR #38 that do not change behavior:

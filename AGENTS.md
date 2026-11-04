@@ -47,13 +47,13 @@ shapes are pinned by `GoogleReaderAuthTests` over a real socket, with the deriva
 write pinned against the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`,
 and the port's answer for the path without the trailing slash pinned as a divergence; the timing
 form of the compare, the guard's password half and the one-part structure are named as unpinnable in
-that header, as are the mux rules the router piece brings. PR #42 is the contract rules those
-routers read, as pure logic with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x` rules
-and the error wordings — including the space the scan skips before the field, the newline it does
-not skip, and the read per Unicode scalar — the stream branches with the two forms of each prefix as
-an OR and the seven suffixes, the query read with the pair it skips for a `;` or a bad escape, the
-bounds check that runs before the two characters of an escape are read, and the order the pairs
-answer in, and the parameter reads with the order read, the list read's trim as Go's
+that header, as are the mux rules the router piece brings. The contract rules those routers read
+merged with PR #42, as pure logic with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x`
+rules and the error wordings — including the space the scan skips before the field, the newline it
+does not skip, and the read per Unicode scalar — the stream branches with the two forms of each
+prefix as an OR and the seven suffixes, the query read with the pair it skips for a `;` or a bad
+escape, the bounds check that runs before the two characters of an escape are read, and the order
+the pairs answer in, and the parameter reads with the order read, the list read's trim as Go's
 `unicode.IsSpace` and its skip of an empty value, and the continuation rule, are pinned by
 `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
 `GoogleReaderRequestModifiersTests`. What those headers name as unpinnable: the count `fmt.Sscanf`
