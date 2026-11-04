@@ -497,8 +497,9 @@ The add loop's `read` guard asks for `kept-unread`, which that loop never writes
 `add kept-unread` with `add read` reads both values and keeps the last one. The other guard in that
 loop asks for `read`, which the loop can write, so `add read` with `add kept-unread` is the error.
 Between the loops, `add read` with `remove kept-unread` is the error only when the add loop ran
-first; `add kept-unread` with `remove read` answers the error either way, so the order pin reads
-pair. `broadcast` and `like` write nothing. Any other value reaches the unsupported error, which
+first; `add kept-unread` with `remove read` answers the error either way, so the order pin reads the
+first pair.
+`broadcast` and `like` write nothing. Any other value reaches the unsupported error, which
 names the type as Go's `String()` prints it, not the label or the id. The wordings: googlereader:
 kept-unread and read should not be supplied simultaneously names the pair for the read guard, and
 `googlereader: starred should not be supplied for add and remove simultaneously` names one suffix
