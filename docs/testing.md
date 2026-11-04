@@ -45,6 +45,15 @@ Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 - `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase` and
   a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp dir) on
   both success and failure; used by every suite that needs the migrated schema.
+- `ServedApp.swift` — the `withServedApp` helper for the routes suites: boots the real application
+  on an ephemeral port with the schema migrated and runs the body with the storage, the application
+  and the base URL of the socket it answers on. The server is stopped before the application on both
+  paths, because only `ServeCommand` stops it for the happy path and a started server that is not
+  stopped trips `HTTPServer`'s deinit assertion instead of reporting the failure; the temp directory
+  is removed here, so the teardown rule stays in one place.
+- `GoogleReaderRequests.swift` — the requests and answer reads the Google Reader suite shares:
+  the form body is sent as the bytes are given, so a rule about what the form read sees is
+  shown by the bytes rather than by an encoding the client added.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
   with a chosen status/starred state, bulk-seeds entries for pagination limits, builds entry inputs,
   counts entries, tombstones and FTS matches, and backdates timestamps for the retention suites.
