@@ -998,6 +998,13 @@ failure
 - The reference reads each duplicate check and then derives that pair's value, in the order its form
   fields are handled; this port reads both checks before deriving anything, which cannot change the
   outcome because a hit writes nothing.
+- The two reads the client auth path is built on are pinned by `ClientAuthTests`: the Fever lookup
+  compares both sides lowercase, which is upstream's `lower(integrations.fever_token)=lower($1)`,
+  and the Google Reader read compares the name as read, with no `LOWER`, which is upstream's
+  `googlereader_username=$1`. For "no row" the Fever read answers `nil`, which is what upstream does
+  too, and the account-name lookup lowercases what it is given, which is upstream's
+  `username=LOWER($1)`, so the Google read and that lookup answer one input differently — that
+  difference is what the control pin shows.
 
 **Known differences.**
 
@@ -1007,6 +1014,8 @@ failure
 | A blank name field | writes what was submitted, so a blank field clears the stored name | keeps what the row already holds, because a command line reads blank as "not given" | A blank name behaves differently: the duplicate check sees the kept name here where upstream's guard would skip an empty field, and the value derived from the pair is the digest of the kept name rather than of an empty part. The pins read the keep rule, and the difference is stated in the command comment |
 | Whitespace around a read | the form writes what the request submitted, untrimmed | the console read trims the line before the value is used | A read with spaces around it behaves differently here; the pins read the trim |
 | Unique index | none on `fever_username`, `googlereader_username` or `fever_token` | `fever_token` carries `UNIQUE` from stage 0's schema | Two accounts with the same token are refused here and accepted upstream; the rule is the schema, so no patch can reach it and it is not pinned |
+| A row that stores nothing | the integration row is created for every user and its `fever_token` and `googlereader_username` columns are `text default ''`, so an empty input matches the stored empty value | the columns are nullable, so nothing stored is `NULL` and an empty input matches nothing | A blank input can find an account upstream and finds none here; the pin reads the port's side, so upstream's side has nothing to pin here |
+| The answer for "no row" | `UserByFeverToken` answers nil, while `GoogleReaderUserCheckPassword` reports "unable to find this user" as an error, and errors again when the stored value is not a hash | `nil` for both reads | Only the Google half differs, and the pins show the answer rather than the wording, so the wording is stated in the code comment |
 | Path to the values | the web form handler, with a session flash and a redirect | the CLI, reading through the console seam with the port's own wording | Only the outcome and the stored values are pinned, not the sentences |
 | Which account is written | the user of the web session | the name read from the console, which must have a row | A name with no row ends the run here; upstream cannot reach that case |
 | `updated_at` | the `integrations` table has no such column | stamped on the write, because the `users` row carries it | A stamp no pin can read, so it is stated in the repository comment |

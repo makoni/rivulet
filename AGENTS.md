@@ -33,8 +33,14 @@ the terminal check, the environment path, which marker the port writes, the sing
 existence read, the prompt wording of the credentials command (its read order is pinned by the flags
 of the reads), the command's guard that an empty name never reaches the storage layer, the
 blank-name rule this port reads differently from the reference's form, the absent enabled flag, the
-Fever password the reference does not store, and the unique index on `fever_token`. The next slice
-is the Google Reader and Fever routers.
+Fever password the reference does not store, and the unique index on `fever_token`. The storage
+reads the routers are built on landed with PR #40 and are pinned by `ClientAuthTests`: the Fever
+lookup lowercases both sides, the Google Reader read compares the name as read, both answer nothing
+when no row matches, and the control pin shows that the account lookup lowercases what it is given
+while this read does not. What that suite cannot show is named in its header — the `*_enabled` gate,
+the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
+default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The next piece is the
+Google Reader and Fever routers.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
