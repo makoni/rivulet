@@ -74,7 +74,7 @@ when it is 0, and the empty list written as `[]` because the reference builds th
 What those headers name as unpinnable: the guard inside the add loop, which asks for the map key
 that loop never writes so it can never fire, the guard that an empty add and an empty remove answer
 the reference's own wording, which the handler suite now pins over a socket, and which document a
-handler builds, which stays the handler's choice. PR #44 landed the handlers for the four endpoints
+handler builds, which stays the handler's choice. PR #44 merged the handlers for the four endpoints
 this piece implements — `edit-tag`, `tag/list`, `user-info` and `stream/items/ids` — over a real
 socket: the subpath wildcard with the exact registered path winning for its method, the row id the
 auth read hands the handler, which endpoints apply the output check, `edit-tag` reading `a` and `r`
