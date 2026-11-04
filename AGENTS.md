@@ -49,7 +49,21 @@ response of this path, the structure rule and the two 401 shapes are pinned by
 the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`, and the port's answer
 for the path without the trailing slash pinned as a divergence; the timing form of the compare, the
 guard's password half and the one-part structure are named as unpinnable in that header, as are the
-mux rules the router piece brings. The next piece is the Google Reader and Fever routers.
+mux rules the router piece brings. PR #42 is the contract rules those routers read, as pure logic
+with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x` rules and the error wordings, the
+stream branches with the two forms of each prefix as an OR and the seven suffixes, the query read
+with the pair it skips for a `;` or a bad escape and the order the pairs answer in, and the
+parameter reads with the order read, the list read's trim and its skip of an empty value, and the
+continuation rule, are pinned by `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`,
+`GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. What those headers name as
+unpinnable: the count `fmt.Sscanf` reports, the order the two stream prefixes are removed in, the
+error `r.URL.Query()` discards, the `WithOffset` branch the parameter read never reaches, the
+platform reading `bitSize 0` as 64 bits, and which count the continuation rule is given, because
+that is the handler's choice. The form read reports a pair error for the whole form while the query
+read skips that pair, which is `r.URL.Query()`; both are recorded in the code comment. The
+`output=json` read, the `edit-tag` body tags, the `streamIDResponse` shape, the unknown-stream 500
+wording and the subpath wildcard stay with the handlers, which are the next piece together with the
+Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

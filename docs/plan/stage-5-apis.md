@@ -65,10 +65,17 @@ Stage 4.
       by `GoogleReaderTokenTests` and `JSONValueTests`. Plain text `OK` for the write operations
       follows with the routers, and so do the mux rules above, except the no-slash path, where this
       port has no rule that reads the trailing slash and the pin records that divergence.
-- [ ] Contract details pinned by golden tests: `n` clamped to 1000 (0 → 1000); `continuation` is a
-      numeric offset encoded as a JSON string, omitted when 0; `edit-tag` reads tags from the body;
-      item ids accepted in 4 formats; `output=json` on the affected endpoints; unknown streams →
-      500; text-vs-JSON response shapes and the token-transport split above.
+- [ ] Contract details pinned by golden tests. The pure rules landed with PR #42, with no HTTP: the
+      four item-id forms with the `fmt.Sscanf` `%016x` rules and the error wordings, the stream
+      branches with the two forms of each prefix as an OR and the seven suffixes, the query read —
+      which pairs are read, the order they answer in, the escape rules — and the parameter reads
+      with the order read, the list read's trim and its skip of an empty value, and the
+      continuation rule, pinned by `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`,
+      `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. What follows with the
+      handlers: `n` clamped to 1000 where the query builder applies it, `continuation` as a numeric
+      offset written as a JSON string and omitted when 0, `edit-tag` reading tags from the body,
+      `output=json` on the affected endpoints, unknown streams answering 500, and the text-vs-JSON
+      response shapes and the token-transport split above.
 - [ ] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
       `saved_item_ids`, `items`, `mark=item|feed|group` with reference semantics (limit 50;
       `since_id` > `max_id` > `with_ids` precedence; `as=saved|unsaved`; invalid id → 0; `mark=feed`

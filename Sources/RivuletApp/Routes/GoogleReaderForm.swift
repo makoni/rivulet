@@ -65,10 +65,11 @@ struct GoogleReaderForm {
     }
 
     /// Go's `unescape` as `parseQuery` uses it: `+` is a space, `%` starts a two-digit hex escape,
-    /// and a `%` that is not one of those is the error this read reports for the whole form. The
-    /// bytes are put back as UTF-8, so an escape whose bytes are not valid UTF-8 answers U+FFFD
-    /// here, where Go keeps the byte it could not decode — the divergence `docs/parity.md` records.
-    private static func unescape(_ value: String) throws -> String {
+    /// and a `%` that is not one of those is the error this read reports for the whole form — the
+    /// same pair is skipped instead by `GoogleReaderQuery`, which is `r.URL.Query()`. The bytes are
+    /// put back as UTF-8, so an escape whose bytes are not valid UTF-8 answers U+FFFD here, where
+    /// Go keeps the byte it could not decode — the divergence `docs/parity.md` records.
+    static func unescape(_ value: String) throws -> String {
         let scalars = value.unicodeScalars
         var bytes: [UInt8] = []
         var index = scalars.startIndex

@@ -1047,11 +1047,16 @@ failure
 - The form read is Go's `ParseForm`: the urlencoded body pairs are read into `r.Form` before the
   query pairs, so the value `Form.Get` answers for a name both sides carry is the body one. A pair
   with no `=` is a name with an empty value, empty pairs are skipped, `+` is a space while `%2B` is
-  the character, a `;` pair and a malformed escape are errors for the whole form rather than for one
-  pair, and a multipart body is never part of the form. The media type is read with its parameters
-  ignored and compared lowercased, as Go's `mime.ParseMediaType` reads a type with its parameters
-  dropped, which the pins read with a charset parameter and with the type written in upper case. The
-  plan's earlier note had the query first; Go puts the body first, so that note is corrected here.
+  the character, `;` is not a pair separator, and the error is reported for one pair — a pair that
+  carries a `;` anywhere, or whose name or value cannot be unescaped, is skipped and the read
+  continues with the pairs after it — so `ParseForm` answers both that error and what it read, and
+  the handler answers the error before reading any value; `r.URL.Query()` discards the error and
+  keeps what parsed, which is what `GoogleReaderQuery` is, and `GoogleReaderQueryTests` pins which
+  pairs answer. A multipart body is never part of the form. The media type is read with its
+  parameters ignored and compared lowercased, as Go's `mime.ParseMediaType` reads a type with its
+  parameters dropped, which the pins read with a charset parameter and with the type written in
+  upper case. The plan's earlier note had the query first; Go puts the body first, so that note is
+  corrected here.
 
 - The header is read as Go's `strings.Fields` splits it, which collapses the whitespace between the
   fields: exactly two fields, the second split on exactly one `=` with the empty part kept, so a

@@ -526,6 +526,20 @@ logging, which this port has no layer for. What the pins do reach through anothe
 resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding — is
 named in the headers as read through the scan, with the rules themselves pinned by those suites.
 
+The stage-5 contract suites pin the reference's output as values inside the suite rather than as
+fixture files, because each of those pins reads one answer for one rule rather than a corpus. The
+four suites are `GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
+`GoogleReaderRequestModifiersTests`; their goldens are the reference's own output at the toolchain
+`go.mod` pins, and each pin was seen to fail on the rule it names by patching that rule and
+reverting — one probe per rule. One pin that was written and removed is recorded here because
+it cannot fail: the continuation rule answers the same whatever count it is given, so which count
+the handler passes it is not a rule this side can pin, and the header names it as landing with the
+handler. The other rules these four headers name as unpinnable are the count `fmt.Sscanf` reports,
+which has no input that can fail, the order the two stream prefixes are removed in, which no input
+this side can build is affected by, the error `r.URL.Query()` discards, which has no answer this
+side can show, and the read `WithOffset` never reaches, because the parameter read already answers
+the default for the value that would reach it.
+
 ## Soak
 
 `Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub

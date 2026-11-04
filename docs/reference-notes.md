@@ -396,11 +396,13 @@ Authentication:
   `ClientLogin` failure returns JSON `{"error_message": "access unauthorized"}`.
 - The `T` field is read through `ParseForm`, which puts the urlencoded body pairs in `r.Form` before
   the query pairs, so `Form.Get` answers the body value when both sides carry the name. Go's
-  `parseQuery`: `;` is not a pair separator, so a pair carrying one is reported as an error for
-  the whole query while the pairs read before it stay in the values; a pair with no `=` is a key
-  with an empty value, empty pairs are skipped, `+` is a space and `%` must be a two-digit hex
-  escape in either case, and a multipart body is never part of the form. The media type is read
-  with its parameters ignored.
+  `parseQuery`: `;` is not a pair separator, so the pair that carries one is reported as the error
+  for that pair and the read continues with the pairs after it; a pair whose name or value cannot be
+  unescaped is skipped the same way, so `parseQuery` answers both the error and what it read —
+  `r.URL.Query()` discards the error and keeps what parsed, while `ParseForm` returns it and the
+  caller answers it before reading any value. A pair with no `=` is a key with an empty value, empty
+  pairs are skipped, `+` is a space and `%` must be a two-digit hex escape in either case, and a
+  multipart body is never part of the form. The media type is read with its parameters ignored.
 - The `Authorization` header is read as `strings.Fields` splits it, which collapses whitespace, with
   exactly two fields, and the second is `strings.Split` on `=`, which keeps empty parts, so a field
   with two equals signs gives three parts and fails the check.
@@ -421,6 +423,64 @@ Contract details worth pinning in golden tests:
   (`tag/list`, `subscription/list`, `stream/items/ids`, `stream/items/contents`);
 - unknown/ambiguous stream selections → HTTP 500; label streams are unsupported on
   `stream/items/ids`.
+
+### The rules the routers read (`item.go`, `stream.go`, `parameters.go`, `request_modifier.go`)
+
+These are the pure halves of the path, taken from the scratch runs at the toolchain `go.mod` pins,
+the same way the fixture corpora were obtained, and pinned by `GoogleReaderItemIDTests`,
+`GoogleReaderStreamTests`, `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`.
+
+Item ids (`item.go`), four input forms:
+
+- the write is `tag:google.com,2005:reader/item/%016x` — 16 lowercase digits, and Go writes the sign
+  before the padding, so the digits fill what the field width leaves: `-1` answers
+  `tag:google.com,2005:reader/item/-000000000000001`;
+- `2f2` is read as 754, `12345` as 12345, `000000000000046f` as 1135, `1234567890123456` as
+  1311768467284833366, which is a different value from the decimal read of the same characters;
+- `len()` counts bytes, so a value of 15 characters that needs 16 bytes is the hex form
+  (`00000000000000é` answers 0);
+- the hex read is `fmt.Sscanf` with `%016x`, not a whole-value parse: the field width counts the
+  sign, `0x` is not the base marker so `0x0000000000000f` answers the single character `0` and
+  therefore 0, `.../-1000000000000000` answers -72057594037927936 because the sign is inside the
+  field, and the digits stop at the first character that is not one and what was read is kept, so
+  `.../0000000000000001x` answers 1;
+- for a 16-byte value the hex read runs first and its failure falls through to the decimal read, so
+  `8000000000000000` answers 8000000000000000 from the decimal read;
+- the zero check belongs to the long form only, so the bare form answers 0 for `000000000000000g`;
+- the wordings the 500 answer writes: `EOF` when the field ran out (a field that is only a sign is
+  EOF), `expected integer` when the character there is not one, `item ID is zero` for the long form,
+  and the out-of-range wording names the token the scan read rather than the whole input
+  (`.../8000000000000000x` names `8000000000000000`). `strconv.ParseInt` accepts a `+` sign, and the
+  most negative value reads as `-9223372036854775808`.
+
+Streams (`stream.go`): the feed branch keeps what is after `feed/`; the two forms of each prefix are
+an OR in the reference's `switch`, so `user/-/state/com.google/starred` matches whatever user the
+read is for; a value that matches no prefix is the fallback error naming the whole value, and a
+stream prefix with a suffix that is not one of the seven answers the error naming what is left after
+the prefix. The seven suffixes are `read`, `starred`, `reading-list`, `kept-unread`, `broadcast`,
+`broadcast-friends`, `like`. An empty value is no stream with no error.
+
+The query read (`params.go`), which `r.URL.Query()` answers:
+
+- `Values.Get` answers the first value with the name; `Values[name]` is the list in the order the
+  pairs came in, and a pair with no `=` is one empty value, so `?a=b&a` answers `["b", ""]`;
+- `QueryStringParamList` trims each value and skips the empty ones, while `Values` itself does not —
+  `?s=+feed/1&s=&s=%20feed/2` answers the list `feed/1`, `feed/2` and the values `feed/1`, ``,
+  ` feed/2`, because the `+` is the space the pair read gives and the trim is what removes it;
+- `QueryIntParam` and `QueryInt64Param` answer the default for an empty, unparseable or negative
+  value, and the number is parsed from the value as the pair read gave it: `n=+50` is the pair
+  read's space, so it answers the default, while `n=%2B12` is the character itself and answers 12.
+  `bitSize 0` is 64 bits on this platform, so the two reads answer the same for the same value;
+- the order read's default is `d`, which is descending, and only the exact lowercase `o` is
+  ascending, compared as the pair read gives it (`r=O` and `r=%20o` are not it).
+
+The stream filter (`request_modifier.go`): the order is read first, then `s`, then `xt`, then `it`,
+so the first error is from the list read first; the page size is the value the read answers, and the
+clamp to `model.MaxEntryLimit` = 1000 is a separate rule pinned by `EntryQueryTests`. The
+continuation value is `count + offset` only while that is below the total, otherwise 0, which is
+what the JSON shape leaves out, and `count` is what the page returned, not the page size asked for.
+Goldens at the pins: (2, 0, 5) → 2, (2, 0, 2) → 0, (1, 0, 1) → 0, (3, 2, 5) → 0, (4, 1, 6) → 5,
+(5, 5, 5) → 0.
 
 ## Fever API (`internal/fever`)
 
