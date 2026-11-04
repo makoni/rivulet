@@ -493,11 +493,11 @@ These are the pure halves the handlers read, taken from the reference's own outp
 The tag read (`checkAndSimplifyTags`): the add loop runs before the remove loop. For the same map
 key the add `read` value writes true and the add `kept-unread` value writes false, while the remove
 loop answers the other way round; `starred` is true for the add loop and false for the remove loop.
-The add loop's `read` guard asks for `kept-unread`, which that loop never writes, so `add read` with
-`add kept-unread` reads both values and keeps the last one. The other guard in that loop asks for
-`read`, which the loop can write, so `add kept-unread` with `add read` is the error. Between the
-loops, `add read` with `remove kept-unread` is the error only when the add loop ran first;
-`add kept-unread` with `remove read` answers the error either way, so the order pin reads the first
+The add loop's `read` guard asks for `kept-unread`, which that loop never writes, so
+`add kept-unread` with `add read` reads both values and keeps the last one. The other guard in that
+loop asks for `read`, which the loop can write, so `add read` with `add kept-unread` is the error.
+Between the loops, `add read` with `remove kept-unread` is the error only when the add loop ran
+first; `add kept-unread` with `remove read` answers the error either way, so the order pin reads
 pair. `broadcast` and `like` write nothing. Any other value reaches the unsupported error, which
 names the type as Go's `String()` prints it, not the label or the id. The wordings: googlereader:
 kept-unread and read should not be supplied simultaneously names the pair for the read guard, and

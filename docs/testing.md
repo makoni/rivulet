@@ -553,7 +553,7 @@ headers name as unpinnable: the add loop's `read` guard, which asks for a map ke
 writes so it can never fire; the guard that an empty add and an empty remove answer the reference's
 own wording, which is the handler's rule; which endpoints apply the output check and which document
 a handler builds, both the handler's choice; and the `%q` quoting of the escape wording, which
-`docs/parity.md` already records as a divergence. No pin here had to be removed.
+`docs/parity.md` already records as a divergence.
 
 ## Soak
 
