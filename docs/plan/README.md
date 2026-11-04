@@ -9,25 +9,22 @@ and the global definition of done are met and CI is green.
 Miniflux **v2.3.3** (commit `c4d54f87`, <https://github.com/miniflux/v2>) is the behavioral
 specification for everything user-visible: parsing rules, sanitizer policy, scheduling, retention,
 API payload shapes. Verified specifics are condensed in [reference notes](../reference-notes.md);
-re-check the clone when in doubt. We re-implement in Swift; we do not transpile.
-Where storage diverges (SQLite instead of PostgreSQL), behavior must match at the API level,
-not at the SQL level.
+re-check the clone when in doubt. We re-implement in Swift; we do not transpile. Where storage
+diverges (SQLite instead of PostgreSQL), behavior must match at the API level, not at the SQL level.
 
-Earlier planning notes used milestones M0–M3 as *planning phases*, not as the MVP boundary:
-M0 → stages 0–1, M1 → stages 2–4, M2 → stages 5–7, M3 → stage 9. Stage 8 (packaging) is new and
-is inside the MVP.
+Earlier planning notes used milestones M0–M3 as *planning phases*, not as the MVP boundary: M0 →
+stages 0–1, M1 → stages 2–4, M2 → stages 5–7, M3 → stage 9. Stage 8 (packaging) is new and is inside
+the MVP.
 
 ## Principles
 
 1. **Miniflux compatibility is the spec.** When in doubt, read the reference implementation and
-   mirror the observable behavior.
-2. **API-first.** Google Reader API and Fever API come before anything else, so existing clients
-   work.
-3. **SQLite-first.** One file, WAL mode, FTS5. No PostgreSQL, no Redis, no external cron.
-4. **CLI-first, no web UI.** All management happens via commands and environment configuration.
-5. **TDD.** Every behavior lands test-first; integration tests are first-class and run in CI. See
-   [testing strategy](../testing.md).
-6. **Small dependency surface.** Linux-first. New dependencies require explicit approval.
+   mirror the observable behavior. 2. **API-first.** Google Reader API and Fever API come before
+   anything else, so existing clients work. 3. **SQLite-first.** One file, WAL mode, FTS5. No
+   PostgreSQL, no Redis, no external cron. 4. **CLI-first, no web UI.** All management happens via
+   commands and environment configuration. 5. **TDD.** Every behavior lands test-first; integration
+   tests are first-class and run in CI. See [testing strategy](../testing.md). 6. **Small dependency
+   surface.** Linux-first. New dependencies require explicit approval.
 
 ## Stages
 
@@ -38,14 +35,14 @@ is inside the MVP.
 | 2 | [Feed fetching](stage-2-fetching.md) | done — the deferred criterion is met by stage 4's pipeline | M |
 | 3 | [Parsing & sanitization](stage-3-parsing.md) | merged — every format has its adapter and its corpus, and the integration items are pinned by stage 4's pipeline; the last exit criterion closed with PR #36, the two sanitizer HTML fixtures read end to end against the reference's own output | XL |
 | 4 | [Ingestion & scheduling](stage-4-ingestion.md) | in progress — the pipeline, the tick's batch selection with the worker pool, both modes of `ScheduleNextCheck` with the weekly count, the merge and tombstone halves of the entry loop, the three halves of the icon path, the call that path makes for a feed from the pipeline, the manual pass the CLI makes over the batch, the minimal `status --json` contract the soak reads, and the soak artifact itself — 2h over 24 local stub feeds, its checks reading that contract round after round — are pinned, and retention is pinned by `RetentionTests`; open: the icon image resizing, which needs a dependency that has not been approved, and the in-process cadence loop that lands with stage 6 | M |
-| 5 | [Client APIs & OPML](stage-5-apis.md) | in progress — the first two slices are merged: `create-admin` with the user rules and the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the duplicate-name checks (PR #39); in the third slice the storage reads landed with PR #40, the Google Reader auth path with PR #41, and the contract rules the routers read — the item-id forms, the stream branches, the query read and the parameter reads — as pure logic with PR #42, and the handlers follow | XL |
+| 5 | [Client APIs & OPML](stage-5-apis.md) | in progress — the first two slices are merged: `create-admin` with the user rules and the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the duplicate-name checks (PR #39); in the third slice the storage reads landed with PR #40, the Google Reader auth path with PR #41, and the contract rules the routers read — the item-id forms, the stream branches, the query read and the parameter reads — as pure logic with PR #42, the rules the handlers read — the tag read, the output read and the document shapes — with PR #43, and the handlers follow | XL |
 | 6 | [CLI & operations](stage-6-cli.md) | not started | M |
 | 7 | [Acceptance & hardening](stage-7-acceptance.md) | not started | M |
 | 8 | [Packaging & deployment](stage-8-deployment.md) | not started | S–M |
 | 9 | [Post-MVP backlog](stage-9-stretch.md) | backlog | — |
 
-**MVP = stages 0–8** (roughly 6–9k lines of Swift plus tests; expect a few months of part-time
-work — stages 3 and 5 dominate). Stage 9 is opportunistic.
+**MVP = stages 0–8** (roughly 6–9k lines of Swift plus tests; expect a few months of part-time work
+— stages 3 and 5 dominate). Stage 9 is opportunistic.
 
 ## Working agreement
 

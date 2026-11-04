@@ -483,8 +483,46 @@ so the first error is from the list read first; the page size is the value the r
 clamp to `model.MaxEntryLimit` = 1000 is a separate rule pinned by `EntryQueryTests`. The
 continuation value is `count + offset` only while that is below the total, otherwise 0, which is
 what the JSON shape leaves out, and `count` is what the page returned, not the page size asked for.
-Goldens at the pins: (2, 0, 5) → 2, (2, 0, 2) → 0, (1, 0, 1) → 0, (3, 2, 5) → 0, (4, 1, 6) → 5, (5,
-5, 5) → 0.
+
+### The rules the handlers read (`handler.go`, `response.go`)
+
+These are the pure halves the handlers read, taken from the reference's own output at the toolchain
+`go.mod` pins and pinned by `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and
+`GoogleReaderShapeTests`.
+
+The tag read (`checkAndSimplifyTags`): the add loop runs before the remove loop. For the same map
+key the add `read` value writes true and the add `kept-unread` value writes false, while the remove
+loop answers the other way round; `starred` is true for the add loop and false for the remove loop.
+The add loop's `read` guard asks for `kept-unread`, which that loop never writes, so
+`add kept-unread` with `add read` reads both values and keeps the last one. The other guard in that
+loop asks for `read`, which the loop can write, so `add read` with `add kept-unread` is the error.
+Between the loops, `add read` with `remove kept-unread` is the error only when the add loop ran
+first; `add kept-unread` with `remove read` answers the error either way, so the order pin reads the
+first pair.
+`broadcast` and `like` write nothing. Any other value reaches the unsupported error, which
+names the type as Go's `String()` prints it, not the label or the id. The wordings: googlereader:
+kept-unread and read should not be supplied simultaneously names the pair for the read guard, and
+`googlereader: starred should not be supplied for add and remove simultaneously` names one suffix
+for the starred guard. Both are what the handler answers with.
+
+The output read (`checkOutputFormat`): POST reads through the form read, which reports a pair error
+for the whole form, and every other method reads through the query read, which skips that pair. Only
+the value `json` passes, compared as the read gives it. The wording is googlereader: only json
+output is supported ; which endpoints the handler applies it to is the handler's rule.
+
+The form read names the escape text: the substring from the percent, cut to three. Go builds the
+sentence with `%q`, which `docs/parity.md` records as a divergence, and the pins read escapes whose
+characters are ASCII.
+
+The documents (`response.go`), as `encoding/json` writes them: `itemRef` writes `id` always and the
+other two only when they have a value; `streamIDResponse` writes `itemRefs` as `[]`, because the
+reference builds the slice with `make` before writing it, and writes `continuation` only when it is
+not 0 and as a JSON string, because of the document's `,string` option; `userInfoResponse` has no
+`omitempty` on any of its four fields; `subscriptionCategoryResponse` writes `id` always and `label`
+and `type` only when they have a value. The goldens are what the pins read: `{"itemRefs":[]}` and
+`{"itemRefs":[{"id":"7"}],"continuation":"5"}` for the item-ids document, `{"tags":[]}` and
+`{"id":"user/7/state/com.google/starred"}` for the tag list, and
+`{"userId":"1","userName":"alice","userProfileId":"1","userEmail":"alice"}` for the user document.
 
 ## Fever API (`internal/fever`)
 
