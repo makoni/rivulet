@@ -6,7 +6,8 @@ the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token d
 duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40, the Google
 Reader auth path with PR #41, and the contract rules the routers read with PR #42; the rules the
 handlers read — the tag read, the output read and the document shapes — merged with PR #43 as pure
-logic too, and the handlers themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
+logic too, and the handlers for the four endpoints this piece implements landed with PR #44 over a
+real socket; the rest of the handlers are not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
 
@@ -38,7 +39,15 @@ logic too, and the handlers themselves are not started. **Effort:** XL. **Depend
       for `<link rel="alternate">`; known deviation: the reference finder also probes well-known
       paths and site-specific handlers — record it in `docs/parity.md`); `stream/items/ids`;
       `stream/items/contents`; `mark-all-as-read`; catch-all `/reader/api/0/*` → `[]` + HTTP 200
-      (parity: `unread-count`, `preference/stream/set` etc. stay unimplemented).
+      (parity: `unread-count`, `preference/stream/set` etc. stay unimplemented). Landed with PR #44
+      for the four handlers this piece implements — `edit-tag`, `tag/list`, `user-info` and
+      `stream/items/ids` — pinned by `GoogleReaderHandlerTests` over a real socket: the subpath
+      wildcard, the row id the auth read hands the handler, `edit-tag` reading `a` and `r` from the
+      body and `i` from the merged form, the storage values the tag branches write, the branch
+      switch with the two ways it reads the same exclude name, the two times every branch applies,
+      the order the parameter read answers, the continuation rule, the page-size clamp, and which
+      endpoints the output check applies to. The rest stays on the catch-all answer until its
+      handler lands.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -77,11 +86,15 @@ logic too, and the handlers themselves are not started. **Effort:** XL. **Depend
       and the value each branch writes, the output read with the side chosen by method, and the
       document shapes with the `omitempty` rule, the continuation as a string omitted when 0, and
       the empty list written as `[]`, pinned by `GoogleReaderTagsTests`, `GoogleReaderOutputTests`
-      and `GoogleReaderShapeTests`. What follows with the handlers: `n` clamped to 1000 where the
-      query builder applies it, the value the handler gives the continuation rule, `edit-tag`
-      reading tags from the body, which endpoints the output read applies to and the status the
-      answer writes, and the unknown-stream 500 wording, the subpath wildcard, and the text-vs-JSON
-      response shapes and the token-transport split above.
+      and `GoogleReaderShapeTests`. What landed with the handlers (PR #44): `n` clamped to 1000
+      where the query builder applies it, the value the handler gives the continuation rule,
+      `edit-tag` reading its tags from the body and its item ids from the merged form, which
+      endpoints the output read applies to and the status each error answer writes, the
+      unknown-stream 500 wording, and the subpath wildcard, pinned by `GoogleReaderHandlerTests`
+      over a socket with the status mapping pinned directly by `GoogleReaderResponseStatusTests`;
+      the plain-text `OK` for a write operation and the token-transport split landed with PR #41.
+      What the remaining handlers still have to answer is their own storage read and the document
+      each one builds.
 - [ ] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
       `saved_item_ids`, `items`, `mark=item|feed|group` with reference semantics (limit 50;
       `since_id` > `max_id` > `with_ids` precedence; `as=saved|unsaved`; invalid id → 0; `mark=feed`

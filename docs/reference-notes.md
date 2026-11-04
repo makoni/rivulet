@@ -524,6 +524,38 @@ and `type` only when they have a value. The goldens are what the pins read: `{"i
 `{"id":"user/7/state/com.google/starred"}` for the tag list, and
 `{"userId":"1","userName":"alice","userProfileId":"1","userEmail":"alice"}` for the user document.
 
+### What the handlers add (`handler.go`, commit `c4d54f87`)
+
+These are the handler's own choices, pinned over a real socket by `GoogleReaderHandlerTests`, with
+the status mapping itself pinned by `GoogleReaderResponseStatusTests`.
+
+- `edit-tag` reads `a` and `r` from `r.PostForm`, so a value that is only in the query is not read
+  for this endpoint, and reads `i` from `r.Form`, which is the side the merged read answers. The
+  guard that an empty add and an empty remove answers googlreader: add or/and remove tags should be
+  supplied , with the reference's typo, and runs before the item read, so an input that fails both
+  answers the tag error. The storage writes follow the order read, unread, unstarred, starred.
+- Which handlers apply the output check is the handler's rule: `tag/list` and `stream/items/ids` do,
+  `edit-tag` and `user-info` do not.
+- Which status an error answers with is the response builder's: 400 for the output check and for the
+  item read, 500 for the form, stream, tag and storage reads, and 404 for a row a storage read does
+  not find. `edit-tag` answers 500 for a form the read cannot parse, but the auth path reports that
+  error as 401 first, so this port cannot reach the handler's own answer for it.
+- `user-info` writes the row id the transport read found, twice, and the stored account name, which
+  is not the name in the token.
+- `tag/list` writes the starred entry first and then the categories in the order the reference's
+  `Categories` statement answers, which is title alone, not the position order the listing read
+  uses.
+- `stream/items/ids` requires exactly one stream before the branch switch, and the branches read the
+  same exclude name two different ways: the reading-list branch adds the status that is the other
+  side of the name (`WithStatuses(unread)`), the feed branch excludes the status the name itself
+  says (`WithoutStatus(read)`), and a target of another type adds nothing on either branch. The two
+  times are applied on all four branches, and only a positive value is applied. The feed branch
+  parses the part the stream read left as text, so `feed/x` is this handler's `strconv.ParseInt`
+  error rather than the stream read's. A stream type that is not one of the four branches answers
+  500 with the wording that names the type, which is not the query read's colon wording.
+- The count the continuation rule is given is what the branch returned, which is the handler's
+  choice upstream as well, and the page size reaches the storage layer through the builder's clamp.
+
 ## Fever API (`internal/fever`)
 
 Implemented parameters (`handler.go` dispatch): `groups`, `feeds`, `favicons`, `unread_item_ids`,

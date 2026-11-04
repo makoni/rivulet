@@ -1067,8 +1067,13 @@ nothing was written.
   the error rather than a read past the end. `GoogleReaderItemIDTests` and `GoogleReaderQueryTests`
   pin each of these, and the values are in `docs/reference-notes.md`.
 
-- The catch-all answer is pinned on the exact path the reference registers; the no-slash path is
-  pinned as the divergence below.
+- The catch-all answer is pinned on both halves the reference registers: the exact path and the
+  subpath, which RoutingKit matches with the lowest precedence, so a path an exact pattern registers
+  wins for the method that pattern names. The no-slash path is pinned as the divergence below.
+
+- What the handlers choose — which endpoints apply the output check, which status each error answer
+  writes, and the two ways the stream branches read the same exclude name — is pinned by
+  `GoogleReaderHandlerTests`, and the rules are listed in `docs/reference-notes.md`.
 
 **Known differences.**
 
@@ -1079,7 +1084,7 @@ nothing was written.
 | The escape wording | `fmt.Errorf("invalid URL escape %q", named)` quotes the text it names, so a control character inside it is written escaped, as `invalid URL escape "%\ta"` | the text the read names is written between plain quotes, so the same input answers `invalid URL escape "` with the control character raw, and a multi-byte character is cut as a whole character here where Go cuts three bytes | The words are the same; only a named escape that carries a control character or a multi-byte character is written differently, and the pins read escapes whose characters are ASCII |
 | Bytes that are not valid UTF-8 | a string holding an invalid byte is written as `\ufffd`, and a form value can hold one because Go's `unescape` returns raw bytes | a writer cannot receive an invalid byte, because a Swift `String` holds valid UTF-8, but the form read can build one: a percent escape whose bytes are not valid UTF-8 answers U+FFFD here, where Go keeps the byte | Only the reference has the write case; the pins read what this port writes for a valid replacement character, and the form half is recorded in the code comment |
 | The compare | `crypto/subtle.ConstantTimeCompare` | the same form, one pass over the bytes | No pin can read the timing, so the answer is pinned, including that the value is compared whole rather than as a prefix |
-| Path matching | the catch-all pattern is Go's subtree pattern, so it answers for any path under `/reader/api/0/` | only the exact path is registered today, so a path under it answers Vapor's own 404 without the builder headers | The subpath answer arrives with the router piece, which is what the acceptance matrix will read |
+| Path matching | the catch-all pattern is Go's subtree pattern, so it answers for any path under `/reader/api/0/` | the same, as RoutingKit's catch-all, which has the lowest precedence, so a path an exact pattern registers wins for the method that pattern names | No observable difference for the paths this port registers; the method mismatch below is where the two still differ |
 | No trailing slash | 307 with `text/html; charset=utf-8` and `<a href="/reader/api/0/">Temporary Redirect</a>.\n\n`, written before the auth middleware, so an unauthenticated request gets the redirect rather than 401 | the route is matched on the path segments, so the path without the trailing slash reaches the same handler and answers the catch-all `[]` + 200, or the protected 401 when it has no token | `GoogleReaderAuthTests` pins this port's answer for both halves; the reference's redirect is recorded in `docs/reference-notes.md` |
 | A method the pattern does not register | 405 `Method Not Allowed` as `text/plain; charset=utf-8`, also before the auth middleware | 404, which is what Vapor's router answers for a path it has no pattern for | The same for an unauthenticated request: upstream answers 405 where this port answers 404 |
 | Two rows and the last-login stamp | the integration row and the user row read by id, and `SetLastLogin` on a successful compare | one row, and no last-login column | The same single row here; no pin can read the stamp, so the suite header names it |

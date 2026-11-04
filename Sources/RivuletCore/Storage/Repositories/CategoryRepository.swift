@@ -41,6 +41,15 @@ public struct CategoryRepository {
             .all()
     }
 
+    /// The read the Google Reader tag list builds from upstream `Categories`: title alone, not
+    /// position.
+    public func listByTitle(userID: Int) async throws -> [Category] {
+        try await Category.query(on: database)
+            .filter(\Category.$userID == userID)
+            .sort(\Category.$title)
+            .all()
+    }
+
     /// Deletes the category; its feeds (and their entries) cascade away.
     public func delete(id: Int) async throws {
         try await Category.query(on: database).filter(\Category.$id == id).delete()

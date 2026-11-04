@@ -43,13 +43,18 @@ struct GoogleReaderForm {
     /// The pairs, in the order Go builds `r.Form` in: the body first, then the query.
     private let pairs: [(name: String, value: String)]
 
+    /// The pairs Go builds `r.PostForm` from, without the query pairs. `edit-tag` reads `a` and `r`
+    /// through this side, while `i` is read through `r.Form`.
+    private let postPairs: [(name: String, value: String)]
+
     /// Builds the form from the raw query and the body, both as the request carries them.
     ///
     /// - Throws: `ReadError` for what Go reports as an error for the whole form.
     init(query: String?, body: String?) throws {
-        var pairs: [(name: String, value: String)] = []
-        pairs.append(contentsOf: try Self.pairs(body))
+        let postPairs = try Self.pairs(body)
+        var pairs = postPairs
         pairs.append(contentsOf: try Self.pairs(query))
+        self.postPairs = postPairs
         self.pairs = pairs
     }
 
@@ -58,6 +63,16 @@ struct GoogleReaderForm {
     /// order the pairs are read in overall.
     func value(named name: String) -> String {
         pairs.first { $0.name == name }?.value ?? ""
+    }
+
+    /// `r.Form[name]`, in the order the merged pairs were built.
+    func values(named name: String) -> [String] {
+        pairs.filter { $0.name == name }.map(\.value)
+    }
+
+    /// `r.PostForm[name]`, in the order the body pairs came in.
+    func postValues(named name: String) -> [String] {
+        postPairs.filter { $0.name == name }.map(\.value)
     }
 
     // MARK: - Rules

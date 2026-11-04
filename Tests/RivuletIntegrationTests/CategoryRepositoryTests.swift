@@ -4,7 +4,10 @@ import SQLKit
 import Testing
 @testable import RivuletCore
 
-/// CRUD round-trip for ``CategoryRepository`` against a real SQLite file.
+/// CRUD round-trip for ``CategoryRepository`` against a real SQLite file, and the two orders its
+/// reads answer in: position then title, and title alone for the read the Google Reader tag list
+/// builds. Both order pins set positions that differ from the title order, so a patch that used one
+/// order for both reads fails on the pin that names the other.
 @Suite struct CategoryRepositoryTests {
     @Test func createStoresTheFieldsAndDefaultsPositionToZero() async throws {
         try await withMigratedStorage { _, storage in
@@ -79,6 +82,31 @@ import Testing
 
                 let titles = try await categories.list(userID: userID).map(\.title)
                 #expect(titles == ["All", "bravo", "delta", "alpha", "charlie"])
+            }
+        }
+    }
+
+    @Test func listByTitleIgnoresPosition() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let categories = CategoryRepository(connection)
+                let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: false)
+                let userID = try #require(user.id)
+                _ = try await categories.create(userID: userID, title: "News")
+                _ = try await categories.create(userID: userID, title: "Tech")
+
+                // The Google Reader tag list reads the reference's `Categories` statement, which
+                // orders by title alone. Positions are set so a patch that ordered by position
+                // answered Tech first here.
+                guard let sql = connection as? any SQLDatabase else {
+                    throw StorageError.notSQLDatabase
+                }
+                try await sql.raw("UPDATE categories SET position = 2 WHERE title = 'News'").run()
+                try await sql.raw("UPDATE categories SET position = 1 WHERE title = 'Tech'").run()
+
+                #expect(try await categories.listByTitle(userID: userID).map(\.title)
+                    == ["All", "News", "Tech"])
             }
         }
     }

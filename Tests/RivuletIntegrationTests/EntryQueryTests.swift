@@ -7,7 +7,10 @@ import Testing
 /// The reference builds listings with `EntryQueryBuilder`
 /// (`internal/storage/entry_query_builder.go`); these tests pin the behaviours
 /// the client APIs rely on: scoping, strict cursors and deterministic
-/// pagination. Full-text search has its own suite (``EntrySearchTests``).
+/// pagination. Full-text search has its own suite (``EntrySearchTests``). The status exclusion is
+/// the filter the Google Reader feed branch builds: it removes only the status it names, and a patch
+/// that read it as an included status fails on its pin; the input that reads both kinds at once is
+/// what shows the two are separate rather than one filter read twice.
 @Suite struct EntryQueryTests {
     @Test func aListingIsScopedToTheOwner() async throws {
         try await withMigratedStorage { _, storage in
@@ -121,6 +124,57 @@ import Testing
                 #expect(
                     try await entries.listIDs(EntryQuery(userID: feed.userID, starred: nil))
                         == [unread, read, starred]
+                )
+            }
+        }
+    }
+
+    @Test func statusExclusionRemovesOnlyTheStatusItNames() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                let unread = try await seedEntry(
+                    connection, userID: feed.userID, feedID: feed.feedID, hash: "unread", publishedAt: 100
+                )
+                let read = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "read",
+                    publishedAt: 200,
+                    status: .read
+                )
+                let starred = try await seedEntry(
+                    connection,
+                    userID: feed.userID,
+                    feedID: feed.feedID,
+                    hash: "starred",
+                    publishedAt: 300,
+                    starred: true
+                )
+                let entries = EntryRepository(connection)
+
+                // This is upstream `WithoutStatus`: an excluded status removes its own rows and
+                // keeps the others. A patch that read exclusion as an included status failed.
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, excludeStatus: .read))
+                        == [unread, starred]
+                )
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, excludeStatus: .unread))
+                        == [read]
+                )
+                #expect(
+                    try await entries.listIDs(EntryQuery(userID: feed.userID, excludeStatus: nil))
+                        == [unread, read, starred]
+                )
+
+                // The two filters stay separate: a read entry selected by an included status is
+                // still removed when the same status is also excluded.
+                #expect(
+                    try await entries.listIDs(
+                        EntryQuery(userID: feed.userID, statuses: [.read], excludeStatus: .read)
+                    ) == []
                 )
             }
         }

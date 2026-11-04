@@ -528,7 +528,8 @@ patching that rule and reverting — one probe per rule. The probe for the escap
 of answering, which is what the pin says that rule does: it reads past the end of the pair. Two pins
 that were written and then removed are recorded here because they cannot fail on their own: the
 continuation rule answers the sum for whatever count it is given, so which count the handler gives
-it is not a rule this side can pin, and the header names it as landing with the handler; and the pin
+it is not a rule the pure side can pin — the handler suite pins it over a socket, on the page where
+the sum is below the total and the page where it is not; and the pin
 that only said the read reports no error for `?s=`, which the list read's skip of the empty value
 already settles, so it could not fail on its own. The other rules these four headers name as
 unpinnable are the count `fmt.Sscanf` reports, which has no input that can fail, the order the two
@@ -551,9 +552,30 @@ the mapping does, because the guard compares the value with `json`, and no value
 can equal it; the `+` rule is pinned by the query suite and by the login's form read. What these
 headers name as unpinnable: the add loop's `read` guard, which asks for a map key that loop never
 writes so it can never fire; the guard that an empty add and an empty remove answer the reference's
-own wording, which is the handler's rule; which endpoints apply the output check and which document
-a handler builds, both the handler's choice; and the `%q` quoting of the escape wording, which
-`docs/parity.md` already records as a divergence.
+own wording, which is the handler's rule; which document a handler builds, which is the handler's
+choice; and the `%q` quoting of the escape wording, which `docs/parity.md` already records as a
+divergence. Which endpoints apply the output check was named there as the handler's choice and is
+now pinned by the handler suite.
+
+### The handlers (`GoogleReaderHandlerTests`, PR #44)
+
+The handlers are pinned over a real socket, and the status the response builder writes for each
+error is pinned by `GoogleReaderResponseStatusTests`, which reads the builder directly. 37 probes,
+one per rule, each showing its pin failing on the rule it names, all of them biting on the first
+attempt. Two rules need two patches because the wrong handler is a place the code does not read: the
+output check `user-info` does not apply has to be added to the handler and the query has to reach it
+through the route, and the order that reports the tag error before the item read needs the guard
+moved as well as the read moved.
+
+What the handler pins cannot fail on is named in the suite header. The user-info guard that a row
+found by the auth read is read back has no request this suite can build, because a request that
+reaches the handler already authenticated against that row, so the status mapping for that shape is
+pinned directly. The handler's own answer for a form the read cannot parse is answered as 401 by the
+transport first; the two storage write sets are disjoint for every input that reaches them, so their
+order cannot be read; the reference reads the integration settings after the write, which this port
+has none of; a storage-layer failure has no input this suite can make it report; and the method
+mismatch, where the reference answers 405 for a path that has an exact pattern for another method,
+is recorded in `docs/parity.md` rather than pinned here.
 
 ## Soak
 
