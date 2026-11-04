@@ -12,16 +12,18 @@ import Testing
 /// that compares the input as read fails on the mixed-case input; the lookup reads the token
 /// column, which a patch that read the name column for this rule answers on a different row; the
 /// Google Reader read compares the name as read, unlike the account-name lookup, which a patch that
-/// lowercases the input fails; and both reads answer nothing when no row matches. What they cannot
-/// fail on: the reference's `*_enabled` flags, which this port has no column for, so the branch
-/// those flags select has nothing to pin here; the single-row limit of these reads, which a lookup
-/// that fetched every matching row answers the same way, so the code states it; the bcrypt compare,
+/// lowercases the input fails; and both reads answer nothing when no row matches. The pin that
+/// reads a row with nothing stored is the divergent half: the reference's integration columns
+/// default to an empty string, so its side of that rule has nothing to pin here. What these pins
+/// cannot fail on: the reference's `*_enabled` flags, which this port has no column for, so the
+/// branch those flags select has nothing to pin here; the single-row limit, which a lookup that
+/// fetched every matching row answers the same way, so the code states it; the bcrypt compare,
 /// which `BcryptHasherTests` pins, and which sits in the application layer because `RivuletCore`
-/// must not depend on Vapor; and the reference's two failure wordings, which this port answers with
-/// `nil` for "no row". The pin for the empty input covers a row that has nothing stored, where a
-/// patch that read an empty stored value as a match would answer that row. The control that shows
-/// the name read against the account lookup fails on a patch that made the account lookup
-/// case-sensitive.
+/// must not depend on Vapor; the reference's wording for the Google read, which reports an error
+/// for no row and for a stored value that is not a hash, where this port answers `nil`; the control
+/// pin, which cannot tell "lowercase the input" from "lowercase both sides", because the reference
+/// lowercases only the input for the account lookup; and `LOWER` on SQLite, which is ASCII-only
+/// where the reference's Postgres `lower()` is Unicode-aware, so no fixture here can show that.
 @Suite struct ClientAuthTests {
     @Test func theFeverLookupLowercasesBothSides() async throws {
         try await withMigratedStorage { _, storage in
@@ -75,21 +77,24 @@ import Testing
                 let users = UserRepository(connection)
                 let sql = try sqlDatabase(connection)
 
-                // The account name is stored lowercase and the integration name as read, so the two
-                // reads answer differently for the same mixed-case input.
+                // The account name is stored lowercase, as the repository writes it, and the
+                // integration name as the value was given.
                 try await insert(sql, username: "grname", feverUsername: "F1", feverToken: "t",
                     googleReaderUsername: "GrName", googleReaderPasswordHash: "stored-hash")
 
+                // The row is matched by the name as read, so a patch that lowercases the input
+                // stops answering it.
                 let asRead = try await users.googleReaderPasswordHash(username: "GrName")
-                #expect(asRead == "stored-hash", "the value as read: \(asRead)")
-                let lowercased = try await users.googleReaderPasswordHash(username: "grname")
-                #expect(lowercased == nil, "the input is not lowercased first: \(lowercased)")
+                #expect(asRead == "stored-hash", "the row matched by the name as read: \(asRead)")
 
-                // The control that names the difference: this read compares the name as read, while
-                // the account-name lookup lowercases what it is given.
+                // The control that names the difference between the two reads for one input: this
+                // read compares the name as read, while the account-name lookup lowercases what it
+                // is given.
+                let nameRead = try await users.googleReaderPasswordHash(username: "GRNAME")
+                #expect(nameRead == nil, "the input is not lowercased first: \(nameRead)")
                 let accountRow = try await users.fetch(username: "GRNAME")
                 #expect(accountRow != nil,
-                    "the account-name lookup is case-insensitive: \(accountRow)")
+                    "the account-name lookup lowercases the same input: \(accountRow)")
             }
         }
     }
@@ -107,13 +112,16 @@ import Testing
                 let noName = try await users.googleReaderPasswordHash(username: "Nobody")
                 #expect(noName == nil, "no row holds this name: \(noName)")
 
-                // A row with nothing stored is not a match for an empty input either, which a patch
-                // that read an empty stored value as a match fails on.
-                try await insert(sql, username: "carol")
+                // A row that stores nothing is not a match either, which is where this port
+                // diverges from the reference: its integration columns default to an empty string,
+                // so an empty input matches there. Each assertion names one side of the stored
+                // value.
+                try await insert(sql, username: "carol", googleReaderUsername: "carol")
                 let emptyToken = try await users.userByFeverToken("")
-                #expect(emptyToken == nil, "the stored value is NULL, not empty: \(emptyToken)")
+                #expect(emptyToken == nil,
+                    "the stored token is NULL, not the empty value: \(emptyToken)")
                 let noHash = try await users.googleReaderPasswordHash(username: "carol")
-                #expect(noHash == nil, "the row has no stored hash: \(noHash)")
+                #expect(noHash == nil, "the row is matched but stores no hash: \(noHash)")
             }
         }
     }
