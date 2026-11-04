@@ -151,7 +151,7 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
 
 Findings from review run 1 on PR #44 that do not change behavior:
 
-- `GoogleReaderHandlers.swift` is 316 lines, a little over the ~300 aim for a production file: the
+- `GoogleReaderHandlers.swift` is 317 lines, a little over the ~300 aim for a production file: the
   handlers are one function per endpoint, so the file can only be split by grouping endpoints,
   which is a style matter.
 
