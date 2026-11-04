@@ -14,8 +14,9 @@ import Vapor
 /// answers with.
 ///
 /// What the suite names as not falsifiable is named in `GoogleReaderAuthTests`: the constant-time
-/// form of the compare, and the rule that a name the form does not carry answers the same as an
-/// empty value.
+/// form of the compare, the rule that a name the form does not carry answers the same as an empty
+/// value, and the login guard's password half, which has nothing to fail on because an empty
+/// password matches no stored hash.
 struct GoogleReaderAuth: Sendable {
     private let storage: SQLiteStorage
 

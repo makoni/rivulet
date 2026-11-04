@@ -4,9 +4,9 @@ import Testing
 import Vapor
 @testable import RivuletCore
 
-/// The requests the Google Reader suite sends over the socket, and the reads of the answer they come
-/// back with. The body is sent as the bytes are given, so a rule about what the form read sees is
-/// shown by the bytes rather than by an encoding the client added.
+/// The requests the Google Reader suite sends over the socket, and the reads of the answer they
+/// come back with. The body is sent as the bytes are given, so a rule about what the form read sees
+/// is shown by the bytes rather than by an encoding the client added.
 struct GoogleReaderRequests {
     private let app: Application
     private let base: String
