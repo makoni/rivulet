@@ -1,8 +1,6 @@
 // Ported from Miniflux internal/googlereader/handler.go's checkAndSimplifyTags (Apache-2.0);
 // adapted for Swift/SQLite.
 
-import Foundation
-
 /// The tags `edit-tag` builds from the values it reads.
 ///
 /// The add loop runs before the remove loop, which is what the two guards see. Inside the add loop

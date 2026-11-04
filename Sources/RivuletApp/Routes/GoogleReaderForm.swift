@@ -114,8 +114,9 @@ struct GoogleReaderForm {
         return String(decoding: bytes, as: UTF8.self)
     }
 
-    /// The text the escape error names: the substring from the percent, cut to three. Go cuts by
-    /// bytes, which is what this does, so a multi-byte character is cut where Go cuts it.
+    /// The text the escape error names: the substring from the percent, cut to three. Go cuts three
+    /// bytes; this cuts three characters, so a multi-byte character is cut whole here, which is the
+    /// divergence `docs/parity.md` records.
     private static func namedEscape(_ scalars: String.UnicodeScalarView, from index: String.Index) -> String {
         var bytes: [UInt8] = []
         var position = index

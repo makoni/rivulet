@@ -74,7 +74,7 @@ when it is 0, and the empty list written as `[]` because the reference builds th
 What those headers name as unpinnable: the guard inside the add loop, which asks for the map key
 that loop never writes so it can never fire, the guard that an empty add and an empty remove answer
 the reference's own wording, and which endpoints apply the output check, both being the handler's
-choice. The handlers, the status these errors answer with, the unknown-stream 500 wording and the
+choice. The handlers, the status these errors and the unknown-stream wording answer with, and the
 subpath wildcard stay with the next piece, together with the Fever parameter set, `quickadd`
 discovery, the icon route, OPML and the acceptance journey.
 

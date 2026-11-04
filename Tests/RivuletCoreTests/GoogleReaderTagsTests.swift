@@ -8,15 +8,18 @@ import Testing
 /// What these pins can fail on, each checked by patching the rule and reverting: the value each
 /// branch writes — `read` is true for the add loop and false for the remove loop, and the same type
 /// answers the other value for `kept-unread`, which a patch that read one value per type fails; the
-/// order the two loops run in, which a patch that swapped them fails on `add read` with
-/// `remove kept-unread`, where the add loop's write is what the remove loop's guard sees; that the
-/// add loop keeps the last value it reads rather than the first, which a patch that stopped at the
-/// first value fails on `add read` with `add kept-unread`; the two wordings, which name different
-/// things — the pair of suffixes for the read guard and the single suffix for the starred guard, so
-/// a patch that used one wording for both fails; that `broadcast` and `like` write nothing and are
-/// not the unsupported error, which a patch that read them as a branch that writes fails; and the
-/// unsupported branch, which names the type as the reference prints it — the pins read two types,
-/// so a patch that wrote one wording for every type fails on the other one.
+/// order the two loops run in, which a patch that ran the remove loop first fails on `add read`
+/// with `remove kept-unread`, where the add loop's write is what the remove loop's guard sees; the
+/// same pair also fails on a patch that made that guard compare the value's own type, which is why
+/// the guard is named here; `add kept-unread` with `remove read` answers the error under both
+/// orders, so it cannot pin the order; that the add loop keeps the last value it reads rather than
+/// the first, which a patch that stopped at the first value fails on `add kept-unread` with
+/// `add read`; the two wordings, which name different things — the pair of suffixes for the read
+/// guard and the single suffix for the starred guard, so a patch that used one wording for both
+/// fails; that `broadcast` and `like` write nothing and are not the unsupported error, which a
+/// patch that read them as a branch that writes fails; and the unsupported branch, which names the
+/// type as the reference prints it — the pins read two types, so a patch that wrote one wording for
+/// every type fails on the other one.
 ///
 /// What these pins cannot fail on: the add loop's `read` guard, which asks whether the map holds
 /// `KeptUnreadStream` and can never be true because that loop writes only `ReadStream` and
@@ -67,9 +70,9 @@ import Testing
     }
 
     @Test func theAddLoopRunsBeforeTheRemoveLoop() throws {
-        // The add loop's write is what the remove loop's guard sees, so this pair is the error. A
-        // patch that ran the remove loop first answered no error here, because that guard would
-        // have seen an empty map.
+        // The add loop writes first, so this pair is the error for the guard. A patch that ran the
+        // remove loop first answered nothing, because that guard saw an empty map; the same pair
+        // answered nothing when the guard compared the value's own type.
         #expect(try errorDescription(adds: [state + "read"], removes: [state + "kept-unread"]) ==
             "googlereader: kept-unread and read should not be supplied simultaneously",
             "the add loop wrote read before the remove loop read the guard")
@@ -118,24 +121,30 @@ import Testing
     @Test func broadcastAndLikeWriteNothingAndAreNotAnError() throws {
         // These two branches log and continue, so the map answers nothing for them and the request
         // is not the unsupported error either. A patch that wrote a value, or that fell through to
-        // the unsupported branch, failed both halves.
+        // the unsupported branch, failed both halves of each loop.
         #expect(try GoogleReaderTags.simplify(adds: tags(state + "broadcast"), removes: []) == [:],
             "broadcast writes nothing")
         #expect(try GoogleReaderTags.simplify(adds: tags(state + "like"), removes: []) == [:],
             "like writes nothing")
-        #expect(try errorDescription(adds: [], removes: [state + "broadcast"]) == nil,
-            "and the remove loop reads them the same way")
+        #expect(try GoogleReaderTags.simplify(adds: [], removes: tags(state + "broadcast")) == [:],
+            "and the remove loop reads broadcast the same way")
+        #expect(try GoogleReaderTags.simplify(adds: [], removes: tags(state + "like")) == [:],
+            "and the remove loop reads like the same way")
     }
 
     @Test func theUnsupportedBranchNamesTheTypeAsTheReferencePrintsIt() throws {
-        // Only the seven suffixes are tag types, so a label is the input that reaches this branch,
-        // and the wording names the type rather than the label.
-        #expect(try errorDescription(adds: [], removes: []) == nil, "no tag is nothing to write")
-        #expect(try errorDescription(adds: [state + "read"], removes: []) == nil, "a tag type is not the error")
+        // Only the seven suffixes are tag types, so a label and a feed are the inputs that reach
+        // this branch, and the wording names the type rather than the label or the id. A patch that
+        // wrote one wording for every type failed the second of these two.
         #expect(try errorDescription(adds: ["user/-/label/x"], removes: []) ==
             "googlereader: unsupported tag type: LabelStream",
             "the type as the reference prints it, not the label name")
         #expect(try errorDescription(adds: ["feed/1"], removes: []) ==
             "googlereader: unsupported tag type: FeedStream", "the other type the same branch names")
+
+        // The control, which is what a patch that reported the error for any value fails on: a tag
+        // type and no value at all both answer nothing here.
+        #expect(try errorDescription(adds: [state + "read"], removes: []) == nil, "a tag type is not the error")
+        #expect(try errorDescription(adds: [], removes: []) == nil, "no tag is nothing to write")
     }
 }

@@ -537,16 +537,23 @@ stream prefixes are removed in, which no input this side can build is affected b
 reaches, because the parameter read already answers the default for the value that would reach it.
 
 PR #43 adds three suites pinned the same way: `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and
-`GoogleReaderShapeTests` — one probe per rule, 26 probes, all showing their pin failing. Two probes
-could not bite at first and are recorded here: the pin that read the unsupported wording for one
-type could not fail on a patch that wrote that wording for every type, so it now reads a second type
-the same branch answers for; and the escape pin could not fail on a patch that named the pair from
-its start, because the value it read began at the percent, so that probe now patches both error
-sites. What these headers name as unpinnable: the add loop's `read` guard, which asks for a map key
-that loop never writes so it can never fire; the guard that an empty add and an empty remove answer
-the reference's own wording, which is the handler's rule; which endpoints apply the output check and
-which document a handler builds, both the handler's choice; and the `%q` quoting of the escape
-wording, which `docs/parity.md` already records as a divergence. No pin here had to be removed.
+`GoogleReaderShapeTests` — one probe per rule, 28 probes, all showing their pin failing. Four probes
+could not bite at first and are recorded here. The order pin reads `add read` with
+`remove kept-unread`, where the add loop's write is what the remove guard sees; moving only the loop
+headers did not change that answer, so the probe patches the whole two loop blocks. The guard patch
+for the same pin includes the value the guard writes, because the guard line alone appears in both
+loops. The unsupported pin could not fail on a patch that wrote that wording for every type, so it
+now reads a second type the same branch answers for; and the escape pin could not fail on a patch
+that named the pair from its start, because the value it read began at the percent, so that probe
+patches both guard sites. One pin was written and then removed because it cannot fail on its own:
+the pin that said a `+` in the value is the space the read gives answers the check's error whatever
+the mapping does, because the guard compares the value with `json`, and no value that carries a `+`
+can equal it; the `+` rule is pinned by the query suite and by the login's form read. What these
+headers name as unpinnable: the add loop's `read` guard, which asks for a map key that loop never
+writes so it can never fire; the guard that an empty add and an empty remove answer the reference's
+own wording, which is the handler's rule; which endpoints apply the output check and which document
+a handler builds, both the handler's choice; and the `%q` quoting of the escape wording, which
+`docs/parity.md` already records as a divergence. No pin here had to be removed.
 
 ## Soak
 
