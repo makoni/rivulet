@@ -368,6 +368,17 @@ Implemented routes (`handler.go`, Go 1.22 mux):
 - catch-all `GET|POST /reader/api/0/*` → `[]` + HTTP 200 for unimplemented endpoints
   (`unread-count` and `preference/stream/set` are **not** implemented — they hit the catch-all).
 
+What the Go 1.22 mux adds around that pattern (probe at the toolchain `go.mod` pins):
+
+- the pattern is a subtree pattern, so it answers for any path under `/reader/api/0/`, and `HEAD`
+  matches a `GET` pattern;
+- `/reader/api/0` without the trailing slash answers 307, `text/html; charset=utf-8`, body
+  `<a href="/reader/api/0/">Temporary Redirect</a>.\n\n`, with `Location` keeping the query;
+- a method the pattern does not register answers 405 `Method Not Allowed` as
+  `text/plain; charset=utf-8`, and an unmatched path answers 404 `404 page not found`;
+- the redirect and the 405 happen before `withApiKeyAuth`, so an unauthenticated request gets the
+  redirect or the 405 rather than 401.
+
 Authentication:
 
 - Separate per-user integration credentials (Google Reader username/password, independent from the
@@ -383,6 +394,20 @@ Authentication:
   `mark-all-as-read`) return plain text `OK`.
 - Failure: HTTP 401, `text/plain`, body `Unauthorized`, header `X-Reader-Google-Bad-Token: true`;
   `ClientLogin` failure returns JSON `{"error_message": "access unauthorized"}`.
+- The `T` field is read through `ParseForm`, which puts the urlencoded body pairs in `r.Form` before
+  the query pairs, so `Form.Get` answers the body value when both sides carry the name. Go's
+  `parseQuery`: `;` is not a pair separator, so a pair carrying one is reported as an error for
+  the whole query while the pairs read before it stay in the values; a pair with no `=` is a key
+  with an empty value, empty pairs are skipped, `+` is a space and `%` must be a two-digit hex
+  escape in either case, and a multipart body is never part of the form. The media type is read
+  with its parameters ignored.
+- The `Authorization` header is read as `strings.Fields` splits it, which collapses whitespace, with
+  exactly two fields, and the second is `strings.Split` on `=`, which keeps empty parts, so a field
+  with two equals signs gives three parts and fails the check.
+- The response builder sets `Content-Type: application/json` with no charset and
+  `text/plain; charset=utf-8` for the text shapes. `json.Marshal` writes the compact form, with the
+  object keys in the order the struct declares them, no solidus escape, and the three HTML-sensitive
+  characters and the two line separators escaped as `\uXXXX` with lowercase digits.
 
 Contract details worth pinning in golden tests:
 

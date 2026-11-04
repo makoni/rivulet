@@ -45,12 +45,23 @@ are not started. **Effort:** XL. **Depends on:** Stage 4.
       to pin here; for "no row" the Fever read answers `nil` as upstream does, while the Google read
       reports an error upstream; and a row that stores nothing is `NULL` here where upstream's
       columns default to an empty string, so the pin reads the port's side only.
-- [ ] Google Reader auth: `ClientLogin` exchange for the stateless HMAC token. Token transport is
+- [x] Google Reader auth: `ClientLogin` exchange for the stateless HMAC token. Token transport is
       method-specific exactly like the reference: **POST routes read the `T` form field; GET routes
       read `Authorization: GoogleLogin auth=…`**. Response shapes are client-visible: `ClientLogin`
       returns plain text `SID=…/LSID=…/Auth=…` by default (JSON only with `output=json`), the token
       endpoint returns bare text, write operations return plain text `OK`. Failure semantics: 401,
       `text/plain`, `Unauthorized`, `X-Reader-Google-Bad-Token: true`.
+      Landed with PR #41 for the endpoints this piece answers: `ClientLogin`, the token endpoint and
+      the catch-all's `[]` + 200. The field names the login reads, the text shape by default and the
+      JSON shape only when `output` says `json`, the compare against the stored value with a stored
+      value the compare cannot read answering the same as a mismatch, the guard that an empty field
+      ends the login before the read, the transport chosen by method, the merged form with Go's
+      order and its two whole-form errors, the header read as `strings.Fields` splits it, and the
+      two 401 shapes that differ between the login path and the protected path are pinned by
+      `GoogleReaderAuthTests` over a real socket; the derivation and the JSON write are pinned
+      against the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`. Plain
+      text `OK` for the write operations follows with the routers, and so do the mux rules above —
+      the subpath match, the no-slash redirect, the 405 — which no test here sends a request for.
 - [ ] Contract details pinned by golden tests: `n` clamped to 1000 (0 → 1000); `continuation` is a
       numeric offset encoded as a JSON string, omitted when 0; `edit-tag` reads tags from the body;
       item ids accepted in 4 formats; `output=json` on the affected endpoints; unknown streams →

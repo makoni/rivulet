@@ -39,8 +39,15 @@ lookup lowercases both sides, the Google Reader read compares the name as read, 
 when no row matches, and the control pin shows that the account lookup lowercases what it is given
 while this read does not. What that suite cannot show is named in its header — the `*_enabled` gate,
 the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
-default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The next piece is the
-Google Reader and Fever routers.
+default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The Google Reader auth
+path landed with PR #41: the login's own field names, the text shape by default and the JSON shape
+only when `output` says `json`, the compare against the stored value, the guard that an empty field
+ends the login before the read, the transport chosen by method, the merged form with Go's order, the
+header read as `strings.Fields` splits it, the structure rule and the two 401 shapes are pinned by
+`GoogleReaderAuthTests` over a real socket, with the derivation and the JSON write pinned against
+the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`; the timing form of the
+compare and the one-part structure are named as unpinnable in that header, as are the mux rules the
+router piece brings. The next piece is the Google Reader and Fever routers.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
