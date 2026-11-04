@@ -63,7 +63,7 @@ and which count the continuation rule is given, because that is the handler's ch
 reports a pair error for the whole form while the query read skips that pair, which is
 `r.URL.Query()`; both are recorded in the code comment.
 
-PR #43 landed the rules the handlers read, still as pure logic with no HTTP: the tag read with the
+PR #43 merged the rules the handlers read, still as pure logic with no HTTP: the tag read with the
 add loop before the remove loop, the value each branch writes for `read`, `kept-unread` and
 `starred` — the other way round for the remove loop — the two wordings that name different things,
 and the branches that write nothing and are not the unsupported error; the output read, where the

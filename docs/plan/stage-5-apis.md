@@ -5,7 +5,7 @@
 the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
 duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40, the Google
 Reader auth path with PR #41, and the contract rules the routers read with PR #42; the rules the
-handlers read — the tag read, the output read and the document shapes — landed with PR #43 as pure
+handlers read — the tag read, the output read and the document shapes — merged with PR #43 as pure
 logic too, and the handlers themselves are not started. **Effort:** XL. **Depends on:** Stage 4.
 
 ## Scope
