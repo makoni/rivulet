@@ -38,6 +38,11 @@ duplicate-name rules (PR #39). The rest is not started. **Effort:** XL. **Depend
       `docs/parity.md`); `stream/items/ids`; `stream/items/contents`; `mark-all-as-read`;
       catch-all `/reader/api/0/*` → `[]` + HTTP 200 (parity: `unread-count`,
       `preference/stream/set` etc. stay unimplemented).
+- [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
+      lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
+      Landed with PR #40: pinned by `ClientAuthTests`; the reference's `*_enabled` gate has
+      nothing to pin here, and the port answers `nil` for "no row" where the reference reports an
+      error.
 - [ ] Google Reader auth: `ClientLogin` exchange for the stateless HMAC token. Token transport is
       method-specific exactly like the reference: **POST routes read the `T` form field; GET routes
       read `Authorization: GoogleLogin auth=…`**. Response shapes are client-visible: `ClientLogin`

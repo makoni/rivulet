@@ -107,4 +107,36 @@ public struct UserRepository {
             .filter(\User.$googleReaderUsername == googleReaderUsername)
             .first() != nil
     }
+
+    /// `UserByFeverToken`: the row whose Fever token matches, with both sides compared lowercase,
+    /// as the reference's `lower(integrations.fever_token)=lower($1)` does. `ClientAuthTests` pins
+    /// each side and that this read looks at the token column. The reference gates the read on
+    /// `fever_enabled`, which this port has no column for, so that branch has nothing to pin here.
+    /// The single row is what the reference reads; no pin can tell a single-row read from one that
+    /// read every match, so the limit is stated here. A row with nothing stored is not a match for
+    /// an empty input, because `NULL` is not the empty value.
+    public func userByFeverToken(_ token: String) async throws -> User? {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT id FROM users
+            WHERE LOWER(fever_token) = LOWER(\(bind: token))
+            LIMIT 1
+            """).first()
+        guard let row else { return nil }
+        return try await fetch(id: try row.decode(column: "id", as: Int.self))
+    }
+
+    /// The read `GoogleReaderUserCheckPassword` is built on: the stored hash for one row. The name
+    /// is compared as read, with no `LOWER`, unlike the account-name lookup, which
+    /// `ClientAuthTests` pins. The reference gates this read on `googlereader_enabled`, which this
+    /// port has no column for, and reports "unable to find this user" as an error; this port
+    /// answers `nil` for "no row", and the compare itself belongs to the application layer, through
+    /// `BcryptHasher`, because `RivuletCore` must not depend on Vapor. The single row is what the
+    /// reference reads, which no pin can tell from a read that fetched every match, so the limit is
+    /// stated here.
+    public func googleReaderPasswordHash(username: String) async throws -> String? {
+        let row = try await User.query(on: database)
+            .filter(\User.$googleReaderUsername == username)
+            .first()
+        return row?.googleReaderPasswordHash
+    }
 }

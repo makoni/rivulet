@@ -998,6 +998,12 @@ failure
 - The reference reads each duplicate check and then derives that pair's value, in the order its form
   fields are handled; this port reads both checks before deriving anything, which cannot change the
   outcome because a hit writes nothing.
+- The two reads the client auth path is built on are pinned by `ClientAuthTests`: the Fever lookup
+  compares both sides lowercase, which is upstream's `lower(integrations.fever_token)=lower($1)`,
+  and the Google Reader read compares the name as read, with no `LOWER`, which is upstream's
+  `googlereader_username=$1`. A row that stores nothing is not a match for an empty input, because
+  `NULL` is not the empty value, and the port answers `nil` for "no row" where the reference reports
+  an error.
 
 **Known differences.**
 
