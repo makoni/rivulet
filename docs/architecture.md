@@ -22,7 +22,7 @@ Rivulet is a single binary with two faces over one core:
         ┌──────────────────────▼─────────────────────────┐
         │                   RivuletCore                  │
         │  config · storage · fetcher · parser ·         │
-        │  sanitizer · scheduler · OPML · user rules     │
+        │  sanitizer · scheduler · OPML · rules · token  │
         └──────────────────────┬─────────────────────────┘
                                │
                      SQLite (WAL + FTS5)
@@ -38,9 +38,11 @@ Sources/
 │   ├── Reader/             # fetcher (+ address resolver seam and address policy), parser, dates,
 │   │                       # charset, sanitizer, OPML
 │   ├── Scheduler/          # refresh loop; retention runs as a storage-layer job
-│   └── Validation/         # user-name and password rules, in the reference's order
+│   ├── Integration/        # the Fever api_key derivation
+│   └── Validation/         # user-name, password and duplicate-name rules, in the reference's order
 ├── RivuletApp/             # application layer — the only target that knows Vapor
-│   ├── Commands/           # serve, migrate, version, refresh, status, create-admin + stubs
+│   ├── Commands/           # serve, migrate, version, refresh, status, create-admin,
+│   │                       # integration-credentials + stubs
 │   ├── Hashing/            # bcrypt through Vapor's digest, at the reference's cost
 │   ├── Logging/            # text/JSON swift-log bootstrap
 │   └── Routes/             # /healthz now; client APIs arrive in stage 5
@@ -109,9 +111,16 @@ non-zero exit status — everything else lives in `RivuletApp`.
   is on, as the other commands have them gated. Two parts of the reference's command are not
   ported: the terminal check, because this port reads through the console seam, and the environment
   path, which belongs to the daemon branch and arrives with `serve`.
-- Every other command of the final surface (`add`, `remove`, `list`, `import`, `export`,
-  `integration-credentials`, `backup`, `vacuum`) is a registered stub that reports the stage
-  implementing it.
+- `integration-credentials` — one account's credential pairs, then exit: reads the account name and
+  the two integration names as plain console input and the two passwords as the secure input, trims
+  everything, and writes what the run derives — the Fever pair as the digest of `name:password`, the
+  Google Reader pair as the bcrypt hash at the reference's cost, and the names as read, without the
+  lowercase the account name gets. A blank read keeps what the row already holds. The duplicate
+  checks run in the reference's order, with the reference's guard that an empty name is not read at
+  all, and a hit ends the command with nothing written; the command prints the value it stored.
+  Migrations run when the flag is on, as the other commands have them gated.
+- Every other command of the final surface (`add`, `remove`, `list`, `import`, `export`, `backup`,
+  `vacuum`) is a registered stub that reports the stage implementing it.
 
 `--help` lists every command and, like `version`, works without configuration.
 

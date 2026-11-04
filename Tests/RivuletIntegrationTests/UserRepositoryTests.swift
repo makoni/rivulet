@@ -13,7 +13,9 @@ import Testing
 /// the others were checked the same way when they landed. What they cannot fail on: the single-row
 /// limit of that existence read, which a lookup that fetched every matching row answers the same
 /// way, so the code states it rather than pinning it; and the transaction the pair of writes would
-/// need, which is the caller's and is stated in the repository comment.
+/// need, which is the caller's and is stated in the repository comment. The integration pins below
+/// name the storage rules; `IntegrationCredentialsTests` pins the command that calls them. Each of
+/// them was checked by patching the rule and reverting.
 @Suite struct UserRepositoryTests {
     @Test func createStoresTheAccountFieldsAndAssignsAnID() async throws {
         try await withMigratedStorage { _, storage in
@@ -22,8 +24,8 @@ import Testing
                 let user = try await users.create(username: "alice", passwordHash: "hash", isAdmin: true)
                 let id = try #require(user.id)
 
-                // Re-read through a fresh fetch: the assertions prove the stored row,
-                // not the in-memory object.
+                // Re-read through a fresh fetch: the assertions prove the stored row, not the
+                // in-memory object.
                 let stored = try await users.fetch(id: id)
                 #expect(stored?.id == id)
                 #expect(stored?.username == "alice")
@@ -67,8 +69,8 @@ import Testing
                     _ = try await users.create(username: "ALICE", passwordHash: "b", isAdmin: false)
                     Issue.record("expected the case-insensitive duplicate username to be rejected")
                 } catch {
-                    // UNIQUE(username) violation after normalization; the driver error
-                    // type is not promised.
+                    // UNIQUE(username) violation after normalization; the driver error type is not
+                    // promised.
                 }
                 #expect(try await users.list().count == 1)
             }
@@ -104,8 +106,8 @@ import Testing
                     _ = try await users.create(username: "alice", passwordHash: "b", isAdmin: true)
                     Issue.record("expected the duplicate username to be rejected")
                 } catch {
-                    // The driver reports the UNIQUE(username) violation; its concrete
-                    // type is a driver detail the storage layer does not promise.
+                    // The driver reports the UNIQUE(username) violation; its concrete type is a
+                    // driver detail the storage layer does not promise.
                 }
                 #expect(try await users.list().count == 1)
             }
@@ -139,6 +141,95 @@ import Testing
 
                 let all = try await users.list()
                 #expect(all.map(\.username) == ["alice", "bob", "carol"])
+            }
+        }
+    }
+
+    @Test func theIntegrationWriteStoresTheValuesAsGiven() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let user = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
+                let id = try #require(user.id)
+
+                // Unlike the account name, the integration names are written as they are given,
+                // which is what `UpdateIntegration` does upstream: `fever_username=$9`, no `LOWER`.
+                try await users.updateIntegration(user, feverUsername: "Fever1",
+                    feverToken: "71e9d7c8fd7d2b3dc94c3de389826bd8",
+                    googleReaderUsername: "Gr1", googleReaderPasswordHash: "stored-hash")
+
+                // Read back through a fresh fetch, so the pin reports the stored row.
+                let stored = try #require(try await users.fetch(id: id))
+                #expect(stored.username == "alice", "the account name is not rewritten: \(stored)")
+                #expect(stored.feverUsername == "Fever1", "the name as given: \(stored)")
+                #expect(stored.googleReaderUsername == "Gr1", "the name as given: \(stored)")
+                #expect(stored.feverToken == "71e9d7c8fd7d2b3dc94c3de389826bd8",
+                    "the value the caller derived is what is stored: \(stored)")
+                #expect(stored.googleReaderPasswordHash == "stored-hash",
+                    "the value the caller hashed is what is stored: \(stored)")
+            }
+        }
+    }
+
+    @Test func theDuplicateReadsExcludeTheRowTheyBelongTo() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
+                let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
+                let aliceID = try #require(alice.id)
+                let bobID = try #require(bob.id)
+
+                try await users.updateIntegration(alice, feverUsername: "Fever1",
+                    feverToken: "t1", googleReaderUsername: "Gr1",
+                    googleReaderPasswordHash: "h1")
+
+                // Upstream reads `user_id != $1`, so a value the user's own row holds is not a
+                // duplicate: a patch that dropped the exclusion answers true on this line.
+                #expect(!(try await users.hasDuplicateFeverUsername(userID: aliceID,
+                    feverUsername: "Fever1")), "the row the value is on belongs to this user")
+                #expect(try await users.hasDuplicateFeverUsername(userID: bobID,
+                    feverUsername: "Fever1"), "the same value on another row is a duplicate")
+                #expect(!(try await users.hasDuplicateGoogleReaderUsername(userID: aliceID,
+                    googleReaderUsername: "Gr1")), "the same rule on the other read")
+                #expect(try await users.hasDuplicateGoogleReaderUsername(userID: bobID,
+                    googleReaderUsername: "Gr1"), "the control for the other read")
+            }
+        }
+    }
+
+    @Test func theDuplicateReadsCompareTheValueAsReadAndReadTheirOwnColumn() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
+                let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
+                let bobID = try #require(bob.id)
+
+                // The two columns hold different values, so each read can be named by what it
+                // answers.
+                try await users.updateIntegration(alice, feverUsername: "FName",
+                    feverToken: "t", googleReaderUsername: "GName",
+                    googleReaderPasswordHash: "h")
+
+                // No `LOWER` in either check, unlike the account lookup: a patch that lowercased
+                // the input before comparing fails these two lines.
+                #expect(try await users.hasDuplicateFeverUsername(userID: bobID,
+                    feverUsername: "FName"), "the value as read")
+                #expect(!(try await users.hasDuplicateFeverUsername(userID: bobID,
+                    feverUsername: "fname")), "the input is not lowercased first")
+                #expect(try await users.hasDuplicateGoogleReaderUsername(userID: bobID,
+                    googleReaderUsername: "GName"), "the value as read")
+                #expect(!(try await users.hasDuplicateGoogleReaderUsername(userID: bobID,
+                    googleReaderUsername: "gname")), "the input is not lowercased first")
+
+                // Which column each check reads: a patch that read the other column for this rule
+                // would answer true here, where the Fever column holds only `FName` and the Google
+                // Reader column holds only `GName`.
+                #expect(!(try await users.hasDuplicateFeverUsername(userID: bobID,
+                    feverUsername: "GName")), "the Fever check reads the Fever column")
+                #expect(!(try await users.hasDuplicateGoogleReaderUsername(userID: bobID,
+                    googleReaderUsername: "FName")), "the Google Reader check reads its own column")
             }
         }
     }

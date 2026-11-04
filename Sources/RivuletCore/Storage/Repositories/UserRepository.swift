@@ -61,4 +61,50 @@ public struct UserRepository {
     public func list() async throws -> [User] {
         try await User.query(on: database).sort(\User.$username).all()
     }
+
+    /// Writes the integration credential fields of `user` and returns the row (upstream parity:
+    /// `UpdateIntegration`, which writes the integration columns for one user).
+    ///
+    /// The names are written as they are given: upstream writes `fever_username=$9` as submitted,
+    /// without the `LOWER` the account name gets, and `UserRepositoryTests` pins that. The values
+    /// themselves are what the caller derived — the rules that choose them are pinned by
+    /// `IntegrationValidationTests` and `IntegrationCredentialsTests`. `updated_at` is the port's
+    /// own column, so it is stamped here; the reference's `integrations` table has no such column,
+    /// and no pin can read a clock value, so the stamp is stated rather than pinned.
+    public func updateIntegration(_ user: User, feverUsername: String?, feverToken: String?,
+        googleReaderUsername: String?, googleReaderPasswordHash: String?) async throws -> User {
+        user.feverUsername = feverUsername
+        user.feverToken = feverToken
+        user.googleReaderUsername = googleReaderUsername
+        user.googleReaderPasswordHash = googleReaderPasswordHash
+        user.updatedAt = Int(Date.now.timeIntervalSince1970)
+        try await user.save(on: database)
+        return user
+    }
+
+    /// `HasDuplicateFeverUsername`: another row holds this Fever name.
+    ///
+    /// The reference reads `SELECT true FROM integrations WHERE user_id != $1 AND fever_username=$2
+    /// LIMIT 1` — the row the value is being checked for is excluded, and the value is compared as
+    /// read, with no `LOWER`. `UserRepositoryTests` pins both, and the single-row limit is stated
+    /// here because no pin can tell a single-row read from one that read every match.
+    public func hasDuplicateFeverUsername(userID: Int, feverUsername: String) async throws -> Bool {
+        try await User.query(on: database)
+            .filter(\User.$id != userID)
+            .filter(\User.$feverUsername == feverUsername)
+            .first() != nil
+    }
+
+    /// `HasDuplicateGoogleReaderUsername`: another row holds this Google Reader name.
+    ///
+    /// The same two rules as the Fever read — the caller's own row excluded, the value compared as
+    /// read — and each check reads its own column, which `UserRepositoryTests` pins. The single-row
+    /// limit is stated here for the same reason as above.
+    public func hasDuplicateGoogleReaderUsername(userID: Int,
+        googleReaderUsername: String) async throws -> Bool {
+        try await User.query(on: database)
+            .filter(\User.$id != userID)
+            .filter(\User.$googleReaderUsername == googleReaderUsername)
+            .first() != nil
+    }
 }

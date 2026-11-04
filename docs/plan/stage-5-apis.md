@@ -1,8 +1,10 @@
 # Stage 5 — Client APIs & OPML
 
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
-**Status:** in progress — the first slice (`create-admin` with the user rules and the bcrypt hasher)
-lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stage 4.
+**Status:** in progress — the first slice is merged and the second lands with PR #39: `create-admin`
+with the user rules and the bcrypt hasher, and `integration-credentials` with the Fever token
+derivation and the duplicate-name rules. The rest is not started. **Effort:** XL. **Depends on:**
+Stage 4.
 
 ## Scope
 
@@ -13,9 +15,21 @@ lands with PR #38; the rest is not started. **Effort:** XL. **Depends on:** Stag
       cross-marker compatibility by `BcryptHasherTests`. The locale wording, the terminal check and
       the environment path are named as not pinned in the suite header; the environment path arrives
       with `serve`.
-- [ ] Integration credentials command: `rivulet integration-credentials` sets per-user Google
+- [x] Integration credentials command: `rivulet integration-credentials` sets per-user Google
       Reader username/password (stored bcrypt) and Fever username/password (stored as the MD5
       token); prints the derived Fever `api_key`.
+      Lands with PR #39: the join, the lowercase hex form, the parts read as given, the order the
+      two duplicate checks are read in, the guard inside the rule function that an empty name is not
+      read against the answer, the per-user exclusion, the values compared as read, each check
+      reading its own column, and the rule that a blank password read keeps the stored value are
+      pinned by `FeverTokenTests`, `IntegrationValidationTests`, `UserRepositoryTests` and
+      `IntegrationCredentialsTests`. The goldens are the reference's own output at the toolchain
+      `go.mod` pins. What the header names as not pinned: the prompt wording, which is the port's
+      own, though the order the reads happen in is pinned by the flags of those reads; the command's
+      guard that an empty name never reaches the storage layer; the blank-name rule (this port keeps
+      the stored value where the form writes what was submitted), the absent flag that would turn an
+      integration off, the Fever password the reference does not store, and the unique index on
+      `fever_token`. These are recorded in `docs/parity.md`.
 - [ ] Google Reader API — port the reference router exactly (see `docs/reference-notes.md`):
       `ClientLogin`; `token`; `edit-tag`; `rename-tag`; `disable-tag`; `tag/list`; `user-info`;
       `subscription/list` (embeds `iconUrl`); `subscription/edit`
@@ -107,3 +121,12 @@ Findings from review run 1 on PR #38 that do not change behavior:
 - Two table rows are split across lines from earlier commits, at `docs/parity.md:395` and
   `docs/testing.md:17`, which puts them past the 100-column width; they are not part of this slice.
 - `docs/testing.md` is at 585 lines, past the ~500 cap.
+
+Findings from review run 1 on this slice (PR #39) that do not change behavior:
+
+- `IntegrationCredentialsTests.withRun` is 47 lines, past the ~40 aim: the seed write and the read
+  back are two halves that could be split, and the pins would read the same outcome.
+- The empty-name guard is written in two places, `hasName` on the command and the check inside
+  `IntegrationValidation.validate`. The reference has it once, in the handler before its read, so
+  the second is the rule function's own guard, and the pins can fail only on that one, which is what
+  the header now says.
