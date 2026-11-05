@@ -15,7 +15,7 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 6 — CLI & operations**, with its first slice landing the feed commands `add`,
+Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands `add`,
 `remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
 the duplicate read, then the category read — the url written as the command read it, the category
 resolved from the named title or from the default, the account resolved from `--user` or from the

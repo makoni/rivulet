@@ -1,12 +1,12 @@
 # Stage 6 — CLI & operations
 
 **Goal:** everything is manageable without touching the database or a web UI.
-**Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, lands
+**Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
 (PR #47). **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
 
-- [x] `add`, `remove` and `list` for the feeds land with PR #47: the rule the reference's feed
+- [x] `add`, `remove` and `list` for the feeds landed with PR #47: the rule the reference's feed
       validator reads, the duplicate read, the category read, the delete that applies the account,
       and the listing order, with the account the command works for resolved from `--user` or from
       the single account. `list` for categories and users is open, as is the flag polish below.
