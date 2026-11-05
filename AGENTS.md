@@ -111,9 +111,23 @@ rule that a feed id of 0 selects nothing, the message the handler writes for the
 cannot reach, the reference's localized strings for the two category rules — the port names the
 rule, so the answer is the rule name, and the keys are recorded in `docs/reference-notes.md` — the
 order of the two statements of the delete path, and the order of the sign guard and the `ts` length
-test, which no input can tell apart because both apply to every value the guard accepts. What
-follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance
-journey.
+test, which no input can tell apart because both apply to every value the guard accepts. PR #46
+merged `stream/items/contents` over the same socket: the order the handler runs in — the output
+check, the form read, the stream read, then the item ids — with the order parameter read from the
+URL query alone, so the same name in a POST body is not read here; the storage read with the two
+titles read from two different rows and the site url read from the feed row; the three time columns,
+with the two string forms built by multiplying those whole seconds; the document author as the
+account name against the entry author the item writes; the document `id` as the generic prefix while
+the categories carry the row number; `self` as the configured base URL rather than the host the
+request came in on; the item id in the full reference form; and the answer carrying every row the
+ids name, are pinned by `GoogleReaderContentHandlerTests`, with the read pinned by
+`EntryContentsReadTests` and the categories rule for one item by `GoogleReaderItemCategoriesTests`.
+What that header names as unpinnable: the page size, because this port's read for this endpoint has
+no `LIMIT` clause at all, as the reference's `fetchEntries` has none; the media proxy, which this
+port does not have and which `docs/parity.md` records; the inner join on categories, which this
+port's schema cannot leave unfulfilled; and the order of the two statements that build the
+attachments. What follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML and
+the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
