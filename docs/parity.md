@@ -747,8 +747,7 @@ read per interval, made against the instant the injected clock gives at that rea
 due rule compares against SQL `now()` at query time, the divergence the scheduler section above
 records — and the interval handed to the seam is the interval the loop was built with, which the
 wiring gives from `pollingFrequency`. A read that fails is reported and the loop goes on, which is
-the
-reference's `slog.Error` followed by the next firing; here the report carries the failure,
+the reference's `slog.Error` followed by the next firing; here the report carries the failure,
 because `RivuletCore` has no logging layer. The pins are `CadenceLoopTests`, which read the calls
 the loop makes through the seam.
 
