@@ -7,7 +7,9 @@ duplicate-name rules (PR #39). In the third slice the storage reads landed with 
 Reader auth path with PR #41, and the contract rules the routers read with PR #42; the rules the
 handlers read — the tag read, the output read and the document shapes — merged with PR #43 as pure
 logic too, and the handlers for the four endpoints this piece implements merged with PR #44 over a
-real socket; the rest of the handlers are not started. **Effort:** XL. **Depends on:** Stage 4.
+real socket, with the three POST write handlers — `rename-tag`, `disable-tag` and `mark-all-as-read`
+— merged with PR #45 over the same socket. The rest of the handlers are not started. **Effort:** XL.
+**Depends on:** Stage 4.
 
 ## Scope
 
@@ -47,7 +49,7 @@ real socket; the rest of the handlers are not started. **Effort:** XL. **Depends
       switch with the two ways it reads the same exclude name and the feed filter that only a
       positive parsed value applies, the two times every branch applies, the order the parameter
       read answers, the continuation rule, the page-size clamp, and which endpoints the output check
-      applies to. `rename-tag`, `disable-tag` and `mark-all-as-read` landed with PR #45, pinned by
+      applies to. `rename-tag`, `disable-tag` and `mark-all-as-read` merged with PR #45, pinned by
       `GoogleReaderWriteHandlerTests` over the same socket: the merged list `s` that handler reads,
       the parameter name the read error names rather than the error itself, the guard order that
       runs the type check before the empty-destination guard, the two type-check wordings that name
