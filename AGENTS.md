@@ -57,8 +57,6 @@ resolution, which `FeedCommandTests` pin; the flag that gates the migrations; th
 fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY
 title` with, which this port cannot have. The shape is flags because `@Argument` has no default, so
 a run cannot name an optional listing. The flag polish and the process-level checks follow.
-flags because `@Argument` has no default, so a run cannot name an optional listing. The flag polish
-and the process-level checks follow.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
@@ -332,3 +330,4 @@ swift run rivulet --help
   doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
+
