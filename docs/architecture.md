@@ -119,8 +119,10 @@ non-zero exit status — everything else lives in `RivuletApp`.
   checks run in the reference's order, with the reference's guard that an empty name is not read at
   all, and a hit ends the command with nothing written; the command prints the value it stored.
   Migrations run when the flag is on, as the other commands have them gated.
-- Every other command of the final surface (`add`, `remove`, `list`, `import`, `export`, `backup`,
-  `vacuum`) is a registered stub that reports the stage implementing it.
+- The two remaining registered stubs are `import` and `export`; every other command of the final
+  surface works: `serve`, `migrate`, `version`, `refresh`, `status`, `create-admin`,
+  `integration-credentials`, the feed commands `add`, `remove` and `list`, and the maintenance
+  commands `backup` and `vacuum`.
 
 `--help` lists every command and, like `version`, works without configuration.
 

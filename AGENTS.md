@@ -26,8 +26,17 @@ read, the order between the duplicate read and the category read at the command 
 name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
 the command level, which the read suite pins, the wording of the lines and of the reported failures,
 and the rules the port names rather than the reference. The command surface is recorded in
-`docs/parity.md`. `list` for categories and users, `backup`, `vacuum`, the flag polish and the
-process-level checks follow.
+`docs/parity.md`. The second slice lands as PR #48: `backup` and `vacuum` as runs, with the
+destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
+main file, the copy being a file of its own that does not change with the source afterwards, a
+destination the command did not create reported rather than built or overwritten, the file rebuilt
+without losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`,
+with the storage rules these commands call pinned by `MaintenanceTests`. What that header names as
+unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
+best-effort one after every command; which file the environment names, which `ConfigTests` pin;
+reusing an existing empty destination file; the size of the main file before the run, because the
+checkpoint at the end of a run moves the rows from the WAL into it; and the wording of the lines.
+`list` for categories and users, the flag polish and the process-level checks follow.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the

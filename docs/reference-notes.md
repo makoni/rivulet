@@ -348,6 +348,23 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   the port names for what a command line has to answer — which account the command works for, and a
   url the account has no row for — have no reference counterpart, and their wording is not pinned.
 
+## Maintenance commands (`internal/cli/cli.go`)
+
+- The reference has no `backup` and no vacuum command. `internal/cli/cli.go` at commit `c4d54f87`
+  dispatches by flags — `-info`, `-version`, `-migrate`, `-create-admin`, `-refresh-feeds`,
+  `-run-cleanup-tasks`, `-export-user-feeds`, `-healthcheck` — and the word `vacuum` does not appear
+  anywhere in its Go sources, so these two commands are the port's own surface. What is traced is
+  only what SQLite itself enforces on the destination, recorded in `docs/backup-restore.md` and
+  pinned as storage rules by `MaintenanceTests`.
+- `VACUUM INTO` refuses an existing non-empty file (`output file already exists`), reuses an empty
+  one, needs the parent directory to exist, and reports a destination that is not a database. The
+  port reports those as the run failing rather than as a run that wrote nothing. Whether the command
+  builds the missing directory or overwrites a previous copy is the port's choice and not the
+  reference's, so the pins read the filesystem after the run.
+- The rebuild is the port's own as well: the reference never runs `VACUUM`, so the port's rules are
+  that the run releases the free pages the rows left behind, keeps every row, and ends with the
+  truncating WAL checkpoint the stage-1 wrapper defines.
+
 ## Integration credentials (`internal/ui/integration_update.go`)
 
 - The account's integration row (`internal/database/migrations.go`) is keyed by `user_id`

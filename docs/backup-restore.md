@@ -8,7 +8,9 @@ self-contained file: there is nothing else to copy — no external cache and no 
 
 `SQLiteStorage.backup(to:)` wraps SQLite's `VACUUM INTO`: it writes a consistent, compacted
 snapshot of a live database (readers and the writer keep working) to a new file. The stage-6 CLI
-will expose the same helper as `rivulet backup <path>`.
+exposes the same helper as `rivulet backup <destination>`, which is the path as the command reads
+it: a relative value is the process's working directory, the port does not create a missing parent
+directory, and a destination that already holds something is refused rather than overwritten.
 
 Rules SQLite enforces for the destination:
 
@@ -24,7 +26,7 @@ the source, and keeping the previous backup while the new one is written doubles
 and WAL.
 
 ```sh
-# stage 6 CLI; put the target outside the data directory
+# Put the target outside the data directory; the path is used as it is read.
 rivulet backup "/var/backups/rivulet-$(date +%F).db"
 ```
 
@@ -59,7 +61,8 @@ stop-the-world copy of all three files works (stop the service, copy `rivulet.db
 
 - `DELETE` (retention, feed removal) marks pages free but never shrinks the file.
   `SQLiteStorage.vacuum()` rebuilds the database and finishes with a truncating WAL checkpoint, so
-  the reclaimed space is released to the filesystem when the call returns.
+  the reclaimed space is released to the filesystem when the call returns; `rivulet vacuum` is the
+  command that runs it.
 - `SQLiteStorage.checkpoint()` runs `PRAGMA wal_checkpoint(TRUNCATE)`; the server calls it on
   shutdown. A checkpoint blocked by a reader reports `StorageError.checkpointBusy` instead of
   pretending to succeed — retry once the reader is gone.

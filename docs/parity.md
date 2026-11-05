@@ -1111,3 +1111,19 @@ command applies and the storage rule it reads, not the shape of the command line
 | The message a rule answers with | the locale string the key translates to | the rule name, as the write handlers of this port already write it | A terminal or a script reading the text sees a different string; the rules are pinned as pure logic and the keys are recorded in `docs/reference-notes.md` |
 | The url written to the row | the create path writes `feed_url` as submitted; the discovery path cleans the value before writing it | the command writes what it read, because `add` is the insert only and does not discover | The two answers are the same for a url with nothing to clean; a tracked parameter is where a discovery path would differ |
 | The listing order | `parsing_error_count DESC` with `lower(f.title) ASC` appended after the sort expressions, and only when there is at least one | the same rule, read by the storage layer | `lower()` on PostgreSQL folds non-ASCII letters; SQLite's `LOWER` folds ASCII only, so a title with a letter outside ASCII is where the two answers differ — no pin reads one |
+
+## Maintenance commands (stage 6)
+
+The reference has no `backup` and no vacuum: its CLI dispatches by flags and the word `vacuum` does
+not appear anywhere in its sources, so the whole surface below is the port's own. Only what SQLite
+enforces on the destination is shared. The pins are `MaintenanceCommandTests` for the runs and
+`MaintenanceTests` for the storage rules they call.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The command set | no `backup` and no vacuum; the executable takes one flag per operation | `rivulet backup <destination>` and `rivulet vacuum` as commands | Nothing upstream is contradicted: the surface is the port's own, and only the rules SQLite reads are shared |
+| The destination | nothing to compare | the path as the command read it, so a relative value is the process's working directory rather than the data directory; the port does not build a missing parent directory and does not overwrite a file it did not create | The port's choice, so the pins read the filesystem after the run; a run that wrote nothing reports it, which is also the port's rule, and the wording is the port's own |
+| What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
+| The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |

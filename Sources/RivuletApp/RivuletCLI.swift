@@ -4,9 +4,9 @@ import Foundation
 /// The Rivulet command-line interface.
 ///
 /// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh`,
-/// `status`, `create-admin`, `integration-credentials` and the feed commands `add`, `remove`
-/// and `list` work; the remaining commands are registered placeholders that report the stage
-/// implementing them (see `docs/plan/`).
+/// `status`, `create-admin`, `integration-credentials`, the feed commands `add`, `remove` and
+/// `list`, and the maintenance commands `backup` and `vacuum` work; the remaining commands are
+/// registered placeholders that report the stage implementing them (see `docs/plan/`).
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///
@@ -43,6 +43,8 @@ public enum RivuletCLI {
         commands.use(Add(environment: environment), as: "add")
         commands.use(Remove(environment: environment), as: "remove")
         commands.use(List(environment: environment), as: "list")
+        commands.use(Backup(environment: environment), as: "backup")
+        commands.use(Vacuum(environment: environment), as: "vacuum")
         for planned in Planned.all {
             commands.use(planned, as: planned.name)
         }
