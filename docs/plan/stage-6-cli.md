@@ -16,7 +16,7 @@
       `refresh` (all/one) and `status` (`--json`) — the cores of both landed in stage 4 as the
       manual pass over the batch and the minimal contract the soak reads; this stage polishes their
       flags and output. `integration-credentials` (polish) and `version`.
-- [x] `backup` and `vacuum` land as runs through the in-process console (PR #48): the destination
+- [ ] `backup` and `vacuum` land as runs through the in-process console (PR #48): the destination
       read as it was given, the copy as the snapshot at the run rather than the bytes of the main
       file, the copy being a file of its own, a destination the command did not create reported
       rather than built or overwritten, the file rebuilt without losing a row, and the flag that

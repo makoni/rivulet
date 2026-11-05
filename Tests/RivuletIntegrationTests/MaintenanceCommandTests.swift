@@ -20,7 +20,8 @@ import RivuletApp
 /// not the main file at the run — the row the pin seeds last is in the WAL, and the copy is smaller
 /// than the source that still holds the free pages; that the copy is a separate file which does not
 /// change with the source after the run; that the run leaves the source as it was; that a
-/// destination which already holds something is refused and left as it was, and that a run which
+/// destination which already holds something is refused and left as it was, read against a row the
+/// pin writes after the control run so an overwrite answers a different copy, and that a run which
 /// wrote nothing reports it rather than answering as an empty run; that a destination without its
 /// parent directory is reported with nothing created, because the command does not build the
 /// directory the storage layer needs; that the vacuum run rebuilds the file the environment names
@@ -36,9 +37,12 @@ import RivuletApp
 /// empty destination file, which `MaintenanceTests` pin; that the copy is a plain file with no
 /// `-wal` beside it, which no implementation of this command would write; the size of the main file
 /// as it stands before the run, because the checkpoint at the end of the run moves the rows the pin
-/// seeded from the WAL into it; the wording of the lines and of the reported failures; that these
-/// commands fetch nothing and sleep nothing; and the rules the port names, not the reference,
-/// which has no command here to compare with.
+/// seeded from the WAL into it; the shape guards that read what the pin built before the run — the
+/// WAL holding one row, the file bloated past the size the pin reads, the copy being openable as a
+/// database — which bite only on the storage rules `MaintenanceTests` pins, not on a patch of the
+/// command; the wording of the lines and of the reported failures; that these commands fetch
+/// nothing and sleep nothing; and the rules the port names, not the reference, which has no command
+/// here to compare with.
 @Suite struct MaintenanceCommandTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -160,25 +164,40 @@ import RivuletApp
 
     @Test func anExistingDestinationIsRefusedAndLeftAsItWas() async throws {
         try await withMigratedStorage { database, storage in
-            try await storage.withConnection { connection in
+            let graph = try await storage.withConnection { connection in
                 let feed = try await seedFeed(connection)
                 _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
                     hash: "refused", content: "<p>Row for the refused run</p>")
+                return (feed.userID, feed.feedID)
             }
 
             // The refusal itself is the storage rule `MaintenanceTests` pin. What this pin reads is
             // the command's rule: a run that wrote nothing reports it, and the file it found is the
             // file it left. A patch that removed the existing destination first answered both cases
-            // as success.
+            // as success, and the same patch rewrote the copy from the source, which is why the pin
+            // writes a row the copy must not carry.
             let previous = database.directory.appendingPathComponent("previous.db").path
             let control = try await run(databasePath: database.path, arguments: ["backup", previous])
             #expect(!control.failed, "the control run writes the copy: \(control.output)")
             let first = try await content(at: previous, on: database, as: "first")
+
+            // One row written after the control run: an overwrite answers this pin with a copy that
+            // carries it, so the copy read after the refused run is read against what the control
+            // run wrote, and the pin can tell a refusal from a rewrite.
+            let source = try await storage.withConnection { connection in
+                _ = try await seedEntry(connection, userID: graph.0, feedID: graph.1,
+                    hash: "after-the-refusal", content: "<p>Row an overwrite would carry</p>")
+                return try await Self.content(on: connection)
+            }
+            #expect(source.entries.count == first.entries.count + 1,
+                "the row the pin wrote after the control run: \(source.entries)")
+
             let second = try await run(databasePath: database.path, arguments: ["backup", previous])
             #expect(second.failed, "a run that wrote nothing reports it: \(second.output)")
-            #expect(try await content(at: previous, on: database, as: "again") == first,
-                "the copy the control run wrote is left as it was: \(first)")
-
+            let copy = try await content(at: previous, on: database, as: "again")
+            #expect(copy == first, "the copy the control run wrote is left as it was: \(copy)")
+            #expect(copy.entries != source.entries,
+                "the copy is not the source rewritten by the refused run: \(copy.entries)")
             let text = database.directory.appendingPathComponent("text.db").path
             let bytes = "not a database"
             try bytes.write(to: URL(fileURLWithPath: text), atomically: true, encoding: .utf8)
@@ -303,7 +322,6 @@ import RivuletApp
     private struct RunOutcome: Sendable {
         let output: String
         let failed: Bool
-        let message: String
     }
 
     /// What one database holds: the tables it has and one digest line per entry, ordered by id.
@@ -321,15 +339,13 @@ import RivuletApp
         values["DATABASE_URL"] = databasePath
         let console = TestConsole()
         var failed = false
-        var message = ""
         do {
             try await RivuletCLI.run(console: console, environment: values,
                 arguments: ["rivulet"] + arguments)
         } catch {
             failed = true
-            message = String(describing: error)
         }
-        return RunOutcome(output: console.output, failed: failed, message: message)
+        return RunOutcome(output: console.output, failed: failed)
     }
 
     /// The content of another file, read through its own driver: the copy the run wrote is not the
@@ -357,3 +373,9 @@ import RivuletApp
         return Content(tables: tables, entries: entries)
     }
 }
+
+
+
+
+
+

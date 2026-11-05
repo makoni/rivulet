@@ -29,14 +29,18 @@ and the rules the port names rather than the reference. The command surface is r
 `docs/parity.md`. The second slice lands as PR #48: `backup` and `vacuum` as runs, with the
 destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
 main file, the copy being a file of its own that does not change with the source afterwards, a
-destination the command did not create reported rather than built or overwritten, the file rebuilt
-without losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`,
-with the storage rules these commands call pinned by `MaintenanceTests`. What that header names as
-unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
-best-effort one after every command; which file the environment names, which `ConfigTests` pin;
-reusing an existing empty destination file; the size of the main file before the run, because the
-checkpoint at the end of a run moves the rows from the WAL into it; and the wording of the lines.
-`list` for categories and users, the flag polish and the process-level checks follow.
+destination the command did not create reported rather than built or overwritten and read against a
+row the pin writes after the control run, the file rebuilt without losing a row, and the flag that
+gates the migrations, pinned by `MaintenanceCommandTests`, with the storage rules these commands
+call pinned by `MaintenanceTests`. What that header names as unpinnable: the truncating checkpoint
+the vacuum run ends with, because `RivuletApplication` runs a best-effort one after every command;
+which file the environment names, which `ConfigTests` pin; reusing an existing empty destination
+file; the size of the main file before the run, because the checkpoint at the end of a run moves the
+rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
+only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
+fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
+rules the port names rather than the reference. `list` for categories and users, the flag polish and
+the process-level checks follow.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
@@ -310,3 +314,4 @@ swift run rivulet --help
   doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
+

@@ -713,17 +713,19 @@ call are pinned as storage rules by `MaintenanceTests`, so what these pins read 
 choice: the destination as the command read it, the copy as the snapshot rather than the file bytes,
 a destination the command did not create, and the file rebuilt without losing a row.
 
-Three data shapes make the pins falsifiable. The snapshot pin needs the source to hold free pages
-and one row that lives only in the WAL, so a patch that copied the file bytes answered a copy
-without that row and with the size of the bloated source. The independence pin needs a row written
-after the run, so a patch that pointed the destination at the source — a link — answered it with
-that row, which a pin that read the copy only at the run could not have shown. The source pin reads
-the file at the path the environment names, not its size, because the checkpoint at the end of a run
-moves the rows from the WAL into the main file, so a patch that moved the source is shown by the
-file being gone rather than by a content read on a connection that had already opened it. The
-refusal pins read the bytes the pin wrote as the bytes the run left, so a pin that read only the
-failure could not tell a refusal from an overwrite. The migration pin reads the schema the command
-created rather than one the test built, on both sides of the flag and on both commands.
+The pins are falsifiable through the shape the data has to be in. The snapshot pin needs the source
+to hold free pages and one row that lives only in the WAL, so a patch that copied the file bytes
+answered a copy without that row and with the size of the bloated source. The independence pin needs
+a row written after the run, so a patch that pointed the destination at the source — a link —
+answered it with that row, which a pin that read the copy only at the run could not have shown. The
+refusal pin needs a row written after the control run, so an overwrite answers a copy that carries
+it while the copy read after the refused run does not; the same pin reads the bytes it wrote on a
+destination that is not a database, which a pin that read only the failure could not tell from an
+overwrite. The source pin reads the file at the path the environment names, not its size, because
+the checkpoint at the end of a run moves the rows from the WAL into the main file, so a patch that
+moved the source is shown by the file being gone rather than by a content read on a connection that
+had already opened it. The migration pin reads the schema the command created rather than one the
+test built, on both sides of the flag and on both commands.
 
 What the headers name as unpinnable: the truncating checkpoint `vacuum()` ends with, because
 `RivuletApplication.shutdown()` runs a best-effort truncating checkpoint after every command, so a
@@ -731,9 +733,12 @@ patch that dropped the checkpoint from the run still left an empty WAL; which fi
 names, which `ConfigTests` pin, so the vacuum pin can fail only on the patch that does not run the
 rebuild at all; reusing an existing empty destination file, which `MaintenanceTests` pin; the size
 of the main file before the run, for the reason above; that the copy is a plain file with no `-wal`
-beside it, which no implementation of this command would write; the wording of the lines and of the
-reported failures; that these commands fetch nothing and sleep nothing; and the rules the port names
-rather than the reference, which has no command here to compare with.
+beside it, which no implementation of this command would write; the shape guards that read what the
+pin built before the run — the WAL holding one row, the file bloated past the size the pin reads,
+the copy being openable as a database — which bite only on the storage rules `MaintenanceTests`
+pins, not on a patch of the command; the wording of the lines and of the reported failures; that
+these commands fetch nothing and sleep nothing; and the rules the port names rather than the
+reference, which has no command here to compare with.
 
 ## Soak
 
@@ -802,3 +807,4 @@ Swift Testing everywhere (`import Testing`, `@Suite`/ `@Test`, `#expect`/ `#requ
 framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by default
 and every test owns its resources (temp directories, kernel-assigned ports), so no suite depends on
 execution order. Use the `.serialized` trait only where a suite must share process-wide state.
+
