@@ -1099,18 +1099,23 @@ The reference's CLI dispatches by flags on the executable (`-create-admin`, `-re
 `-export-feeds`, `-info`, `-health-check`) and reaches the feed rows through its web UI, so the
 command set below is the port's own surface: what is traced to the reference is the rule each
 command applies and the storage rule it reads, not the shape of the command line. The pins are
-`FeedCommandTests`, `FeedManagementReadsTests` and `FeedValidationTests`.
+`FeedCommandTests`, `FeedManagementReadsTests` and `FeedValidationTests`, and for the listings
+`ListingCommandTests` with the two reads pinned by `CategoryRepositoryTests` and
+`UserRepositoryTests`.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| The command set | no `add`, `remove` or `list`; the feed rows are managed through the web UI, and the CLI has one flag per operation | `add <url> --user <name> --category <title>`, `remove <url> --user <name>`, `list --user <name>` | Nothing upstream is contradicted: the surface is the port's own, and only the rules the commands apply are traced to the reference |
+| The command set | no `add`, `remove` or `list`; the feed rows are managed through the web UI, and the CLI has one flag per operation | `add <url> --user <name> --category <title>`, `remove <url> --user <name>`, `list --user <name>`, `list --categories`, `list --users` | Nothing upstream is contradicted: the surface is the port's own, and only the rules the commands apply are traced to the reference |
 | Which account a command works for | the session or the login, so a command line has no account to choose | the account named by `--user`, read as the account lookup reads a name, and the single account when none is named; naming none with several accounts is the port's rule | No reference behavior to compare; the rule is pinned by its name, and the wording a failing run prints is the port's own |
 | A named account with no row, and a url the account has no row for | the request path reads the account before the rules and reports a database failure | the port reports `accountNotFound` and `feedNotFound`, because a command line that writes or deletes nothing has to say so | The reference has no rule for these; the port names them and pins them by name |
 | The message a rule answers with | the locale string the key translates to | the rule name, as the write handlers of this port already write it | A terminal or a script reading the text sees a different string; the rules are pinned as pure logic and the keys are recorded in `docs/reference-notes.md` |
 | The url written to the row | the create path writes `feed_url` as submitted; the discovery path cleans the value before writing it | the command writes what it read, because `add` is the insert only and does not discover | The two answers are the same for a url with nothing to clean; a tracked parameter is where a discovery path would differ |
 | The listing order | `parsing_error_count DESC` with `lower(f.title) ASC` appended after the sort expressions, and only when there is at least one | the same rule, read by the storage layer | `lower()` on PostgreSQL folds non-ASCII letters; SQLite's `LOWER` folds ASCII only, so a title with a letter outside ASCII is where the two answers differ — no pin reads one |
+| Which listing a run answers | the reference's CLI has no listing at all; its web UI shows the categories in the order `Categories` answers, the title, and every account in the order `Users` answers, the username | one listing per run: `--categories` names the title read, `--users` names the username read, and no flag means the feeds | The flags are the port's own shape: `@Argument` has no default, so a run cannot name an optional listing, and the pair of flags is the port's rule `multipleListings`. Only the two orders are traced to the reference |
+| Which account a listing applies to | `Categories` filters by the user; `Users` has no account condition | the same: the account the run resolves applies to the categories, and the account listing prints every row | Nothing upstream is contradicted; the read the pin compares is the pair of titles on two accounts |
+| The order the two listing reads answer in | `ORDER BY title ASC` and `ORDER BY username ASC`, which Postgres answers with its collation | the same two reads, which answer in the byte order | The collation cannot be ported, so `Zebra` before `apple` is where the two answers part; the pins read the port's byte order, and this row is the record of the difference |
 
 ## Maintenance commands (stage 6)
 

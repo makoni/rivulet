@@ -2,7 +2,8 @@
 
 **Goal:** everything is manageable without touching the database or a web UI.
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
-(PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48).
+(PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The
+third slice, `list` for the categories and the accounts, is open as PR #49.
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -10,7 +11,14 @@
 - [x] `add`, `remove` and `list` for the feeds landed with PR #47: the rule the reference's feed
       validator reads, the duplicate read, the category read, the delete that applies the account,
       and the listing order, with the account the command works for resolved from `--user` or from
-      the single account. `list` for categories and users is open, as is the flag polish below.
+      the single account. The flag polish and the process-level checks follow.
+- [x] `list` for the categories and the accounts landed with PR #49 as runs through the in-process
+      console: the flag names which read the run makes, no flag still means the feeds, the pair of
+      flags is reported as the rule the port names rather than picked, the account the run resolves
+      reaches the category read and not the account read, the line carries the stored position and
+      the stored admin flag rather than the schema default, one line carries one row, the run writes
+      nothing, and the title order is the port's byte order. The shape is flags rather than an
+      argument, because `@Argument` has no default, so a run cannot name an optional listing.
 - [ ] Finalize the remaining commands (stubs created in stage 0): `serve`, `migrate`, `create-admin`
       (core lands in stage 5; this stage polishes prompts and flags), `import`/`export` (OPML),
       `refresh` (all/one) and `status` (`--json`) — the cores of both landed in stage 4 as the
@@ -43,7 +51,9 @@
   observable effects. For the feed commands this is `FeedCommandTests`; the rule is pinned as pure
   logic by `FeedValidationTests` and the reads by `FeedManagementReadsTests`. For the maintenance
   commands this is `MaintenanceCommandTests`, with the storage rules it calls pinned by
-  `MaintenanceTests`.
+  `MaintenanceTests`. For the listings this is `ListingCommandTests`, with the two orders it reads
+  pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`, and the account resolution
+  it reaches pinned there.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
 - Process-level: spawn the built binary with `serve`; `/healthz` answers; SIGTERM shuts down cleanly
   (no lost refresh batch).
@@ -91,4 +101,5 @@
 - The account rule is the port's own: `--user` with the single-account fallback. If a flag is wanted
   for the environment path (`LIST_USER`, `ADD_USER`), that belongs to this stage's flag polish, not
   to the read.
+
 

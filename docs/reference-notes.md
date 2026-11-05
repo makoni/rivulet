@@ -347,6 +347,13 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   web UI. The three commands are the port's own surface, so their flags, their lines and the rules
   the port names for what a command line has to answer — which account the command works for, and a
   url the account has no row for — have no reference counterpart, and their wording is not pinned.
+- What the listing command traces to the reference is the order its two reads answer in:
+  `internal/storage/category.go` `Categories` is `SELECT ... FROM categories WHERE user_id=$1
+  ORDER BY title ASC` and selects `hide_globally`, which this port's schema does not have, and
+  `internal/storage/user.go` `Users` is `SELECT ... FROM users ORDER BY username ASC` with no
+  account condition, so the account listing is every row. `multipleListings`, the rule a run
+  reports when two listing flags are given, is the port's own, and the pins read it as the name
+  the run writes.
 
 ## Maintenance commands (`internal/cli/cli.go`)
 
@@ -998,4 +1005,7 @@ one case, so those pins fail only on the case the mapping can tell apart.
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
   inline in Go tests).
+
+
+
 
