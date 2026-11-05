@@ -91,9 +91,10 @@ extension GoogleReaderHandlers {
         return GoogleReaderResponse.text("OK")
     }
 
-    /// `markAllAsReadHandler`. The switch has no default branch, so a stream type this handler does
-    /// not handle answers `OK` writing nothing, and the integer read the feed branch makes is this
-    /// handler's 400, where the same read answers 500 for `stream/items/ids`.
+    /// `markAllAsReadHandler`. The reference's switch has three cases, so a stream type it does not
+    /// handle falls through and answers `OK` writing nothing; this port states the same answer with
+    /// an explicit no-op default. The integer read the feed branch makes is this handler's 400,
+    /// where the same read answers 500 for `stream/items/ids`.
     func markAllAsRead(form: GoogleReaderForm, userID: Int) async throws -> Response {
         let stream: GoogleReaderStream
         do {
