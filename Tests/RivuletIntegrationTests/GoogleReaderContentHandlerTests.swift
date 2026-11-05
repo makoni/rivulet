@@ -233,8 +233,8 @@ import RivuletApp
             let token = GoogleReaderToken.derive(username: "alice", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
 
-            // Two rows whose publication order is the other way round from the order they are
-            // seeded in, so the direction is what the pins read rather than the row order.
+            // Two rows with two different publication times, so the order the answer gives is the
+            // direction the read picked, not the order the pins name the rows in.
             let ids = try await storage.withConnection { connection in
                 let categoryID = try await seedCategory(connection, userID: userID, title: "Tech")
                 let feedID = try await seedFeed(connection, userID: userID, categoryID: categoryID,
