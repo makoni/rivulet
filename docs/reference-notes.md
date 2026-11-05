@@ -600,6 +600,40 @@ check, which is what makes the handler's choice read as the answer rather than a
   transaction; this port's boundary is the caller's, so the pins name the statements and not the
   boundary.
 
+### The content handler (`handler.go`, commit `c4d54f87`)
+
+Pinned over a real socket by `GoogleReaderContentHandlerTests`, with the storage read it builds on
+pinned by `EntryContentsReadTests` and the document shapes by `GoogleReaderShapeTests`.
+
+- The order this handler runs in: the output check, the form read, the stream read, then the item
+  ids. The order parameter is read from the URL query only, because `parseStreamFilterFromRequest`
+  reads the request's query rather than the merged form, so the same name in a POST body is not read
+  here, and the default is descending with the one value that answers ascending.
+- The storage read is the listing builder with `WithEnclosures`, `WithEntryIDs` and the sorting
+  field `DefaultSortingOrder` gives — `published_at` — with the direction the modifiers carry, and
+  no `WithLimit` call, so the page size the parameter read answers is never given to the builder and
+  the answer carries every row the ids name. The two titles are read from two different rows:
+  `f.title as feed_title` for the origin document and `c.title as category_title` for the label in
+  the categories list, and the origin's third value is the feed row's `site_url`. The attachments
+  come from a second statement ordered by id, and a row with none answers `[]`, which is what `make`
+  writes.
+- The document: `direction` is `ltr`, `id` is the generic prefix written as a literal, the title is
+  "Reading List", `self` is the configured base url with the endpoint path rather than the host the
+  request came in on, `updated` is the time the handler runs at, and the author is the account name
+  of the row the transport read found, which is a different value from the entry author the item
+  writes. No field of the two structs has `omitempty`, so every one is written.
+- The item document's fourteen fields are written in the order `response.go` declares them, and the
+  times come from three columns: `published` is `published_at`, `updated` is `changed_at`, and the
+  two string fields are whole seconds multiplied — `crawlTimeMsec` by 1000 from `created_at` and
+  `timestampUsec` by 1,000,000 from `published_at`.
+- The categories list is built with the user-number prefix, in the order the handler appends it: the
+  reading-list part, the label for a row with a title, the read part for a read row, the starred
+  part for a starred row. The document `id` uses the generic form, so this rule name has two forms
+  and the handler chooses which one it writes.
+- The content and the attachment urls go through the reference's media proxy, which this port does
+  not have; with its default mode (`http-only`) an https value is left as it is, so the pins read
+  the stored values, and the divergence is recorded in `docs/parity.md`.
+
 ## Fever API (`internal/fever`)
 
 Implemented parameters (`handler.go` dispatch): `groups`, `feeds`, `favicons`, `unread_item_ids`,

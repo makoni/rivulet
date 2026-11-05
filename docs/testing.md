@@ -630,6 +630,44 @@ rules, which the port does not reproduce — it writes the rule name, and the ke
 `docs/reference-notes.md`; and the order of the two statements of the delete path, which is the same
 for every input that reaches them.
 
+### The content handler (`GoogleReaderContentHandlerTests`, PR #46)
+
+`stream/items/contents` is pinned over the same socket, with the storage read it builds on pinned by
+`EntryContentsReadTests`, the categories rule for one item by `GoogleReaderItemCategoriesTests` and
+the document shapes by `GoogleReaderShapeTests`. 47 probes, one per rule, each showing its pin
+failing on the rule it names, all of them biting on the first attempt. The goldens are the
+reference's own output for the same inputs at the toolchain `go.mod` pins.
+
+Four pins needed data that is not what the fixture default already is, because a pin whose data
+follows the rule cannot show a wrong read. The read suite's order pins read the column and the
+direction separately, so the row published later is seeded first: the id order and the publication
+order are then two different answers, and a patch that ordered by the id fails on both — the handler
+pin reads the source of the order value instead, which bites on its own input. The origin pins need
+the feed id and the entry id to be two different numbers, so an extra feed row is seeded before the
+entry is. The status and the flag pins seed the row with values that are not the fixture defaults
+for those two columns. The item id is written by the pin's own helper in the full reference form,
+with the prefix, because the first golden program wrote the padded hex without it, and a pin that
+reused that output could not fail on a patch that dropped the prefix or wrote the decimal form.
+
+Two pins read names they have to keep distinct: the document author pin seeds the account name and
+the integration column with two different values, and the item author pin writes the entry's own
+author, so the three names in the answer are three values. The attachment pins seed two rows with
+two different sets, because a patch that attached the whole page's attachments to every row answered
+the same for one row.
+
+One rule cannot fail here, and the suite header names it as unpinnable rather than pinning it: the
+page size, because this port's read for this endpoint has no `LIMIT` clause at all — the reference's
+`fetchEntries` has none either — so a handler that passed the value `n` to the query could not
+change the answer. The pin that names it records that both rows the ids name are written, whatever
+the page size says.
+
+The document time is pinned by the assertion that compares it with the time the request ran at; the
+other whole-document pins read the time from the answer, because a pin that wrote the time it
+computed before the request could fail on the handler running at a later second. The shape probes
+patch the key order inside the `.object([...])` lists of `GoogleReaderShape`, where each entry
+carries a trailing comma that the patch has to keep, and the attachments probe reads a dictionary's
+values, so its patch writes `Array(...)` rather than the sequence.
+
 ## Soak
 
 `Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub

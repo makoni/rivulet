@@ -8,7 +8,9 @@ Reader auth path with PR #41, and the contract rules the routers read with PR #4
 handlers read — the tag read, the output read and the document shapes — merged with PR #43 as pure
 logic too, and the handlers for the four endpoints this piece implements merged with PR #44 over a
 real socket, with the three POST write handlers — `rename-tag`, `disable-tag` and `mark-all-as-read`
-— merged with PR #45 over the same socket. The rest of the handlers are not started. **Effort:** XL.
+— merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
+over the same socket with the storage read it builds on pinned as a read. The rest of the handlers
+are not started. **Effort:** XL.
 **Depends on:** Stage 4.
 
 ## Scope
@@ -57,8 +59,16 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
       the duplicate answer and writes after it, the delete guard that counts before any write and
       the pick it makes for the feeds of the rows it names, the switch with three cases so the types
       it does not handle write nothing, the status the integer read maps to here, and the `ts`
-      length rule with its two units, the sign guard and the comparison that is strictly before. The
-      rest stays on the catch-all answer until its handler lands.
+      length rule with its two units, the sign guard and the comparison that is strictly before.
+      `stream/items/contents` merged with PR #46, pinned by `GoogleReaderContentHandlerTests` over
+      the same socket: the order the handler runs in, with the order parameter read from the URL
+      query alone, the two titles read from two different rows and the site url read from the feed
+      row, the three time columns with the two string forms built by multiplying, the document
+      author as the account name against the entry author the item writes, `self` as the configured
+      base url, the item id in the full reference form, and the answer carrying every row the ids
+      name, with the storage read pinned by `EntryContentsReadTests` and the categories rule for one
+      item by `GoogleReaderItemCategoriesTests`. The media proxy is recorded in `docs/parity.md`,
+      because this port has none. The rest stays on the catch-all answer until its handler lands.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -159,6 +169,14 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
       instance (manual check; repeated with the full client matrix in stage 7).
 
 ## Backlog
+
+Findings from the work on PR #46 that do not change behavior:
+
+- `EntryContents.swift`'s initializer takes 15 parameters, which is the row the reference scans for
+  this read. The type is one row, so grouping the three time columns or the three join values would
+  be a style change rather than a behavior change.
+- The page-size rule is not falsifiable in this port, so it is named in the suite header and in
+  `docs/testing.md` rather than pinned; the pin that names it records the answer carrying both rows.
 
 Findings from the work on PR #45 that do not change behavior:
 

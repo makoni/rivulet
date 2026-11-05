@@ -61,10 +61,52 @@ extension EntryRepository {
 
     // MARK: - Query helpers
 
+    /// Returns the rows the `stream/items/contents` read answers: the entries joined with their
+    /// feeds and categories, with the attachments of each row.
+    ///
+    /// The reference reads the rows and the attachments as two statements (`GetEntries` with
+    /// `WithEnclosures`, then `EnclosuresByEntryIDs`), which is what this read mirrors; the order
+    /// of the two is the reference's choice, and a row with no attachment carries the empty list
+    /// rather than nothing, which is what the reference's `make` writes as `[]`. The ordering
+    /// clause is the query's, and no page size is applied, because this caller reads none.
+    public func contents(_ query: EntryQuery) async throws -> [EntryContents] {
+        let rows = try await RawSQL.sql(on: database).raw(Self.contentsSQL(query)).all()
+        let entryIDs = try rows.map { try $0.decode(column: "id", as: Int.self) }
+        let attachments = try await fetchEnclosures(entryIDs: entryIDs)
+        return try rows.map { row in
+            let entryID = try row.decode(column: "id", as: Int.self)
+            return EntryContents(
+                entryID: entryID,
+                feedID: try row.decode(column: "feed_id", as: Int.self),
+                feedTitle: try row.decode(column: "feed_title", as: String.self),
+                siteURL: try row.decode(column: "site_url", as: String.self),
+                categoryTitle: try row.decode(column: "category_title", as: String.self),
+                title: try row.decode(column: "title", as: String.self),
+                url: try row.decode(column: "url", as: String.self),
+                author: try row.decode(column: "author", as: String.self),
+                content: try row.decode(column: "content", as: String.self),
+                status: try row.decode(column: "status", as: EntryStatus.self),
+                starred: try row.decode(column: "starred", as: Bool.self),
+                publishedAt: try row.decode(column: "published_at", as: Int.self),
+                createdAt: try row.decode(column: "created_at", as: Int.self),
+                updatedAt: try row.decode(column: "updated_at", as: Int.self),
+                attachments: attachments[entryID] ?? []
+            )
+        }
+    }
+
     /// Columns decoded by ``entry(from:)``.
     private static let entryColumns: SQLQueryString = """
         e.id, e.user_id, e.feed_id, e.hash, e.title, e.url, e.author,
         e.content, e.content_text, e.status, e.starred,
+        e.published_at, e.created_at, e.updated_at
+        """
+
+    /// Columns decoded by ``contents(_:)``: the two titles are read from two different rows, as the
+    /// reference aliases them.
+    private static let contentsColumns: SQLQueryString = """
+        e.id, e.feed_id, f.title AS feed_title, f.site_url, c.title AS category_title,
+        e.title, e.url, e.author, e.content, e.status, e.starred,
         e.published_at, e.created_at, e.updated_at
         """
 
@@ -131,6 +173,22 @@ extension EntryRepository {
             sql += paginationClause(for: query)
         }
         return sql
+    }
+
+    /// The `SELECT` the `stream/items/contents` read answers.
+    ///
+    /// The reference joins `categories` for this read (`INNER JOIN categories c ON c.id =
+    /// f.category_id`), which this port's schema cannot leave unfulfilled, and the ordering
+    /// clause is the query's with no page size, because this caller reads none.
+    private static func contentsSQL(_ query: EntryQuery) -> SQLQueryString {
+        let conditions = filterConditions(for: query)
+        return """
+            SELECT \(contentsColumns) FROM entries e
+            JOIN feeds f ON f.id = e.feed_id
+            JOIN categories c ON c.id = f.category_id
+            WHERE \(conditions.joined(separator: SQLRaw(" AND ")))
+            \(orderClause(for: query, ranked: false))
+            """
     }
 
     /// The `WHERE` conditions of `query`, in a fixed order.

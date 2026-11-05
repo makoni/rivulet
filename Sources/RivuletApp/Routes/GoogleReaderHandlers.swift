@@ -156,14 +156,14 @@ struct GoogleReaderHandlers: Sendable {
 
     // MARK: - Handler rules
 
-    /// The three rules below are shared by the two handler files of this path, so they are
+    /// The four rules below are shared by the handler files of this path, so they are
     /// module-internal rather than private.
 
     static func streams(_ values: [String], userID: Int) throws -> [GoogleReaderStream] {
         try values.map { try GoogleReaderStream.parse(streamID: $0, userID: userID) }
     }
 
-    private static func itemIDs(from values: [String]) throws -> [Int] {
+    static func itemIDs(from values: [String]) throws -> [Int] {
         guard !values.isEmpty else {
             throw ItemIDReadError.noItems
         }
@@ -201,7 +201,7 @@ struct GoogleReaderHandlers: Sendable {
         return query
     }
 
-    private static func sortDirection(_ value: String) -> EntrySort.Direction {
+    static func sortDirection(_ value: String) -> EntrySort.Direction {
         value == "asc" ? .ascending : .descending
     }
 
