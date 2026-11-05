@@ -672,8 +672,12 @@ values, so its patch writes `Array(...)` rather than the sequence.
 
 The three commands are pinned through the in-process console over a temp database, with the rule as
 pure logic (`FeedValidationTests`), the storage reads as reads (`FeedManagementReadsTests`) and the
-commands as runs (`FeedCommandTests`): 17 pins and 24 probes, one per rule, each showing its pin
+commands as runs (`FeedCommandTests`): 17 pins and 25 probes, one per rule, each showing its pin
 failing on the rule it names, all of them biting on the first attempt.
+
+The guard's category half is read with `0` and with a negative id, so the pin shows the rule is the
+positive-number rule rather than the zero test: the patch that reads `== 0` answers `nil` for the
+negative input.
 
 Pins that name an order need data where two rules conflict on one input. The empty url fails the
 guard and the URL rule at once, so the rule the run reports is the one that runs first; the relative

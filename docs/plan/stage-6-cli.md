@@ -47,9 +47,10 @@
 
 ## Backlog
 
-- Style findings from PR #47 that do not change behavior: the two single-expression code lines in
-  the command pins that read over the width (`String.contains` with the rule name and the comment
-  argument), which the wrapping rule exempts, and `FeedCommandTests` reading 408 lines, which is
+- Style findings from PR #47 that do not change behavior: the single-expression code lines in the
+  command pins that read over the width (the `contains` calls with the rule name and the comment
+  argument, and the seed calls with the fixture values), which the wrapping rule exempts, and
+  `FeedCommandTests` reading 407 lines, which is
   inside the test-file cap but above the size the file is meant to hold as it grows — split by
   command when the next slice adds to it.
 - The wording `list` prints for a row and the wording a failing run prints are the port's own; if

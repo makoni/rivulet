@@ -44,6 +44,9 @@ import Testing
         #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: 0,
             urlIsAbsolute: true, feedURLExists: false, categoryExists: false) == .mandatoryFields,
             "and the category that is not a positive number")
+        #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: -1,
+            urlIsAbsolute: true, feedURLExists: false, categoryExists: false) == .mandatoryFields,
+            "the same half read with a negative id, so the rule is not the zero test")
         #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: 1,
             urlIsAbsolute: false, feedURLExists: false, categoryExists: true) == .invalidURL,
             "the url that is not absolute")
