@@ -41,11 +41,17 @@ Rivulet is CLI-first. The commands that exist so far:
 | `rivulet version` | Prints the version |
 | `rivulet refresh` | One pass over the due batch with the values the configuration gives the builder, then exits |
 | `rivulet status` | The feed state: each row with its last fetch, errors and next check, plus the counts; `--json` prints the machine-readable document |
+| `rivulet create-admin` | Creates the account the login path reads |
+| `rivulet integration-credentials` | Sets the account's integration credentials |
+| `rivulet add <url>` | Adds one feed row, for the account named by `--user` or the single account |
+| `rivulet remove <url>` | Removes one feed row and the rows below it |
+| `rivulet list` | Lists the feeds of one account, in the order the reference's query builder answers |
+| `rivulet backup <destination>` | Writes a point-in-time copy of the database to `destination`, used as the path is read |
+| `rivulet vacuum` | Rebuilds the database file, releasing the free pages the rows left behind |
 | `rivulet --help` | Lists all commands, including the planned ones |
 
 The remaining commands are registered placeholders that report the stage implementing them:
-`create-admin`, `add`, `remove`, `list`, `import`, `export`, `integration-credentials`, `backup`,
-`vacuum`.
+`import` and `export`, the OPML path of stage 5.
 
 `--help` and `version` work without any configuration; every other command reads the
 configuration first and needs `DATABASE_URL`.

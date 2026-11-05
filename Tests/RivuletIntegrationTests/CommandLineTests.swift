@@ -77,11 +77,11 @@ import RivuletCore
         // 5's commands that landed, and their pins are `CreateAdminTests` and
         // `IntegrationCredentialsTests`. `add`, `remove` and `list` are no longer here either:
         // stage 6's first slice landed them, and `FeedCommandTests` pins what they do instead.
+        // `backup` and `vacuum` are no longer here either: stage 6's second slice landed them, and
+        // `MaintenanceCommandTests` pins what they do instead.
         let planned: [(name: String, stage: Int)] = [
             ("import", 5),
             ("export", 5),
-            ("backup", 6),
-            ("vacuum", 6),
         ]
 
         for (name, stage) in planned {

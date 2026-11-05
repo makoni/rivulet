@@ -348,6 +348,15 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   the port names for what a command line has to answer — which account the command works for, and a
   url the account has no row for — have no reference counterpart, and their wording is not pinned.
 
+## Maintenance commands (`internal/cli/cli.go`)
+
+- The reference has no `backup` and no vacuum command. `internal/cli/cli.go` at commit `c4d54f87`
+  dispatches by flags — among them `-info`, `-version`, `-migrate`, `-create-admin` and
+  `-healthcheck` — and the word `vacuum` does not appear anywhere in its Go sources, so these two
+  commands are the port's own surface. What is traced is only what SQLite itself enforces on the
+  destination, recorded in `docs/backup-restore.md` and pinned as storage rules by
+  `MaintenanceTests`.
+
 ## Integration credentials (`internal/ui/integration_update.go`)
 
 - The account's integration row (`internal/database/migrations.go`) is keyed by `user_id`
@@ -989,3 +998,4 @@ one case, so those pins fail only on the case the mapping can tell apart.
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
   inline in Go tests).
+
