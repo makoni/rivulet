@@ -248,10 +248,10 @@ import Testing
         try await withMigratedStorage { _, storage in
             try await storage.withConnection { connection in
                 let feeds = FeedRepository(connection)
-                let feed = try await seedFeed(connection).2
+                let (user, _, feed) = try await seedFeed(connection)
                 let feedID = try #require(feed.id)
 
-                try await feeds.delete(id: feedID)
+                try await feeds.delete(id: feedID, userID: try #require(user.id))
 
                 #expect(try await feeds.fetch(id: feedID) == nil)
             }

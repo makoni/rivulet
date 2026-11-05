@@ -15,53 +15,67 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 5 — Client APIs & OPML**, with its first two slices merged: `create-admin`
-with the user rules and the bcrypt hasher (PR #38), and `integration-credentials` with the Fever
-token derivation and the duplicate-name rules (PR #39). For the second slice the join, the lowercase
-hex form, the parts read as given, the order the two duplicate checks are read in, the guard inside
-the rule function that an empty name is not read against the answer, the per-user exclusion, the
-values compared as read, each check reading its own column, and the rule that a blank password read
-keeps the stored value are pinned by `FeverTokenTests`, `IntegrationValidationTests`,
-`UserRepositoryTests` and `IntegrationCredentialsTests`; for the first slice the rule order, the
-character class read per Unicode scalar, the byte-counted minimum, the existence read that runs
-before any rule, the secure read and the trim, and the flag that gates the migrations are pinned by
-`UserValidationTests` and `CreateAdminTests`, and the reference cost, the 72-byte rule and the
-marker direction by `BcryptHasherTests`. What those pins cannot show is named in the suite headers —
-the locale wording, the terminal check, the environment path, which marker the port writes, the
-single-row limit of the existence read, the prompt wording of the credentials command (its read
-order is pinned by the flags of the reads), the command's guard that an empty name never reaches the
-storage layer, the blank-name rule this port reads differently from the reference's form, the absent
-enabled flag, the Fever password the reference does not store, and the unique index on
-`fever_token`. The storage reads the routers are built on landed with PR #40 and are pinned by
-`ClientAuthTests`: the Fever lookup lowercases both sides, the Google Reader read compares the name
-as read, both answer nothing when no row matches, and the control pin shows that the account lookup
-lowercases what it is given while this read does not. What that suite cannot show is named in its
-header — the `*_enabled` gate, the single-row limit, the bcrypt compare, the Google read's error
-wording upstream, the empty-string default upstream's columns carry, and `LOWER` on SQLite being
-ASCII-only. The Google Reader auth path merged with PR #41: the login's own field names, the text
-shape by default and the JSON shape only when `output` says `json`, the compare against the stored
-value, the guard that an empty name ends the login before the read, the transport chosen by method,
-the merged form with Go's order, the header read as `strings.Fields` splits it, the three headers
-the response builder writes on every response of this path, the structure rule and the two 401
-shapes are pinned by `GoogleReaderAuthTests` over a real socket, with the derivation and the JSON
-write pinned against the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`,
-and the port's answer for the path without the trailing slash pinned as a divergence; the timing
-form of the compare, the guard's password half and the one-part structure are named as unpinnable in
-that header, as are the mux rules the router piece brings. The contract rules those routers read
-merged with PR #42, as pure logic with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x`
-rules and the error wordings — including the space the scan skips before the field, the newline it
-does not skip, and the read per Unicode scalar — the stream branches with the two forms of each
-prefix as an OR and the seven suffixes, the query read with the pair it skips for a `;` or a bad
-escape, the bounds check that runs before the two characters of an escape are read, and the order
-the pairs answer in, and the parameter reads with the order read, the list read's trim as Go's
-`unicode.IsSpace` and its skip of an empty value, and the continuation rule, are pinned by
-`GoogleReaderItemIDTests`, `GoogleReaderStreamTests`, `GoogleReaderQueryTests` and
-`GoogleReaderRequestModifiersTests`. What those headers name as unpinnable: the count `fmt.Sscanf`
-reports, the order the two stream prefixes are removed in, the error `r.URL.Query()` discards, the
-`WithOffset` branch the parameter read never reaches, the platform reading `bitSize 0` as 64 bits,
-and which count the continuation rule is given, because that is the handler's choice. The form read
-reports a pair error for the whole form while the query read skips that pair, which is
-`r.URL.Query()`; both are recorded in the code comment.
+Current focus: **Stage 6 — CLI & operations**, with its first slice landing the feed commands `add`,
+`remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
+the duplicate read, then the category read — the url written as the command read it, the category
+resolved from the named title or from the default, the account resolved from `--user` or from the
+single account, the delete that applies the account it is given, and the listing order with the
+lowercased title as the tiebreaker, are pinned by `FeedValidationTests`, `FeedManagementReadsTests`
+and `FeedCommandTests`. What those headers name as unpinnable: the single-row limit of the duplicate
+read, the order between the duplicate read and the category read at the command level — a category
+name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
+the command level, which the read suite pins, the wording of the lines and of the reported failures,
+and the rules the port names rather than the reference. The command surface is recorded in
+`docs/parity.md`. `list` for categories and users, `backup`, `vacuum`, the flag polish and the
+process-level checks follow.
+
+Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
+bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
+duplicate-name rules (PR #39). For the second slice the join, the lowercase hex form, the parts read
+as given, the order the two duplicate checks are read in, the guard inside the rule function that an
+empty name is not read against the answer, the per-user exclusion, the values compared as read, each
+check reading its own column, and the rule that a blank password read keeps the stored value are
+pinned by `FeverTokenTests`, `IntegrationValidationTests`, `UserRepositoryTests` and
+`IntegrationCredentialsTests`; for the first slice the rule order, the character class read per
+Unicode scalar, the byte-counted minimum, the existence read that runs before any rule, the secure
+read and the trim, and the flag that gates the migrations are pinned by `UserValidationTests` and
+`CreateAdminTests`, and the reference cost, the 72-byte rule and the marker direction by
+`BcryptHasherTests`. What those pins cannot show is named in the suite headers — the locale wording,
+the terminal check, the environment path, which marker the port writes, the single-row limit of the
+existence read, the prompt wording of the credentials command (its read order is pinned by the flags
+of the reads), the command's guard that an empty name never reaches the storage layer, the
+blank-name rule this port reads differently from the reference's form, the absent enabled flag, the
+Fever password the reference does not store, and the unique index on `fever_token`. The storage
+reads the routers are built on landed with PR #40 and are pinned by `ClientAuthTests`: the Fever
+lookup lowercases both sides, the Google Reader read compares the name as read, both answer nothing
+when no row matches, and the control pin shows that the account lookup lowercases what it is given
+while this read does not. What that suite cannot show is named in its header — the `*_enabled` gate,
+the single-row limit, the bcrypt compare, the Google read's error wording upstream, the empty-string
+default upstream's columns carry, and `LOWER` on SQLite being ASCII-only. The Google Reader auth
+path merged with PR #41: the login's own field names, the text shape by default and the JSON shape
+only when `output` says `json`, the compare against the stored value, the guard that an empty name
+ends the login before the read, the transport chosen by method, the merged form with Go's order, the
+header read as `strings.Fields` splits it, the three headers the response builder writes on every
+response of this path, the structure rule and the two 401 shapes are pinned by
+`GoogleReaderAuthTests` over a real socket, with the derivation and the JSON write pinned against
+the reference's own output by `GoogleReaderTokenTests` and `JSONValueTests`, and the port's answer
+for the path without the trailing slash pinned as a divergence; the timing form of the compare, the
+guard's password half and the one-part structure are named as unpinnable in that header, as are the
+mux rules the router piece brings. The contract rules those routers read merged with PR #42, as pure
+logic with no HTTP: the four item-id forms with the `fmt.Sscanf` `%016x` rules and the error
+wordings — including the space the scan skips before the field, the newline it does not skip, and
+the read per Unicode scalar — the stream branches with the two forms of each prefix as an OR and the
+seven suffixes, the query read with the pair it skips for a `;` or a bad escape, the bounds check
+that runs before the two characters of an escape are read, and the order the pairs answer in, and
+the parameter reads with the order read, the list read's trim as Go's `unicode.IsSpace` and its skip
+of an empty value, and the continuation rule, are pinned by `GoogleReaderItemIDTests`,
+`GoogleReaderStreamTests`, `GoogleReaderQueryTests` and `GoogleReaderRequestModifiersTests`. What
+those headers name as unpinnable: the count `fmt.Sscanf` reports, the order the two stream prefixes
+are removed in, the error `r.URL.Query()` discards, the `WithOffset` branch the parameter read never
+reaches, the platform reading `bitSize 0` as 64 bits, and which count the continuation rule is
+given, because that is the handler's choice. The form read reports a pair error for the whole form
+while the query read skips that pair, which is `r.URL.Query()`; both are recorded in the code
+comment.
 
 PR #43 merged the rules the handlers read, still as pure logic with no HTTP: the tag read with the
 add loop before the remove loop, the value each branch writes for `read`, `kept-unread` and

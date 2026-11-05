@@ -668,6 +668,39 @@ patch the key order inside the `.object([...])` lists of `GoogleReaderShape`, wh
 carries a trailing comma that the patch has to keep, and the attachments probe reads a dictionary's
 values, so its patch writes `Array(...)` rather than the sequence.
 
+### The feed commands (`FeedCommandTests`, PR #47)
+
+The three commands are pinned through the in-process console over a temp database, with the rule as
+pure logic (`FeedValidationTests`), the storage reads as reads (`FeedManagementReadsTests`) and the
+commands as runs (`FeedCommandTests`): 17 pins and 24 probes, one per rule, each showing its pin
+failing on the rule it names, all of them biting on the first attempt.
+
+Pins that name an order need data where two rules conflict on one input. The empty url fails the
+guard and the URL rule at once, so the rule the run reports is the one that runs first; the relative
+url is seeded as a row the account already has, so the same input fails the URL rule and the
+duplicate read. The listing pins read the two halves of the order apart: the counts put a row with
+the alphabetically first title last, and the pair inside the equal counts is the pair that separates
+only under the lowercased reading. The delete pin seeds the same url on two accounts, because a pin
+that read one row could not show which account the delete applied to.
+
+The pins read the rows back through SQL, so a pin is not satisfied by the read it is testing, and
+each pin is handed both all the rows read back and the rows the run wrote: "a failing run writes
+nothing" is read as the rows that were not seeded, which counting every row could not tell apart
+from the seed. The account pins need different account sets — one account, several accounts, and a
+run whose named account has no row — so the helper takes the accounts it seeds rather than a fixed
+graph.
+
+What the headers name as unpinnable: the single-row limit of the duplicate read, because the
+schema's `UNIQUE (user_id, url)` means that read can never have two rows to choose between; the
+order between the duplicate read and the category read at the command level, which the pure suite
+pins and which the command cannot reach, because a category name it cannot resolve answers `0` and
+the guard runs before the category read; the rows below the feed at the command level, which the
+read suite pins for the same delete; the case-insensitivity of the account lookup as a storage rule,
+where the command pin is pinnable only on the patch that compares the name as read rather than
+reading it through the lookup; the wording of the console lines and of the reported failures; the
+rules the port names rather than the reference; the fetch these commands do not make; and the
+columns the listing selects.
+
 ## Soak
 
 `Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub

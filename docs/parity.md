@@ -1092,3 +1092,22 @@ nothing was written.
 | The rename statement | `UpdateCategory` writes `hide_globally`, which this port's schema does not have, and does not stamp `updated_at` | the title only, and `updated_at` is stamped on every mutation, as the port's schema rule states | No observable difference for what the port has; the stamp is the port's own convention, so no pin reads the reference's side |
 | The part below a second | `before` is a `time.Time`, so a microsecond value keeps its sub-second part and an entry published at that part is marked | the entry column holds whole seconds, so the answer is the whole part of the value | `GoogleReaderTimestampTests` pins the port's side — cut to whole seconds rather than rounded — and the reference's side has nothing to pin here |
 | The media proxy | `RewriteDocumentWithAbsoluteProxyURL` rewrites the document's media links and `ProxifyEnclosureURL` rewrites the attachment urls, by the configured mode and resource types, with the hmac of the private key as the path segment | no proxy, so the stored content and the attachment urls are written as they are | With the reference's default mode `http-only` an https value is unchanged anyway, so the pins read the stored values; an http resource, the `all` mode and a custom proxy url are where the two answers differ |
+
+## CLI feed commands (stage 6)
+
+The reference's CLI dispatches by flags on the executable (`-create-admin`, `-refresh-feeds`,
+`-export-feeds`, `-info`, `-health-check`) and reaches the feed rows through its web UI, so the
+command set below is the port's own surface: what is traced to the reference is the rule each
+command applies and the storage rule it reads, not the shape of the command line. The pins are
+`FeedCommandTests`, `FeedManagementReadsTests` and `FeedValidationTests`.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The command set | no `add`, `remove` or `list`; the feed rows are managed through the web UI, and the CLI has one flag per operation | `add <url> --user <name> --category <title>`, `remove <url> --user <name>`, `list --user <name>` | Nothing upstream is contradicted: the surface is the port's own, and only the rules the commands apply are traced to the reference |
+| Which account a command works for | the session or the login, so a command line has no account to choose | the account named by `--user`, read as the account lookup reads a name, and the single account when none is named; naming none with several accounts is the port's rule | No reference behavior to compare; the rule is pinned by its name, and the wording a failing run prints is the port's own |
+| A named account with no row, and a url the account has no row for | the request path reads the account before the rules and reports a database failure | the port reports `accountNotFound` and `feedNotFound`, because a command line that writes or deletes nothing has to say so | The reference has no rule for these; the port names them and pins them by name |
+| The message a rule answers with | the locale string the key translates to | the rule name, as the write handlers of this port already write it | A terminal or a script reading the text sees a different string; the rules are pinned as pure logic and the keys are recorded in `docs/reference-notes.md` |
+| The url written to the row | the create path writes `feed_url` as submitted; the discovery path cleans the value before writing it | the command writes what it read, because `add` is the insert only and does not discover | The two answers are the same for a url with nothing to clean; a tracked parameter is where a discovery path would differ |
+| The listing order | `parsing_error_count DESC` with `lower(f.title) ASC` appended after the sort expressions, and only when there is at least one | the same rule, read by the storage layer | `lower()` on PostgreSQL folds non-ASCII letters; SQLite's `LOWER` folds ASCII only, so a title with a letter outside ASCII is where the two answers differ — no pin reads one |

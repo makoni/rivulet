@@ -60,6 +60,22 @@ public struct CategoryRepository {
             .first()
     }
 
+    /// `CategoryIDExists`: the answer is read for the pair `(user_id, id)`, so a row of another
+    /// user with the same id is not this user's category, which is what `FeedManagementReadsTests`
+    /// pins. The single row is what the reference reads; a pin cannot tell a single-row read from
+    /// one that read every match, because a user cannot have two rows with the same id.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the answer is read for.
+    ///   - categoryID: The row the answer is read for.
+    /// - Returns: Whether this account has `categoryID`.
+    public func categoryExists(userID: Int, categoryID: Int) async throws -> Bool {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT 1 FROM categories WHERE user_id = \(bind: userID) AND id = \(bind: categoryID) LIMIT 1
+            """).first()
+        return row != nil
+    }
+
     /// `AnotherCategoryExists`: both sides are read through `LOWER`, and the category being checked
     /// is excluded, so a rename to its own title is not a duplicate. The single row is what the
     /// reference reads, and `LOWER` on SQLite is ASCII-only, which `ClientAuthTests` names.
