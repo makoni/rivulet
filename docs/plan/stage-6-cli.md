@@ -2,7 +2,7 @@
 
 **Goal:** everything is manageable without touching the database or a web UI.
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
-(PR #47). The second slice, the maintenance commands `backup` and `vacuum`, lands as PR #48.
+(PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48).
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -16,7 +16,7 @@
       `refresh` (all/one) and `status` (`--json`) — the cores of both landed in stage 4 as the
       manual pass over the batch and the minimal contract the soak reads; this stage polishes their
       flags and output. `integration-credentials` (polish) and `version`.
-- [ ] `backup` and `vacuum` land as runs through the in-process console (PR #48): the destination
+- [x] `backup` and `vacuum` landed as runs through the in-process console (PR #48): the destination
       read as it was given, the copy as the snapshot at the run rather than the bytes of the main
       file, the copy being a file of its own, a destination the command did not create reported
       rather than built or overwritten, the file rebuilt without losing a row, and the flag that
@@ -91,3 +91,4 @@
 - The account rule is the port's own: `--user` with the single-account fallback. If a flag is wanted
   for the environment path (`LIST_USER`, `ADD_USER`), that belongs to this stage's flag polish, not
   to the read.
+

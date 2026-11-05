@@ -26,7 +26,7 @@ read, the order between the duplicate read and the category read at the command 
 name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
 the command level, which the read suite pins, the wording of the lines and of the reported failures,
 and the rules the port names rather than the reference. The command surface is recorded in
-`docs/parity.md`. The second slice lands as PR #48: `backup` and `vacuum` as runs, with the
+`docs/parity.md`. The second slice is merged (PR #48): `backup` and `vacuum` as runs, with the
 destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
 main file, the copy being a file of its own that does not change with the source afterwards, a
 destination the command did not create reported rather than built or overwritten and read against a
@@ -314,4 +314,5 @@ swift run rivulet --help
   doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
+
 

@@ -373,9 +373,3 @@ import RivuletApp
         return Content(tables: tables, entries: entries)
     }
 }
-
-
-
-
-
-
