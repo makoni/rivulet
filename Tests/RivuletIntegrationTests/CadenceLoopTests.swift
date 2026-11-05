@@ -4,7 +4,8 @@ import Testing
 @testable import RivuletCore
 
 /// The cadence loop the reference's `feedScheduler` goroutine is (`internal/cli/scheduler.go` at
-/// commit `c4d54f87`), read as the calls the loop makes through its two seams.
+/// commit `c4d54f87`), read as the calls the loop and the tick make through the seams they call
+/// through.
 ///
 /// The reference waits first — `for range time.Tick(frequency)` fires only after the interval, so
 /// the first batch read happens after the first interval — and it reads the batch again on each
@@ -254,13 +255,18 @@ import Testing
         }
     }
 
-    /// The calls the loop made, recorded by the two seams and the runner. The pins read them after
-    /// the loop returns, and each call is recorded whole, so no pin reads a call in the middle.
+    /// The calls the loop made, recorded by the seams and the runner. The pins read them after the
+    /// loop returns, and the appends run under a lock, because the workers of one tick can record
+    /// at the same time; the order inside one tick is not fixed, so the pins that read a tick read
+    /// the calls on either side of it.
     private final class Recorder: @unchecked Sendable {
         private var calls: [Event] = []
+        private let lock = NSLock()
 
         func record(_ call: Event) {
+            lock.lock()
             calls.append(call)
+            lock.unlock()
         }
 
         func all() -> [Event] {
@@ -271,7 +277,7 @@ import Testing
     /// Records the instant each read was made against and moves by the interval the seam was given,
     /// so the pins read the clock per read rather than one instant fixed at the start. The loop
     /// reads the clock once per read and the test moves it between reads, so nothing is read while
-    /// it is moved; the seam protocol has a synchronous `now()`, which an actor cannot conform to.
+    /// it is moved; the `Clock` seam has a synchronous `now()`, which an actor cannot conform to.
     private final class RecordingClock: Clock, @unchecked Sendable {
         private var instant: Int
         private let recorder: Recorder

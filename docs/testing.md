@@ -806,7 +806,8 @@ strict `<`: a row stamped at the read's own instant answers nothing, so a pin th
 order of the calls could be satisfied by a loop that never read. The recorder and the clock are
 classes marked `@unchecked Sendable`, because the `Clock` seam has a synchronous `now()`, which
 an actor cannot conform to; the loop reads the clock once per read and the test moves it between
-reads, so nothing is read while it is moved.
+reads, so nothing is read while it is moved; the appends to the recorder run under a lock, because
+the workers of one tick can record at the same time.
 
 What the header names as unpinnable: that any time passes, since the seam stands in for a sleep;
 the number of iterations, which is the answer the seam gives rather than a rule of the loop; the

@@ -12,8 +12,9 @@ import Foundation
 /// reference pushes the jobs to the pool and goes on to the next firing, so a slow batch can
 /// overlap the next tick there, while this loop runs one tick to the end before the next read,
 /// which `docs/parity.md` records. The loop reads the clock through the scheduler on each
-/// iteration, so the batch it answers is the one the clock gives at that read; the reference reads
-/// `time.Now()` inside its own storage layer, which is the same shape there. The loop is the piece
+/// iteration, so the batch it answers is the one the injected clock gives at that read; the
+/// reference's due rule compares against SQL `now()` at query time, the divergence the scheduler
+/// section of `docs/parity.md` records. The loop is the piece
 /// `docs/plan/stage-4-ingestion.md` left out of stage 4 for the same reason: a test drives the
 /// cadence through the seam instead of sleeping, so nothing here waits.
 public actor CadenceLoop {

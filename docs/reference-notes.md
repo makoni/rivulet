@@ -1018,5 +1018,3 @@ one case, so those pins fail only on the case the mapping can tell apart.
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
   inline in Go tests).
-
-

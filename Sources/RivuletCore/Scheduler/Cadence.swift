@@ -14,8 +14,8 @@ import Foundation
 public protocol Cadence: Sendable {
     /// Waits for one interval and answers whether the loop runs again.
     ///
-    /// - Parameter interval: The cadence the loop was built with, which is `pollingFrequency`. -
-    /// Returns: Whether the loop should read the batch again.
+    /// - Parameter interval: The cadence the loop was built with, which is `pollingFrequency`.
+    /// - Returns: Whether the loop should read the batch again.
     func wait(for interval: Duration) async -> Bool
 }
 

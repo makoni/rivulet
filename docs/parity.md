@@ -743,9 +743,11 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
 The reference waits before it reads: `internal/cli/scheduler.go` at commit `c4d54f87` runs `for
 range time.Tick(frequency)`, which fires only after the interval, so the first batch read happens
 after the first interval and each later read after a firing. The port's loop is that shape: one
-read per interval, the read made against the instant the clock answers at that read, which is the
-reference reading `time.Now()` inside its own read, and the interval handed to the seam is the
-cadence the options hold. A read that fails is reported and the loop goes on, which is the
+read per interval, made against the instant the injected clock gives at that read — the reference's
+due rule compares against SQL `now()` at query time, the divergence the scheduler section above
+records — and the interval handed to the seam is the interval the loop was built with, which the
+wiring gives from `pollingFrequency`. A read that fails is reported and the loop goes on, which is
+the
 reference's `slog.Error` followed by the next firing; here the report carries the failure,
 because `RivuletCore` has no logging layer. The pins are `CadenceLoopTests`, which read the calls
 the loop makes through the seam.
@@ -1166,5 +1168,3 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | The destination | nothing to compare | the path as the command read it, so a relative value is the process's working directory rather than the data directory; the port does not build a missing parent directory and does not overwrite a file it did not create | The port's choice, so the pins read the filesystem after the run; a run that wrote nothing reports it, which is also the port's rule, and the wording is the port's own |
 | What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
-
-

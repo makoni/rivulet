@@ -1,7 +1,6 @@
 // Ported from Miniflux internal/cli/scheduler.go `feedScheduler` (Apache-2.0); adapted for
 // Swift/SQLite.
 
-import Foundation
 
 /// What one iteration of the cadence loop produced, so the caller reports it.
 ///
