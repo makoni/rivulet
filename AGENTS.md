@@ -39,7 +39,7 @@ file; the size of the main file before the run, because the checkpoint at the en
 rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
 only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
 fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
-rules the port names rather than the reference. The third slice is open as PR #49: `list` answers
+rules the port names rather than the reference. The third slice is merged (PR #49): `list` answers
 one listing per run, with the flag naming which read the run makes, no flag still meaning the
 feeds, the pair of flags reported as the rule the port names rather than picked, the account the
 run resolves reaching the category read and not the account read, the line carrying the stored

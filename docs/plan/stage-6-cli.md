@@ -3,7 +3,7 @@
 **Goal:** everything is manageable without touching the database or a web UI.
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
 (PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The
-third slice, `list` for the categories and the accounts, is open as PR #49.
+third slice, `list` for the categories and the accounts, is merged (PR #49).
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -12,8 +12,8 @@ third slice, `list` for the categories and the accounts, is open as PR #49.
       validator reads, the duplicate read, the category read, the delete that applies the account,
       and the listing order, with the account the command works for resolved from `--user` or from
       the single account. The flag polish and the process-level checks follow.
-- [ ] `list` for the categories and the accounts lands with PR #49 as runs through the
-      in-process console: the flag names which read the run makes, no flag still means the feeds,
+- [x] `list` for the categories and the accounts landed with PR #49 as runs through the in-process
+      console: the flag names which read the run makes, no flag still means the feeds,
       the pair of flags is reported as the rule the port names rather than picked, the account the
       run resolves reaches the category read and not the account read, the line carries the stored
       position and the stored admin flag rather than the schema default, one line carries one row,
