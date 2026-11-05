@@ -498,12 +498,11 @@ The add loop's `read` guard asks for `kept-unread`, which that loop never writes
 loop asks for `read`, which the loop can write, so `add read` with `add kept-unread` is the error.
 Between the loops, `add read` with `remove kept-unread` is the error only when the add loop ran
 first; `add kept-unread` with `remove read` answers the error either way, so the order pin reads the
-first pair.
-`broadcast` and `like` write nothing. Any other value reaches the unsupported error, which
-names the type as Go's `String()` prints it, not the label or the id. The wordings: googlereader:
-kept-unread and read should not be supplied simultaneously names the pair for the read guard, and
-`googlereader: starred should not be supplied for add and remove simultaneously` names one suffix
-for the starred guard. Both are what the handler answers with.
+first pair. `broadcast` and `like` write nothing. Any other value reaches the unsupported error,
+which names the type as Go's `String()` prints it, not the label or the id. The wordings:
+googlereader: kept-unread and read should not be supplied simultaneously names the pair for the read
+guard, and `googlereader: starred should not be supplied for add and remove simultaneously` names
+one suffix for the starred guard. Both are what the handler answers with.
 
 The output read (`checkOutputFormat`): POST reads through the form read, which reports a pair error
 for the whole form, and every other method reads through the query read, which skips that pair. Only
@@ -558,6 +557,48 @@ the status mapping itself pinned by `GoogleReaderResponseStatusTests`.
   500 with the wording that names the type, which is not the query read's colon wording.
 - The count the continuation rule is given is what the branch returned, which is the handler's
   choice upstream as well, and the page size reaches the storage layer through the builder's clamp.
+
+### The three POST write handlers (`handler.go`, commit `c4d54f87`)
+
+Pinned over a real socket by `GoogleReaderWriteHandlerTests`; none of the three applies the output
+check, which is what makes the handler's choice read as the answer rather than as the check's.
+
+- `rename-tag` reads `s` and `dest` through the merged form and answers its own wording that names
+  the parameter for a value the stream read cannot read, rather than the error that read gave, which
+  is what `mark-all-as-read` writes instead. Its type guard runs before the empty-destination guard,
+  so an input that fails both answers the type wording, and the two handlers' type wordings are two
+  different sentences: `googlereader: only labels supported` here and
+  `googlereader: only labels are supported` for `disable-tag`.
+- `disable-tag` reads `s` as the whole merged list, `r.Form["s"]`, which is the difference from the
+  handlers that read one value with the same name, and its guard runs per value in the order the
+  list was read, before any title is collected.
+- `mark-all-as-read` maps the integer read to 400, where the same read answers 500 for
+  `stream/items/ids`, and its switch has three cases, so a stream type it does not handle falls
+  through and answers `OK` writing nothing; the port models that with an explicit no-op default
+  branch, which is the same answer. The reading-list branch has no feed filter, and the label branch
+  reaches the entries through the category row and through the feeds of the same user.
+- `ts`: the integer read, then the unit decided by the length of the value as read — 16 characters
+  or more are microseconds, fewer are seconds — and a value that is not positive leaves the zero
+  time, which the handler replaces with the time it is running at, so the default is not a value the
+  read answers. The reference keeps the part below a second in the time it bounds the pass by, which
+  this port cannot answer because its entry column holds whole seconds; that difference is recorded
+  in `docs/parity.md`. The storage comparison is strictly before, and the reference reads status =
+  unread on every branch, which this port's `EntryRepository+UserState` statements carry.
+- The base-10 integer read is the same rule at three call sites of this path — `ts`, the decimal
+  form of an item id, and the part left after the `feed/` prefix — so its wordings are written once
+  in `Sources/RivuletCore/Integration/GoParseInt.swift` and read from there.
+- The messages the handler writes for the category rules are the rule names, because the port names
+  the rule rather than the locale string: `alreadyExists`. The reference's keys translate to
+  `error.category_already_exists` → "This category already exists." and `error.title_required` →
+  "The title is mandatory."; the `titleRequired` message is not reachable through the socket,
+  because the empty-destination guard answers before the rule, so the rule is pinned as pure logic.
+- `RemoveAndReplaceCategoriesByName` counts the categories the input does not name before it writes
+  anything, so an input that would leave the user with none is reported with the storage wording
+  `store: at least 1 category must remain after deletion`; the feeds of the named rows go to the
+  first remaining category by title, which is what the reference's `ORDER BY title ASC LIMIT 1`
+  reads, and the delete statement is per user. The reference runs its three statements in a
+  transaction; this port's boundary is the caller's, so the pins name the statements and not the
+  boundary.
 
 ## Fever API (`internal/fever`)
 

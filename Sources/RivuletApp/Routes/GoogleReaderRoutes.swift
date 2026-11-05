@@ -34,6 +34,12 @@ public enum GoogleReaderRoutes {
         protected.post("edit-tag", use: auth.withAuth { request, userID, _ in
             try await handlers.editTag(form: try auth.form(for: request), userID: userID)
         })
+        protected.post("rename-tag", use: auth.withAuth { request, userID, _ in
+            try await handlers.renameTag(form: try auth.form(for: request), userID: userID)
+        })
+        protected.post("disable-tag", use: auth.withAuth { request, userID, _ in
+            try await handlers.disableTag(form: try auth.form(for: request), userID: userID)
+        })
         protected.get("tag", "list", use: auth.withAuth { request, userID, _ in
             try await handlers.tagList(query: request.url.query ?? "", userID: userID)
         })
@@ -42,6 +48,9 @@ public enum GoogleReaderRoutes {
         })
         protected.get("stream", "items", "ids", use: auth.withAuth { request, userID, _ in
             try await handlers.streamItemIDs(query: request.url.query ?? "", userID: userID)
+        })
+        protected.post("mark-all-as-read", use: auth.withAuth { request, userID, _ in
+            try await handlers.markAllAsRead(form: try auth.form(for: request), userID: userID)
         })
 
         // The catch-all answer for an endpoint that is not implemented. The exact path is matched
