@@ -3,7 +3,8 @@
 **Goal:** everything is manageable without touching the database or a web UI.
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
 (PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The
-third slice, `list` for the categories and the accounts, is merged (PR #49).
+third slice, `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the
+in-process cadence loop through the `Cadence` seam, is open as PR #50.
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -21,6 +22,15 @@ third slice, `list` for the categories and the accounts, is merged (PR #49).
       rather than an argument, because `@Argument` has no default, so a run cannot name an optional
       listing, and the `position` column one pin reads is the port's own, recorded in
       `docs/parity.md`.
+- [ ] The in-process cadence loop lands with PR #50 as the calls the loop makes through its seam,
+      because nothing can pin a sleeping loop: the loop waits before the first read, which is the
+      reference's shape, every wait is given the interval the loop was built with, there is one read
+      per wait, each read answers the instant the clock gives at that read, a failing read is
+      reported and the loop runs again, an empty read reports nothing, nothing is read after the
+      seam answers stop, and the jobs of a tick run before the next read, which is the port's shape.
+      The stop answer is the port's own, because the reference's ticker goroutine has no stop rule.
+      The real seam, which sleeps, and the wiring that starts the loop for `serve` land with the
+      process-level checks.
 
 ## Implementation notes
 
@@ -37,7 +47,12 @@ third slice, `list` for the categories and the accounts, is merged (PR #49).
   commands this is `MaintenanceCommandTests`, with the storage rules it calls pinned by
   `MaintenanceTests`. For the listings this is `ListingCommandTests`, with the two orders it reads
   pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`, and the account resolution
-  it reaches pinned there.
+  it reaches pinned there. The in-process cadence loop is pinned as the calls the loop makes through
+  its seam by `CadenceLoopTests` (PR #50): the wait before the first read, the interval every wait
+  is given, one read per wait, the instant each read answers, the reported failing read with the
+  loop going on, the empty read reported as nothing, nothing read after the seam answers stop, and
+  the jobs of a tick before the next read. The real seam sleeps, so it is pinned only by the
+  process-level harness, where the wiring that starts the loop for `serve` is read too.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
 - Process-level: spawn the built binary with `serve`; `/healthz` answers; SIGTERM shuts down cleanly
   (no lost refresh batch).
@@ -66,6 +81,9 @@ third slice, `list` for the categories and the accounts, is merged (PR #49).
   ~40 aim, which stays because the print switch is the whole command; `ListingCommandTests.swift`
   imports `Foundation` and `ConsoleKit` that the committed code does not use — its probes patch
   production code only, so unlike the maintenance suite it needs no import for a patch to compile.
+- Style findings from PR #50 that do not change behavior: the single-expression code lines in the
+  cadence pins that read over the width (the `#expect` calls with the comment argument and the event
+  arrays with the pinned instants), which the wrapping rule exempts.
 - The `import Foundation` in the two maintenance commands is not used by the code that is committed:
   it is there so the probe patches that redirect the destination through `NSString` and the
   filesystem through `FileManager` compile. It goes with the first probe that does not need a

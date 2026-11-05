@@ -56,7 +56,22 @@ run, which bite only on the storage rules; the single-row limit of the reads; th
 resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these commands
 fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY
 title` with, which this port cannot have. The shape is flags because `@Argument` has no default, so
-a run cannot name an optional listing. The flag polish and the process-level checks follow.
+a run cannot name an optional listing. The fourth slice is open as PR #50: the in-process cadence
+loop, pinned as the calls the loop makes through its seam — the wait before the first read, which
+is the reference's shape, the interval the loop was built with on every wait, one read per wait, the
+instant the clock gives at each read, the reported failing read with the loop going on, the empty
+read reported as nothing, nothing read after the seam answers stop, and the jobs of a tick before
+the next read, which is the port's shape — by `CadenceLoopTests` through test seams that record each
+call. What that header names as unpinnable: that any time passes, since the seam stands in for a
+sleep; the number of iterations, which is the answer the seam gives; the order the jobs of one tick
+are recorded in, which concurrency does not fix, so the pins read the calls across the tick
+boundary; the shape and the field names of a report, which are the port's choice; that the
+reference's ticker goroutine has no stop rule at all, so the stop answer is the port's own,
+recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks, which this port
+has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the real seam
+implementation, which sleeps, so it lands with the process harness; and the wiring that starts the
+loop for `serve` and the signal that asks it to stop, which the process-level suite pins. The flag
+polish and the process-level checks follow.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
