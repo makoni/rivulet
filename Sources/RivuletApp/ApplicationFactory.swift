@@ -24,7 +24,8 @@ public enum ApplicationFactory {
         HealthRoutes.register(on: application)
 
         let storage = SQLiteStorage(database: application.db(.sqlite), path: config.databasePath)
-        GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher())
+        GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher(),
+            baseURL: config.baseURL)
         return RivuletApplication(application: application, storage: storage)
     }
 }

@@ -56,4 +56,70 @@ enum GoogleReaderShape {
     static func tagsResponse(tags: [JSONValue]) -> JSONValue {
         .object([(key: "tags", value: .array(tags))])
     }
+
+    /// `streamContentItemsResponse`: no field has `omitempty`, so every one is written, and the
+    /// lists are written as `[]` when empty because the reference builds them with `make`.
+    static func contentDocument(direction: String, id: String, title: String, selfHref: String,
+        updated: Int, items: [JSONValue], author: String) -> JSONValue {
+        .object([
+            (key: "direction", value: .string(direction)),
+            (key: "id", value: .string(id)),
+            (key: "title", value: .string(title)),
+            (key: "self", value: .array([contentHref(href: selfHref)])),
+            (key: "updated", value: .integer(updated)),
+            (key: "items", value: .array(items)),
+            (key: "author", value: .string(author)),
+        ])
+    }
+
+    /// `contentItem`: the fourteen fields are written in the order the struct declares them, and
+    /// none has `omitempty`.
+    static func contentItem(id: String, categories: [String], title: String, crawlTimeMsec: String,
+        timestampUsec: String, published: Int, updated: Int, author: String,
+        alternate: [JSONValue], summary: JSONValue, content: JSONValue, origin: JSONValue,
+        enclosure: [JSONValue], canonical: [JSONValue]) -> JSONValue {
+        .object([
+            (key: "id", value: .string(id)),
+            (key: "categories", value: .array(categories.map { .string($0) })),
+            (key: "title", value: .string(title)),
+            (key: "crawlTimeMsec", value: .string(crawlTimeMsec)),
+            (key: "timestampUsec", value: .string(timestampUsec)),
+            (key: "published", value: .integer(published)),
+            (key: "updated", value: .integer(updated)),
+            (key: "author", value: .string(author)),
+            (key: "alternate", value: .array(alternate)),
+            (key: "summary", value: summary),
+            (key: "content", value: content),
+            (key: "origin", value: origin),
+            (key: "enclosure", value: .array(enclosure)),
+            (key: "canonical", value: .array(canonical)),
+        ])
+    }
+
+    /// `contentHREFType`: `href` then `type`, both written.
+    static func contentHrefType(href: String, type: String) -> JSONValue {
+        .object([(key: "href", value: .string(href)), (key: "type", value: .string(type))])
+    }
+
+    /// `contentHREF`, the shape `self` and `canonical` write.
+    static func contentHref(href: String) -> JSONValue {
+        .object([(key: "href", value: .string(href))])
+    }
+
+    /// `contentItemContent`: the direction and the content as stored.
+    static func contentText(direction: String, content: String) -> JSONValue {
+        .object([(key: "direction", value: .string(direction)),
+            (key: "content", value: .string(content))])
+    }
+
+    /// `contentItemOrigin`, built from the feed row.
+    static func contentOrigin(streamID: String, title: String, htmlURL: String) -> JSONValue {
+        .object([(key: "streamId", value: .string(streamID)), (key: "title", value: .string(title)),
+            (key: "htmlUrl", value: .string(htmlURL))])
+    }
+
+    /// `contentItemEnclosure`: the url and the type the row declares.
+    static func contentEnclosure(url: String, type: String) -> JSONValue {
+        .object([(key: "url", value: .string(url)), (key: "type", value: .string(type))])
+    }
 }

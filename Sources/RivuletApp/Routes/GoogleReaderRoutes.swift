@@ -10,9 +10,10 @@ public enum GoogleReaderRoutes {
     ///
     /// `GoogleReaderAuth` is the wrapper the reference's mux puts on every route of this path
     /// except `ClientLogin`, so it is applied per route rather than as application middleware that
-    /// would cover `/healthz` too.
+    /// would cover `/healthz` too. `baseURL` is the configured value, which is what the contents
+    /// handler writes for its `self` link rather than the host the request came in on.
     public static func register(on application: Application, storage: SQLiteStorage,
-        hasher: BcryptHasher) {
+        hasher: BcryptHasher, baseURL: URL) {
         let auth = GoogleReaderAuth(storage: storage)
         let handlers = GoogleReaderHandlers(storage: storage)
 
@@ -48,6 +49,11 @@ public enum GoogleReaderRoutes {
         })
         protected.get("stream", "items", "ids", use: auth.withAuth { request, userID, _ in
             try await handlers.streamItemIDs(query: request.url.query ?? "", userID: userID)
+        })
+        protected.post("stream", "items", "contents", use: auth.withAuth { request, userID, _ in
+            try await handlers.contents(form: try auth.form(for: request),
+                body: request.body.string, query: request.url.query ?? "", userID: userID,
+                baseURL: baseURL)
         })
         protected.post("mark-all-as-read", use: auth.withAuth { request, userID, _ in
             try await handlers.markAllAsRead(form: try auth.form(for: request), userID: userID)

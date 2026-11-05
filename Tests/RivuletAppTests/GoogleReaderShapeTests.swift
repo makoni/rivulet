@@ -17,11 +17,18 @@ import Testing
 /// document's `,string` option and omitted when it is 0 — a patch that wrote it as a number, or
 /// that wrote the zero, fails.
 ///
+/// The content document adds three rules of its own: every one of its fourteen item fields is
+/// written because no field of that document has `omitempty`, the key order is the order the struct
+/// declares them in, and the lists the reference builds with `make` — `items` and `enclosure` — are
+/// `[]` when empty. The goldens for these are the reference's own output above.
+///
 /// What these pins cannot fail on: which document a handler builds for which endpoint, which is the
 /// handler's choice, and the values that reach the fields, which are the storage reads. The
 /// `direct` stream ids and the timestamp of `itemRef` are written only by the document rule here,
 /// because the item-ids read builds the document with the id alone; that half is pinned as the
-/// writer's rule.
+/// writer's rule. For the content document the same applies to the values: the entry url is written
+/// in two places by the handler, and the two parts that hold the entry content are the same value
+/// twice, which is the handler's choice rather than the document's.
 @Suite struct GoogleReaderShapeTests {
     @Test func theItemRefWritesTheIdAndOmitsTheFieldsThatAreEmpty() {
         // `id` has no `omitempty`, so an empty one is still written; the other two are omitted when
@@ -79,5 +86,57 @@ import Testing
             id: "user/7/label/Tech", label: "Tech", type: "folder")]).written() ==
             "{\"tags\":[{\"id\":\"user/7/label/Tech\",\"label\":\"Tech\",\"type\":\"folder\"}]}",
             "and the list in the order it is built in")
+    }
+
+    @Test func theContentDocumentWritesEveryFieldInDeclaredOrder() {
+        // No field of the item document has `omitempty`, so the golden is written from the document
+        // rule alone; the key order is the order `response.go` declares the fields in.
+        let item = GoogleReaderShape.contentItem(
+            id: "tag:google.com,2005:reader/item/000000000000002a",
+            categories: ["user/7/state/com.google/reading-list", "user/7/label/Tech",
+                "user/7/state/com.google/read", "user/7/state/com.google/starred"],
+            title: "Hello", crawlTimeMsec: "1700000100000", timestampUsec: "1700000000000000",
+            published: 1700000000, updated: 1700000200, author: "Entry Author",
+            alternate: [GoogleReaderShape.contentHrefType(href: "https://example.com/item",
+                type: "text/html")],
+            summary: GoogleReaderShape.contentText(direction: "ltr", content: "<p>Hello</p>"),
+            content: GoogleReaderShape.contentText(direction: "ltr", content: "<p>Hello</p>"),
+            origin: GoogleReaderShape.contentOrigin(streamID: "feed/3", title: "Feed Title",
+                htmlURL: "https://example.com"),
+            enclosure: [GoogleReaderShape.contentEnclosure(url: "https://example.com/a.mp3",
+                type: "audio/mpeg")],
+            canonical: [GoogleReaderShape.contentHref(href: "https://example.com/item")]
+        )
+        #expect(GoogleReaderShape.contentDocument(direction: "ltr",
+            id: "user/-/state/com.google/reading-list", title: "Reading List",
+            selfHref: "https://example.org/reader/api/0/stream/items/contents",
+            updated: 1700000300, items: [item], author: "alice").written() ==
+            "{\"direction\":\"ltr\",\"id\":\"user/-/state/com.google/reading-list\",\"title\":\"Reading List\",\"self\":[{\"href\":\"https://example.org/reader/api/0/stream/items/contents\"}],\"updated\":1700000300,\"items\":[{\"id\":\"tag:google.com,2005:reader/item/000000000000002a\",\"categories\":[\"user/7/state/com.google/reading-list\",\"user/7/label/Tech\",\"user/7/state/com.google/read\",\"user/7/state/com.google/starred\"],\"title\":\"Hello\",\"crawlTimeMsec\":\"1700000100000\",\"timestampUsec\":\"1700000000000000\",\"published\":1700000000,\"updated\":1700000200,\"author\":\"Entry Author\",\"alternate\":[{\"href\":\"https://example.com/item\",\"type\":\"text/html\"}],\"summary\":{\"direction\":\"ltr\",\"content\":\"\\u003cp\\u003eHello\\u003c/p\\u003e\"},\"content\":{\"direction\":\"ltr\",\"content\":\"\\u003cp\\u003eHello\\u003c/p\\u003e\"},\"origin\":{\"streamId\":\"feed/3\",\"title\":\"Feed Title\",\"htmlUrl\":\"https://example.com\"},\"enclosure\":[{\"url\":\"https://example.com/a.mp3\",\"type\":\"audio/mpeg\"}],\"canonical\":[{\"href\":\"https://example.com/item\"}]}],\"author\":\"alice\"}",
+            "the fourteen fields in the order the document declares them")
+
+        // A patch that added `omitempty` to any field would answer a document without it, so the
+        // same document built from empty values is what the rule reads.
+        let emptyItem = GoogleReaderShape.contentItem(
+            id: "tag:google.com,2005:reader/item/0000000000000007", categories: ["user/7/state/com.google/reading-list"], title: "T",
+            crawlTimeMsec: "1000", timestampUsec: "2000000", published: 2, updated: 3, author: "",
+            alternate: [GoogleReaderShape.contentHrefType(href: "u", type: "text/html")],
+            summary: GoogleReaderShape.contentText(direction: "ltr", content: ""),
+            content: GoogleReaderShape.contentText(direction: "ltr", content: ""),
+            origin: GoogleReaderShape.contentOrigin(streamID: "feed/1", title: "", htmlURL: ""),
+            enclosure: [], canonical: [GoogleReaderShape.contentHref(href: "u")]
+        )
+        #expect(GoogleReaderShape.contentDocument(direction: "ltr",
+            id: "user/-/state/com.google/reading-list", title: "Reading List",
+            selfHref: "https://example.org/reader/api/0/stream/items/contents",
+            updated: 1700000300, items: [emptyItem], author: "alice").written() ==
+            "{\"direction\":\"ltr\",\"id\":\"user/-/state/com.google/reading-list\",\"title\":\"Reading List\",\"self\":[{\"href\":\"https://example.org/reader/api/0/stream/items/contents\"}],\"updated\":1700000300,\"items\":[{\"id\":\"tag:google.com,2005:reader/item/0000000000000007\",\"categories\":[\"user/7/state/com.google/reading-list\"],\"title\":\"T\",\"crawlTimeMsec\":\"1000\",\"timestampUsec\":\"2000000\",\"published\":2,\"updated\":3,\"author\":\"\",\"alternate\":[{\"href\":\"u\",\"type\":\"text/html\"}],\"summary\":{\"direction\":\"ltr\",\"content\":\"\"},\"content\":{\"direction\":\"ltr\",\"content\":\"\"},\"origin\":{\"streamId\":\"feed/1\",\"title\":\"\",\"htmlUrl\":\"\"},\"enclosure\":[],\"canonical\":[{\"href\":\"u\"}]}],\"author\":\"alice\"}",
+            "the empty values are written, and an empty enclosure list is `[]`")
+
+        #expect(GoogleReaderShape.contentDocument(direction: "ltr",
+            id: "user/-/state/com.google/reading-list", title: "Reading List",
+            selfHref: "https://example.org/reader/api/0/stream/items/contents",
+            updated: 1700000300, items: [], author: "alice").written() ==
+            "{\"direction\":\"ltr\",\"id\":\"user/-/state/com.google/reading-list\",\"title\":\"Reading List\",\"self\":[{\"href\":\"https://example.org/reader/api/0/stream/items/contents\"}],\"updated\":1700000300,\"items\":[],\"author\":\"alice\"}",
+            "the items list built with `make` is `[]` when the page is empty")
     }
 }
