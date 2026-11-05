@@ -634,18 +634,20 @@ for every input that reaches them.
 
 `stream/items/contents` is pinned over the same socket, with the storage read it builds on pinned by
 `EntryContentsReadTests`, the categories rule for one item by `GoogleReaderItemCategoriesTests` and
-the document shapes by `GoogleReaderShapeTests`. 45 probes, one per rule, each showing its pin
+the document shapes by `GoogleReaderShapeTests`. 47 probes, one per rule, each showing its pin
 failing on the rule it names, all of them biting on the first attempt. The goldens are the
 reference's own output for the same inputs at the toolchain `go.mod` pins.
 
-Three pins needed data that is not in the same order as the rule they name, because a pin whose data
-already follows the rule cannot show a wrong read. The order pins read the column and the direction
-separately, so the row published later is seeded first: the id order and the publication order are
-then two different answers, and a patch that ordered by the id fails on both. The origin pins need
+Four pins needed data that is not what the fixture default already is, because a pin whose data
+follows the rule cannot show a wrong read. The read suite's order pins read the column and the
+direction separately, so the row published later is seeded first: the id order and the publication
+order are then two different answers, and a patch that ordered by the id fails on both — the handler
+pin reads the source of the order value instead, which bites on its own input. The origin pins need
 the feed id and the entry id to be two different numbers, so an extra feed row is seeded before the
-entry is. The item id is written by the pin's own helper in the full reference form, with the
-prefix, because the first golden program wrote the padded hex without it, and a pin that reused that
-output could not fail on a patch that dropped the prefix or wrote the decimal form.
+entry is. The status and the flag pins seed the row with values that are not the fixture defaults
+for those two columns. The item id is written by the pin's own helper in the full reference form,
+with the prefix, because the first golden program wrote the padded hex without it, and a pin that
+reused that output could not fail on a patch that dropped the prefix or wrote the decimal form.
 
 Two pins read names they have to keep distinct: the document author pin seeds the account name and
 the integration column with two different values, and the item author pin writes the entry's own

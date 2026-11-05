@@ -172,7 +172,7 @@ are not started. **Effort:** XL.
 
 Findings from the work on PR #46 that do not change behavior:
 
-- `EntryContents.swift`'s initializer takes 13 parameters, which is the row the reference scans for
+- `EntryContents.swift`'s initializer takes 15 parameters, which is the row the reference scans for
   this read. The type is one row, so grouping the three time columns or the three join values would
   be a style change rather than a behavior change.
 - The page-size rule is not falsifiable in this port, so it is named in the suite header and in

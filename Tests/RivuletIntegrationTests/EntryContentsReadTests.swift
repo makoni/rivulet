@@ -15,12 +15,15 @@ import Testing
 /// attachments fails on, and that a row with none answers the empty list rather than nothing; that
 /// the order is the query's column with the direction the query carries, so a patch that hardcoded
 /// one direction fails on the other pin; and that the id filter applies only the names it is given,
-/// on an input where the names are not the whole set.
+/// on an input where the names are not the whole set; and that the status and the flag are the
+/// row's own columns, read on a row seeded with values that are not the fixture defaults for those
+/// two.
 ///
 /// What these pins cannot show: the page size, because `nil` means unbounded here and the clamp is
 /// pinned by `EntryQueryTests`; the inner join on categories, because this port's schema does not
 /// allow a feed whose category row is missing; the order of the two statements, which is the
-/// reference's choice as well; and the search filter, which this caller never builds.
+/// reference's choice as well; the search filter, which this caller never builds; and the order the
+/// attachments of one row come back in, because no pin here gives a row two of them.
 @Suite struct EntryContentsReadTests {
     @Test func theTwoTitlesAndTheSiteUrlComeFromTheirOwnRows() async throws {
         try await withMigratedStorage { _, storage in
@@ -38,9 +41,11 @@ import Testing
                         site_url = \(bind: "https://example.com/site")
                     WHERE id = \(bind: feedID)
                     """).run()
+                // The status and the flag are seeded with values that are not the fixture defaults,
+                // so a read that answered the default for both could not pass here.
                 let entryID = try await seedEntry(connection, userID: userID, feedID: feedID, hash: "h1",
                     title: "Entry Title", url: "https://example.com/item", author: "Entry Author",
-                    content: "<p>Hello</p>")
+                    content: "<p>Hello</p>", status: .read, starred: true)
 
                 let row = try #require(try await entries.contents(EntryQuery(userID: userID)).first)
                 #expect(row.entryID == entryID, "the listing is the same read the client APIs use")
@@ -54,8 +59,8 @@ import Testing
                 #expect(row.author == "Entry Author", "the author the item carries")
                 #expect(row.content == "<p>Hello</p>",
                     "the content as stored, with no media proxy applied")
-                #expect(row.status == .unread, "the status the read part of the categories reads")
-                #expect(!row.starred, "the flag the starred part reads")
+                #expect(row.status == .read, "the status the read part of the categories reads")
+                #expect(row.starred, "the flag the starred part reads")
                 #expect(row.publishedAt == 1_700_000_000, "the column the string form is built from")
             }
         }

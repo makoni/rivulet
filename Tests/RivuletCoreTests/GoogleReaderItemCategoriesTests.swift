@@ -14,9 +14,9 @@ import Testing
 /// `user/-/` here answered the same for one user only when the number it wrote was the one the pin
 /// reads.
 ///
-/// What these pins cannot fail on: the row title that is empty, because this port's schema does not
-/// allow a category with no title, so the guard's other half has no input; and which entry the
-/// values come from, which is the storage read.
+/// What these pins cannot fail on: which row the four values come from, which is the storage read
+/// and not this rule, and which of the two forms the handler writes for a given document field,
+/// which is the handler's choice and is pinned by the socket suite.
 @Suite struct GoogleReaderItemCategoriesTests {
     @Test func theFourPartsAreAppendedInThatOrder() {
         // All four parts are present, so a patch that swapped any two of them fails here.

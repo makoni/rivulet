@@ -95,7 +95,6 @@ extension EntryRepository {
         }
     }
 
-
     /// Columns decoded by ``entry(from:)``.
     private static let entryColumns: SQLQueryString = """
         e.id, e.user_id, e.feed_id, e.hash, e.title, e.url, e.author,
