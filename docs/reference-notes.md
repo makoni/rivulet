@@ -313,6 +313,41 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   at most the first 72 key bytes, so a longer plaintext that shares those bytes with the stored
   password answers as a match.
 
+## Feed creation rules and the feed commands (`internal/validator/feed.go`)
+
+- `ValidateFeedCreation` applies the rules in this order: the mandatory guard
+  (`error.feed_mandatory_fields`, which is the url being empty **or** the category id not being a
+  positive number), then the absolute-URL rule (`error.invalid_feed_url`), then the duplicate read
+  (`error.feed_already_exists`), then the category read (`error.feed_category_not_found`). The rules
+  after the fourth read the filter, scraper, proxy and language settings, which a command line
+  carries none of, so this port applies only the first four. The port names the rule rather than the
+  locale string, so the wording a command prints from a rule is its own.
+- The discovery path is a different function and applies the last two rules the other way round:
+  `CreateFeedFromSubscriptionDiscovery` reads the category first and the duplicate second. That
+  order is recorded here and is not pinned, because the port pins the create-path order; a name the
+  command cannot resolve answers `0`, which the guard reads first, so the command path cannot show
+  the discovery order at all.
+- `FeedURLExists` reads `SELECT true FROM feeds WHERE user_id=$1 AND feed_url=$2 LIMIT 1`, and the
+  feeds table has `unique (user_id, feed_url)`: the same url on two accounts is two rows, so the
+  duplicate answer is per account. `CategoryIDExists` reads the pair `(user_id, id)`.
+- `CreateFeed` writes `feed_url` as it was submitted: the create path does not clean it, so a
+  tracked parameter survives to the row, and `title` and `site_url` are what a later fetch produces
+  — a row written before any fetch holds the empty strings the model's constructor gives them.
+- `RemoveFeed` deletes `WHERE id=$1 AND user_id=$2`, so a row another account has is not this
+  account's row; the rows below the feed go with it through the schema's cascade (`entries` and the
+  tombstones). The port's `enclosures` have no `feed_id`, so they cascade through their entry — the
+  difference is only in the path the cascade takes, not in the answer.
+- The feed listing order is the query builder's: `parsing_error_count DESC` (`DefaultFeedSorting`
+  with `DefaultFeedSortingDirection`), with `lower(f.title) ASC` appended after the sort expressions
+  — and only when there is at least one, so a builder with no sort clause has no title tiebreaker.
+  `lower()` on PostgreSQL folds non-ASCII letters, while SQLite's `LOWER` folds ASCII only; the two
+  answers differ for a title with a letter outside ASCII, which the pins do not read.
+- The reference's CLI has no `add`, `remove` or `list`: it dispatches by flags (`-create-admin`,
+  `-refresh-feeds`, `-export-feeds`, `-info`, `-health-check`) and reaches the feed rows through its
+  web UI. The three commands are the port's own surface, so their flags, their lines and the rules
+  the port names for what a command line has to answer — which account the command works for, and a
+  url the account has no row for — have no reference counterpart, and their wording is not pinned.
+
 ## Integration credentials (`internal/ui/integration_update.go`)
 
 - The account's integration row (`internal/database/migrations.go`) is keyed by `user_id`

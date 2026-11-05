@@ -80,9 +80,40 @@ public struct FeedRepository {
             .all()
     }
 
-    /// Deletes the feed; its entries, enclosures and tombstones cascade away.
-    public func delete(id: Int) async throws {
-        try await Feed.query(on: database).filter(\Feed.$id == id).delete()
+    /// The duplicate answer `FeedValidation` reads: whether this user already has a row with `url`.
+    ///
+    /// The reference reads one row (`internal/storage/feed.go` at commit `c4d54f87`), and the
+    /// `LIMIT 1` is recorded as unpinnable in `FeedManagementReadsTests` because the schema's
+    /// `UNIQUE (user_id, url)` means this read can never have two rows to choose between. What the
+    /// pin shows is the user condition: the read answers for this user's row, not for another
+    /// user's row with the same url.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the answer is read for.
+    ///   - url: The url as it was read.
+    /// - Returns: Whether this user has a row with `url`.
+    public func feedURLExists(userID: Int, url: String) async throws -> Bool {
+        let sql = try RawSQL.sql(on: database)
+        let row = try await sql.raw("""
+            SELECT 1 AS one FROM feeds WHERE user_id = \(bind: userID) AND url = \(bind: url) LIMIT 1
+            """).first()
+        return row != nil
+    }
+
+    /// Deletes the feed of `userID`; its entries, enclosures and tombstones cascade away.
+    ///
+    /// The account is part of the statement, as `RemoveFeed` has it in the reference: a row another
+    /// account has with the same id is not this account's row. `FeedManagementReadsTests` pins both
+    /// the account condition and the cascade.
+    ///
+    /// - Parameters:
+    ///   - id: Row id of the feed.
+    ///   - userID: The account the row must belong to.
+    public func delete(id: Int, userID: Int) async throws {
+        try await Feed.query(on: database)
+            .filter(\Feed.$id == id)
+            .filter(\Feed.$userID == userID)
+            .delete()
     }
 
     /// Records a successful fetch (upstream `UpdateFeed`): stores the conditional-GET headers, the

@@ -6,7 +6,12 @@ import Foundation
 
 /// The URL predicates the reader answers with. A value that does not parse is answered with as it
 /// was read, which is what the reference does for `Domain`, `DomainWithoutWWW` and `RootURL`.
-enum URLRules {
+///
+/// ``isAbsoluteURL`` is the only one the module publishes: the CLI applies the rule the
+/// reference's feed validator reads, and the rule function itself takes the answer as a value so
+/// it stays pinnable as pure logic, which is what ``FeedValidation`` pins. The other predicates are
+/// the reader's own and stay inside the module.
+public enum URLRules {
     /// Go reads `/\evil.com` as an ordinary path character, but a browser normalizes the backslash
     /// and reads it as an open redirect, so a value containing one is not a relative path here.
     static func isRelativePath(_ link: String) -> Bool {
@@ -17,7 +22,7 @@ enum URLRules {
 
     /// The prefix is checked on the value as it was read, before parsing, so a value that starts
     /// with whitespace is not absolute even though the reference would trim it when parsing.
-    static func isAbsoluteURL(_ inputURL: String) -> Bool {
+    public static func isAbsoluteURL(_ inputURL: String) -> Bool {
         guard inputURL.hasPrefix("https://") || inputURL.hasPrefix("http://") else { return false }
         guard let parsed = try? ParsedURL.parse(inputURL) else { return false }
         return parsed.isAbsolute

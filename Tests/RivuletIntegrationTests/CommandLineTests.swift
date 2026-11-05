@@ -75,11 +75,9 @@ import RivuletCore
     @Test func plannedCommandsReportTheStageThatImplementsThem() async throws {
         // `create-admin` and `integration-credentials` are no longer in this list: they are stage
         // 5's commands that landed, and their pins are `CreateAdminTests` and
-        // `IntegrationCredentialsTests`.
+        // `IntegrationCredentialsTests`. `add`, `remove` and `list` are no longer here either:
+        // stage 6's first slice landed them, and `FeedCommandTests` pins what they do instead.
         let planned: [(name: String, stage: Int)] = [
-            ("add", 6),
-            ("remove", 6),
-            ("list", 6),
             ("import", 5),
             ("export", 5),
             ("backup", 6),
@@ -136,8 +134,9 @@ import RivuletCore
     }
 
     @Test func plannedCommandsReportTheStageEvenWithArguments() async throws {
+        // `add` is no longer in this list: stage 6's first slice landed it, and `FeedCommandTests`
+        // pins what it does instead.
         let invocations: [(arguments: [String], stage: Int)] = [
-            (["add", "https://example.com/feed"], 6),
             (["import", "feeds.opml"], 5),
             (["export", "feeds.opml"], 5),
         ]
