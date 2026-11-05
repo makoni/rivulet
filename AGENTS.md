@@ -39,7 +39,7 @@ file; the size of the main file before the run, because the checkpoint at the en
 rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
 only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
 fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
-rules the port names rather than the reference. The third slice is open (PR #49): `list` answers
+rules the port names rather than the reference. The third slice is open as PR #49: `list` answers
 one listing per run, with the flag naming which read the run makes, no flag still meaning the
 feeds, the pair of flags reported as the rule the port names rather than picked, the account the
 run resolves reaching the category read and not the account read, the line carrying the stored
@@ -47,13 +47,16 @@ position and the stored admin flag rather than the schema default, one line carr
 run writing nothing, and the title order being the port's byte order, pinned by
 `ListingCommandTests` over the in-process console, with the two orders it reads pinned as reads by
 `CategoryRepositoryTests` and `UserRepositoryTests`. What that header names as unpinnable: the
-wording of the lines and of the reported failures apart from the rule name the run writes; a flag
-the command does not know, which the command-signature parser rejects before the command runs;
-which fields a line carries and their order on the line; the `hide_globally` column the reference's
-read selects and this port's schema does not have; the single-row limit of the reads; the account
+wording of the lines and of the reported failures apart from the values the pins read off a line
+and the rule name the run writes; a flag the command does not know, which the command-signature
+parser rejects before the command runs; which fields a line carries and their order on the line;
+the header line, read only as the one line that is not a row; the `position` column, which is the
+port's own and recorded in `docs/parity.md`; the guards that read what the pin built before the
+run, which bite only on the storage rules; the single-row limit of the reads; the account
 resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these commands
 fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY
-title` with, which this port cannot have.
+title` with, which this port cannot have. The shape is flags because `@Argument` has no default, so
+a run cannot name an optional listing. The flag polish and the process-level checks follow.
 flags because `@Argument` has no default, so a run cannot name an optional listing. The flag polish
 and the process-level checks follow.
 
@@ -329,7 +332,3 @@ swift run rivulet --help
   doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
-
-
-
-

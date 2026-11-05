@@ -83,7 +83,7 @@ extension RivuletCLI {
             }
 
             /// An account row: the username the read ordered by, and the admin flag as the row
-            /// holds it, which the create path defaults to false.
+            /// holds it, which is the schema default when the create path is passed false.
             struct Account: Sendable {
                 let id: Int?
                 let username: String

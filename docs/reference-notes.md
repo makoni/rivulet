@@ -349,11 +349,17 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   url the account has no row for — have no reference counterpart, and their wording is not pinned.
 - What the listing command traces to the reference is the order its two reads answer in:
   `internal/storage/category.go` `Categories` is `SELECT ... FROM categories WHERE user_id=$1
-  ORDER BY title ASC` and selects `hide_globally`, which this port's schema does not have, and
-  `internal/storage/user.go` `Users` is `SELECT ... FROM users ORDER BY username ASC` with no
-  account condition, so the account listing is every row. `multipleListings`, the rule a run
-  reports when two listing flags are given, is the port's own, and the pins read it as the name
-  the run writes.
+  ORDER BY title ASC` and selects `hide_globally`, which this port's schema does not have. That
+  read is what `tag/list`, `GET /v1/categories` without counts and the feed pages use; the
+  reference's own category page reads `CategoriesWithFeedCount` with the user's
+  `categories_sorting_order`, whose column default is `unread_count`, so the title order is not
+  what its web UI answers. `internal/storage/user.go` `Users` is `SELECT ... FROM users ORDER BY
+  username ASC` with no account condition, so the account listing is every row.
+- `position` is the port's own column: the reference's `categories` table has `id`, `user_id`,
+  `title` and `hide_globally` only, so the position-then-title order `CategoryRepository.list`
+  reads by it is the port's rule, not a ported one, and it is recorded in `docs/parity.md`.
+- `multipleListings`, the rule a run reports when two listing flags are given, is the port's
+  own, and the pins read it as the name the run writes.
 
 ## Maintenance commands (`internal/cli/cli.go`)
 
@@ -1005,7 +1011,3 @@ one case, so those pins fail only on the case the mapping can tell apart.
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
   inline in Go tests).
-
-
-
-

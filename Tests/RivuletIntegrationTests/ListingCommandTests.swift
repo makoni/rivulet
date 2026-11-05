@@ -23,26 +23,30 @@ import RivuletApp
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: that
 /// `--categories` runs the title read and `--users` the username read, on data where the position
-/// order, the lowercased title order and the feed titles answer differently; that no flag still
-/// lists the feeds; that two listing flags are reported as the rule the port names rather than
-/// answered as a listing; that the account the command resolved applies to the categories and not
-/// to the accounts, read on two accounts with different titles; that the values on the line are the
-/// stored rows and not the defaults the schema would answer; that one line carries one row; that
-/// the run writes nothing; and that the title order is the byte order, on the pair that separates
-/// it from the lowercased reading.
+/// read, the title read and the feed read answer differently — the position read puts Tech first,
+/// the title read puts News first, and the feed row carries a title no category has; that no flag
+/// still lists the feeds; that two listing flags are reported as the rule the port names rather
+/// than answered as a listing; that the account the command resolved applies to the categories and
+/// not to the accounts, read on two accounts with their own categories; that the values on the line
+/// are the stored rows and not the defaults the schema would answer; that one line carries one row;
+/// that the run writes nothing; and that the title order is the byte order, on the pair that
+/// separates it from the lowercased reading.
 ///
 /// What these pins cannot fail on: the wording of the lines and of the reported failures, apart
-/// from the rule name the run reports for two listing flags, which this suite reads as the name it
-/// writes; a flag the command does not know, which the command-signature parser rejects before the
-/// command runs, so the pins cannot reach it; which fields the line carries and in what order on
-/// the line, which is the port's choice; the header line, which is read here only as the one line
-/// that is not a row; the `hide_globally` column the reference's read selects and this port's
-/// schema does not have; the single-row limit of the reads; the account resolution itself, which
-/// `FeedCommandTests` pin, so what is new here is only that the resolution reaches these reads; the
-/// flag that gates the migrations, pinned for the same command there; that these commands fetch
-/// nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY title`
-/// with, which this port cannot have — recorded in `docs/parity.md`, so the pins read the port's
-/// byte order only.
+/// from the values the pins read off a line and the rule name the run writes; a flag the command
+/// does not know, which the command-signature parser rejects before the command runs, so the pins
+/// cannot reach it; which fields the line carries and in what order on the line, which is the
+/// port's choice; the header line, which is read here only as the one line that is not a row; the
+/// `position` column, which is the port's own and has no reference counterpart, and the
+/// `hide_globally` column the reference's read selects and this port's schema does not have; the
+/// single-row limit of the reads; the account resolution itself, which `FeedCommandTests` pin, so
+/// what is new here is only that the resolution reaches these reads; the flag that gates the
+/// migrations, pinned for the same command there; that these commands fetch nothing and sleep
+/// nothing; the two guards that read what the pin built before the run — the three row ids in the
+/// dispatch pin and the row id in the position pin, which the default category the user create
+/// writes makes always the second row — which bite only on the storage rules; and the collation the
+/// reference's Postgres answers `ORDER BY title` with, which this port cannot have — recorded in
+/// `docs/parity.md`, so the pins read the port's byte order only.
 @Suite struct ListingCommandTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -52,14 +56,17 @@ import RivuletApp
 
     @Test func theFlagNamesTheReadTheCommandRuns() async throws {
         try await withMigratedStorage { database, storage in
-            // Seeded so the readings answer differently: the position order puts Tech first, the
+            // Seeded so the readings answer differently: the position read puts Tech first, the
             // title read puts News first, and the feed row carries a title no category has. A patch
             // that ran the feed read for both flags answered this pin with the feed title and with
-            // no username.
+            // no username, and a patch that ran the position read answered Tech first.
             let graph = try await storage.withConnection { connection in
                 let userID = try await seedUser(connection, username: "alice")
                 let news = try await seedCategory(connection, userID: userID, title: "News")
                 let tech = try await seedCategory(connection, userID: userID, title: "Tech")
+                try await sqlDatabase(connection).raw("""
+                    UPDATE categories SET position = 2 WHERE id = \(bind: news)
+                    """).run()
                 try await sqlDatabase(connection).raw("""
                     UPDATE categories SET position = 1 WHERE id = \(bind: tech)
                     """).run()
@@ -309,4 +316,6 @@ import RivuletApp
             """).all().map { try $0.decode(column: "shape", as: String.self) }
     }
 }
+
+
 

@@ -12,31 +12,15 @@ third slice, `list` for the categories and the accounts, is open as PR #49.
       validator reads, the duplicate read, the category read, the delete that applies the account,
       and the listing order, with the account the command works for resolved from `--user` or from
       the single account. The flag polish and the process-level checks follow.
-- [x] `list` for the categories and the accounts landed with PR #49 as runs through the in-process
-      console: the flag names which read the run makes, no flag still means the feeds, the pair of
-      flags is reported as the rule the port names rather than picked, the account the run resolves
-      reaches the category read and not the account read, the line carries the stored position and
-      the stored admin flag rather than the schema default, one line carries one row, the run writes
-      nothing, and the title order is the port's byte order. The shape is flags rather than an
-      argument, because `@Argument` has no default, so a run cannot name an optional listing.
-- [ ] Finalize the remaining commands (stubs created in stage 0): `serve`, `migrate`, `create-admin`
-      (core lands in stage 5; this stage polishes prompts and flags), `import`/`export` (OPML),
-      `refresh` (all/one) and `status` (`--json`) — the cores of both landed in stage 4 as the
-      manual pass over the batch and the minimal contract the soak reads; this stage polishes their
-      flags and output. `integration-credentials` (polish) and `version`.
-- [x] `backup` and `vacuum` landed as runs through the in-process console (PR #48): the destination
-      read as it was given, the copy as the snapshot at the run rather than the bytes of the main
-      file, the copy being a file of its own, a destination the command did not create reported
-      rather than built or overwritten, the file rebuilt without losing a row, and the flag that
-      gates the migrations. What SQLite enforces on the destination and the rebuild landed with
-      stage 1 and are pinned as storage rules by `MaintenanceTests`; what these pins add is the
-      command's own choice of what it does, read on the filesystem after the run.
-- [ ] No `api-key` command: REST v1 and API keys are non-goals (stage 9 backlog if ever needed).
-- [ ] Graceful shutdown and structured logs; `/healthz`; signals handled by Vapor's built-in serve
-      command.
-- [ ] Startup checks: `PRAGMA quick_check` + free-space check (integrates with stage 1); checkpoint
-      on shutdown; `status --json` as a stable machine-readable contract for monitoring and the
-      stage-4 soak.
+- [ ] `list` for the categories and the accounts lands with PR #49 as runs through the
+      in-process console: the flag names which read the run makes, no flag still means the feeds,
+      the pair of flags is reported as the rule the port names rather than picked, the account the
+      run resolves reaches the category read and not the account read, the line carries the stored
+      position and the stored admin flag rather than the schema default, one line carries one row,
+      the run writes nothing, and the title order is the port's byte order. The shape is flags
+      rather than an argument, because `@Argument` has no default, so a run cannot name an optional
+      listing, and the `position` column one pin reads is the port's own, recorded in
+      `docs/parity.md`.
 
 ## Implementation notes
 
@@ -78,6 +62,10 @@ third slice, `list` for the categories and the accounts, is open as PR #49.
   written twice — once in `MaintenanceTests` and once in `MaintenanceCommandTests` — which stays
   duplicated because the two suites read it at different levels; it moves to `Support/` when a third
   suite reads it.
+- Style findings from PR #49 that do not change behavior: `run` in `List` is 43 lines against the
+  ~40 aim, which stays because the print switch is the whole command; `ListingCommandTests.swift`
+  imports `Foundation` and `ConsoleKit` that the committed code does not use — its probes patch
+  production code only, so unlike the maintenance suite it needs no import for a patch to compile.
 - The `import Foundation` in the two maintenance commands is not used by the code that is committed:
   it is there so the probe patches that redirect the destination through `NSString` and the
   filesystem through `FileManager` compile. It goes with the first probe that does not need a
@@ -101,5 +89,3 @@ third slice, `list` for the categories and the accounts, is open as PR #49.
 - The account rule is the port's own: `--user` with the single-account fallback. If a flag is wanted
   for the environment path (`LIST_USER`, `ADD_USER`), that belongs to this stage's flag polish, not
   to the read.
-
-

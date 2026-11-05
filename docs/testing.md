@@ -743,20 +743,21 @@ reference, which has no command here to compare with.
 ### The listing command (`ListingCommandTests`, PR #49)
 
 `list` answers one listing per run: the flags name which read the run makes, and no flag means
-the feeds. 9 pins and 12 probes, one per rule, each showing its pin failing on the rule it names,
+the feeds. 9 pins and 13 probes, one per rule, each showing its pin failing on the rule it names,
 all of them biting on the first attempt. The two orders the reads answer in are already pinned as
 reads by `CategoryRepositoryTests` and `UserRepositoryTests`, so what these pins read is the
 command's own choice: the read the flag names, the account the run applies to the categories and
 not to the accounts, the rule the run reports for the pair of flags, the values on the line as
 the stored rows, one line per row, and that the run writes nothing.
 
-The dispatch pin needs data where the three readings answer differently: the position order puts
+The dispatch pin needs data where three readings answer differently: the position read puts
 `Tech` first, the title read puts `News` first, and the feed row carries a title no category has,
 so a patch that ran the feed read for both flags answered this pin with the feed title and no
-username. The account pin needs two accounts with different titles, because a pin that read one
-row could not show which account the run applied, and the same pin reads that both accounts
-answer for the account listing, which is the shape of the upstream read: it has no account
-condition, so the run resolves no account for it.
+username, and a patch that ran the position read answered `Tech` first. The account pin needs two
+accounts with their own categories, because a pin that read one row could not show which account
+the run applied, and the same pin reads that both accounts answer for the account listing, which
+is the shape of the upstream read: it has no account condition, so the run resolves no account
+for it.
 
 Pins that read a value off the line are falsifiable only against the default the schema would
 answer. The position pin seeds `7` on a row whose id is not 7, so the number on the line has to
@@ -765,16 +766,20 @@ patch that printed the default answered the wrong value on both sides. The line 
 header as the one line that carries no row, so it can fail on a row printed twice or on two rows
 folded into one line, and not on the wording of the header.
 
-What the header names as unpinnable: the wording of the lines and of the reported failures, apart
-from the rule name the run reports for the pair of flags, which this suite reads as the name it
-writes; a flag the command does not know, which the command-signature parser rejects before the
-command runs, so no pin can reach it; which fields a line carries and in what order on the line,
-which is the port's choice; the `hide_globally` column the reference's read selects and this
-port's schema does not have; the single-row limit of the reads; the account resolution itself,
-which `FeedCommandTests` pin, so what is new here is only that the resolution reaches these
-reads; the flag that gates the migrations, pinned for the same command there; that these commands
-fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY
-title` with, which this port cannot have, so the pin reads the port's byte order only.
+What the header names as unpinnable: the wording of the lines and of the reported failures apart
+from the values the pins read off a line and the rule name the run writes; a flag the command
+does not know, which the command-signature parser rejects before the command runs, so no pin can
+reach it; which fields a line carries and in what order on the line, which is the port's choice;
+the header line, read only as the one line that is not a row; the `position` column, which is the
+port's own and has no reference counterpart, and the `hide_globally` column the reference's read
+selects and this port's schema does not have; the single-row limit of the reads; the account
+resolution itself, which `FeedCommandTests` pin, so what is new here is only that the resolution
+reaches these reads; the flag that gates the migrations, pinned for the same command there; that
+these commands fetch nothing and sleep nothing; the two guards that read what the pin built
+before the run — the three row ids in the dispatch pin and the row id in the position pin, which
+the default category the user create writes makes always the second row — which bite only on the
+storage rules; and the collation the reference's Postgres answers `ORDER BY title` with, which
+this port cannot have, so the pin reads the port's byte order only.
 
 ## Soak
 
@@ -843,6 +848,3 @@ Swift Testing everywhere (`import Testing`, `@Suite`/ `@Test`, `#expect`/ `#requ
 framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by default
 and every test owns its resources (temp directories, kernel-assigned ports), so no suite depends on
 execution order. Use the `.serialized` trait only where a suite must share process-wide state.
-
-
-
