@@ -41,11 +41,13 @@ import Testing
         // One rule at a time, so a patch that dropped a rule would still answer the others.
         #expect(FeedValidation.validate(url: "", categoryID: 1, urlIsAbsolute: true,
             feedURLExists: false, categoryExists: true) == .mandatoryFields, "the empty url")
+        // Each of these inputs fails the guard alone, so the rule named is the guard's, and a
+        // patch that read only the zero case would answer nil for the negative id.
         #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: 0,
-            urlIsAbsolute: true, feedURLExists: false, categoryExists: false) == .mandatoryFields,
+            urlIsAbsolute: true, feedURLExists: false, categoryExists: true) == .mandatoryFields,
             "and the category that is not a positive number")
         #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: -1,
-            urlIsAbsolute: true, feedURLExists: false, categoryExists: false) == .mandatoryFields,
+            urlIsAbsolute: true, feedURLExists: false, categoryExists: true) == .mandatoryFields,
             "the same half read with a negative id, so the rule is not the zero test")
         #expect(FeedValidation.validate(url: "https://example.com/feed", categoryID: 1,
             urlIsAbsolute: false, feedURLExists: false, categoryExists: true) == .invalidURL,
