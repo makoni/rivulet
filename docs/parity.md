@@ -736,6 +736,39 @@ Each golden file names the rule its fixture pins and what that fixture cannot pi
   write transaction the refresh uses, and the transaction boundary is what no test here can show.
 
 
+## Cadence loop (stage 6)
+
+**Matching the reference.**
+
+The reference waits before it reads: `internal/cli/scheduler.go` at commit `c4d54f87` runs `for
+range time.Tick(frequency)`, which fires only after the interval, so the first batch read happens
+after the first interval and each later read after a firing. The port's loop is that shape: one
+read per interval, the read made against the instant the clock answers at that read, which is the
+reference reading `time.Now()` inside its own read, and the interval handed to the seam is the
+cadence the options hold. A read that fails is reported and the loop goes on, which is the
+reference's `slog.Error` followed by the next firing; here the report carries the failure,
+because `RivuletCore` has no logging layer. The pins are `CadenceLoopTests`, which read the calls
+the loop makes through the seam.
+
+**What differs.**
+
+The port runs one tick to the end before the next read, which the scheduler section above already
+records: the reference pushes the batch to the channel and goes on to the next firing, so a slow
+batch can overlap the next tick there.
+
+The reference's scheduler goroutine has no stop rule at all — `time.Tick` is never closed, so it
+runs until the process exits — so the seam's answer, whether the loop runs again, is the port's
+own, and the pins read only that the loop obeys it.
+
+That a real interval passes is not pinned: the pins read the interval as the value handed to the
+seam, because `docs/testing.md` forbids a test that waits, so the real implementation of the seam
+is not pinned either and lands with the process-level harness, where the wiring that starts the
+loop for `serve` and the signal that asks it to stop are read.
+
+The reference runs a second ticker for the cleanup tasks (`cleanupScheduler`), which this port
+has no loop for: retention is pinned as storage rules by `RetentionTests`, and nothing runs it on
+a cadence here.
+
 ## CLI refresh pass (stage 4)
 
 **Matching the reference.**
@@ -1133,3 +1166,5 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | The destination | nothing to compare | the path as the command read it, so a relative value is the process's working directory rather than the data directory; the port does not build a missing parent directory and does not overwrite a file it did not create | The port's choice, so the pins read the filesystem after the run; a run that wrote nothing reports it, which is also the port's rule, and the wording is the port's own |
 | What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
+
+

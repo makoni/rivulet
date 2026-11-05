@@ -31,7 +31,14 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
 
 ## Scheduling and refresh
 
-- Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min).
+- Tick loop: `internal/cli/scheduler.go` — `time.Tick(POLLING_FREQUENCY)` (default 60 min),
+  and it waits before it reads: the ticker fires only after the interval, so the first batch
+  read happens after the first interval and each later read after a firing. A batch read that
+  fails is logged and the goroutine goes on; there is no rule that stops it, so whether the
+  loop runs again is the port's own, recorded in `docs/parity.md`.
+- The same file runs a second ticker for the cleanup tasks on `CLEANUP_FREQUENCY` (default
+  24 h). This port has no loop for it: retention is pinned as storage rules by
+  `RetentionTests`, and nothing runs it on a cadence.
 - Batch selection: `internal/storage/batch.go` — next_check_at < now() AND parsing_error_count <
   limit AND disabled IS false ORDER BY next_check_at ASC LIMIT BATCH_SIZE (default 100); optional
   per-host limit (`POLLING_LIMIT_PER_HOST`, default 0 = off). Both zeros are switches: the error
@@ -1011,3 +1018,5 @@ one case, so those pins fail only on the case the mapping can tell apart.
 - `internal/reader/encoding/testdata` — 11 files; `internal/reader/parser/testdata` — 8 files;
   `internal/reader/xml/testdata` — 3 files; sanitizer testdata — 2 files (plus most cases live
   inline in Go tests).
+
+

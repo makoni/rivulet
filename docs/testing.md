@@ -781,6 +781,45 @@ the default category the user create writes makes always the second row — whic
 storage rules; and the collation the reference's Postgres answers `ORDER BY title` with, which
 this port cannot have, so the pin reads the port's byte order only.
 
+### The cadence loop (`CadenceLoopTests`, PR #50)
+
+The loop is pinned as the calls it makes through its seam, which is all a sleeping loop leaves a
+test to read: the pins drive a recorder that writes the interval it was given, the instant each
+read answered, and each job the runner saw, so a pin can name which call happened without
+waiting. 8 pins and 8 probes, one per rule, each showing its pin failing on the rule it names.
+The probe for the interval rule was first written as `Duration.hours(1)`, which does not compile,
+and bites when written as `Duration.seconds(3600)`; after that all eight bite with byte-identical
+revert. The red run is the absence of the loop and the seam: the pins name rules the port did not
+have yet.
+
+What the pins read: that the loop waits before the first read, which is the reference's shape,
+because `for range time.Tick` fires only after the interval; that every wait is given the
+interval the loop was built with, named apart from the reference's hour so a pin can tell the
+value it was handed from the value it could have written itself; that there is one read per wait;
+that each read answers the instant the clock gives at that read; that a failing read is reported
+and the loop runs again; that an empty read reports nothing; that nothing is read after the seam
+answers stop; and that the jobs of a tick run before the next read, which is the port's shape,
+since the reference pushes the batch to a channel without awaiting it.
+
+The rows the pins seed are due before the read that answers them, because the batch rule is
+strict `<`: a row stamped at the read's own instant answers nothing, so a pin that read only the
+order of the calls could be satisfied by a loop that never read. The recorder and the clock are
+classes marked `@unchecked Sendable`, because the `Clock` seam has a synchronous `now()`, which
+an actor cannot conform to; the loop reads the clock once per read and the test moves it between
+reads, so nothing is read while it is moved.
+
+What the header names as unpinnable: that any time passes, since the seam stands in for a sleep;
+the number of iterations, which is the answer the seam gives rather than a rule of the loop; the
+order the jobs of one tick are recorded in, which concurrency does not fix, so the pins read the
+calls across the boundary of a tick; the shape and the field names of a report, which are the
+port's choice; the names the pins read the calls by, which the test writes; that the reference
+has no stop rule at all, so these pins read only that the loop obeys the seam's answer; the
+reference's second ticker for the cleanup tasks, which this port has no loop for and which
+`RetentionTests` pin as storage rules; the pool cap; the real seam implementation, which sleeps,
+so it lands with the process harness; the wiring that starts the loop for `serve` and the signal
+that asks it to stop, which the process-level suite pins; and the reference's log lines, which
+have no layer here.
+
 ## Soak
 
 `Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub
@@ -848,3 +887,4 @@ Swift Testing everywhere (`import Testing`, `@Suite`/ `@Test`, `#expect`/ `#requ
 framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by default
 and every test owns its resources (temp directories, kernel-assigned ports), so no suite depends on
 execution order. Use the `.serialized` trait only where a suite must share process-wide state.
+
