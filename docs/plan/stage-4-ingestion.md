@@ -20,8 +20,9 @@ that was deferred to the refresh path: the pipeline is the caller that stores th
 error state. The second slice is the tick's due-batch selection and the bounded worker pool: the
 builder's rules pinned through the repository, the pool running each selected job once, one failing
 job not stopping the rest, and the non-forced path the worker takes, pinned by `SchedulerBatchTests`
-and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop — and lands
-with `rivulet serve`; tests drive the scheduler with explicit `tick()` calls. The entry-frequency
+and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop —
+and landed with stage 6 as PR #50, read as the calls the loop makes through its seam; tests here
+drive the scheduler with explicit `tick()` calls. The entry-frequency
 mode and the weekly count it divides the week by landed as PR #27, pinned by `WeeklyEntryCountTests`
 and read through the pipeline by `EntryFrequencyPipelineTests`. The fourth slice is what the entry
 loop does not write: an entry the parsed document no longer declares stays in place with the state
@@ -43,7 +44,8 @@ the migrations this command runs, pinned by `RefreshCommandTests`. The soak arti
 #35: the shell is its cadence, its checks read the data each round leaves behind rather than the
 process that produced them, and each check is shown to fail on the rule it names. Retention is
 already pinned by `RetentionTests`. What keeps stage 4 open is the icon image resizing, which needs
-a dependency that has not been approved, and the in-process cadence loop that lands with stage 6.
+a dependency that has not been approved; the in-process cadence loop landed with stage 6 as
+PR #50.
 
 ## Scope
 

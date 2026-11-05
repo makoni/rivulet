@@ -4,7 +4,7 @@
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
 (PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The
 third slice, `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the
-in-process cadence loop through the `Cadence` seam, is open as PR #50.
+in-process cadence loop through the `Cadence` seam, is merged (PR #50).
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -22,7 +22,7 @@ in-process cadence loop through the `Cadence` seam, is open as PR #50.
       rather than an argument, because `@Argument` has no default, so a run cannot name an optional
       listing, and the `position` column one pin reads is the port's own, recorded in
       `docs/parity.md`.
-- [ ] The in-process cadence loop lands with PR #50 as the calls the loop makes through its seam,
+- [x] The in-process cadence loop landed with PR #50 as the calls the loop makes through its seam,
       because nothing can pin a sleeping loop: the loop waits before the first read, which is the
       reference's shape, every wait is given the interval the loop was built with, there is one read
       per wait, each read answers the instant the clock gives at that read, a failing read is
