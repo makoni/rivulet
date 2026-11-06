@@ -770,6 +770,28 @@ The reference runs a second ticker for the cleanup tasks (`cleanupScheduler`), w
 has no loop for: retention is pinned as storage rules by `RetentionTests`, and nothing runs it on
 a cadence here.
 
+### The serve wiring and the signal path
+
+The wiring is the port's shape: `startDaemon` builds the pool and the scheduler from `config.Opts`
+in one place and has no separate piece to read, so `ServeWiring` is what carries the values the
+environment names — the interval and the batch size the pins read are the ones `Config.load`
+parsed rather than the defaults, pinned by `ServeWiringTests` through test seams that record each
+call without waiting.
+
+The shape of the decision matches the reference's `select`: it takes the case that is ready and
+does not wait for the other, so in the port the first path to reach the decision answers it and the
+answer ends the other one. Both paths answer from the signal as it stands at the instant they
+answer, which is the reference's channel read at the firing, and the decision is worded as whether
+the loop runs again because the reference's ticker goroutine has no stop rule at all, as the section
+above records. SIGHUP, which the reference feeds to a certificate reload, is not ported.
+
+No in-process test reaches the real signal source: the process suite reads the signal path as the
+event the child exits on, and the exit code it reads is 0, which is the reference's clean-stop exit
+(`internal/cli/daemon.go` at commit `c4d54f87` returns and `main.go` exits 1 only on an error). The
+handler is put in place before the server command runs, so a signal arriving while the server starts
+answers the wait rather than ending the process on the default disposition — which is what
+`signal.Notify` does there, since the process stops on the channel rather than on the signal.
+
 ## CLI refresh pass (stage 4)
 
 **Matching the reference.**

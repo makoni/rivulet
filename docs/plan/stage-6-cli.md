@@ -4,7 +4,8 @@
 **Status:** in progress — the first slice, the feed commands `add`, `remove` and `list`, is merged
 (PR #47). The second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The
 third slice, `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the
-in-process cadence loop through the `Cadence` seam, is merged (PR #50).
+in-process cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process
+harness with the signal seam and the wiring `serve` runs, is open as PR #51.
 **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
@@ -31,6 +32,16 @@ in-process cadence loop through the `Cadence` seam, is merged (PR #50).
       The stop answer is the port's own, because the reference's ticker goroutine has no stop rule.
       The real seam, which sleeps, and the wiring that starts the loop for `serve` land with the
       process-level checks.
+- [ ] The process harness lands with PR #51 as what only a process can answer: the built binary
+      answering on the port the argument names, the clean signal path exiting with 0, and the WAL
+      being empty after that exit because the checkpoint ran before the teardown. The signal seam
+      and the wiring are the port's shapes of the reference's select and its `signal.Notify` — the
+      first path to reach the decision answers it, and the answer ends the other one — with the
+      handler put in place before the server command runs, so a signal arriving while the server
+      starts answers the wait instead of ending the child on the default disposition. The wiring
+      runs the loop to its end and the hook once after it, which is the reference's position for
+      the teardown. The `SIGHUP` the reference feeds to a certificate reload is not ported, and the
+      reference's HTTP servers are shut down before the pool, which this port has no piece for.
 
 ## Implementation notes
 
@@ -51,11 +62,16 @@ in-process cadence loop through the `Cadence` seam, is merged (PR #50).
   its seam by `CadenceLoopTests` (PR #50): the wait before the first read, the interval every wait
   is given, one read per wait, the instant each read answers, the reported failing read with the
   loop going on, the empty read reported as nothing, nothing read after the seam answers stop, and
-  the jobs of a tick before the next read. The real seam sleeps, so it is pinned only by the
-  process-level harness, where the wiring that starts the loop for `serve` is read too.
+  the jobs of a tick before the next read. The real seam sleeps, so its decisions are read through
+  test seams that name the interval as zero (`SystemCadenceTests`) and the real signal path is read
+  only by the process-level harness, where the wiring that starts the loop for `serve` is read too.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
-- Process-level: spawn the built binary with `serve`; `/healthz` answers; SIGTERM shuts down cleanly
-  (no lost refresh batch).
+- Process-level (`ServeProcessTests`, PR #51): the built binary answers `/healthz` on the port the
+  argument names, read as the port the serve event reports; SIGTERM exits with 0, which is the
+  reference's clean-stop exit; and the WAL is empty after the exit, which is the shutdown checkpoint
+  running before the teardown. The harness (`Support/SpawnedProcess.swift`) reads events rather than
+  time — a line the child writes, a response, an exit — and kills the child on both paths, so the
+  rules it holds cannot be pinned by a patch to production code; the suite names them in its header.
 - `backup` produces an openable copy equal to the source and `vacuum` shrinks a bloated database
   after retention — pinned as storage rules by `MaintenanceTests` and as runs by
   `MaintenanceCommandTests` (PR #48); `status --json` shape is stable.
@@ -84,6 +100,15 @@ in-process cadence loop through the `Cadence` seam, is merged (PR #50).
 - Style findings from PR #50 that do not change behavior: the single-expression code lines in the
   cadence pins that read over the width (the `#expect` calls with the comment argument and the event
   arrays with the pinned instants), which the wrapping rule exempts.
+- Style findings from PR #51 that do not change behavior: the single-expression code lines over the
+  width in the new files, which the wrapping rule exempts because they cannot be broken without
+  changing what they say — the `withCheckedContinuation` calls with the continuation type in
+  `SystemCadence` and `ServerSignalSource`, the `Scheduler(...)` call with its four arguments in
+  `ServeWiring`, the `ApplicationShutdownHook(...)` call in `Serve.swift`, the `Usage:` string in
+  the help text, and the `reports.append(CadenceReport(...))` line in `CadenceLoop.swift`, which
+  was already over the width at the head before this PR. The new files are inside the size aim
+  (`SpawnedProcess.swift` 295 lines, `ServeWiringTests.swift` 249, the other test files under 80),
+  so nothing here needs a split.
 - The `import Foundation` in the two maintenance commands is not used by the code that is committed:
   it is there so the probe patches that redirect the destination through `NSString` and the
   filesystem through `FileManager` compile. It goes with the first probe that does not need a

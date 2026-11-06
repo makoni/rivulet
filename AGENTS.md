@@ -15,63 +15,76 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands `add`,
-`remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
-the duplicate read, then the category read — the url written as the command read it, the category
-resolved from the named title or from the default, the account resolved from `--user` or from the
-single account, the delete that applies the account it is given, and the listing order with the
-lowercased title as the tiebreaker, are pinned by `FeedValidationTests`, `FeedManagementReadsTests`
-and `FeedCommandTests`. What those headers name as unpinnable: the single-row limit of the duplicate
-read, the order between the duplicate read and the category read at the command level — a category
-name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
-the command level, which the read suite pins, the wording of the lines and of the reported failures,
-and the rules the port names rather than the reference. The command surface is recorded in
-`docs/parity.md`. The second slice is merged (PR #48): `backup` and `vacuum` as runs, with the
-destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
-main file, the copy being a file of its own that does not change with the source afterwards, a
-destination the command did not create reported rather than built or overwritten and read against a
-row the pin writes after the control run, the file rebuilt without losing a row, and the flag that
-gates the migrations, pinned by `MaintenanceCommandTests`, with the storage rules these commands
-call pinned by `MaintenanceTests`. What that header names as unpinnable: the truncating checkpoint
-the vacuum run ends with, because `RivuletApplication` runs a best-effort one after every command;
-which file the environment names, which `ConfigTests` pin; reusing an existing empty destination
-file; the size of the main file before the run, because the checkpoint at the end of a run moves the
-rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
-only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
-fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
-rules the port names rather than the reference. The third slice is merged (PR #49): `list` answers
-one listing per run, with the flag naming which read the run makes, no flag still meaning the
-feeds, the pair of flags reported as the rule the port names rather than picked, the account the
-run resolves reaching the category read and not the account read, the line carrying the stored
-position and the stored admin flag rather than the schema default, one line carrying one row, the
-run writing nothing, and the title order being the port's byte order, pinned by
-`ListingCommandTests` over the in-process console, with the two orders it reads pinned as reads by
-`CategoryRepositoryTests` and `UserRepositoryTests`. What that header names as unpinnable: the
-wording of the lines and of the reported failures apart from the values the pins read off a line
-and the rule name the run writes; a flag the command does not know, which the command-signature
-parser rejects before the command runs; which fields a line carries and their order on the line;
-the header line, read only as the one line that is not a row; the `position` column, which is the
-port's own and recorded in `docs/parity.md`; the guards that read what the pin built before the
-run, which bite only on the storage rules; the single-row limit of the reads; the account
-resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these commands
-fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER BY
-title` with, which this port cannot have. The shape is flags because `@Argument` has no default, so
-a run cannot name an optional listing. The fourth slice is merged (PR #50): the in-process cadence
-loop, pinned as the calls the loop makes through its seam — the wait before the first read, which
-is the reference's shape, the interval the loop was built with on every wait, one read per wait, the
-instant the clock gives at each read, the reported failing read with the loop going on, the empty
-read reported as nothing, nothing read after the seam answers stop, and the jobs of a tick before
-the next read, which is the port's shape — by `CadenceLoopTests` through test seams that record each
-call. What that header names as unpinnable: that any time passes, since the seam stands in for a
-sleep; the number of iterations, which is the answer the seam gives; the order the jobs of one tick
-are recorded in, which concurrency does not fix, so the pins read the calls across the tick
-boundary; the shape and the field names of a report, which are the port's choice; that the
+Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands
+`add`, `remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL
+rule, then the duplicate read, then the category read — the url written as the command read it, the
+category resolved from the named title or from the default, the account resolved from `--user` or
+from the single account, the delete that applies the account it is given, and the listing order
+with the lowercased title as the tiebreaker, are pinned by `FeedValidationTests`,
+`FeedManagementReadsTests` and `FeedCommandTests`. What those headers name as unpinnable: the
+single-row limit of the duplicate read, the order between the duplicate read and the category read
+at the command level — a category name the command cannot resolve answers `0`, so the guard runs
+first — the rows below the feed at the command level, which the read suite pins, the wording of the
+lines and of the reported failures, and the rules the port names rather than the reference. The
+command surface is recorded in `docs/parity.md`. The second slice is merged (PR #48): `backup` and
+`vacuum` as runs, with the destination read as it was given, the copy as the snapshot at the run
+rather than the bytes of the main file, the copy being a file of its own that does not change with
+the source afterwards, a destination the command did not create reported rather than built or
+overwritten and read against a row the pin writes after the control run, the file rebuilt without
+losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`, with the
+storage rules these commands call pinned by `MaintenanceTests`. What that header names as
+unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
+best-effort one after every command; which file the environment names, which `ConfigTests` pin;
+reusing an existing empty destination file; the size of the main file before the run, because the
+checkpoint at the end of a run moves the rows from the WAL into it; the shape guards that read what
+the pin built before the run, which bite only on the storage rules; the copy being a plain file
+with no `-wal` beside it; that these commands fetch nothing and sleep nothing; the wording of the
+lines and of the reported failures; and the rules the port names rather than the reference. The
+third slice is merged (PR #49): `list` answers one listing per run, with the flag naming which read
+the run makes, no flag still meaning the feeds, the pair of flags reported as the rule the port
+names rather than picked, the account the run resolves reaching the category read and not the
+account read, the line carrying the stored position and the stored admin flag rather than the
+schema default, one line carrying one row, the run writing nothing, and the title order being the
+port's byte order, pinned by `ListingCommandTests` over the in-process console, with the two orders
+it reads pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`. What that header
+names as unpinnable: the wording of the lines and of the reported failures apart from the values
+the pins read off a line and the rule name the run writes; a flag the command does not know, which
+the command-signature parser rejects before the command runs; which fields a line carries and their
+order on the line; the header line, read only as the one line that is not a row; the `position`
+column, which is the port's own and recorded in `docs/parity.md`; the guards that read what the pin
+built before the run, which bite only on the storage rules; the single-row limit of the reads; the
+account resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these
+commands fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER
+BY title` with, which this port cannot have. The shape is flags because `@Argument` has no default,
+so a run cannot name an optional listing. The fourth slice is merged (PR #50): the in-process
+cadence loop, pinned as the calls the loop makes through its seam — the wait before the first read,
+which is the reference's shape, the interval the loop was built with on every wait, one read per
+wait, the instant the clock gives at each read, the reported failing read with the loop going on,
+the empty read reported as nothing, nothing read after the seam answers stop, and the jobs of a
+tick before the next read, which is the port's shape — by `CadenceLoopTests` through test seams
+that record each call. What that header names as unpinnable: that any time passes, since the seam
+stands in for a sleep; the number of iterations, which is the answer the seam gives; the order the
+jobs of one tick are recorded in, which concurrency does not fix, so the pins read the calls across
+the tick boundary; the shape and the field names of a report, which are the port's choice; that the
 reference's ticker goroutine has no stop rule at all, so the stop answer is the port's own,
 recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks, which this port
 has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the real seam
-implementation, which sleeps, so it lands with the process harness; and the wiring that starts the
-loop for `serve` and the signal that asks it to stop, which the process-level suite pins. The flag
-polish and the process-level checks follow.
+implementation, which sleeps, so its decisions are read through test seams that name the interval
+as zero (`SystemCadenceTests`) and its real signal source lands with the process harness. The fifth
+slice is open as PR #51: the process harness (`Support/SpawnedProcess.swift`) reads the built
+binary as the events it answers — the port the serve event reports, the response a request on that
+port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
+exit), and the WAL the shutdown checkpoint leaves empty before the teardown — pinned by
+`ServeProcessTests`, with the wiring that runs the loop to its end and the hook once after it
+pinned as the calls it makes through its seams by `ServeWiringTests`. What those headers name as
+unpinnable: the harness rules themselves — waits that answer on an event, the probed port, the
+child killed on both paths, and the line the harness reads as the serve event, from which a pin
+reads only the port value; that the child writes a line at all or exits at all, because a patch
+that made those absent hangs a pin rather than flipping what it reads; which line is the serve
+event and its wording; the order the two paths of the decision answer on, which no in-process test
+can read either; the reference's HTTP servers being shut down before the pool, which this port has
+no piece for; `SIGHUP`, which the reference feeds to a certificate reload and which is not ported;
+and the reference's log lines, which have no layer here. The flag polish follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the

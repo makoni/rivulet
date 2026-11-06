@@ -10,7 +10,10 @@ A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://gi
 > scheduler's due-batch selection, the icon path, and the CLI commands `refresh` and `status`,
 > together with the soak artifact that drives the pipeline over 2h against local stub feeds. Stage 4
 > stays open for the icon image resizing, which needs a dependency that has not been approved;
-> its in-process cadence loop landed with stage 6 as PR #50, and the client APIs land with stage 5.
+> its in-process cadence loop landed with stage 6 as PR #50, and with PR #51 that loop is what
+> `serve` runs — the wiring built from the environment values, the stop signal answering the
+> decision, and the shutdown running after the loop, pinned by the process-level suite. The client
+> APIs land with stage 5.
 
 ## What it will be
 

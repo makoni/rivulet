@@ -21,7 +21,9 @@ diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
 to a real socket through Vapor's client). Fixture files are target resources
-(`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them.
+(`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them. Part of this
+level spawns the built executable rather than running the app in-process; that is the process
+harness described below, and it is what reads the facts only a process can answer.
 
 ## Workflow (TDD)
 
@@ -816,10 +818,44 @@ calls across the boundary of a tick; the shape and the field names of a report, 
 port's choice; the names the pins read the calls by, which the test writes; that the reference
 has no stop rule at all, so these pins read only that the loop obeys the seam's answer; the
 reference's second ticker for the cleanup tasks, which this port has no loop for and which
-`RetentionTests` pin as storage rules; the pool cap; the real seam implementation, which sleeps,
-so it lands with the process harness; the wiring that starts the loop for `serve` and the signal
-that asks it to stop, which the process-level suite pins; and the reference's log lines, which
-have no layer here.
+`RetentionTests` pin as storage rules; the pool cap; the real seam implementation, which sleeps, so
+the pins read its decisions through test seams with a zero interval (`SystemCadenceTests`) and the
+real signal path lands with the process harness; the wiring that starts the loop for `serve` and the
+signal that asks it to stop, which the process-level suite pins; and the reference's log lines,
+which have no layer here.
+
+### The process harness (`Support/SpawnedProcess.swift`, PR #51)
+
+The harness spawns the built binary — the sibling of the test runner in `.build/debug`, which is
+where CI leaves it — and reads events rather than time: the line the child writes naming its port,
+a response on that port, the exit `waitpid` answers, and the WAL file the child leaves behind. The
+port comes from a socket probe, not a fixed number, and the child is killed on both paths, so a
+failing pin leaves no live process behind. These are harness rules, so no patch to production code
+can make a pin fail on them; the pins read only what the process itself adds.
+
+The pins read: that the binary answers on the port the argument names, as the port the serve event
+reports and the response a request on that port answers — a binary that bound a port of its own
+answers a different port, and the request answers as a connection failure; that the clean signal
+path exits with 0, which is the reference's clean-stop exit; and that the WAL is empty after that
+exit, because the checkpoint ran before the teardown. 10 pins across the three suites: 3 here, 5 in
+`ServeWiringTests`, 2 in `SystemCadenceTests`, each with a probe that patches the rule it names and
+reverts byte-identically. The red run for this PR is the absence of the seams and the wiring —
+compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the pins that were already
+green on the head are shown to fail by patching the production code, not by absence.
+
+The exit and the line are events the pins assume rather than assert: a patch that made the child not
+exit at all would hang a pin rather than flip what it reads, so each pin asserts only the content a
+patch can flip. The signal handler is put in place at construction, before the server command runs,
+which is what makes these pins deterministic: a signal arriving in the window between the serve line
+and the loop's first wait answers the wait instead of ending the child on the default disposition,
+and the pins were intermittent before that change.
+
+What the harness rules are: the waits answer on an event, the port is probed, the child is killed on
+both paths, and the line naming a port is recognized by the harness — the pin reads the value off
+it, not the wording. What the process pins cannot fail on is named in the suite header: that the
+child writes a line at all or exits at all; which line the harness reads as the serve event and its
+wording; and the order the two paths of the decision answer on, which no in-process test can read
+either.
 
 ## Soak
 
