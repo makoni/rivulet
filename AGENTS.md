@@ -86,7 +86,26 @@ can read either; the answer belonging to the decision the path was created for, 
 answering only its own wait, which bite only inside the child across two decisions; the reference's
 HTTP servers being shut down before the pool, which this port has no piece for; `SIGHUP`, which the
 reference feeds to a certificate reload and which is not ported; and the reference's log lines,
-which have no layer here. The flag polish follows.
+which have no layer here. The sixth slice is open as PR #52: the free-space check the `backup` run
+makes at its start, read as the decision the rule answers through the `FileSystemSpace` seam — the
+estimate as the bytes the source holds as the filesystem reads them, times the factor the stage-1
+note documents for `VACUUM INTO` (2), the bytes the WAL holds counted, the room read at the
+directory the destination is in and as the current directory for a destination named as a bare name,
+the comparison read as strictly less, a size the filesystem cannot read counting as nothing, and a
+room it cannot read answering a refusal — pinned by `FreeSpaceCheckTests`, and as what the run does
+with that decision by three pins in `MaintenanceCommandTests`: the refusal with nothing written, the
+copy written at the boundary the rule reads as equal, and no room read at all for the vacuum run.
+What those headers name as unpinnable: the numbers a real filesystem reports, which the seam answers
+in place of the machine, so the room it answers is never read here; the two answers of that
+implementation a test can name without the machine — nothing for a path it cannot read, and the
+bytes it holds for a file the test writes — are pinned by `SystemFileSystemSpaceTests`; the factor
+the copy would truly need, which is the documented choice of the port rather than a fact about
+SQLite; that the check runs before the migrations, which nothing in the run answers, so the pins
+read only that it ran before the write, and not the order between the check and the destination
+rules, which no pin reads; and the wording of the reported failure. `vacuum` is not
+checked, because it rebuilds the file it already holds rather than writing a copy beside it, and
+`Vacuum` carries the filesystem it does not read so that pin can fail on a patch that reads the room
+there. The flag polish follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
@@ -329,9 +348,8 @@ swift run rivulet --help
 
 - Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
-- Ported code keeps a header comment:
-`// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.` Ported tests keep a comment
-with the original test name.
+- Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for
+Swift/SQLite.` Ported tests keep a comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
 wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`) —
 versioned migrations start at the first release.
@@ -347,8 +365,8 @@ commit that completes a stage.
 
 ## Commits
 
-- Small, focused commits with imperative subjects; mention the stage when relevant:
-`stage-2: support conditional GET with ETag`.
+- Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
+support conditional GET with ETag`.
 - Behavior + its tests + doc updates land in the same commit.
 - Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
 `.gitignore`.

@@ -25,6 +25,15 @@ the source, and keeping the previous backup while the new one is written doubles
 `VACUUM INTO` compacts the copy, so it is usually smaller than the live file with its free pages
 and WAL.
 
+The `backup` run checks that room at its start, before it writes anything: the estimate is the bytes
+the source holds as the filesystem reads them — the main file plus the `-wal` beside it as the
+filesystem reads it — times the factor budgeted above, and the room is read at the directory the
+destination is in, which is the current directory for a destination named as a bare name. A run
+whose destination has less room than that reports it and writes nothing; a destination with exactly
+that room is written. A room the filesystem cannot read is reported as a refusal, because the run
+cannot know whether the copy fits, and a size it cannot read counts as nothing. `rivulet vacuum` is
+not checked, because it rebuilds the file it already holds rather than writing a copy beside it.
+
 ```sh
 # Put the target outside the data directory; the path is used as it is read.
 rivulet backup "/var/backups/rivulet-$(date +%F).db"

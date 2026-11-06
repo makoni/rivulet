@@ -29,6 +29,18 @@ public enum StorageError: Error, Sendable, Equatable {
     /// retried once the reader is gone.
     case checkpointBusy
 
+    /// The copy the run would write does not fit in the room the filesystem
+    /// reports at the destination.
+    ///
+    /// The numbers are the rule's own: what the estimate needs and what the
+    /// filesystem reported, so the run can be read as refusing before it wrote
+    /// rather than as writing and failing afterwards.
+    case notEnoughSpace(needed: Int64, available: Int64)
+
+    /// The room at the destination could not be read, so the run cannot know
+    /// whether the copy fits.
+    case freeSpaceUnreadable(directory: String)
+
     /// A seeding request cannot produce the requested corpus shape: `feeds`
     /// must be positive and `entries` cannot be negative.
     case invalidSeeding(feeds: Int, entries: Int)
@@ -68,6 +80,11 @@ extension StorageError: CustomStringConvertible {
                 + details.joined(separator: " | ")
         case .checkpointBusy:
             return "the WAL checkpoint is blocked by another connection; retry when it is idle"
+        case .notEnoughSpace(let needed, let available):
+            return "not enough room at the destination for the copy: the run needs \(needed) "
+                + "bytes, the filesystem reported \(available) — nothing was written"
+        case .freeSpaceUnreadable(let directory):
+            return "cannot read the room at \(directory); nothing was written"
         case .invalidSeeding(let feeds, let entries):
             return "invalid corpus size: \(feeds) feed(s), \(entries) entry/entries"
         }
