@@ -8,9 +8,11 @@ import Glibc
 /// The built executable is the sibling of the test binary in `.build/debug`, which is where CI
 /// leaves it after `swift build`. The rules this harness holds — the kill on both paths, the port
 /// from the socket probe, the waits that answer on an event (a line the child writes, a response,
-/// an exit) rather than on a timer — are harness rules, so no patch to production code can make a
-/// pin fail on them; `ServeProcessTests` names them in its header and pins only what the process
-/// itself adds.
+/// an exit) rather than on a timer, and the time limit every unbounded wait carries — are harness
+/// rules, so no patch to production code can make a pin fail on them; `ServeProcessTests` names
+/// them in its header and pins only what the process itself adds. A limit only counts when the wait
+/// can answer the pin at the limit, so the exit and the line reads answer a cancelled pin as well,
+/// which is the difference between a pin that fails at its limit and a run that hangs.
 ///
 /// The child's output is read through a pipe as an event stream, and the line that names a port is
 /// the serve event the pins read. Recognising that line is the harness's rule, not a pin: the pin
@@ -27,8 +29,10 @@ final class SpawnedProcess: @unchecked Sendable {
 
     private let tempDir: TemporaryDirectory
     private let outputPipe: [Int32]
+    private let stateLock = NSLock()
     private var lines: [String] = []
-    private var lineWaiter: CheckedContinuation<String, Never>?
+    private var lineWaiter: CheckedContinuation<String, Error>?
+    private var lineCancelled = false
     private var outputClosed = false
     private var pid: Int32 = 0
     private var reaped = false
@@ -72,16 +76,53 @@ final class SpawnedProcess: @unchecked Sendable {
         self.args = args(port)
     }
 
-    /// The next line the child wrote, read as an event: nothing here waits on a timer.
-    func line() async -> String {
-        if !lines.isEmpty { return lines.removeFirst() }
-
-        return await withCheckedContinuation { (continuation: CheckedContinuation<String, Never>) in
-            if outputClosed {
-                continuation.resume(returning: "")
-                return
+    /// The next line the child wrote, read as an event: nothing here waits on a timer. The check
+    /// and the registration run under one lock with the exit state, so a line that arrives between
+    /// them cannot be lost, and a child that writes nothing and ends answers the read with the
+    /// empty line the pin names. A wait answers on its own cancellation only when nothing else can
+    /// answer it, which is what a pin's time limit needs: a patch that leaves the child silent
+    /// fails at the limit.
+    func line() async throws -> String {
+        return try await withTaskCancellationHandler(handler: {
+            cancelLineRead()
+        }, operation: {
+            try await withCheckedThrowingContinuation { (continuation:
+                CheckedContinuation<String, Error>) in
+                stateLock.lock()
+                if !lines.isEmpty {
+                    let line = lines.removeFirst()
+                    stateLock.unlock()
+                    continuation.resume(returning: line)
+                    return
+                }
+                if outputClosed {
+                    stateLock.unlock()
+                    continuation.resume(returning: "")
+                    return
+                }
+                if lineCancelled {
+                    stateLock.unlock()
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
+                lineWaiter = continuation
+                stateLock.unlock()
             }
-            lineWaiter = continuation
+        })
+    }
+
+    /// A line read that is cancelled is answered as the cancellation, and the child is killed so it
+    /// does not outlive the pin that asked for it.
+    private func cancelLineRead() {
+        stateLock.lock()
+        lineCancelled = true
+        if let waiter = lineWaiter {
+            lineWaiter = nil
+            stateLock.unlock()
+            killChild()
+            waiter.resume(throwing: CancellationError())
+        } else {
+            stateLock.unlock()
         }
     }
 
@@ -90,7 +131,7 @@ final class SpawnedProcess: @unchecked Sendable {
     /// value, which a patch to the port the server uses changes.
     func servePort() async throws -> Int {
         while true {
-            let line = await line()
+            let line = try await line()
             if line.isEmpty {
                 throw SpawnedProcessError.noServeEvent
             }
@@ -102,7 +143,10 @@ final class SpawnedProcess: @unchecked Sendable {
 
     /// The response event the pin reads on the probed port. No timeout is applied by the harness:
     /// the request answers when the child answers, and the pins read it only after the serve event,
-    /// so the child is listening when the request goes out.
+    /// so the child is listening when the request goes out. The client carries its own default
+    /// timeout of 30 seconds, so a request that no child answers fails on that bound rather than
+    /// hanging, which is the rule an unbounded wait carries a limit; the pins carry their own limit
+    /// as well.
     func response(path: String) async throws -> Int {
         let client = HTTPClient()
         let response = try await client.execute(
@@ -113,49 +157,84 @@ final class SpawnedProcess: @unchecked Sendable {
     }
 
     /// The event that the child is gone, read as the status the harness decoded: 0..127 is the exit
-    /// code, and `128 + n` names the signal that ended it. This wait answers on the exit event, not
-    /// on a timer.
-    func waitExit() async -> Int32 {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Int32, Never>) in
-            DispatchQueue.global().async {
-                var raw: Int32 = 0
-                let ended = waitpid(self.pid, &raw, 0)
-                self.reaped = true
-                if ended < 0 {
-                    // The child is gone with no status the pins could name.
-                    continuation.resume(returning: -1)
+    /// code, and `128 + n` names the signal that ended it. The wait answers on the exit event, not
+    /// on a timer, and the poll loop runs in the pin's own task context so the pin's time limit can
+    /// fire on a child that never exits — a limit that could not fire would only rename a hang, and
+    /// the harness needs to be able to fail a pin, not wait forever for it. A normal run answers on
+    /// the first check, because the child is already gone when the harness asks; the interval is
+    /// the harness's own poll bound, not a wait a pin names, and no pin asserts anything from it.
+    func waitExit() async throws -> Int32 {
+        let status = try await withCheckedThrowingContinuation { (continuation:
+            CheckedContinuation<Int32, Error>) in
+            while true {
+                let ended = waitpid(pid, &rawStatus, WNOHANG)
+                if ended > 0 {
+                    stateLock.lock()
+                    reaped = true
+                    stateLock.unlock()
+                    continuation.resume(returning: status(of: rawStatus))
                     return
                 }
-                if raw & 0x7f == 0 {
-                    continuation.resume(returning: (raw >> 8) & 0x7f)
-                } else {
-                    continuation.resume(returning: 128 + (raw & 0x7f))
+                if ended < 0 {
+                    // The child is gone with no status the pins could name.
+                    continuation.resume(throwing: SpawnedProcessError.noExitStatus)
+                    return
                 }
+                if Task.isCancelled {
+                    // The pin is gone, so the child must not outlive it.
+                    killChild()
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
+                usleep(pollInterval)
             }
         }
+        return status
     }
 
-    /// Sends the signal the pin names to the child, without waiting for anything.
-    func send(signal: Int32) {
-        Glibc.kill(pid, signal)
+    private var rawStatus: Int32 = 0
+
+    /// The harness's poll bound: 50 ms between checks for the exit event and for the pin's
+    /// cancellation, so the loop is not a hot spin. Nothing a pin reads comes from this value.
+    private let pollInterval: UInt32 = 50_000
+
+    private func status(of raw: Int32) -> Int32 {
+        if raw & 0x7f == 0 { return (raw >> 8) & 0x7f }
+        return 128 + (raw & 0x7f)
     }
 
-    /// The WAL file the child left behind, read after the exit event: empty or absent is the fact
-    /// the pin names, because nothing was left uncheckpointed.
+    /// Sends the signal the pin names to the child, without waiting for anything, and answers
+    /// whether the child was alive to receive it. A child that was already gone answers `false`, so
+    /// a pin can read that the signal is what ended the run rather than an exit the child reached
+    /// on its own.
+    func send(signal: Int32) -> Bool {
+        return Glibc.kill(pid, signal) == 0
+    }
+
+    /// The WAL file the child left behind, read after the exit event: nothing left uncheckpointed,
+    /// read as the file being empty or absent. Absence is the fact a clean close leaves, because
+    /// SQLite removes the `-wal` file when the last connection closes, so this is the one place
+    /// where the rule of `FileSize.swift` — an assertion that a WAL is empty cannot be satisfied by
+    /// a deleted file — does not apply, and the pin names that in its header.
     func walIsEmpty() -> Bool {
         let wal = databasePath + "-wal"
         guard FileManager.default.fileExists(atPath: wal) else { return true }
-        let size = (try? FileManager.default.attributesOfItem(atPath: wal)[.size] as? Int) ?? 0
-        return size == 0
+        return (try? fileSize(wal)) == 0
     }
 
+    /// The child is only signalled when it was actually spawned: with no child, `kill(0, …)`
+    /// signals the caller's process group, which would kill the test runner.
     private func killChild() {
-        if reaped { return }
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        if reaped || pid == 0 { return }
         Glibc.kill(pid, SIGKILL)
     }
 
     private func reap() {
-        if reaped { return }
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        if reaped || pid == 0 { return }
         var raw: Int32 = 0
         _ = waitpid(pid, &raw, 0)
         reaped = true
@@ -182,6 +261,11 @@ final class SpawnedProcess: @unchecked Sendable {
         if result != 0 {
             throw SpawnedProcessError.spawnFailed(result)
         }
+
+        // The parent's copy of the write end is closed at once: the reader sees the end of the
+        // stream when the child is gone, which is the event that answers a read for a line that
+        // never came.
+        close(outputPipe[1])
     }
 
     private func startReader() {
@@ -203,20 +287,28 @@ final class SpawnedProcess: @unchecked Sendable {
     }
 
     private func deliver(_ line: String) {
+        stateLock.lock()
         if let waiter = lineWaiter {
             lineWaiter = nil
+            stateLock.unlock()
             waiter.resume(returning: line)
         } else {
             lines.append(line)
+            stateLock.unlock()
         }
     }
 
+    /// The end of the stream: only the read end is still open here, because the parent closed its
+    /// copy of the write end at spawn, so this is reached when the child is gone.
     private func closeOutput() {
+        stateLock.lock()
         outputClosed = true
+        let waiter = lineWaiter
+        lineWaiter = nil
+        stateLock.unlock()
+
         close(outputPipe[0])
-        close(outputPipe[1])
-        if let waiter = lineWaiter {
-            lineWaiter = nil
+        if let waiter = waiter {
             waiter.resume(returning: "")
         }
     }
@@ -292,4 +384,5 @@ enum SpawnedProcessError: Error, Equatable {
     case probeFailed
     case pipeFailed
     case noServeEvent
+    case noExitStatus
 }

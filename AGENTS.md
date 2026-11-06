@@ -15,65 +15,64 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands
-`add`, `remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL
-rule, then the duplicate read, then the category read — the url written as the command read it, the
-category resolved from the named title or from the default, the account resolved from `--user` or
-from the single account, the delete that applies the account it is given, and the listing order
-with the lowercased title as the tiebreaker, are pinned by `FeedValidationTests`,
-`FeedManagementReadsTests` and `FeedCommandTests`. What those headers name as unpinnable: the
-single-row limit of the duplicate read, the order between the duplicate read and the category read
-at the command level — a category name the command cannot resolve answers `0`, so the guard runs
-first — the rows below the feed at the command level, which the read suite pins, the wording of the
-lines and of the reported failures, and the rules the port names rather than the reference. The
-command surface is recorded in `docs/parity.md`. The second slice is merged (PR #48): `backup` and
-`vacuum` as runs, with the destination read as it was given, the copy as the snapshot at the run
-rather than the bytes of the main file, the copy being a file of its own that does not change with
-the source afterwards, a destination the command did not create reported rather than built or
-overwritten and read against a row the pin writes after the control run, the file rebuilt without
-losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`, with the
-storage rules these commands call pinned by `MaintenanceTests`. What that header names as
-unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
-best-effort one after every command; which file the environment names, which `ConfigTests` pin;
-reusing an existing empty destination file; the size of the main file before the run, because the
-checkpoint at the end of a run moves the rows from the WAL into it; the shape guards that read what
-the pin built before the run, which bite only on the storage rules; the copy being a plain file
-with no `-wal` beside it; that these commands fetch nothing and sleep nothing; the wording of the
-lines and of the reported failures; and the rules the port names rather than the reference. The
-third slice is merged (PR #49): `list` answers one listing per run, with the flag naming which read
-the run makes, no flag still meaning the feeds, the pair of flags reported as the rule the port
-names rather than picked, the account the run resolves reaching the category read and not the
-account read, the line carrying the stored position and the stored admin flag rather than the
-schema default, one line carrying one row, the run writing nothing, and the title order being the
-port's byte order, pinned by `ListingCommandTests` over the in-process console, with the two orders
-it reads pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`. What that header
-names as unpinnable: the wording of the lines and of the reported failures apart from the values
-the pins read off a line and the rule name the run writes; a flag the command does not know, which
-the command-signature parser rejects before the command runs; which fields a line carries and their
-order on the line; the header line, read only as the one line that is not a row; the `position`
-column, which is the port's own and recorded in `docs/parity.md`; the guards that read what the pin
-built before the run, which bite only on the storage rules; the single-row limit of the reads; the
-account resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these
-commands fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER
-BY title` with, which this port cannot have. The shape is flags because `@Argument` has no default,
-so a run cannot name an optional listing. The fourth slice is merged (PR #50): the in-process
-cadence loop, pinned as the calls the loop makes through its seam — the wait before the first read,
-which is the reference's shape, the interval the loop was built with on every wait, one read per
-wait, the instant the clock gives at each read, the reported failing read with the loop going on,
-the empty read reported as nothing, nothing read after the seam answers stop, and the jobs of a
-tick before the next read, which is the port's shape — by `CadenceLoopTests` through test seams
-that record each call. What that header names as unpinnable: that any time passes, since the seam
-stands in for a sleep; the number of iterations, which is the answer the seam gives; the order the
-jobs of one tick are recorded in, which concurrency does not fix, so the pins read the calls across
-the tick boundary; the shape and the field names of a report, which are the port's choice; that the
-reference's ticker goroutine has no stop rule at all, so the stop answer is the port's own,
-recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks, which this port
-has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the real seam
-implementation, which sleeps, so its decisions are read through test seams that name the interval
-as zero (`SystemCadenceTests`) and its real signal source lands with the process harness. The fifth
-slice is open as PR #51: the process harness (`Support/SpawnedProcess.swift`) reads the built
-binary as the events it answers — the port the serve event reports, the response a request on that
-port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
+Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands `add`,
+`remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
+the duplicate read, then the category read — the url written as the command read it, the category
+resolved from the named title or from the default, the account resolved from `--user` or from the
+single account, the delete that applies the account it is given, and the listing order with the
+lowercased title as the tiebreaker, are pinned by `FeedValidationTests`, `FeedManagementReadsTests`
+and `FeedCommandTests`. What those headers name as unpinnable: the single-row limit of the duplicate
+read, the order between the duplicate read and the category read at the command level — a category
+name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
+the command level, which the read suite pins, the wording of the lines and of the reported failures,
+and the rules the port names rather than the reference. The command surface is recorded in
+`docs/parity.md`. The second slice is merged (PR #48): `backup` and `vacuum` as runs, with the
+destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
+main file, the copy being a file of its own that does not change with the source afterwards, a
+destination the command did not create reported rather than built or overwritten and read against a
+row the pin writes after the control run, the file rebuilt without losing a row, and the flag that
+gates the migrations, pinned by `MaintenanceCommandTests`, with the storage rules these commands
+call pinned by `MaintenanceTests`. What that header names as unpinnable: the truncating checkpoint
+the vacuum run ends with, because `RivuletApplication` runs a best-effort one after every command;
+which file the environment names, which `ConfigTests` pin; reusing an existing empty destination
+file; the size of the main file before the run, because the checkpoint at the end of a run moves the
+rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
+only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
+fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
+rules the port names rather than the reference. The third slice is merged (PR #49): `list` answers
+one listing per run, with the flag naming which read the run makes, no flag still meaning the feeds,
+the pair of flags reported as the rule the port names rather than picked, the account the run
+resolves reaching the category read and not the account read, the line carrying the stored position
+and the stored admin flag rather than the schema default, one line carrying one row, the run writing
+nothing, and the title order being the port's byte order, pinned by `ListingCommandTests` over the
+in-process console, with the two orders it reads pinned as reads by `CategoryRepositoryTests` and
+`UserRepositoryTests`. What that header names as unpinnable: the wording of the lines and of the
+reported failures apart from the values the pins read off a line and the rule name the run writes; a
+flag the command does not know, which the command-signature parser rejects before the command runs;
+which fields a line carries and their order on the line; the header line, read only as the one line
+that is not a row; the `position` column, which is the port's own and recorded in `docs/parity.md`;
+the guards that read what the pin built before the run, which bite only on the storage rules; the
+single-row limit of the reads; the account resolution, which `FeedCommandTests` pin; the flag that
+gates the migrations; that these commands fetch nothing and sleep nothing; and the collation the
+reference's Postgres answers `ORDER BY title` with, which this port cannot have. The shape is flags
+because `@Argument` has no default, so a run cannot name an optional listing. The fourth slice is
+merged (PR #50): the in-process cadence loop, pinned as the calls the loop makes through its seam —
+the wait before the first read, which is the reference's shape, the interval the loop was built with
+on every wait, one read per wait, the instant the clock gives at each read, the reported failing
+read with the loop going on, the empty read reported as nothing, nothing read after the seam answers
+stop, and the jobs of a tick before the next read, which is the port's shape — by `CadenceLoopTests`
+through test seams that record each call. What that header names as unpinnable: that any time
+passes, since the seam stands in for a sleep; the number of iterations, which is the answer the seam
+gives; the order the jobs of one tick are recorded in, which concurrency does not fix, so the pins
+read the calls across the tick boundary; the shape and the field names of a report, which are the
+port's choice; that the reference's ticker goroutine has no stop rule at all, so the stop answer is
+the port's own, recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks,
+which this port has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the
+real seam implementation, which sleeps, so its decisions are read through test seams that name the
+interval as zero (`SystemCadenceTests`) and its real signal source lands with the process harness.
+The fifth slice is open as PR #51: the process harness (`Support/SpawnedProcess.swift`) reads the
+built binary as the events it answers — the port the serve event reports, the response a request on
+that port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
 exit), and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring
 that runs the loop to its end and the hook once after it pinned as the calls it makes through its
 seams by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves —
@@ -83,11 +82,11 @@ at all, because a patch that made the child never exit hangs a pin rather than f
 reads, while a child that writes no line fails the pin through the harness; which part of the
 shutdown emptied the WAL, because a clean close checkpoints on its own; which line is the serve
 event and its wording; the order the two paths of the decision answer on, which no in-process test
-can read either; the answer belonging to the decision the path was created for, and a cancelled
-wait answering only its own wait, which bite only inside the child across two decisions; the
-reference's HTTP servers being shut down before the pool, which this port has no piece for;
-`SIGHUP`, which the reference feeds to a certificate reload and which is not ported; and the
-reference's log lines, which have no layer here. The flag polish follows.
+can read either; the answer belonging to the decision the path was created for, and a cancelled wait
+answering only its own wait, which bite only inside the child across two decisions; the reference's
+HTTP servers being shut down before the pool, which this port has no piece for; `SIGHUP`, which the
+reference feeds to a certificate reload and which is not ported; and the reference's log lines,
+which have no layer here. The flag polish follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
@@ -227,23 +226,22 @@ stamp stays `null`, the rows are listed in id order, the counts read every row w
 `due` is the batch's pick, the environment values reach the totals through the command, and the flag
 gates the migrations. The soak artifact landed with PR #35: the shell is its cadence, its checks
 read the data each round leaves behind rather than the process that produced them, and each check is
-shown to fail on the rule it names; the in-process cadence loop landed with stage 6 as PR #50,
-read as the calls the loop makes through its seam, and retention is pinned by `RetentionTests`).
-Stage 4 keeps one open thing: the icon image resizing, which needs a dependency that has not been
-approved. Stage 3 is
-merged, with its remaining findings in its stage-file backlog and every exit criterion met: the two
-sanitizer HTML fixtures are read end to end against the reference's own output, which took two
-insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack gives
-back to the element around a nested table when it closes — and both are pinned case by case by
+shown to fail on the rule it names; the in-process cadence loop landed with stage 6 as PR #50, read
+as the calls the loop makes through its seam, and retention is pinned by `RetentionTests`). Stage 4
+keeps one open thing: the icon image resizing, which needs a dependency that has not been approved.
+Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit criterion
+met: the two sanitizer HTML fixtures are read end to end against the reference's own output, which
+took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack
+gives back to the element around a nested table when it closes — and both are pinned case by case by
 `SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to the refresh path
 is met by the pipeline. Keep this line and the plan's status table in sync.
 
 ## Toolchain
 
 - Use the latest Swift release installed on the system (currently 6.4.1). Do not target old
-  toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
+toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
 - CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container (see
-  `.github/workflows/ci.yml`).
+`.github/workflows/ci.yml`).
 
 ## TDD is mandatory
 
@@ -252,80 +250,77 @@ We work test-first: **red → green → refactor**.
 - Write a failing test before writing production code.
 - Bug fixes start with a regression test that reproduces the bug.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
-  test, not just a unit test.
+test, not just a unit test.
 - Ported Miniflux behavior must bring the corresponding ported tests.
 - Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
-  XCTest and `XCTVapor` are not used anywhere.
+XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
-  genuinely wrong, fix the test in the same commit with a clear explanation.
+genuinely wrong, fix the test in the same commit with a clear explanation.
 - New public APIs without tests are not accepted.
 
 ## Documentation and DocC
 
 - Documentation and tutorials are a project deliverable, not an afterthought. We will collect them
-  with DocC and publish them later (planned: GitHub Pages, wired up in stage 8).
+with DocC and publish them later (planned: GitHub Pages, wired up in stage 8).
 - Every public API gets a DocC documentation comment.
 - DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
-  executable): articles for concepts, tutorials for key workflows (setup, feeds, clients,
-  deployment).
+executable): articles for concepts, tutorials for key workflows (setup, feeds, clients, deployment).
 - Write docs so they can be published as-is: no local-only references, no TODOs in prose.
 - Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs disagree,
-  fix both in the same commit.
+fix both in the same commit.
 
 ## Code quality
 
 - Architecture first: keep the module boundaries from `docs/architecture.md`, dependencies point
-  inward, no cycles.
+inward, no cycles.
 - Follow SOLID, YAGNI and KISS: the simplest thing that works; no speculative abstractions; keep
-  only the seams the plan requires.
+only the seams the plan requires.
 - File size: aim for 150–300 lines per production file, hard cap ~500 — split before you reach it.
-  One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
-  to resource files, not inline megablocks.
+One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
+to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
 - Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Two things are
-  exempt because neither can be broken without changing what it says: a Markdown table row, and an
-  inline code span longer than the width, which stays whole on its own line. Code lines are single
-  expressions and are not split to meet the width. A commit that only rewraps does not change
-  behavior, so it does not reopen a review that already approved the words.
+exempt because neither can be broken without changing what it says: a Markdown table row, and an
+inline code span longer than the width, which stays whole on its own line. Code lines are single
+expressions and are not split to meet the width. A commit that only rewraps does not change
+behavior, so it does not reopen a review that already approved the words.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
-  `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved
-  when they make data structures, algorithms or hashing clearer or more efficient — add them as
-  direct dependencies of the module that uses them when first used (they are already in the
-  dependency graph via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new
-  dependency needs explicit approval — Linux-first, keep the surface small.
+`OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved when
+they make data structures, algorithms or hashing clearer or more efficient — add them as direct
+dependencies of the module that uses them when first used (they are already in the dependency graph
+via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new dependency needs explicit
+approval — Linux-first, keep the surface small.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
 ## Review
 
 - Every PR is reviewed by three read-only reviewers, and all three must APPROVE on the final head.
 - The budget is three runs, hard cap four. Run 1 is a full review of the pushed head; run 2 verifies
-  the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
-  if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This
-  replaces the older "two clean rounds" wording, which counted rounds but did not cap them: a run
-  per blocker kept the count open.
+the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
+if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This replaces
+the older "two clean rounds" wording, which counted rounds but did not cap them: a run per blocker
+kept the count open.
 - Runs are sequential, one agent at a time: a run starts only after the previous one has reported.
-  Three reviewers read the same head, so the three agents run one after another, never together — a
-  parallel set is one pass over the head, not three runs, and it cannot verify a delta that does not
-  exist yet.
+Three reviewers read the same head, so the three agents run one after another, never together — a
+parallel set is one pass over the head, not three runs, and it cannot verify a delta that does not
+exist yet.
 - Run 1 checks three things, so nothing from it expands into later runs: the semantics against the
-  reference, that every assertion can actually fail on the behavior it names, and that the docs say
-  what the tests pin.
+reference, that every assertion can actually fail on the behavior it names, and that the docs say
+what the tests pin.
 - The cap counts runs, not fixes. A blocker is fixed in the commit that answers it; when the budget
-  is spent, findings that do not change behavior go to the backlog and the PR merges.
+is spent, findings that do not change behavior go to the backlog and the PR merges.
 - Non-blocking observations do not reopen a review: they land in the same commit or go to the
-  backlog. A wording change that restates what a reviewer proposed is confirmed with one line, not
-  with a run. Style findings (file and function size, unused imports, unported upstream tests) are
-  backlog items, not blockers.
+backlog. A wording change that restates what a reviewer proposed is confirmed with one line, not
+with a run. Style findings (file and function size, unused imports, unported upstream tests) are
+backlog items, not blockers.
 - Open the PR after the review runs are done, so CI runs once on the final head and the approvals
-  are counted on that head.
+are counted on that head.
 
 ## Commands
 
 ```sh
-swift build                            # debug build
-swift test                             # all tests (unit + integration); must be green
-swift test --filter RivuletCoreTests   # fast unit loop
-swift run rivulet --help
+swift build # debug build swift test # all tests (unit + integration); must be green swift test
+--filter RivuletCoreTests # fast unit loop swift run rivulet --help
 ```
 
 ## Conventions
@@ -333,33 +328,33 @@ swift run rivulet --help
 - Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
 - Ported code keeps a header comment:
-  `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.` Ported tests keep a
-  comment with the original test name.
+`// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.` Ported tests keep a comment
+with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
-  wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`) —
-  versioned migrations start at the first release.
+wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`) —
+versioned migrations start at the first release.
 - No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals, not
-  oversights.
+oversights.
 
 ## Stage workflow
 
 - Work on one stage at a time, starting from the lowest not-started stage.
 - A stage is complete when its exit criteria and the global definition of done are met.
 - Update the status table in `docs/plan/README.md` and the "Current focus" line above in the same
-  commit that completes a stage.
+commit that completes a stage.
 
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant:
-  `stage-2: support conditional GET with ETag`.
+`stage-2: support conditional GET with ETag`.
 - Behavior + its tests + doc updates land in the same commit.
 - Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
-  `.gitignore`.
+`.gitignore`.
 
 ## Safety
 
 - The HTML sanitizer is security-critical: never relax allowlists to make a test pass; when in
-  doubt, port Miniflux behavior.
+doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
 

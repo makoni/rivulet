@@ -110,7 +110,7 @@ import Testing
         }
     }
 
-    @Test func failingHookPropagatesAndCleanRunReturns() async throws {
+    @Test func failingHookPropagatesAsTheErrorTheCallerReads() async throws {
         try await withMigratedStorage { _, storage in
             let failing = Recorder()
             let wiring = try makeWiring(storage: storage, env: ["POLLING_FREQUENCY": "90"],
