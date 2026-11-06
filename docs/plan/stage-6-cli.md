@@ -5,7 +5,7 @@ progress — the first slice, the feed commands `add`, `remove` and `list`, is m
 second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The third slice,
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
-with the signal seam and the wiring `serve` runs, is open as PR #51. **Effort:** M. **Depends on:**
+with the signal seam and the wiring `serve` runs, is merged (PR #51). **Effort:** M. **Depends on:**
 Stages 1–5.
 
 ## Scope
@@ -30,7 +30,7 @@ loop runs again, an empty read reports nothing, nothing is read after the seam a
 jobs of a tick run before the next read, which is the port's shape. The stop answer is the port's
 own, because the reference's ticker goroutine has no stop rule. The real seam, which sleeps, and the
 wiring that starts the loop for `serve` land with the process-level checks.
-- [ ] The process harness lands with PR #51 as what only a process can answer: the built binary
+- [x] The process harness landed with PR #51 as what only a process can answer: the built binary
 answering on the port the argument names, the clean signal path exiting with 0, and the WAL the
 run's shutdown leaves empty. The signal seam and the wiring are the port's shapes of the reference's
 select and its `signal.Notify` — the first path to reach the decision answers it, and the answer

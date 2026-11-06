@@ -70,7 +70,7 @@ the port's own, recorded in `docs/parity.md`; the reference's second ticker for 
 which this port has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the
 real seam implementation, which sleeps, so its decisions are read through test seams that name the
 interval as zero (`SystemCadenceTests`) and its real signal source lands with the process harness.
-The fifth slice is open as PR #51: the process harness (`Support/SpawnedProcess.swift`) reads the
+The fifth slice is merged (PR #51): the process harness (`Support/SpawnedProcess.swift`) reads the
 built binary as the events it answers — the port the serve event reports, the response a request on
 that port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
 exit), and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring
