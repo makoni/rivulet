@@ -14,23 +14,25 @@ import Testing
 /// What these pins can fail on, each checked by patching the rule and reverting: that the interval
 /// the loop is built with is the value the environment names, not the default; that the wiring runs
 /// nothing when the first decision answers stop; that every job of an in-flight tick runs before
-/// the hook; that the batch values the environment names reach the dispatch through the wiring, not
-/// through the defaults; and that a failing hook is propagated as the error the exit code is read
-/// from, while a clean run returns.
+/// the hook, which is the hook running after the loop returns; that the batch values the
+/// environment names reach the dispatch through the wiring, not through the defaults; and that a
+/// failing hook is propagated as the error the caller reads, which is what the CLI reads as the
+/// exit code.
 ///
-/// What these pins cannot fail on: that the wiring starts the HTTP server or that the server stops
-/// before the hook, because the server is not a seam here — the process suite reads the response as
-/// the event that proves dispatch, and the order between the server's stop and the hook is not read
-/// in-process; that any interval passes, since the pattern seam answers without sleeping; which row
-/// the batch picks when two rows are stamped at the same instant, so the pins name one row as the
-/// pick by stamping it earlier; the names the pins read the calls by, which the test writes; the
-/// real signal source the wiring uses in the binary, which no in-process test reaches, so the pins
-/// read the wiring through the seam and the process suite reads the signal path as the event the
-/// child exits on; what the wiring does with the reports the loop answers with, which has no layer
-/// here, the reference writing them to `slog`; and the other batch values the environment names —
-/// the error limit and the per-host limit — which reach the builder as `SchedulerBatchTests` pin,
-/// so what the wiring adds is only that the values come from the environment, read through the one
-/// value the pins can make fail.
+/// What these pins cannot fail on: that the wiring starts the HTTP server, or the order between the
+/// server's stop and the hook, because the server is not a seam here — the process suite reads the
+/// response as the event that proves dispatch; that the clean run returns, which the pins read only
+/// as the absence of a thrown error in the pins that do not make the hook fail, so the pin that
+/// names the propagation asserts only the failing half; that any interval passes, since the pattern
+/// seam answers without sleeping; which row the batch picks when two rows are stamped at the same
+/// instant, so the pins name one row as the pick by stamping it earlier; the names the pins read
+/// the calls by, which the test writes; the real signal source the wiring uses in the binary, which
+/// no in-process test reaches, so the pins read the wiring through the seam and the process suite
+/// reads the signal path as the event the child exits on; what the wiring does with the reports the
+/// loop answers with, which has no layer here, the reference writing them to `slog`; and the other
+/// batch values the environment names — the error limit and the per-host limit — which reach the
+/// builder as `SchedulerBatchTests` pin, so what the wiring adds is only that the values come from
+/// the environment, read through the one value the pins can make fail.
 @Suite struct ServeWiringTests {
     @Test func envIntervalReachesTheSeamNotTheDefaults() async throws {
         try await withMigratedStorage { _, storage in

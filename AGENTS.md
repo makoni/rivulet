@@ -74,17 +74,20 @@ as zero (`SystemCadenceTests`) and its real signal source lands with the process
 slice is open as PR #51: the process harness (`Support/SpawnedProcess.swift`) reads the built
 binary as the events it answers — the port the serve event reports, the response a request on that
 port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
-exit), and the WAL the shutdown checkpoint leaves empty before the teardown — pinned by
-`ServeProcessTests`, with the wiring that runs the loop to its end and the hook once after it
-pinned as the calls it makes through its seams by `ServeWiringTests`. What those headers name as
-unpinnable: the harness rules themselves — waits that answer on an event, the probed port, the
-child killed on both paths, and the line the harness reads as the serve event, from which a pin
-reads only the port value; that the child writes a line at all or exits at all, because a patch
-that made those absent hangs a pin rather than flipping what it reads; which line is the serve
+exit), and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring
+that runs the loop to its end and the hook once after it pinned as the calls it makes through its
+seams by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves —
+waits that answer on an event, the probed port, the child killed on both paths, and the line the
+harness reads as the serve event, from which a pin reads only the port value; that the child exits
+at all, because a patch that made the child never exit hangs a pin rather than flipping what it
+reads, while a child that writes no line fails the pin through the harness; which part of the
+shutdown emptied the WAL, because a clean close checkpoints on its own; which line is the serve
 event and its wording; the order the two paths of the decision answer on, which no in-process test
-can read either; the reference's HTTP servers being shut down before the pool, which this port has
-no piece for; `SIGHUP`, which the reference feeds to a certificate reload and which is not ported;
-and the reference's log lines, which have no layer here. The flag polish follows.
+can read either; the answer belonging to the decision the path was created for, and a cancelled
+wait answering only its own wait, which bite only inside the child across two decisions; the
+reference's HTTP servers being shut down before the pool, which this port has no piece for;
+`SIGHUP`, which the reference feeds to a certificate reload and which is not ported; and the
+reference's log lines, which have no layer here. The flag polish follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the

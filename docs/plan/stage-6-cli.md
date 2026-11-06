@@ -100,6 +100,22 @@ harness with the signal seam and the wiring `serve` runs, is open as PR #51.
 - Style findings from PR #50 that do not change behavior: the single-expression code lines in the
   cadence pins that read over the width (the `#expect` calls with the comment argument and the event
   arrays with the pinned instants), which the wrapping rule exempts.
+- The signal handler answers through a lock and a continuation, which is not async-signal-safe: a
+  signal delivered on a thread that already holds the source's lock can block there. The shape keeps
+  the guarded part short and the handler runs once per arrival, so nothing the pins read changes; if
+  the handler is moved to a dispatch source, as Vapor's server command uses, the answer leaves the
+  signal context and this finding closes.
+- `serve`'s catch path runs the storage teardown without the fetcher close, which only the hook
+  closes, and a hook that failed after its own shutdown ran is read on that path as a second call.
+  No pin reaches either half: the pins read the hook path, and the exit code for a hook failure is
+  read through `ServeWiringTests` as the propagated error, not as the child's code. A pin for the
+  catch path would need the child to fail before the hook, which no input the harness can write
+  answers.
+- Two rules of the decision bite only inside the child across two decisions, so no pin can read
+  them:
+  the answer belonging to the decision the path was created for, and a cancelled wait answering only
+  its own wait. Both are named in the suite headers and in the code comments, and both are what the
+  run does in the binary rather than what a test can show.
 - Style findings from PR #51 that do not change behavior: the single-expression code lines over the
   width in the new files, which the wrapping rule exempts because they cannot be broken without
   changing what they say — the `withCheckedContinuation` calls with the continuation type in

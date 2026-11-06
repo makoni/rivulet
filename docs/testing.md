@@ -837,18 +837,22 @@ The pins read: that the binary answers on the port the argument names, as the po
 reports and the response a request on that port answers — a binary that bound a port of its own
 answers a different port, and the request answers as a connection failure; that the clean signal
 path exits with 0, which is the reference's clean-stop exit; and that the WAL is empty after that
-exit, because the checkpoint ran before the teardown. 10 pins across the three suites: 3 here, 5 in
+exit, which is what the run's shutdown leaves behind — a patch that skipped the shutdown left the
+file. Which part of the shutdown emptied the WAL is not the pin's rule, because a clean close
+checkpoints and removes the file on its own, and the suite names that; it is the same reason the
+maintenance pins cannot read the checkpoint. 10 pins across the three suites: 3 here, 5 in
 `ServeWiringTests`, 2 in `SystemCadenceTests`, each with a probe that patches the rule it names and
 reverts byte-identically. The red run for this PR is the absence of the seams and the wiring —
 compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the pins that were already
 green on the head are shown to fail by patching the production code, not by absence.
 
-The exit and the line are events the pins assume rather than assert: a patch that made the child not
-exit at all would hang a pin rather than flip what it reads, so each pin asserts only the content a
-patch can flip. The signal handler is put in place at construction, before the server command runs,
-which is what makes these pins deterministic: a signal arriving in the window between the serve line
-and the loop's first wait answers the wait instead of ending the child on the default disposition,
-and the pins were intermittent before that change.
+The exit is an event the pins assume rather than assert: a patch that made the child not exit at all
+would hang a pin rather than flip what it reads, so each pin asserts only the content a patch can
+flip. A child that writes no line at all fails the pin through the harness, which answers that read
+with no serve event, so the line is not an assumed fact. The signal handler is put in place at
+construction, before the server command runs, which is what makes these pins deterministic: a signal
+arriving in the window between the serve line and the loop's first wait answers the wait instead of
+ending the child on the default disposition, and the pins were intermittent before that change.
 
 What the harness rules are: the waits answer on an event, the port is probed, the child is killed on
 both paths, and the line naming a port is recognized by the harness — the pin reads the value off

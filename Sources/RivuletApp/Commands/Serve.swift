@@ -74,9 +74,12 @@ extension RivuletCLI {
                 try await serveCommand.run(using: &serverContext)
                 try await wiring.run()
             } catch {
-                // The hook is the run's single shutdown, so this path runs it only for the failure
-                // that came before the hook — the startup reads or the server path. A hook that ran
-                // has already run the shutdown once, and the caller owns exactly one call.
+                // The hook owns the shutdown on the path that reaches it, so this line runs the
+                // teardown for the failure before the hook — the startup reads, the server, or the
+                // loop. Two halves here are outside what any pin reads, and recorded in the
+                // stage-file backlog: a hook that failed after its own shutdown ran is read as a
+                // second call on this path, and the fetcher is not closed on it, because only the
+                // hook closes it.
                 try? await rivulet.shutdown()
                 throw error
             }

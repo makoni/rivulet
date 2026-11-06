@@ -11,18 +11,17 @@
 /// interval and the batch size the pins read are the ones `Config.load` parsed rather than the
 /// defaults, and `ServeWiringTests` pins that through test seams that record each call.
 ///
-/// The order the pins cannot read is named by that header: the hook runs after the loop returns,
-/// while the reference stops the HTTP servers before the pool; and the reports the loop answers
-/// with have no layer here, the reference writing them to `slog`. A failing hook leaves this type
-/// as the error the CLI reads as the exit code, and a clean run returns, which is the reference's
-/// shape.
+/// What the pins read is the hook running after the loop returns. What they cannot read is named by
+/// that header: the HTTP server, which is not a seam here, and the reference's stopping the servers
+/// before the pool; and the reports the loop answers with have no layer here, the reference writing
+/// them to `slog`. A failing hook leaves this type as the error the CLI reads as the exit code, and
+/// a clean run returns, which the pins read only as the absence of a thrown error.
 public actor ServeWiring {
     private let loop: CadenceLoop
     private let hook: any ShutdownHook
 
     /// Builds the wiring from the values the environment gives, the storage it reads, and the seams
     /// it runs through.
-    ///
     /// - Parameters: - config: The loaded configuration; the wiring uses its scheduler values,
     /// which is what the pins read as the environment reaching the loop. - storage: The storage the
     /// batch is read from. - cadence: The seam the loop waits through. - runner: The seam each job
@@ -37,7 +36,6 @@ public actor ServeWiring {
     }
 
     /// Runs the loop to its end and the hook once after it returns.
-    ///
     /// - Throws: The hook's failure, which is what the CLI reads as exit 1. What the loop answers
     /// with is not reported here: this port has no logging layer, and the reference writes the
     /// reads it ran to `slog`.

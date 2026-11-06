@@ -11,17 +11,21 @@ import Testing
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: that the decision
 /// answers stop when the signal is present at the decision, and that it answers keep-going when the
-/// signal is not; that the signal the seam was given is the one it reads, not one it writes. Both
-/// pins read the same answer from either path, so neither depends on which path answers first.
+/// signal is not; that the signal the seam was given is the one it reads, not one it writes. The
+/// pin that arms the seam reads the same answer from either path, so it does not depend on which
+/// path answers first; the pin that does not arms can only be answered by the interval path,
+/// because its seam has no signal to answer, and that is what the pin reads.
 ///
 /// What these pins cannot fail on: that a real interval passes — every pin here names a zero
 /// interval, so a patch that waits for a real interval cannot be read; that a signal arriving
 /// during a real interval is answered before the interval ends, because in-process nothing answers
 /// a sleeping wait, so the choice between the two paths when both are ready is not readable here,
-/// and the process suite reads the real signal path as an event; the names the pins read the
-/// decisions by, which the test writes; the shape of the seam itself, which is the port's choice;
-/// and the real signal source behind the seam, which no in-process test can reach — the process
-/// suite pins the end-to-end signal path as the event the child exits on.
+/// and the process suite reads the real signal path as an event; that an answer belongs to the
+/// decision the path was created for, which needs two decisions with one path still open, so no pin
+/// can read it without a timed wait; the names the pins read the decisions by, which the test
+/// writes; the shape of the seam itself, which is the port's choice; and the real signal source
+/// behind the seam, which no in-process test can reach — the process suite pins the end-to-end
+/// signal path as the event the child exits on.
 @Suite struct SystemCadenceTests {
     @Test func signalPresentAtTheDecisionAnswersStop() async throws {
         let signal = TestSignal(armed: true)

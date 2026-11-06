@@ -93,8 +93,9 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   stop branch the order is: HTTP servers, then the worker pool, then return, so the jobs a tick had
   started run before the teardown. A clean stop returns, and `main.go` exits 1 only on an error, so
   the exit code of a clean stop is 0. What the port has instead of the pool is the storage
-  checkpoint and the fetcher close, which the shutdown hook runs once after the loop, and this
-  order is what `ServeProcessTests` reads as the empty WAL after the child exits.
+  checkpoint and the fetcher close, which the shutdown hook runs once after the loop; the process
+  pin reads that the run's shutdown left the WAL empty, not the order inside it, which a clean
+  close resolves on its own.
 
 ### The refresh path (`RefreshFeed`, `internal/reader/handler/handler.go`, commit `c4d54f87`)
 
