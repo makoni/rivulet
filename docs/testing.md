@@ -20,8 +20,10 @@ and not in CI: its checks read the data each round leaves behind |
 diff against real Miniflux in Docker |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
-to a real socket through Vapor's client). Fixture files are target resources
-(`resources: [.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them.
+to a real socket through Vapor's client). Fixture files are target resources (`resources:
+[.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them. Part of this level spawns
+the built executable rather than running the app in-process; that is the process harness described
+below, and it is what reads the facts only a process can answer.
 
 ## Workflow (TDD)
 
@@ -40,72 +42,71 @@ Rules:
 Support helpers live in `Tests/RivuletIntegrationTests/Support/`:
 
 - `TestDatabase.swift` — temp-file SQLite database in a temp dir per test; the schema migration is
-  registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
+registered but applied explicitly by each test (`autoMigrate()`); wiped on teardown.
 - `MigratedStorage.swift` — the `withMigratedStorage` helper: runs a body with a `TestDatabase` and
-  a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp dir) on
-  both success and failure; used by every suite that needs the migrated schema.
+a prepared, schema-migrated `SQLiteStorage`, shutting the app down (and removing the temp dir) on
+both success and failure; used by every suite that needs the migrated schema.
 - `ServedApp.swift` — the `withServedApp` helper for the routes suites: boots the real application
-  on an ephemeral port with the schema migrated and runs the body with the storage, the application
-  and the base URL of the socket it answers on. The server is stopped before the application on both
-  paths, because only `ServeCommand` stops it for the happy path and a started server that is not
-  stopped trips `HTTPServer`'s deinit assertion instead of reporting the failure; the temp directory
-  is removed here, so the teardown rule stays in one place.
+on an ephemeral port with the schema migrated and runs the body with the storage, the application
+and the base URL of the socket it answers on. The server is stopped before the application on both
+paths, because only `ServeCommand` stops it for the happy path and a started server that is not
+stopped trips `HTTPServer`'s deinit assertion instead of reporting the failure; the temp directory
+is removed here, so the teardown rule stays in one place.
 - `GoogleReaderRequests.swift` — the requests and answer reads the Google Reader suite shares: the
-  form body is sent as the bytes are given, so a rule about what the form read sees is shown by the
-  bytes rather than by an encoding the client added. `body(token:pairs:)` builds the POST body with
-  the token as the `T` field of the merged form, which is what a POST request has to carry, and
-  `seedIntegrationUser` creates the user the way `UserRepository.create` does — with the default
-  "All" category — and sets the integration credentials the token read needs, so a pin that depends
-  on which categories a user has reads the graph the command creates rather than a set the test
-  made.
+form body is sent as the bytes are given, so a rule about what the form read sees is shown by the
+bytes rather than by an encoding the client added. `body(token:pairs:)` builds the POST body with
+the token as the `T` field of the merged form, which is what a POST request has to carry, and
+`seedIntegrationUser` creates the user the way `UserRepository.create` does — with the default "All"
+category — and sets the integration credentials the token read needs, so a pin that depends on which
+categories a user has reads the graph the command creates rather than a set the test made.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
-  with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
-  set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
-  and backdates timestamps for the retention suites.
+with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
+set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
+and backdates timestamps for the retention suites.
 - `DatabaseCorruption.swift` — damages a real SQLite page (the two-byte cell count of page 2, the
-  `_fluent_migrations` root, using the page size from the file header) so integrity tests observe
-  `PRAGMA quick_check` failures without shipping a corrupt database fixture.
+`_fluent_migrations` root, using the page size from the file header) so integrity tests observe
+`PRAGMA quick_check` failures without shipping a corrupt database fixture.
 - `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot be
-  read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
+read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
-  status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the
-  head so a body can arrive later than a deadline), cut connections, chunked responses, charset
-  headers. **Binds port 0** and exposes the assigned address; no fixed ports. It records every
-  request it receives (target and headers) so a test can check what the client actually sent, and
-  `waitForRequest(for:)` waits for one to arrive — check and wait in one step under the lock — so a
-  test can act while a request is in flight without polling or sleeping, which holds only while the
-  answer is still pending: a quick response releases the client before the test can act. The cache
-  test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
+status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the head
+so a body can arrive later than a deadline), cut connections, chunked responses, charset headers.
+**Binds port 0** and exposes the assigned address; no fixed ports. It records every request it
+receives (target and headers) so a test can check what the client actually sent, and
+`waitForRequest(for:)` waits for one to arrive — check and wait in one step under the lock — so a
+test can act while a request is in flight without polling or sleeping, which holds only while the
+answer is still pending: a quick response releases the client before the test can act. The cache
+test therefore holds the body back. The proxy tests use `StubProxy`, not this server.
 - `StubProxy.swift` — minimal proxy bound to port 0: it answers the `CONNECT` handshake and then
-  serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
-  the targets it was asked to connect to.
+serves one canned response on the tunnel, which is how AsyncHTTPClient proxies a request. Records
+the targets it was asked to connect to.
 - `FetchTestSupport.swift` — setup shared by the fetch suites: the options with the values a test
-  cares about named at the call site, a server, proxy or fetcher started for one test and closed on
-  both the success and the failure path, and the two resolvers a fetch test injects (one seeded from
-  a table, one counting the lookups).
+cares about named at the call site, a server, proxy or fetcher started for one test and closed on
+both the success and the failure path, and the two resolvers a fetch test injects (one seeded from a
+table, one counting the lookups).
 - `GzipStream.swift` — writes a gzip stream with stored DEFLATE blocks so the stub server can serve
-  a compressed body without a compression dependency. The fetch test uses this same encoder, so it
-  shows that the client decompresses the fixture; the encoder itself is checked against `gunzip` by
-  hand when it changes, which is why no test can prove it. Stored blocks cannot reach a compression
-  ratio above 1, so the decompression guard `docs/reference-notes.md` records is not exercised by
-  any test either.
+a compressed body without a compression dependency. The fetch test uses this same encoder, so it
+shows that the client decompresses the fixture; the encoder itself is checked against `gunzip` by
+hand when it changes, which is why no test can prove it. Stored blocks cannot reach a compression
+ratio above 1, so the decompression guard `docs/reference-notes.md` records is not exercised by any
+test either.
 - `TestConsole.swift` — in-process console that captures output and replays input; CLI smoke tests
-  run commands against a temp database through it. It records the `isSecure` flag of every read, in
-  the order the reads happened, so a pin can name which path a read took rather than only the value
-  that came back.
+run commands against a temp database through it. It records the `isSecure` flag of every read, in
+the order the reads happened, so a pin can name which path a read took rather than only the value
+that came back.
 - `SchemaTables.swift` — the tables a database file holds, read through an application built for
-  that file. CLI pins use it on both sides of the migration flag, so what a pin reports is the gate
-  rather than a schema the test built itself.
+that file. CLI pins use it on both sides of the migration flag, so what a pin reports is the gate
+rather than a schema the test built itself.
 - Nullable columns in the CLI pins are read through `decodeNil(column:)`, so a pin can tell a stored
-  value apart from the column being empty: decoding a `NULL` as `String` throws, which a run would
-  report as a failure rather than as the rule the pin reads.
+value apart from the column being empty: decoding a `NULL` as `String` throws, which a run would
+report as a failure rather than as the rule the pin reads.
 - `TemporaryDirectory.swift` — unique temp directory per test, removed on teardown (used by the CLI
-  and probe tests).
+and probe tests).
 - `TestLogging.swift` — installs a silent handler once per process through `LoggingSetup`'s
-  bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap`
-  (swift-log traps on a second one).
+bootstrap slot, so commands can run in-process without a second `LoggingSystem.bootstrap` (swift-log
+traps on a second one).
 - Time injection: long-running logic takes the current time explicitly — `Retention.run(now:)` takes
-  Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
+Unix seconds, scheduling will take a clock — so tests pass fixed values and never sleep.
 
 `SystemAddressResolver` is the only public API that cannot have a hermetic test against a network:
 it calls the real `getaddrinfo`, which the determinism rules below forbid. Its test is the narrow
@@ -545,20 +546,20 @@ answers the default for the value that would reach it.
 
 PR #43 adds three suites pinned the same way: `GoogleReaderTagsTests`, `GoogleReaderOutputTests` and
 `GoogleReaderShapeTests` — one probe per rule, 28 probes, all showing their pin failing. Four probes
-could not bite at first and are recorded here. The order pin reads `add read` with
-`remove kept-unread`, where the add loop's write is what the remove guard sees; moving only the loop
-headers did not change that answer, so the probe patches the whole two loop blocks. The guard patch
-for the same pin includes the value the guard writes, because the guard line alone appears in both
-loops. The unsupported pin could not fail on a patch that wrote that wording for every type, so it
-now reads a second type the same branch answers for; and the escape pin could not fail on a patch
-that named the pair from its start, because the value it read began at the percent, so that probe
-patches both guard sites. One pin was written and then removed because it cannot fail on its own:
-the pin that said a `+` in the value is the space the read gives answers the check's error whatever
-the mapping does, because the guard compares the value with `json`, and no value that carries a `+`
-can equal it; the `+` rule is pinned by the query suite and by the login's form read. What these
-headers name as unpinnable: the add loop's `read` guard, which asks for a map key that loop never
-writes so it can never fire; the guard that an empty add and an empty remove answer the reference's
-own wording, which is the handler's rule; which document a handler builds, which is the handler's
+could not bite at first and are recorded here. The order pin reads `add read` with `remove
+kept-unread`, where the add loop's write is what the remove guard sees; moving only the loop headers
+did not change that answer, so the probe patches the whole two loop blocks. The guard patch for the
+same pin includes the value the guard writes, because the guard line alone appears in both loops.
+The unsupported pin could not fail on a patch that wrote that wording for every type, so it now
+reads a second type the same branch answers for; and the escape pin could not fail on a patch that
+named the pair from its start, because the value it read began at the percent, so that probe patches
+both guard sites. One pin was written and then removed because it cannot fail on its own: the pin
+that said a `+` in the value is the space the read gives answers the check's error whatever the
+mapping does, because the guard compares the value with `json`, and no value that carries a `+` can
+equal it; the `+` rule is pinned by the query suite and by the login's form read. What these headers
+name as unpinnable: the add loop's `read` guard, which asks for a map key that loop never writes so
+it can never fire; the guard that an empty add and an empty remove answer the reference's own
+wording, which is the handler's rule; which document a handler builds, which is the handler's
 choice; and the `%q` quoting of the escape wording, which `docs/parity.md` already records as a
 divergence. Which endpoints apply the output check was named there as the handler's choice and is
 now pinned by the handler suite.
@@ -742,84 +743,126 @@ reference, which has no command here to compare with.
 
 ### The listing command (`ListingCommandTests`, PR #49)
 
-`list` answers one listing per run: the flags name which read the run makes, and no flag means
-the feeds. 9 pins and 13 probes, one per rule, each showing its pin failing on the rule it names,
-all of them biting on the first attempt. The two orders the reads answer in are already pinned as
-reads by `CategoryRepositoryTests` and `UserRepositoryTests`, so what these pins read is the
-command's own choice: the read the flag names, the account the run applies to the categories and
-not to the accounts, the rule the run reports for the pair of flags, the values on the line as
-the stored rows, one line per row, and that the run writes nothing.
+`list` answers one listing per run: the flags name which read the run makes, and no flag means the
+feeds. 9 pins and 13 probes, one per rule, each showing its pin failing on the rule it names, all of
+them biting on the first attempt. The two orders the reads answer in are already pinned as reads by
+`CategoryRepositoryTests` and `UserRepositoryTests`, so what these pins read is the command's own
+choice: the read the flag names, the account the run applies to the categories and not to the
+accounts, the rule the run reports for the pair of flags, the values on the line as the stored rows,
+one line per row, and that the run writes nothing.
 
-The dispatch pin needs data where three readings answer differently: the position read puts
-`Tech` first, the title read puts `News` first, and the feed row carries a title no category has,
-so a patch that ran the feed read for both flags answered this pin with the feed title and no
-username, and a patch that ran the position read answered `Tech` first. The account pin needs two
-accounts with their own categories, because a pin that read one row could not show which account
-the run applied, and the same pin reads that both accounts answer for the account listing, which
-is the shape of the upstream read: it has no account condition, so the run resolves no account
-for it.
+The dispatch pin needs data where three readings answer differently: the position read puts `Tech`
+first, the title read puts `News` first, and the feed row carries a title no category has, so a
+patch that ran the feed read for both flags answered this pin with the feed title and no username,
+and a patch that ran the position read answered `Tech` first. The account pin needs two accounts
+with their own categories, because a pin that read one row could not show which account the run
+applied, and the same pin reads that both accounts answer for the account listing, which is the
+shape of the upstream read: it has no account condition, so the run resolves no account for it.
 
 Pins that read a value off the line are falsifiable only against the default the schema would
-answer. The position pin seeds `7` on a row whose id is not 7, so the number on the line has to
-be the stored one, and the flag pin seeds `true` on one account while another keeps `false`, so a
-patch that printed the default answered the wrong value on both sides. The line pin reads the
-header as the one line that carries no row, so it can fail on a row printed twice or on two rows
-folded into one line, and not on the wording of the header.
+answer. The position pin seeds `7` on a row whose id is not 7, so the number on the line has to be
+the stored one, and the flag pin seeds `true` on one account while another keeps `false`, so a patch
+that printed the default answered the wrong value on both sides. The line pin reads the header as
+the one line that carries no row, so it can fail on a row printed twice or on two rows folded into
+one line, and not on the wording of the header.
 
 What the header names as unpinnable: the wording of the lines and of the reported failures apart
-from the values the pins read off a line and the rule name the run writes; a flag the command
-does not know, which the command-signature parser rejects before the command runs, so no pin can
-reach it; which fields a line carries and in what order on the line, which is the port's choice;
-the header line, read only as the one line that is not a row; the `position` column, which is the
-port's own and has no reference counterpart, and the `hide_globally` column the reference's read
-selects and this port's schema does not have; the single-row limit of the reads; the account
-resolution itself, which `FeedCommandTests` pin, so what is new here is only that the resolution
-reaches these reads; the flag that gates the migrations, pinned for the same command there; that
-these commands fetch nothing and sleep nothing; the two guards that read what the pin built
-before the run — the three row ids in the dispatch pin and the row id in the position pin, which
-the default category the user create writes makes always the second row — which bite only on the
-storage rules; and the collation the reference's Postgres answers `ORDER BY title` with, which
-this port cannot have, so the pin reads the port's byte order only.
+from the values the pins read off a line and the rule name the run writes; a flag the command does
+not know, which the command-signature parser rejects before the command runs, so no pin can reach
+it; which fields a line carries and in what order on the line, which is the port's choice; the
+header line, read only as the one line that is not a row; the `position` column, which is the port's
+own and has no reference counterpart, and the `hide_globally` column the reference's read selects
+and this port's schema does not have; the single-row limit of the reads; the account resolution
+itself, which `FeedCommandTests` pin, so what is new here is only that the resolution reaches these
+reads; the flag that gates the migrations, pinned for the same command there; that these commands
+fetch nothing and sleep nothing; the two guards that read what the pin built before the run — the
+three row ids in the dispatch pin and the row id in the position pin, which the default category the
+user create writes makes always the second row — which bite only on the storage rules; and the
+collation the reference's Postgres answers `ORDER BY title` with, which this port cannot have, so
+the pin reads the port's byte order only.
 
 ### The cadence loop (`CadenceLoopTests`, PR #50)
 
 The loop is pinned as the calls it makes through its seam, which is all a sleeping loop leaves a
-test to read: the pins drive a recorder that writes the interval it was given, the instant each
-read answered, and each job the runner saw, so a pin can name which call happened without
-waiting. 8 pins and 8 probes, one per rule, each showing its pin failing on the rule it names.
-The probe for the interval rule was first written as `Duration.hours(1)`, which does not compile,
-and bites when written as `Duration.seconds(3600)`; after that all eight bite with byte-identical
-revert. The red run is the absence of the loop and the seam: the pins name rules the port did not
-have yet.
+test to read: the pins drive a recorder that writes the interval it was given, the instant each read
+answered, and each job the runner saw, so a pin can name which call happened without waiting. 8 pins
+and 8 probes, one per rule, each showing its pin failing on the rule it names. The probe for the
+interval rule was first written as `Duration.hours(1)`, which does not compile, and bites when
+written as `Duration.seconds(3600)`; after that all eight bite with byte-identical revert. The red
+run is the absence of the loop and the seam: the pins name rules the port did not have yet.
 
 What the pins read: that the loop waits before the first read, which is the reference's shape,
-because `for range time.Tick` fires only after the interval; that every wait is given the
-interval the loop was built with, named apart from the reference's hour so a pin can tell the
-value it was handed from the value it could have written itself; that there is one read per wait;
-that each read answers the instant the clock gives at that read; that a failing read is reported
-and the loop runs again; that an empty read reports nothing; that nothing is read after the seam
-answers stop; and that the jobs of a tick run before the next read, which is the port's shape,
-since the reference pushes the batch to a channel without awaiting it.
+because `for range time.Tick` fires only after the interval; that every wait is given the interval
+the loop was built with, named apart from the reference's hour so a pin can tell the value it was
+handed from the value it could have written itself; that there is one read per wait; that each read
+answers the instant the clock gives at that read; that a failing read is reported and the loop runs
+again; that an empty read reports nothing; that nothing is read after the seam answers stop; and
+that the jobs of a tick run before the next read, which is the port's shape, since the reference
+pushes the batch to a channel without awaiting it.
 
-The rows the pins seed are due before the read that answers them, because the batch rule is
-strict `<`: a row stamped at the read's own instant answers nothing, so a pin that read only the
-order of the calls could be satisfied by a loop that never read. The recorder and the clock are
-classes marked `@unchecked Sendable`, because the `Clock` seam has a synchronous `now()`, which
-an actor cannot conform to; the loop reads the clock once per read and the test moves it between
-reads, so nothing is read while it is moved; the appends to the recorder run under a lock, because
-the workers of one tick can record at the same time.
+The rows the pins seed are due before the read that answers them, because the batch rule is strict
+`<`: a row stamped at the read's own instant answers nothing, so a pin that read only the order of
+the calls could be satisfied by a loop that never read. The recorder and the clock are classes
+marked `@unchecked Sendable`, because the `Clock` seam has a synchronous `now()`, which an actor
+cannot conform to; the loop reads the clock once per read and the test moves it between reads, so
+nothing is read while it is moved; the appends to the recorder run under a lock, because the workers
+of one tick can record at the same time.
 
-What the header names as unpinnable: that any time passes, since the seam stands in for a sleep;
-the number of iterations, which is the answer the seam gives rather than a rule of the loop; the
-order the jobs of one tick are recorded in, which concurrency does not fix, so the pins read the
-calls across the boundary of a tick; the shape and the field names of a report, which are the
-port's choice; the names the pins read the calls by, which the test writes; that the reference
-has no stop rule at all, so these pins read only that the loop obeys the seam's answer; the
-reference's second ticker for the cleanup tasks, which this port has no loop for and which
-`RetentionTests` pin as storage rules; the pool cap; the real seam implementation, which sleeps,
-so it lands with the process harness; the wiring that starts the loop for `serve` and the signal
-that asks it to stop, which the process-level suite pins; and the reference's log lines, which
-have no layer here.
+What the header names as unpinnable: that any time passes, since the seam stands in for a sleep; the
+number of iterations, which is the answer the seam gives rather than a rule of the loop; the order
+the jobs of one tick are recorded in, which concurrency does not fix, so the pins read the calls
+across the boundary of a tick; the shape and the field names of a report, which are the port's
+choice; the names the pins read the calls by, which the test writes; that the reference has no stop
+rule at all, so these pins read only that the loop obeys the seam's answer; the reference's second
+ticker for the cleanup tasks, which this port has no loop for and which `RetentionTests` pin as
+storage rules; the pool cap; the real seam implementation, which sleeps, so the pins read its
+decisions through test seams with a zero interval (`SystemCadenceTests`) and the real signal path
+lands with the process harness; the wiring that starts the loop for `serve` and the signal that asks
+it to stop, which the process-level suite pins; and the reference's log lines, which have no layer
+here.
+
+### The process harness (`Support/SpawnedProcess.swift`, PR #51)
+
+The harness spawns the built binary — the sibling of the test runner in `.build/debug`, which is
+where CI leaves it — and reads events rather than time: the line the child writes naming its port, a
+response on that port, the exit `waitpid` answers, and the WAL file the child leaves behind. The
+port comes from a socket probe, not a fixed number, and the child is killed on both paths, so a
+failing pin leaves no live process behind. These are harness rules, so no patch to production code
+can make a pin fail on them; the pins read only what the process itself adds.
+
+The pins read: that the binary answers on the port the argument names, as the port the serve event
+reports and the response a request on that port answers — a binary that bound a port of its own
+answers a different port, and the request answers as a connection failure; that the clean signal
+path exits with 0, which is the reference's clean-stop exit; and that the WAL is empty after that
+exit, which is what the run's shutdown leaves behind — a patch that skipped the shutdown left the
+file. Which part of the shutdown emptied the WAL is not the pin's rule, because a clean close
+checkpoints and removes the file on its own, and the suite names that; it is the same reason the
+maintenance pins cannot read the checkpoint. 10 pins across the three suites: 3 here, 5 in
+`ServeWiringTests`, 2 in `SystemCadenceTests`, each with a probe that patches the rule it names and
+reverts byte-identically. The red run for this PR is the absence of the seams and the wiring —
+compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the pins that were already
+green on the head are shown to fail by patching the production code, not by absence.
+
+The exit is an event the pins assume rather than assert: a patch that made the child not exit at all
+would only hang the read, so each pin asserts the content a patch can flip and carries its own time
+limit, which is the rule every unbounded wait carries. For the limit to be a failure rather than a
+hang, the harness has to answer the pin at the limit, so the exit read asks for the exit without
+blocking and answers the pin's cancellation as the cancellation it was given, killing the child so
+the run does not outlive the pin; the interval between those checks is the harness's own poll bound,
+not a wait a pin names. A child that writes no line at all fails the pin the same way, through the
+harness, which answers that read with no serve event, so the line is not an assumed fact. The
+request on the probed port carries the client's own default bound of 30 seconds, so it cannot hang
+either. The signal handler is put in place at construction, before the server command runs, which is
+what makes these pins deterministic: a signal arriving in the window between the serve line and the
+loop's first wait answers the wait instead of ending the child on the default disposition, and the
+pins were intermittent before that change.
+
+What the harness rules are: the waits answer on an event, the port is probed, the child is killed on
+both paths, every unbounded wait carries a limit, and the line naming a port is recognized by the
+harness — the pin reads the value off it, not the wording. What the process pins cannot fail on is
+named in the suite header: that the child exits at all, which a patch can only hang until the pin's
+limit fires; which line the harness reads as the serve event and its wording; and the order the two
+paths of the decision answer on, which no in-process test can read either.
 
 ## Soak
 
@@ -849,21 +892,21 @@ disabled, one seeded at the error limit — because a rule that excludes a row n
 What it cannot show, and the script and the checks say so:
 
 - that the run slept, or that the cadence was the scheduler's: the in-process loop is stage 6's, so
-  the shell is the cadence here, and the number of rounds is not evidence that anything was fetched,
-  because a round that finds nothing due runs no job;
+the shell is the cadence here, and the number of rounds is not evidence that anything was fetched,
+because a round that finds nothing due runs no job;
 - the request itself: the checks read the stamps the storage wrote, so a run that stored the same
-  stamps by another route would read the same. The live run does reach the server, and the log keeps
-  the reports the command printed, which is the part a check cannot turn into an assertion;
+stamps by another route would read the same. The live run does reach the server, and the log keeps
+the reports the command printed, which is the part a check cannot turn into an assertion;
 - the cadence the schedule keeps: the interval is the mode's, not the `<ttl>` the stub feeds carry,
-  because the policy takes the maximum of the two, so "the stamps advance" means two advances per
-  feed in 2h — the two hour boundaries inside the window — and the conditional-hit path is reached
-  on the second fetch of a feed that did not change, which is the last fetch a 2h window reaches;
+because the policy takes the maximum of the two, so "the stamps advance" means two advances per feed
+in 2h — the two hour boundaries inside the window — and the conditional-hit path is reached on the
+second fetch of a feed that did not change, which is the last fetch a 2h window reaches;
 - the instant the due check compares against is the one the shell recorded just before the status
-  command read it, so a row crossing the due boundary between the two reads as a violation — a false
-  failure rather than a false pass, which the check states;
+command read it, so a row crossing the due boundary between the two reads as a violation — a false
+failure rather than a false pass, which the check states;
 - the guards on the run's own numbers — the duration, the number of feeds, the window being at least
-  as large as the rows, the database being fresh — can fail, and each was seen to fail by declaring
-  a value below what it requires; that is the whole of what they can show.
+as large as the rows, the database being fresh — can fail, and each was seen to fail by declaring a
+value below what it requires; that is the whole of what they can show.
 
 ## Running
 
@@ -871,12 +914,12 @@ What it cannot show, and the script and the checks say so:
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).
 - `swift test --filter RivuletIntegrationTests` — integration only.
 - `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
-  each of its rules can fail on the rule it names.
+each of its rules can fail on the rule it names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
-  `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with
-  `RIVULET_HEAVY=1 swift test --filter HeavyTests`.
+`.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
+--filter HeavyTests`.
 - A few storage tests need at least two event loops (one pooled connection per loop); they
-  `Test.cancel` on single-loop runners. CI runners always expose ≥2 event loops.
+`Test.cancel` on single-loop runners. CI runners always expose ≥2 event loops.
 
 CI runs on Linux: `ubuntu-latest` with the `swift:latest` container and a 15-minute job timeout.
 Keep the default suite well under that. Stage 7 adds a cheap CI slice (reduced hostile corpus +

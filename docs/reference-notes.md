@@ -85,6 +85,17 @@ Source: `internal/http/server/routes.go`, `internal/http/server/healthcheck.go`.
   failed refresh increments `parsing_error_count`; at `POLLING_PARSING_ERROR_LIMIT` (default 3) the
   feed is excluded from batches until a forced refresh succeeds and resets the counter.
 - Worker pool: `WORKER_POOL_SIZE` (default 16).
+- Daemon stop (`internal/cli/daemon.go`, commit `c4d54f87`): `signal.Notify` takes interrupt and
+  SIGTERM out of the default disposition and feeds one channel, which the daemon loop selects
+  against the ticker; the decision is made by whichever case is ready first, so a signal arriving
+  during an interval answers the loop before the interval ends. SIGHUP feeds a second channel that
+  reloads the TLS certificates — it is not a stop signal, and this port does not have it. On the
+  stop branch the order is: HTTP servers, then the worker pool, then return, so the jobs a tick had
+  started run before the teardown. A clean stop returns, and `main.go` exits 1 only on an error, so
+  the exit code of a clean stop is 0. What the port has instead of the pool is the storage
+  checkpoint and the fetcher close, which the shutdown hook runs once after the loop; the process
+  pin reads that the run's shutdown left the WAL empty, not the order inside it, which a clean
+  close resolves on its own.
 
 ### The refresh path (`RefreshFeed`, `internal/reader/handler/handler.go`, commit `c4d54f87`)
 

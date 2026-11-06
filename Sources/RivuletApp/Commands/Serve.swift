@@ -4,13 +4,15 @@ import RivuletCore
 import Vapor
 
 extension RivuletCLI {
-    /// `rivulet serve` — runs the HTTP server.
+    /// `rivulet serve` — runs the HTTP server and the cadence loop together.
     ///
-    /// Reuses Vapor's built-in `ServeCommand` (through `Application.servers`): the default
-    /// host and port come from `LISTEN_ADDR`, and the remaining arguments — `--hostname/-H`,
-    /// `--port/-p`, `--bind/-b`, `--unix-socket` — are parsed by Vapor's command. Unsupported
-    /// arguments are rejected before any database work. Returns when the process receives
-    /// `SIGINT`/`SIGTERM`.
+    /// Reuses Vapor's built-in `ServeCommand` (through `Application.servers`): the default host and
+    /// port come from `LISTEN_ADDR`, and the remaining arguments — `--hostname/-H`, `--port/-p`,
+    /// `--bind/-b`, `--unix-socket` — are parsed by Vapor's command. Unsupported arguments are
+    /// rejected before any database work. After the server is started the run builds the loop from
+    /// the values the environment names and runs it to its end; the stop signal reaches the handler
+    /// or the event as `ServerSignalSource` documents, the loop's decision answers on it, and the
+    /// hook runs once after the loop, which is the position the reference's stop branch has.
     struct Serve: AnyAsyncCommand {
         let environment: [String: String]
 
@@ -25,8 +27,8 @@ extension RivuletCLI {
             context.console.print(help)
         }
 
-        // `AnyAsyncCommand` directly: the default `AsyncCommand` entry point would reject
-        // the remaining arguments, but those belong to Vapor's server command.
+        // `AnyAsyncCommand` directly: the default `AsyncCommand` entry point would reject the
+        // remaining arguments, but those belong to Vapor's server command.
         func run(using context: inout CommandContext) async throws {
             try Self.validateArguments(context.input)
 
@@ -36,11 +38,10 @@ extension RivuletCLI {
             let rivulet = try await ApplicationFactory.make(config: config)
             do {
                 try await rivulet.storage.prepare()
-                // Verify integrity before migrations or any client request: serving a
-                // damaged file can turn a recoverable backup into a lost database.
-                // The check stays after `prepare()`: observed in testing, running it
-                // before the journal-mode change left the pooled connection locked, so
-                // the shutdown checkpoint failed.
+                // Verify integrity before migrations or any client request: serving a damaged file
+                // can turn a recoverable backup into a lost database. The check stays after
+                // `prepare()`: observed in testing, running it before the journal-mode change left
+                // the pooled connection locked, so the shutdown checkpoint failed.
                 try await rivulet.storage.quickCheck()
                 rivulet.application.logger.notice("Database integrity check passed")
                 if config.runMigrations {
@@ -53,22 +54,44 @@ extension RivuletCLI {
                 var serverContext = CommandContext(console: context.console, input: context.input)
                 serverContext.application = rivulet.application
                 let serveCommand = await rivulet.application.servers.asyncCommand
+
+                // The seams are built before the server command runs, so the signal handler the
+                // source installs is in place while the server starts; the event it joins is the
+                // one that command sets up, so the loop reads it after the command has returned.
+                // The command starts the server and returns, so the loop is what keeps the run
+                // alive: it runs to its end and the hook runs once after it, which is the rule
+                // `ServeWiringTests` pins — the jobs a tick had started run before the shutdown, as
+                // the reference holds it through `pool.Shutdown` in the stop branch.
+                let clock = SystemClock()
+                let fetcher = Fetcher(options: config.fetcher)
+                let pipeline = RefreshPipeline(storage: rivulet.storage, fetcher: fetcher,
+                    options: config.fetcher, nextCheck: NextCheckPolicy(), clock: clock)
+                let signalSource = ServerSignalSource(rivulet.application)
+                let wiring = ServeWiring(config: config, storage: rivulet.storage,
+                    cadence: SystemCadence(signalSource: signalSource),
+                    runner: pipeline, hook: ApplicationShutdownHook(rivulet: rivulet, fetcher: fetcher))
+
                 try await serveCommand.run(using: &serverContext)
-                try await rivulet.application.running?.onStop.get()
+                try await wiring.run()
             } catch {
+                // The hook owns the shutdown on the path that reaches it, so this line runs the
+                // teardown for the failure before the hook — the startup reads, the server, or the
+                // loop. Two halves here are outside what any pin reads, and recorded in the
+                // stage-file backlog: a hook that failed after its own shutdown ran is read as a
+                // second call on this path, and the fetcher is not closed on it, because only the
+                // hook closes it.
                 try? await rivulet.shutdown()
                 throw error
             }
-            try await rivulet.shutdown()
         }
 
-        /// Fails fast on arguments Vapor's `ServeCommand` does not accept, before this
-        /// command touches the database.
+        /// Fails fast on arguments Vapor's `ServeCommand` does not accept, before this command
+        /// touches the database.
         ///
-        /// Vapor's command parses the same signature — but it runs after prepare, migrate
-        /// and boot, and Fluent's boot-time scan reacts to `--auto-migrate`/`--auto-revert`
-        /// before the error would surface. Parsing a copy here rejects such invocations
-        /// while the database is still untouched.
+        /// Vapor's command parses the same signature — but it runs after prepare, migrate and boot,
+        /// and Fluent's boot-time scan reacts to `--auto-migrate`/`--auto-revert` before the error
+        /// would surface. Parsing a copy here rejects such invocations while the database is still
+        /// untouched.
         private static func validateArguments(_ input: CommandInput) throws {
             var probe = input
             _ = try ServeCommand.Signature(from: &probe)
