@@ -319,8 +319,10 @@ are counted on that head.
 ## Commands
 
 ```sh
-swift build # debug build swift test # all tests (unit + integration); must be green swift test
---filter RivuletCoreTests # fast unit loop swift run rivulet --help
+swift build                            # debug build
+swift test                             # all tests (unit + integration); must be green
+swift test --filter RivuletCoreTests   # fast unit loop
+swift run rivulet --help
 ```
 
 ## Conventions

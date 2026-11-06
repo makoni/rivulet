@@ -122,7 +122,7 @@ changing what they say — the `withCheckedContinuation` calls with the continua
 `ServeWiring`, the `ApplicationShutdownHook(...)` call in `Serve.swift`, the `Usage:` string in the
 help text, and the `reports.append(CadenceReport(...))` line in `CadenceLoop.swift`, which was
 already over the width at the head before this PR. The new files are inside the size aim
-(`SpawnedProcess.swift` 412 lines, `ServeWiringTests.swift` 250, `ServeProcessTests.swift` 87,
+(`SpawnedProcess.swift` 388 lines, `ServeWiringTests.swift` 250, `ServeProcessTests.swift` 89,
 `SystemCadenceTests.swift` 82), so nothing here needs a split.
 - The `import Foundation` in the two maintenance commands is not used by the code that is committed:
 it is there so the probe patches that redirect the destination through `NSString` and the filesystem

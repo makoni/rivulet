@@ -83,9 +83,7 @@ final class SpawnedProcess: @unchecked Sendable {
     /// answer it, which is what a pin's time limit needs: a patch that leaves the child silent
     /// fails at the limit.
     func line() async throws -> String {
-        return try await withTaskCancellationHandler(handler: {
-            cancelLineRead()
-        }, operation: {
+        return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { (continuation:
                 CheckedContinuation<String, Error>) in
                 stateLock.lock()
@@ -108,6 +106,8 @@ final class SpawnedProcess: @unchecked Sendable {
                 lineWaiter = continuation
                 stateLock.unlock()
             }
+        }, onCancel: {
+            cancelLineRead()
         })
     }
 
