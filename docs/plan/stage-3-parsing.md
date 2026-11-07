@@ -19,7 +19,8 @@ parser fixture corpus is merged as PR #21: the 8 fixtures pinned end to end agai
 own output, which upstream never asserts, since it uses those files only as benchmark and fuzz
 inputs. The hostile sanitizer corpus is merged as PR #22: 145 inputs pinned against the reference's
 own output, each with the rule that output pins, and the one rule the corpus found the port missing
-— the order a formatting element writes its attributes in. The entity-decoding and whitespace items
+— the order a formatting element writes its attributes in. The corpus stands at 146 inputs as PR #56
+added the entity-table case. The entity-decoding and whitespace items
 of the normalization URL part closed with it, because the value reaches the URL layer already
 decoded by the tokenizer and the URL part normalizes no whitespace of its own. The tolerance
 decision table landed as PR #23: 52 inputs read through the reference's reader path pinned the four
@@ -135,8 +136,9 @@ output can tell apart are named as unpinnable.
   `internal/reader/urlcleaner/urlcleaner_test.go`, plus the pins traced against Go's `net/url`
   source. There is no fixture corpus here, because the reference has none for this area.
 - Sanitizer: ported rules + the hostile corpus (`SanitizerHostileCorpusTests` over
-  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 145 inputs, each with the output the reference
-  produced for it and the rule that output pins, covering the scheme allowlist, the data-URI
+  `Fixtures/sanitizer/hostile_corpus.txt`, PR #22): 145 inputs as PR #22 merged them, 146 as PR #56
+  added the entity-table case, each with the output the reference produced for it and the rule that
+  output pins, covering the scheme allowlist, the data-URI
   prefixes, the mandatory attributes, the pixel tracker, the blocked resources, the hidden check,
   what a dropped tag leaves of its content, the control bytes the parse refuses but the as-read
   path does not, the entity lookup inside an attribute value, the srcset whitespace class, and the
@@ -161,7 +163,8 @@ output can tell apart are named as unpinnable.
 - Re-verification on the pinned toolchain (2026-11-02): the five things here that are not copies of
   an upstream file were run again against the reference on Go 1.26.0, the version `go.mod` declares,
   in a copy of the pinned clone. Each value reproduces the committed file — 230 parser golden
-  values, 145 hostile outputs, 30 tolerance streams, 30 parser error values and both sanitizer
+  values, 145 hostile outputs as this run recorded them and 146 as PR #56 added one, 30 tolerance
+  streams, 30 parser error values and both sanitizer
   goldens byte for byte — except the four lines a fresh run answers differently, now named in the
   files that state them: the two date lines of `rdf_UTF8.xml.golden.txt`, which record the clock the
   suite injects, and the two outcome lines of `parser_error_corpus.txt`, which name the branch the
