@@ -10,11 +10,13 @@ public struct FetchResponse: Sendable, Equatable {
     /// HTTP status.
     public let status: Int
 
-    /// Response headers, in the form the client delivered them.
+    /// Response headers, in the spelling the client delivered them.
     ///
-    /// A name that appears twice keeps only the last value, because a dictionary cannot hold both;
-    /// the reference keeps a list per name. Nothing in stage 2 reads a repeated header —
-    /// `Set-Cookie` is the usual case — so the single value is recorded here rather than modelled.
+    /// A name that appears twice keeps the first value, which is what the reference reads:
+    /// `Header.Get` answers the first of the list `textproto.ReadMIMEHeader` built, and the name is
+    /// compared without case. A dictionary cannot hold both values, so the second is dropped rather
+    /// than modelled — the reference has a list per name. The rule is pinned by
+    /// `RepeatedResponseHeadersTests`, which is also where the divergence was found.
     public let headers: [String: String]
 
     /// Body bytes, capped by the fetcher; empty for a conditional hit.

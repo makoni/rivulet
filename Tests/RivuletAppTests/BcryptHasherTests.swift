@@ -24,8 +24,10 @@ import RivuletApp
 /// pins only that a hash written at the reference's marker reads back here, not which marker the
 /// port writes, or whether its hashes read back through the reference; the boundary between the
 /// salt and the checksum, which bcrypt writes as one run with no separator, so the pin reads the
-/// digest block as a whole; the work factor's timing, which no pin reads; and the wording of the
-/// refused-length error, which is the port's own.
+/// digest block as a whole; the work factor's timing, which no pin reads; a plaintext that holds a
+/// NUL byte, which the C implementation reads as ending at the NUL because the key length comes
+/// from `strlen` — no patch of this port changes it, so `docs/parity.md` records it; and the
+/// wording of the refused-length error, which is the port's own.
 @Suite struct BcryptHasherTests {
     private let hasher = BcryptHasher()
 

@@ -6,6 +6,14 @@ import Testing
 /// connect to, the pin that keeps the client on the validated address, and the proxy hop, where the
 /// reference keeps the check for direct connections only. Every server here is started for one test
 /// on port 0, as `docs/testing.md` requires.
+///
+/// The pin added for the security checklist is the policy running on the hop that took its client
+/// from the cache, which the suite read as one lookup before: a cache that answered a cached host
+/// without the policy would answer the count as one call, which is the probe that flips it. What
+/// that pin cannot show is a refusal on the cached hop — the only address the stub can be reached
+/// through is loopback, which a denying policy refuses on the first hop as well, so no response
+/// here can distinguish a cached hop that was checked from one that was not, and the pin reads the
+/// count the seam keeps instead.
 @Suite struct FetcherSecurityTests {
     @Test func privateTargetsAreRefusedWhenTheHatchIsOffAndAllowedWhenItIsOn() async throws {
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in
@@ -48,6 +56,33 @@ import Testing
 
                 let calls = await resolver.calls
                 #expect(calls == 1)
+            }
+        }
+    }
+
+    @Test func thePolicyRunsOnTheHopThatReusesACachedClient() async throws {
+        // Two fetches for the same host: the second takes the client from the cache, and the policy
+        // still runs for that hop. The count is the whole of what can be read, because the cached
+        // client keeps the address it was built with and no answer here can be refused — a denying
+        // policy refuses loopback on the first hop too, so a refusal would stop the fetch before
+        // the cached hop was ever reached.
+        let resolver = CountingResolver(answer: NetworkAddress.parse("127.0.0.1")!)
+        try await FetchTestSupport.withServer(behaviors: [
+            "/feed": StubFeedServer.Behavior(body: Data("x".utf8)),
+        ]) { server in
+            try await FetchTestSupport.withFetcher(
+                options: FetchTestSupport.options(allowPrivateNetworks: true),
+                resolver: resolver
+            ) { fetcher in
+                let url = URL(string: "http://localhost:\(server.port)/feed")!
+                let request = FetchRequest(url: url, headers: [:])
+                _ = try await fetcher.fetch(request)
+
+                let second = try await fetcher.fetch(request)
+                #expect(second.body == Data("x".utf8))
+
+                let calls = await resolver.calls
+                #expect(calls == 2)
             }
         }
     }

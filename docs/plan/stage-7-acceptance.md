@@ -3,8 +3,10 @@
 **Goal:** prove real-world compatibility with clients and parity with Miniflux; harden the edges.
 **Status:** in progress — the first slice is the robustness work, merged (PR #55): the hostile
 bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
-suite documents. The parity harness, the client matrix and the replay of captured request sequences
-follow. **Effort:** M. **Depends on:** Stages 5–6.
+suite documents. The second slice is the security checklist, which opens as PR #56: the checklist is
+`docs/security.md`, and the rules it could express as pins landed there — 8 pins and 7 probes across
+five suites, one finding closed in production code. The parity harness, the client matrix and the
+replay of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
@@ -25,8 +27,10 @@ follow. **Effort:** M. **Depends on:** Stages 5–6.
 - [x] Cheap CI slice in the default job, which is what these two suites are: the reduced hostile
       corpus and the reduced large-feed scenario are both ungated, so `swift test` runs them in the
       job CI already runs.
-- [ ] Security pass: SSRF, size/time caps, auth behavior, sanitizer bypass review, dependency
-      audit.
+- [x] Security pass done as `docs/security.md`, with the pins it could express landing as 8 pins and
+      7 probes across five suites (opens as PR #56): SSRF, the size and time caps, the auth
+      behavior, the sanitizer bypass surface and the dependency audit. The rules no patch can flip
+      are named in the document rather than asserted; one finding was closed in production code.
 - [ ] Performance notes: refresh of 100 feeds, query latency at 100k entries — numbers recorded.
 
 ## Implementation notes
@@ -50,10 +54,22 @@ follow. **Effort:** M. **Depends on:** Stages 5–6.
   size, the batch the retention pass takes with the rows it leaves for the next run, and the
   wall-clock bound the read path stays inside. 5 pins and 6 probes, two of them on the page pin: the
   page size dropped from the clause, and the direction the order is read in.
+- `RepeatedResponseHeadersTests` — a response name that appears twice, read as which value the
+  reference acts on: the first value wins, one name written two ways is one name, and the first
+  `Location` is the hop the fetch takes. 3 pins and 2 probes.
+- The pins the checklist added to suites that already existed: the address policy running on a hop
+  that took its client from the cache (`FetcherSecurityTests`, 1 pin and 1 probe); the client cache
+  staying at its cap after a checkout that goes over it, and the entry the trim closing being the
+  one whose expiry comes first (`FetcherClientCacheTests`, 2 pins and 2 probes); the sign
+  `strconv.Atoi` reads as part of a number (`SanitizerTests`, 1 pin and 1 probe); and the entity
+  table the sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1
+  probe).
 - Client checklist executed manually and attached to the stage status.
 
 ## Exit criteria
 
 - [ ] `docs/parity.md`: deviations listed, each either fixed or consciously accepted.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes).
-- [ ] Security checklist done; no critical findings open.
+- [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
+      pass found — a repeated response header name keeping the last value instead of the first the
+      reference reads — is closed by this slice.

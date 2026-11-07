@@ -247,8 +247,9 @@ a tag name, a NUL in an attribute key — neither is ever in the allowlist — t
 table, and where comment data ends, because the renderer writes nothing for a comment.
 
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
-`Fixtures/sanitizer/hostile_corpus.txt`: 145 inputs that try to make the sanitizer write active
-content, each with the output the reference produced for it and the rule that output pins. The
+`Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
+content, each with the output the reference produced for it and the rule that output pins (145 from
+stage 3, plus the entity-table case the stage-7 security checklist added). The
 inputs are ours, not upstream's; the outputs were written by running Miniflux v2.3.3 at commit
 `c4d54f87` with the reference's test helper options — `OpenLinksInNewTab: true`, base URL
 `http://example.org/`, `TZ=UTC` — the same method the parser corpus uses, so a failure here is a
@@ -988,6 +989,33 @@ reads a bound of 250 ms, which the probe that answers the ranked read row by row
 or more; the suite runs in about 1.2 s, well inside the CI job. The memory budget is the corpus rows
 plus the body the fetcher can hold, which is the 15 MiB cap the configuration reads by default; no
 pin reads memory, so the budget is a documented number.
+
+## Security checklist (stage 7)
+
+The checklist itself is `docs/security.md`. What it could pin landed as pins, and what it could not
+is named there and in the suite headers. 8 pins and 7 probes across five suites, each probe showing
+its pin failing on the rule it names:
+
+- `RepeatedResponseHeadersTests` — a response name that appears twice keeps the first value, as the
+  reference's `Header.Get` answers, and one name written two ways is one name; the first `Location`
+  is the hop the fetch takes. 3 pins and 2 probes over the stub server, which now writes headers as
+  ordered pairs because `Behavior.headers` is a dictionary and cannot hold two values for one name.
+  This is the finding the pass closed in production code.
+- `FetcherSecurityTests` — the address policy runs on the hop that took its client from the cache,
+  read as the seam's call count across two fetches of one host: 1 pin and 1 probe.
+- `FetcherClientCacheTests` — the cache stays at the cap after a checkout that goes over it, and the
+  entry the trim closes is the one whose expiry comes first, both read through an internal accessor,
+  because nothing a fetch can answer changes when a different entry is closed: 2 pins and 2 probes.
+- `SanitizerTests` — `width="+10"` is a positive integer, because `strconv.Atoi` reads the sign as
+  part of the number: 1 pin and 1 probe, with the expected value taken from the reference.
+- `SanitizerHostileCorpusTests` — the scheme check reads the value the entity table decodes, so
+  membership in that table is part of the rule; the case is `href="http&colon;example.org"`, kept as
+  an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
+
+What the pass could not pin is documented instead: the connect timeout as a limit of its own, the
+header-block size, which neither side caps, the timing form of the constant-time token compare, the
+NUL byte in a password, which the dependency measures with `strlen`, and the value of a hop that is
+not the last one.
 
 ## Soak
 

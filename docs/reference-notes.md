@@ -246,8 +246,9 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
 ## HTML sanitizer (`internal/reader/sanitizer`)
 
 - The rules below are read through `golang.org/x/net/html`, the package `miniflux/go.mod` pins at
-  v0.57.0. There is no Go toolchain on this machine, so they are traced from the source; the copy
-  the entity table was generated from is the module cache at v0.61.0.
+  v0.57.0, and the outputs the hostile corpus records were produced by running the reference
+  itself on Go 1.26.0, the version `go.mod` declares; the copy the entity table was generated
+  from is the module cache at v0.61.0.
 - The input is wrapped in `<body>` before it is parsed, and the output is built from the children of
   the body node. A document that does not parse — the open-element stack passing its limit of 512,
   with `html` and `body` counted in it — is answered with the empty string.
@@ -264,6 +265,12 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   allowlist; the tracking parameters are removed from it only when it carries a query. A data URL on
   an `img` and an in-document anchor (`href` starting with `#`) are kept as they were read, before
   any resolution.
+- The value the scheme check reads is the value the tokenizer unescaped: `TagAttr` returns the
+  lowercased name and the unescaped value, so `http&colon;example.org` is checked as the address
+  `http:example.org` — a name in the entity table is part of the value before the scheme is read,
+  and `&colon;` is one of them. And `isPositiveInteger` is `strconv.Atoi`, which reads a leading
+  `+` as part of the number, so `width="+10"` is a positive integer. Both are pinned by the hostile
+  corpus and by `SanitizerTests`.
 - Three attributes are mandatory, and they decide what happens to the content: `a` needs `href`,
   `iframe` needs `src`, `img` and `source` need `src` or `srcset`. An element missing one writes
   nothing for itself but still writes its content, except an `iframe`, which writes nothing at all.
@@ -809,6 +816,12 @@ Semantics:
   - Headers are forwarded to every hop verbatim. Go strips sensitive headers (`Authorization`,
     `Cookie`, `Proxy-Authorization`) when a redirect leaves the initial domain and adds a `Referer`;
     Rivulet does neither — no effect today, because the request builder sets none of those headers.
+  - A response name that appears twice is read as its first value: `textproto.ReadMIMEHeader`
+    appends the values in the order they arrive, and `Header.Get` answers the first of that list, so
+    the first `Location` is the hop `Client.Get` follows. The key is the canonical spelling
+    `CanonicalMIMEHeaderKey` builds, so `location` and `Location` are one name. Rivulet holds one
+    value per name and keeps the first, with the name compared without case, which
+    `RepeatedResponseHeadersTests` pins.
   - A 4-in-6 address is classified through its IPv4 form, as Go's `netip.Addr.Unmap()` does, and the
     canonical text prints that form. Rivulet's text parser does not accept the mixed
     `::ffff:a.b.c.d` spelling — the unmapped form comes from resolver bytes.

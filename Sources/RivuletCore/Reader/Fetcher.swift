@@ -134,8 +134,16 @@ public actor Fetcher {
             throw mapError(error)
         }
 
+        // A name that appears twice keeps the first value, as the reference's `Header.Get` answers,
+        // and a name is one name whatever case the wire gave it, as Go canonicalizes the key before
+        // storing it. The value is stored in the spelling the client delivered.
         var headers: [String: String] = [:]
+        var seen: Set<String> = []
         for (name, value) in response.headers {
+            guard !seen.contains(name.lowercased()) else {
+                continue
+            }
+            seen.insert(name.lowercased())
             headers[name] = value
         }
 
@@ -293,6 +301,12 @@ public actor Fetcher {
     static func cacheKey(host: String, proxyURL: URL?) -> String {
         "\(host)|\(proxyURL?.absoluteString ?? "direct")"
     }
+
+    /// The keys the cache holds, sorted. Internal rather than private so the trim can be pinned:
+    /// closing an entry is not something a fetch can answer, because the next request for that host
+    /// builds a client again and gets the same response, so the cache itself is the only place
+    /// where which entry the trim took is readable.
+    var cachedKeys: [String] { clients.values.map(\.key).sorted() }
 
     /// Closes the expired clients that are idle, then one more idle one when the cache is full: the
     /// entry whose expiry comes first. This is an expiry-based cache, not an LRU — a client used

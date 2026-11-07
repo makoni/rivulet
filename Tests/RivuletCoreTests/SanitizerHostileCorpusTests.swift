@@ -14,7 +14,7 @@ import Testing
 /// a difference can stay. The values were written by running Miniflux v2.3.3 at commit `c4d54f87`
 /// on Go 1.26.0, the version `go.mod` declares, through the reference's test helper options —
 /// `OpenLinksInNewTab: true`, base URL `http://example.org/`, `TZ=UTC` — the method recorded in
-/// `docs/testing.md`. Re-running the reference on that toolchain reproduces all 145 outputs.
+/// `docs/testing.md`. Re-running the reference on that toolchain reproduces all 146 outputs.
 ///
 /// Each rule line names the rule of the case under it, and every case here can fail on that rule: a
 /// case is left out when a wrong implementation of the rule it names writes the same output, which
@@ -26,6 +26,14 @@ import Testing
 /// `youtube` iframe case does read an embed value the reference answers from `config.Opts`: the
 /// corpus uses the `SanitizerOptions` defaults, which are the values `config.NewConfigOptions()`
 /// gives.
+///
+/// The case the security checklist adds pins that the scheme check runs on the value the entity
+/// table decodes, so membership in the table is part of the rule: `&colon;` is the name that turns
+/// `http&colon;example.org` into an address with an allowed scheme, and the probe that flips it
+/// removes that one entry from `HTMLEntityTable.swift`, which answers the attribute as dropped — 1
+/// pin and 1 probe, the patch reverted byte-identically. What the case cannot show: the table as a
+/// whole, because a name the port resolves to the same value by another route is pinned by no case,
+/// and the value an entity resolves to beyond the one this case reads.
 @Suite struct SanitizerHostileCorpusTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
     private let baseURL = "http://example.org/"

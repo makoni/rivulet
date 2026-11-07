@@ -600,3 +600,7 @@ output = <a href="http://example.org/y" rel="noopener noreferrer" referrerpolicy
 input = <img src="https://example.org/x" alt="a&#39;b">
 output = <img src="https://example.org/x" alt="a&#39;b" loading="lazy">
 
+
+# The scheme is read on the value the entity table decodes, so a name in the table is part of it
+input = <a href="http&colon;example.org">link</a>
+output = <a href="http:example.org" rel="noopener noreferrer" referrerpolicy="no-referrer" target="_blank">link</a>
