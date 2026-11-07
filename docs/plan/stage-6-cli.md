@@ -5,8 +5,9 @@ progress — the first slice, the feed commands `add`, `remove` and `list`, is m
 second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The third slice,
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
-with the signal seam and the wiring `serve` runs, is merged (PR #51). **Effort:** M. **Depends on:**
-Stages 1–5.
+with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the
+free-space check the `backup` run makes at its start, is open as PR #52. **Effort:** M. **Depends
+on:** Stages 1–5.
 
 ## Scope
 
@@ -40,6 +41,17 @@ disposition. The wiring runs the loop to its end and the hook once after it, whi
 reference's position for the teardown. The `SIGHUP` the reference feeds to a certificate reload is
 not ported, and the reference's HTTP servers are shut down before the pool, which this port has no
 piece for.
+- [ ] The free-space check the `backup` run makes lands with PR #52 as the decision the rule
+answers, read through the `FileSystemSpace` seam because the room a filesystem has is the machine's
+and no pin can name it: the estimate is the bytes the source holds as the filesystem reads them —
+the main file plus the `-wal` beside it as the filesystem reads it — times the factor the stage-1
+note documents for `VACUUM INTO` (2); the room is read at the directory the destination is in, which
+is the current directory for a destination named as a bare name; the comparison is strictly less, so
+equality holds the copy; a room the filesystem cannot read answers a refusal and a size it cannot
+read counts as nothing; and the check runs at the start of the run, before anything is written.
+`vacuum` is not checked, because it rebuilds the file it already holds rather than writing a copy
+beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
+read, so that pin can fail on a patch that reads the room there.
 
 ## Implementation notes
 
@@ -56,13 +68,21 @@ logic by `FeedValidationTests` and the reads by `FeedManagementReadsTests`. For 
 commands this is `MaintenanceCommandTests`, with the storage rules it calls pinned by
 `MaintenanceTests`. For the listings this is `ListingCommandTests`, with the two orders it reads
 pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`, and the account resolution
-it reaches pinned there. The in-process cadence loop is pinned as the calls the loop makes through
-its seam by `CadenceLoopTests` (PR #50): the wait before the first read, the interval every wait is
-given, one read per wait, the instant each read answers, the reported failing read with the loop
-going on, the empty read reported as nothing, nothing read after the seam answers stop, and the jobs
-of a tick before the next read. The real seam sleeps, so its decisions are read through test seams
-that name the interval as zero (`SystemCadenceTests`) and the real signal path is read only by the
-process-level harness, where the wiring that starts the loop for `serve` is read too.
+it reaches pinned there. The free-space check the `backup` run makes is pinned as the decision the
+rule answers by `FreeSpaceCheckTests` (PR #52) through `Support/RecordingSpace.swift`, and as what
+the run does with that decision by three pins in `MaintenanceCommandTests`: the refusal with nothing
+written, the copy written at the boundary the rule reads as equal, and no room read at all for the
+vacuum run. The system implementation of the seam answers the numbers of this machine, so its room
+is never read here; the two answers a test can name without the machine — nothing for a path it
+cannot read, and the bytes it holds for a file the test writes — are pinned by
+`SystemFileSystemSpaceTests`, which both headers name. The in-process cadence loop is pinned as the
+calls the loop makes through its seam by `CadenceLoopTests` (PR #50): the wait before the first
+read, the interval every wait is given, one read per wait, the instant each read answers, the
+reported failing read with the loop going on, the empty read reported as nothing, nothing read after
+the seam answers stop, and the jobs of a tick before the next read. The real seam sleeps, so its
+decisions are read through test seams that name the interval as zero (`SystemCadenceTests`) and the
+real signal path is read only by the process-level harness, where the wiring that starts the loop
+for `serve` is read too.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
 - Process-level (`ServeProcessTests`, PR #51): the built binary answers `/healthz` on the port the
 argument names, read as the port the serve event reports; SIGTERM exits with 0, which is the
@@ -141,8 +161,20 @@ write, so the check would have to run on the file the run wrote.
 - `backup` has no overwrite flag: an existing destination is refused. A `--force` flag would be the
 port's own choice, not the reference's, and the rule that a run which wrote nothing reports it would
 then have to be read again on the other side of that flag.
-- The free-space check the stage scope names is a startup check, not a `backup` rule: these pins
-read the copy the run wrote, not the space the run had.
+- The free-space check the stage scope names lands with PR #52 as a startup check, not as a
+`backup` rule: the pins read the decision the rule answers through the seam, and the run pins read
+that a run which cannot hold the copy writes nothing. The room of the machine this suite runs on is
+not something a pin can name, so the room `statvfs` answers here is never read; what that
+implementation answers for a path it cannot read and for a file the test writes is pinned by
+`SystemFileSystemSpaceTests`.
+- Style findings from PR #52 that do not change behavior: the single-expression `#expect` code lines
+over the width in `FreeSpaceCheckTests.swift` — the ones at lines 67, 78, 82 and 129 — which the
+wrapping rule exempts, while the calls that could be broken were broken; and the `space` property
+`Vacuum` carries without reading, which is there so the pin that reads vacuum as checking nothing
+can fail on a patch that reads the room there. The new files are below the size aim and well inside
+the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSystemSpace.swift` 43,
+`FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
+`Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` is 472, under the cap.
 - The account rule is the port's own: `--user` with the single-account fallback. If a flag is wanted
 for the environment path (`LIST_USER`, `ADD_USER`), that belongs to this stage's flag polish, not to
 the read.

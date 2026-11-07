@@ -708,11 +708,12 @@ columns the listing selects.
 
 ### The maintenance commands (`MaintenanceCommandTests`, PR #48)
 
-The two commands are pinned as runs through the in-process console over a temp database: 9 pins and
-12 probes, one per rule, each showing its pin failing on the rule it names. The storage rules they
-call are pinned as storage rules by `MaintenanceTests`, so what these pins read is the command's own
-choice: the destination as the command read it, the copy as the snapshot rather than the file bytes,
-a destination the command did not create, and the file rebuilt without losing a row.
+The two commands are pinned as runs through the in-process console over a temp database: 12 pins and
+17 probes, one per rule, each showing its pin failing on the rule it names — the 9 pins and 12
+probes landed with PR #48, the 3 pins and 5 probes for the free-space check with PR #52. The storage
+rules they call are pinned as storage rules by `MaintenanceTests`, so what these pins read is the
+command's own choice: the destination as the command read it, the copy as the snapshot rather than
+the file bytes, a destination the command did not create, and the file rebuilt without losing a row.
 
 The pins are falsifiable through the shape the data has to be in. The snapshot pin needs the source
 to hold free pages and one row that lives only in the WAL, so a patch that copied the file bytes
@@ -863,6 +864,42 @@ harness — the pin reads the value off it, not the wording. What the process pi
 named in the suite header: that the child exits at all, which a patch can only hang until the pin's
 limit fires; which line the harness reads as the serve event and its wording; and the order the two
 paths of the decision answer on, which no in-process test can read either.
+
+### The free-space check the `backup` run makes (`FreeSpaceCheckTests`, PR #52)
+
+The rule is the port's own, recorded in `docs/parity.md`, so there is nothing upstream to compare
+with: the estimate is the bytes the source holds as the filesystem reads them, times the factor the
+stage-1 note documents for `VACUUM INTO` (2), the room is read at the directory the copy is written
+to, and the comparison is strictly less. The 8 pins read the decision the rule answers — three of
+them as the calls the seam recorded — and the room is the machine's, so the pins drive the
+filesystem through `Support/RecordingSpace.swift`, which answers the numbers the pin names and
+records the paths it was asked for; what a pin reads is the rule's use of those numbers — the
+estimate, the boundary, the directory, the order of the reads — never the numbers of the machine
+this suite runs on. Eight pins here with a probe each, three pins in `MaintenanceCommandTests` with
+five, and two pins in `SystemFileSystemSpaceTests` with two: 13 pins and 15 probes for this rule.
+
+What the pins can fail on, each with a probe that patches the rule and reverts byte-identically: the
+factor, the bytes the WAL holds, the boundary read as strictly less, the room read at the
+destination's directory rather than the source's, a destination named as a bare name read at the
+current directory, a size the filesystem cannot read counting as nothing, a room it cannot read
+answering a refusal, and the order the reads answer in — the estimate before the room.
+
+The run pins are in `MaintenanceCommandTests`: that a run with less room than the estimate reports
+it and writes nothing, which a patch that copied first and refused after fails; that the run at
+equality writes the copy; and that the check is the `backup` run's, which a patch that read the room
+inside `Vacuum` fails. That last pin is why `Vacuum` carries the filesystem it does not read:
+without the property, a patch has nowhere to read the room from, so the pin could not fail. The run
+pins also read which filesystem the run asked the room of, which is what a patch that used the
+process filesystem instead of the seam the pin was given fails on.
+
+What the two headers name as unpinnable: the numbers a real filesystem reports, because the pins
+read the values the seam answers, so the room `statvfs` answers here is never read; the two answers
+of that implementation a test can name without the machine — nothing for a path it cannot read, and
+the bytes it holds for a file the test writes — are pinned in `SystemFileSystemSpaceTests`, each
+with a probe; the factor the copy would truly need, which is the documented choice of the port
+rather than a fact about SQLite; that the check runs before the migrations, which nothing in the run
+answers, so the pins read only that it ran before the write, and not the order between the check and
+the destination rules; and the wording of the reported failure.
 
 ## Soak
 

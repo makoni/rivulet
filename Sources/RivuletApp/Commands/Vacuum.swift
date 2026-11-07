@@ -16,12 +16,19 @@ extension RivuletCLI {
     /// database when the run returns, and a reader that prevents the checkpoint is reported rather
     /// than answered as a run that shrank nothing. The migrations run when `RUN_MIGRATIONS` is on,
     /// as the other commands have them gated.
+    ///
+    /// The room is not checked here, which is the difference from `backup`: the rebuild works on
+    /// the file the storage layer already holds rather than writing a copy beside it, so the
+    /// estimate the free-space rule builds does not apply. The filesystem is still carried by the
+    /// command, so the pin that reads this as no check can fail on a patch that reads the room
+    /// here.
     struct Vacuum: AsyncCommand {
         struct Signature: CommandSignature {
             init() {}
         }
 
         let environment: [String: String]
+        let space: any FileSystemSpace
 
         var help: String { "Rebuilds the database file, releasing the free pages, then exits." }
 

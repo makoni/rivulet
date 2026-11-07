@@ -27,7 +27,13 @@ import RivuletApp
 /// directory the storage layer needs; that the vacuum run rebuilds the file the environment names
 /// and releases the free pages the rows left behind; that it leaves the rows it rebuilds; and that
 /// the migration flag gates both commands, read on a schema the command created rather than one the
-/// test built.
+/// test built; that the run refuses when the filesystem it reads has less room than the
+/// estimate the rule builds, and writes nothing, which a patch that copied first and refused
+/// after fails; that the boundary is read as strictly less, so the run at equality writes the
+/// copy; that the check is the backup run's, which a patch that read the room for the vacuum run
+/// fails; that the run reads the room through the seam it was given, which a patch that used the
+/// process filesystem fails; and that the estimate the run reads is the bytes the seam answered
+/// for the main file and for the `-wal` beside it.
 ///
 /// What these pins cannot fail on: the truncating checkpoint `vacuum()` ends with, because
 /// `RivuletApplication.shutdown()` runs a best-effort truncating checkpoint after every command, so
@@ -37,12 +43,19 @@ import RivuletApp
 /// empty destination file, which `MaintenanceTests` pin; that the copy is a plain file with no
 /// `-wal` beside it, which no implementation of this command would write; the size of the main file
 /// as it stands before the run, because the checkpoint at the end of the run moves the rows the pin
-/// seeded from the WAL into it; the shape guards that read what the pin built before the run — the
-/// WAL holding one row, the file bloated past the size the pin reads, the copy being openable as a
-/// database — which bite only on the storage rules `MaintenanceTests` pins, not on a patch of the
-/// command; the wording of the lines and of the reported failures; that these commands fetch
-/// nothing and sleep nothing; and the rules the port names, not the reference, which has no command
-/// here to compare with.
+/// seeded from the WAL into it — the free-space pins read the sizes the seam answered, not the
+/// bytes on disk; the numbers a real filesystem reports, which the seam answers in place of the
+/// machine — the two decisions of the system implementation a test can name without the machine are
+/// pinned by `SystemFileSystemSpaceTests`, and its room is never read here; that the check runs
+/// before the migrations, which nothing in the run answers, so the pins read only that it ran
+/// before the write, and the order between the check and the destination rules, which no pin reads;
+/// the factor the copy would truly need, which is the documented choice of the port rather
+/// than a fact about SQLite, read as the rule the pins name; the shape guards that read what the
+/// pin built before the run — the WAL holding one row, the file bloated past the size the pin
+/// reads, the copy being openable as a database — which bite only on the storage rules
+/// `MaintenanceTests` pins, not on a patch of the command; the wording of the lines and of the
+/// reported failures; that these commands fetch nothing and sleep nothing; and the rules the port
+/// names, not the reference, which has no command here to compare with.
 @Suite struct MaintenanceCommandTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -217,7 +230,9 @@ import RivuletApp
             }
 
             // The port does not build the directory the storage layer needs: a patch creating it
-            // answered this pin with a copy, which is what the pin reads must not be there.
+            // answered this pin with a copy, which is what the pin reads must not be there. The
+            // seam answers a room here, so what this pin reads is the destination rule, not the
+            // room decision; the order the two answer in is not something a pin can read.
             let missing = database.directory.appendingPathComponent("missing-dir/copy.db").path
             let outcome = try await run(databasePath: database.path, arguments: ["backup", missing])
             #expect(outcome.failed,
@@ -233,6 +248,83 @@ import RivuletApp
             let control = try await run(databasePath: database.path,
                 arguments: ["backup", parent.appendingPathComponent("copy.db").path])
             #expect(!control.failed, "the control run writes the copy: \(control.output)")
+        }
+    }
+
+    @Test func theRunRefusesWhenTheFilesystemHasLessRoomThanTheEstimateAndWritesNothing() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "no-room", content: "<p>Row for the run that had no room</p>")
+            }
+
+            // The numbers are the pin's, through the seam: the main file as the seam reads it, the
+            // WAL answered as holding nothing and still read by the rule, and less room than the
+            // estimate the rule builds from them.
+            let wal = database.path + "-wal"
+            let space = RecordingSpace(sizes: [database.path: 4000, wal: 0], free: 7000)
+            let destination = database.directory.appendingPathComponent("no-room.db").path
+            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination],
+                space: space)
+
+            #expect(outcome.failed, "the run that had less room than the estimate: \(outcome.output)")
+            // Nothing was written, which is what a patch that copied first and refused after would
+            // answer with a copy here: the check is the run's start, not a rule read after
+            // the write.
+            #expect(!FileManager.default.fileExists(atPath: destination), "no copy was written")
+            #expect(space.all() == [.size(database.path), .size(wal), .space(database.directory.path)],
+                "the reads the run made before it refused: \(space.all())")
+
+            // The control: the same run with room answers a copy, so the failure above is the rule
+            // and not a command that writes nothing. The room named here is exactly the estimate, so
+            // the control sits at the boundary too, and the `<=` patch flips it as well as the next
+            // pin. What this pin reads on its own is that a run with room did not fail.
+            let room = RecordingSpace(sizes: [database.path: 4000, wal: 0], free: 8000)
+            let control = try await run(databasePath: database.path,
+                arguments: ["backup", database.directory.appendingPathComponent("room.db").path],
+                space: room)
+            #expect(!control.failed, "the control run with room did not fail: \(control.output)")
+        }
+    }
+
+    @Test func theRunWritesTheCopyAtTheBoundaryTheCheckReadsAsEqual() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "exact", content: "<p>Row for the run at the boundary</p>")
+            }
+
+            // Room exactly equal to the estimate: the boundary is read as strictly less, so a patch
+            // that compared with `<=` refused here and left no copy.
+            let space = RecordingSpace(sizes: [database.path: 1000, database.path + "-wal": 1000],
+                free: 4000)
+            let destination = database.directory.appendingPathComponent("exact.db").path
+            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination],
+                space: space)
+
+            #expect(!outcome.failed, "the run at the boundary: \(outcome.output)")
+            #expect(FileManager.default.fileExists(atPath: destination),
+                "the copy the run at the boundary wrote: \(outcome.output)")
+        }
+    }
+
+    @Test func theVacuumRunDoesNotAskForTheRoomTheBackupRunChecks() async throws {
+        try await withMigratedStorage { database, storage in
+            try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "no-check", content: "<p>Row for the vacuum run that checks nothing</p>")
+            }
+
+            // The check is the backup run's, not a rule every run makes: a patch that read the room
+            // here answered a refusal on a seam named as having none. The pin reads that the run
+            // did not fail and asked for nothing; the rebuild itself is read by another pin.
+            let space = RecordingSpace(sizes: [database.path: 4000, database.path + "-wal": 0], free: 0)
+            let outcome = try await run(databasePath: database.path, arguments: ["vacuum"], space: space)
+            #expect(!outcome.failed, "the vacuum run asked for nothing: \(outcome.output)")
+            #expect(space.all().isEmpty, "the reads the vacuum run made: \(space.all())")
         }
     }
 
@@ -333,15 +425,20 @@ import RivuletApp
     }
 
     /// Runs one command against the file the pin names, through the in-process console.
+    ///
+    /// The filesystem the run reads is the seam the pin names, because the room a real filesystem
+    /// has is the machine's and cannot be named by a pin. The default answers enough room for
+    /// anything, so the pins that do not read the check answer as they did before it.
     private func run(databasePath: String, arguments: [String],
-        environment: [String: String] = [:]) async throws -> RunOutcome {
+        environment: [String: String] = [:],
+        space: any FileSystemSpace = RecordingSpace(sizes: [:], free: Int64.max)) async throws -> RunOutcome {
         var values = environment
         values["DATABASE_URL"] = databasePath
         let console = TestConsole()
         var failed = false
         do {
             try await RivuletCLI.run(console: console, environment: values,
-                arguments: ["rivulet"] + arguments)
+                arguments: ["rivulet"] + arguments, space: space)
         } catch {
             failed = true
         }
