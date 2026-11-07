@@ -31,6 +31,13 @@ let package = Package(
                 .product(name: "FluentKit", package: "fluent-kit"),
                 .product(name: "SQLKit", package: "sql-kit"),
                 .product(name: "SwiftSoup", package: "SwiftSoup"),
+                // The integrity check opens a connection of its own to the copy, so the module that
+                // reads the file needs the driver it opens it with. Both are already in the graph;
+                // `NIOPosix` and `swift-log` are the two the check names for its event loop and its
+                // logger, which the check module uses directly.
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log"),
                 // The fetcher uses AsyncHTTPClient directly; it is already in the dependency graph
                 // through Vapor, and depending on it here keeps RivuletCore free of Vapor itself.
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),

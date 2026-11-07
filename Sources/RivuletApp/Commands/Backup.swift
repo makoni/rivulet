@@ -7,31 +7,31 @@ import Foundation
 import RivuletCore
 
 extension RivuletCLI {
-    /// `rivulet backup <destination>` — a point-in-time copy, then exit.
-    ///
-    /// The copy is the snapshot `VACUUM INTO` writes: a self-contained database carrying the
-    /// content the source had at the run, compacted, while the source stays writable. The
-    /// destination is used as it was given, so a relative value means the process's working
-    /// directory rather than the data directory; the command does not build the directory the
-    /// storage layer needs, because a run that wrote nothing has to say so rather than build a path
-    /// around itself. A destination that already holds something is refused and left as it was —
-    /// the port does not overwrite a previous backup, and SQLite's refusal is reported as the run
-    /// failing — unless `--force` names the destination as one the run may replace. The migrations
-    /// run when `RUN_MIGRATIONS` is on, as the other commands have them gated.
-    ///
-    /// The run checks the room at its start, before it writes: the estimate is the bytes the source
-    /// holds as the filesystem reads them, times the factor `docs/plan/stage-1-storage.md`
-    /// documents for `VACUUM INTO`, and the room is read at the directory the destination is in. A
-    /// run that cannot hold the copy reports it and writes nothing, which is the failure the CLI
-    /// reads as the exit code. The rule is the port's own, recorded in `docs/parity.md`; `vacuum`
-    /// is not checked, because it rebuilds the file it already holds rather than writing a copy
-    /// beside it.
-    ///
-    /// `--force` is the port's own rule as well: it lets the run replace what the destination holds
-    /// instead of refusing it, so the destination is read as the filesystem reads it rather than as
-    /// a database the run can open. The flag does not change the room check, and a run that cannot
-    /// write removes nothing: the check runs before anything is replaced. The flag does not build
-    /// the directory the storage layer needs, and it does not change what the source is left as.
+    /// `rivulet backup <destination>` — a point-in-time copy, then exit. The copy is the snapshot
+    /// `VACUUM INTO` writes: a self-contained database carrying the content the source had at the
+    /// run, compacted, while the source stays writable. The destination is used as it was given, so
+    /// a relative value means the process's working directory rather than the data directory; the
+    /// command does not build the directory the storage layer needs, because a run that wrote
+    /// nothing has to say so rather than build a path around itself. A destination that already
+    /// holds something is refused and left as it was — the port does not overwrite a previous
+    /// backup, and SQLite's refusal is reported as the run failing — unless `--force` names the
+    /// destination as one the run may replace. The migrations run when `RUN_MIGRATIONS` is on, as
+    /// the other commands have them gated. The run checks the room at its start, before it writes:
+    /// the estimate is the bytes the source holds as the filesystem reads them, times the factor
+    /// `docs/plan/stage-1-storage.md` documents for `VACUUM INTO`, and the room is read at the
+    /// directory the destination is in. A run that cannot hold the copy reports it and writes
+    /// nothing, which is the failure the CLI reads as the exit code. The rule is the port's own,
+    /// recorded in `docs/parity.md`; `vacuum` is not checked, because it rebuilds the file it
+    /// already holds rather than writing a copy beside it. `--force` is the port's own rule as
+    /// well: it lets the run replace what the destination holds instead of refusing it, so the
+    /// destination is read as the filesystem reads it rather than as a database the run can open.
+    /// The flag does not change the room check, and a run that cannot write removes nothing: the
+    /// check runs before anything is replaced. The flag does not build the directory the storage
+    /// layer needs, and it does not change what the source is left as. `--verify` is the port's own
+    /// rule too: the run reads the copy it wrote through the check seam, after the write, and
+    /// reports what the check observed as the failure. The copy is left as written, because the
+    /// runbook restores another backup rather than repairing a file the check named. The flag does
+    /// not change the room check, and the run calls the check nothing without it.
     struct Backup: AsyncCommand {
         struct Signature: CommandSignature {
             @Argument(name: "destination", help: "Path the copy is written to")
@@ -40,11 +40,15 @@ extension RivuletCLI {
             @Flag(name: "force", help: "Replace what the destination holds instead of refusing it")
             var force: Bool
 
+            @Flag(name: "verify", help: "Check the copy the run wrote, through its own connection")
+            var verify: Bool
+
             init() {}
         }
 
         let environment: [String: String]
         let space: any FileSystemSpace
+        let verifier: any DatabaseVerifier
 
         var help: String { "Writes a point-in-time copy of the database to `destination`, then exits." }
 
@@ -83,12 +87,27 @@ extension RivuletCLI {
                 throw error
             }
 
-            context.console.print("Backup written: \(signature.destination)")
+            // Without the flag the run calls the check nothing, so the copy is all it reports. With
+            // it the check reads the file at the path as the run read it, through a connection of
+            // its own, because the connection the run wrote the copy through cannot answer for it.
+            let problems = signature.verify ? try await verifier.problems(at: signature.destination) : []
+
+            // The failure the check observed leaves through the gate, so the app the command opened
+            // is shut down before it does, as the write's storage error is. The copy is left as
+            // written: the runbook restores another backup rather than repairing a file a check
+            // named, so a run that reports a failing check does not remove what it read.
             try await rivulet.shutdown()
+            if !problems.isEmpty {
+                throw StorageError.databaseCorrupt(details: problems)
+            }
+
+            context.console.print("Backup written: \(signature.destination)")
+            if signature.verify {
+                context.console.print("Backup verified: \(signature.destination)")
+            }
         }
 
         /// Replaces the file the destination names, which is what a run without `--force` refuses.
-        ///
         /// The path is read as the filesystem reads it, so the run replaces a file and nothing
         /// else: a directory at the destination is reported rather than deleted, a path whose
         /// attributes cannot be read is not read as a file, so nothing is removed there, and a

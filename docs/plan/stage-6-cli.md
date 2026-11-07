@@ -6,7 +6,9 @@ second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48)
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
 with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the
-free-space check the `backup` run makes at its start, is merged (PR #52). **Effort:** M. **Depends
+free-space check the `backup` run makes at its start, is merged (PR #52), the seventh, `--force`, is
+merged (PR #53), and the eighth, the check `--verify` gives the `backup` run, is the flag polish's
+last piece and opens as PR #54. **Effort:** M. **Depends
 on:** Stages 1–5.
 
 ## Scope
@@ -64,6 +66,21 @@ the header — an empty destination file, which the flag path replaces and the n
 with the same answer, the type guard's other branches, the shape guard that reads the row the pin
 wrote after the control run, and the branch where the destination's existence cannot be read.
 
+- `--verify` opens as PR #54 as the call the run makes through the `DatabaseVerifier` seam, read
+as the run's own rule rather than as the storage rule `MaintenanceTests` pin for `quick_check`.
+With the flag the run reads the copy it wrote at the path as it read it, after the write, through a
+connection of its own, because the connection it wrote the copy through cannot answer for it, and
+what the check observed is what the run reports as the failure. The copy is left as written: the
+runbook restores another backup rather than repairing a file a check named, so a run that reports a
+failing check does not remove what it read. Without the flag the run calls the check nothing, and
+the flag changes neither the room check nor the directory the storage layer needs. Pinned by
+`BackupVerifyTests`: 5 pins and 9 probes, and by `SystemDatabaseVerifierTests`, which reads what the
+implementation answers for a real file: 4 pins and 6 probes — the clean answer, the problems the
+damaged copy has, the file left as the bytes the storage rule wrote, and the failure reported for a
+path the check cannot open rather than the clean answer. What no patch can flip is named in the two
+headers, among them the connection the check opens, which no patch can show because the command
+has no other connection to read through.
+
 ## Implementation notes
 
 - In-process console tests use `TestConsole`; process-level behavior (signals, exit codes of the
@@ -88,7 +105,17 @@ is never read here; the two answers a test can name without the machine — noth
 cannot read, and the bytes it holds for a file the test writes — are pinned by
 `SystemFileSystemSpaceTests`, which both headers name. The `--force` flag is pinned by
 `BackupForceTests` as what the run replaces, read as the filesystem reads the destination rather
-than as a database the run can open. The two helpers the command suites share moved to `Support/`
+than as a database the run can open, and `--verify` is pinned by `BackupVerifyTests` as the calls
+the run makes through the check seam and the failure the run reports for the answer the seam
+gives — that the run calls the seam nothing without the flag, that it makes the one call for the
+path as it read it after the write, that it reports what the seam answers as the failure and
+leaves the copy as written, that the flag does not change the room check, and that it does not
+build the directory the storage layer needs — with `Support/RecordingVerifier.swift` recording
+each call and whether the file was there at the call, which is how a pin reads the order the run
+wrote and checked in. `SystemDatabaseVerifierTests` reads what the implementation answers for a
+real file: the clean answer, the problems a damaged copy has, the file left as the bytes the
+storage rule wrote, and the failure reported for a path the check cannot open. The two helpers
+the command suites share moved to `Support/`
 with PR #53, which is the second suite reading the run helper and the third reading the content
 read: `CommandRun.swift`, which runs one command with the seam the pin names, and
 `DatabaseContent.swift`, which reads a file through its own driver. The in-process cadence loop is
@@ -170,13 +197,16 @@ should not grow a second one without a reason.
 - `add` writes what it read, so the tracked-parameter case is pinned only as "the url as read"; the
 cleaner the reference applies on its discovery path lands with `quickadd` in stage 5, and the two
 paths are then where a parameter is dropped or kept.
-- `backup` does not verify the copy it wrote: the runbook says to verify it by opening the file
-and running `PRAGMA quick_check`. Recorded as the next slice of the flag polish, and pinnable: the
-check lands as the call the run makes through a verifier seam, so the pin reads the call the seam
-recorded and the failure the run reports for a check the seam answers as failing, which is the shape
-the room pins read; `Support/DatabaseCorruption.swift` gives a real file that fails `quick_check`
-for the storage rules, and no input answers a damaged copy for the check the run makes on the file
-it wrote, so what no patch can flip is named in the header rather than pinned.
+- `backup` verifying the copy it wrote opens as PR #54 as the call the run makes through the
+`DatabaseVerifier` seam, the shape the room pins read: the run reads the file at the path as it read
+it, after the write, through a connection of its own, and reports what the check observed as the
+failure. The copy is left as written, because the runbook restores another backup rather than
+repairing a file a check named. What no patch can flip is named in the two headers rather than
+pinned — the problems of a real file, which the seam answers in place of the machine, and the
+connection the check opens, which no patch of the command can show because the command has no other
+connection to read through. `Support/DatabaseCorruption.swift` gives the real file that fails
+`quick_check` for the storage rules, and the implementation is read on that file by
+`SystemDatabaseVerifierTests`, so the seam is not the only place the answer is pinned.
 - `backup` has no overwrite flag: an existing destination is refused. `--force` landed with PR #53
 as the port's own choice, not the reference's, and the rule that a run which wrote nothing reports
 it is read again on the other side of the flag: a run that cannot hold the copy removes nothing, so
@@ -198,7 +228,24 @@ the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSyste
 the cap.
 With PR #53 the files are `BackupForceTests.swift` 248, `Support/CommandRun.swift` 29,
 `Support/DatabaseContent.swift` 36 and `MaintenanceCommandTests.swift` 407, after the two
-helpers moved out of it and the unused imports came out of them.
+helpers moved out of it and the unused imports came out of them. With PR #54 the files are
+`BackupVerifyTests.swift` 238, `SystemDatabaseVerifierTests.swift` 136,
+`Support/RecordingVerifier.swift` 48, `Storage/SystemDatabaseVerifier.swift` 53,
+`Storage/DatabaseVerifier.swift` 14 and `Commands/Backup.swift` 124 — all under the size aim, so
+nothing needs a split. The single-expression code lines that read over the width in the new files
+are the ones the wrapping rule exempts: the `#expect` calls with the comment argument, the
+`databases.database(...)` call with the logger and the event loop, the `help` string, and the
+`problems` read that names the flag, the seam and the path in one expression. One pin name was
+shortened to the width, because a declaration line is not an expression the rule exempts.
+- The check reads the copy through FluentKit's `Databases` container, because these package versions
+do not answer a `Database` for one path any other way: `SQLDatabase.fluent(.sqlite(.file(path)))`
+does not exist, and `fluent(_:)` is Cache and Sessions. The container is closed before the answer
+leaves, so the connection the check opened does not outlive the call that opened it. It is named
+with `MultiThreadedEventLoopGroup.singleton` and `NIOThreadPool.singleton`, because the singletons
+these packages exported as `SystemEventLoop` and `SystemEventLoopGroup` are no longer in SwiftNIO.
+The three direct products `RivuletCore` now names — `FluentSQLiteDriver`, `NIOPosix`, `Logging` —
+are the approved addition: all three were already in the dependency graph, and `FluentSQL` is not
+imported, because nothing here uses what it exports.
 - The account rule is the port's own: `--user` with the single-account fallback, and no
 environment flag for the environment path, which the flag polish closes: the reference's CLI reads
 the environment through its config parser (`internal/cli/cli.go`), but the only name it reads there
