@@ -3,7 +3,7 @@
 **Goal:** prove real-world compatibility with clients and parity with Miniflux; harden the edges.
 **Status:** in progress — the first slice is the robustness work, merged (PR #55): the hostile
 bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
-suite documents. The second slice is the security checklist, which opens as PR #56: the checklist is
+suite documents. The second slice is the security checklist, merged (PR #56): the checklist is
 `docs/security.md`, and the rules it could express as pins landed there — 8 pins and 7 probes across
 five suites, one finding closed in production code. The parity harness, the client matrix and the
 replay of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
@@ -28,7 +28,7 @@ replay of captured request sequences follow. **Effort:** M. **Depends on:** Stag
       corpus and the reduced large-feed scenario are both ungated, so `swift test` runs them in the
       job CI already runs.
 - [x] Security pass done as `docs/security.md`, with the pins it could express landing as 8 pins and
-      7 probes across five suites (opens as PR #56): SSRF, the size and time caps, the auth
+      7 probes across five suites (merged as PR #56): SSRF, the size and time caps, the auth
       behavior, the sanitizer bypass surface and the dependency audit. The rules no patch can flip
       are named in the document rather than asserted; one finding was closed in production code.
 - [ ] Performance notes: refresh of 100 feeds, query latency at 100k entries — numbers recorded.

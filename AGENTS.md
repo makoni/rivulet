@@ -31,7 +31,7 @@ being absent; the fixture encoder, checked against `gunzip` by hand; the memory 
 because no pin reads memory; the numbers of another machine, which the timed pin reads as a bound
 rather than as a measurement; the plan the planner chooses for a corpus of a different size; and the
 category the reference gives a body it cannot inflate, which is the port's divergence recorded in
-`docs/reference-notes.md`. The second slice is the security checklist, which opens as PR #56:
+`docs/reference-notes.md`. The second slice is the security checklist, merged (PR #56):
 `docs/security.md` names for each of its sub-items — SSRF, the size and time caps, the auth
 behavior, the sanitizer bypass surface, and the dependency audit — what the rule is, where the port
 reads it, which test can fail on it, and what no test can show. 8 pins and 7 probes: the response
