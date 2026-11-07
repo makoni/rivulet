@@ -105,7 +105,7 @@ read only that it ran before the write, and not the order between the check and 
 rules, which no pin reads; and the wording of the reported failure. `vacuum` is not
 checked, because it rebuilds the file it already holds rather than writing a copy beside it, and
 `Vacuum` carries the filesystem it does not read so that pin can fail on a patch that reads the room
-- there. The seventh slice is open as PR #53: `--force` as the flag the `backup` run reads, pinned
+there. The seventh slice is open as PR #53: `--force` as the flag the `backup` run reads, pinned
 as what the run replaces — the file the destination names, read as the filesystem reads the path
 rather than as a database the run can open, a directory reported rather than deleted, the flag not
 skipping the room check, a run that cannot hold the copy removing nothing, and the flag not building

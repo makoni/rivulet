@@ -21,7 +21,8 @@ import Testing
 /// bytes and the two controls reading bytes replaced; the room check skipped on the force path,
 /// which wrote a copy over the bytes the no-room pin named; the destination removed before the
 /// check, which left no bytes for that pin to read; the removal taking whatever the path is rather
-/// than a file, which deleted the directory the last pin built; and the directory built on the
+/// than a file, which deleted the directory the pin that names a directory as the destination
+/// built; and the directory built on the
 /// force path, which answered the pin reading nothing created with a copy.
 ///
 /// What these pins cannot fail on: an empty destination file, which the flag path replaces and the
@@ -77,7 +78,6 @@ import Testing
             #expect(replaced == atTheRun, "the control run replaced the file: \(replaced)")
         }
     }
-
 
     @Test func theForceFlagReplacesADestinationTheRunWouldRefuseWithoutIt() async throws {
         try await withMigratedStorage { database, storage in

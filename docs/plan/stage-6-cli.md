@@ -193,7 +193,8 @@ wrapping rule exempts, while the calls that could be broken were broken; and the
 can fail on a patch that reads the room there. The new files are below the size aim and well inside
 the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSystemSpace.swift` 43,
 `FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
-`Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` is 472, under the cap.
+`Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` was 472 then, under
+the cap.
 With PR #53 the files are `BackupForceTests.swift` 235, `Support/CommandRun.swift` 31,
 `Support/DatabaseContent.swift` 37 and `MaintenanceCommandTests.swift` 408, after the two helpers
 moved out of it.

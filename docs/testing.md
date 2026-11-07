@@ -936,7 +936,8 @@ the controls reading a run with room or a file replaced; the destination read as
 can open, which refused the pin naming bytes and the two controls reading bytes replaced; the room
 check skipped on the force path, which wrote a copy over the bytes the no-room pin named; the
 destination removed before the check, which left no bytes for that pin to read; the removal taking
-whatever the path is rather than a file, which deleted the directory the last pin built; and the
+whatever the path is rather than a file, which deleted the directory the pin that names a
+directory as the destination built; and the
 directory built on the force path, which answered the pin reading nothing created with a copy.
 
 What the header names as unpinnable: an empty destination file, which the flag path replaces and
