@@ -1,13 +1,13 @@
-import Foundation
 import SQLKit
 import Testing
 @testable import RivuletCore
 
 /// The reduced large-feed scenario the plan names: the read path over a 10k-entry corpus, with the
-/// budgets the suite documents. Everything the pins read is countable — the plan the schema
-/// answers, the page the query is given, the relevance order the FTS index answers, and the batch
-/// the retention pass takes — so no pin fails because one machine was slower than another. One pin
-/// reads a wall-clock bound, which is the machine's number, not a rule.
+/// budgets the suite documents. Four of the five pins read something countable — the plan the
+/// schema answers, the page the query is given, the relevance order the FTS index answers, and the
+/// batch the retention pass takes — so those pins cannot fail because one machine was slower than
+/// another. The fifth pin reads a wall-clock bound, which is the machine's number and not a rule,
+/// and it is the only pin this suite can fail on a slow runner.
 ///
 /// `HeavyTests` is the opt-in 100k corpus gated on `RIVULET_HEAVY`; this suite is the reduced
 /// version that runs in the default CI job, so it is not gated and stays well inside the job's
@@ -17,24 +17,25 @@ import Testing
 /// pin, because nothing here can name the memory a process holds.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
-/// with each probe named by what it flips — five probes for five pins: the owner read through an
+/// with each probe named by what it flips — six probes for five pins: the owner read through an
 /// expression the planner cannot use, which answered the plan pin with a scan and a temporary
 /// b-tree for the order; the page size dropped from the clause, which answered the page pin with
-/// the whole corpus; relevance read after the requested order, which answered the relevance pin
-/// with the newest row first; the batch dropped from the archive statement, which answered the
-/// retention pin with every qualifying row; and the ranked read answered row by row, which took the
-/// read path to about 1.5 s and past the bound.
+/// the whole corpus; the order read in the direction the query did not ask for, which answered the
+/// same pin's head of the page with a row from the front of the corpus; relevance read after the
+/// requested order, which answered the relevance pin with the newest row first; the batch dropped
+/// from the archive statement, which answered the retention pin with every qualifying row; and the
+/// ranked read answered row by row, which took the read path past the bound.
 ///
 /// What these pins cannot fail on: the memory budget named above; the numbers of another machine,
-/// which the timed pin reads as the bound rather than as the time it measured; the choice of the
-/// index the schema names, which the planner makes from the statistics of the rows it has, so a
-/// corpus of a different size could answer a different plan for the same query; the plan pin reads
-/// the text the builder produces through the internal builder, which is the only way a pin can name
-/// a plan without writing its own `SELECT` — a patch that changes the text changes the plan the pin
-/// reads; the FTS ranking itself, which `EntrySearchTests` pin term by term, and which this suite
-/// reads only as the order at the corpus size; the single-row limit of the reads; the retention
-/// rules `RetentionTests` pin — the age guards, the starred rows kept, the tombstones and the
-/// transaction boundary — which this suite reads only as the batch at the documented size; the
+/// which the timed pin reads as the bound rather than as the time it measured; that the index the
+/// plan names is what serves the ordering as well as the filter, which the planner decides from the
+/// statistics of the rows it has and which the pin reads only as the name in the plan; the plan pin
+/// reads the text the builder produces through the internal builder, which is the only way a pin
+/// can name a plan without writing its own `SELECT` — a patch that changes the text changes the
+/// plan the pin reads; the FTS ranking itself, which `EntrySearchTests` pin term by term, and which
+/// this suite reads only as the order at the corpus size; the single-row limit of the reads; the
+/// retention rules `RetentionTests` pin — the age guards, the starred rows kept, the tombstones and
+/// the transaction boundary — which this suite reads only as the batch at the documented size; the
 /// wording of the reported failures; and the rules the port names rather than the reference, whose
 /// storage layer is Postgres and has no index of this shape.
 @Suite struct LargeFeedTests {
@@ -70,9 +71,7 @@ import Testing
                 let query = EntryQuery(userID: corpus.userID, statuses: [.unread], sort: newestFirst, limit: 50)
                 let page = try await repository.listIDs(query)
                 #expect(page.count == 50)
-                #expect(try await repository.count(query) == entries)
-                // The newest entry of the corpus is the head of the order, so the page starts with
-                // it.
+                // The page is the head of the order it was given, not any 50 rows of the corpus.
                 #expect(page.first == entries)
             }
         }

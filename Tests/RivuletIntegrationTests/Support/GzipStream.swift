@@ -6,8 +6,7 @@ import Foundation
 /// The body a test declares is written as stored DEFLATE blocks — gzip allows an uncompressed block
 /// — which keeps the encoder small. A stored block cannot reach a compression ratio above 1, so a
 /// test that needs a body inflating far past the stream it is stored in uses the fixed-Huffman
-/// block
-/// writer below, which is the only shape that can.
+/// block writer below, which is the only shape that can.
 ///
 /// The output is a valid gzip stream; it is checked against `gunzip` by hand when this encoder
 /// changes, because there is no decoder in the suite that could prove it. The fetch test therefore
@@ -43,8 +42,9 @@ enum GzipStream {
 
     /// Writes the stream for a body that inflates to `1 + 258 * matchCount` bytes of `A`: one
     /// literal, then `matchCount` matches of the longest length at distance 1, which is the shape
-    /// that keeps the stream small while the body it answers is large. The stream is about
-    /// `13 + 13 * matchCount / 8` bytes, so the ratio it reaches is the body over the stream.
+    /// that keeps the stream small while the body it answers is large. The block is 18 bits of
+    /// header plus 13 bits per match and the end of the block, so the ratio the stream reaches is
+    /// the body over the stream: the fixture the fetch pins use is 47 bytes for 4129.
     static func inflating(matchCount: Int) -> Data {
         var writer = BitWriter()
         writer.write(1, bits: 1)              // BFINAL
@@ -103,8 +103,7 @@ enum GzipStream {
 
     /// The bits of a DEFLATE block. Extra bits and the block header are written from the least
     /// significant bit; a canonical code is written from the most significant bit of the code,
-    /// which
-    /// is why the writer takes them through two paths.
+    /// which is why the writer takes them through two paths.
     private struct BitWriter {
         private var pending = 0
         private var count = 0
