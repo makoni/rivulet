@@ -1018,6 +1018,11 @@ its pin failing on the rule it names:
   membership in that table is part of the rule; the case is `href="http&colon;example.org"`, kept as
   an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
 
+The dependency audit is part of the checklist too: the 36 pins in `Package.resolved` were queried
+against the GitHub Advisory DB on 2026-11-07, because OSV has no Swift ecosystem, and the 27
+advisories over seven packages were all first patched below the pins this repository holds, so none
+of them affects a pin. The table is in `docs/security.md`.
+
 What the pass could not pin is documented instead: the connect timeout as a limit of its own, the
 header-block size, which this port reads no limit of its own for and which the reference caps only
 on the server side, the timing form of the constant-time token compare, the NUL byte in a password,
