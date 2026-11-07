@@ -18,7 +18,10 @@ import Testing
 /// was actually closed rather than dropped; the order between the expired sweep and the trim, which
 /// no input separates because every entry here is idle and not expired at the read; and a tie
 /// between entries expiring at the same instant, which the code resolves as the first one found and
-/// which no test can fix without a clock seam the plan does not have.
+/// which no test can fix without a clock seam the plan does not have; the count is read against the
+/// cap value the code holds, so a patch of the cap itself cannot fail it; and on this input every
+/// entry is idle and created in order, so the earliest expiry is also the first created, which an
+/// LRU would answer the same way — the pin names the expiry order the code reads, not a use order.
 @Suite struct FetcherClientCacheTests {
     /// Answers every name with the loopback address, so one stub can serve several host names.
     private struct LoopbackResolver: AddressResolver {

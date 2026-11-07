@@ -138,25 +138,31 @@ else that matters — one lookup for a direct hop, the answer handed to the poli
 pinned to the answer it was built from — is tested through the resolver seam, with a seeded resolver
 for the pinning and a counting one for the single lookup.
 
-The cache has two behaviour tests. The first pins the one effect that can be observed from outside
+The cache has four behaviour tests. The first pins the one effect that can be observed from outside
 an eviction: while a request is in flight the client serving it must not be closed, or that request
 is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
 the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
-test at a known point without a sleep, and the body is held long enough for the fillers to run,
+the test at a known point without a sleep, and the body is held long enough for the fillers to run,
 which the test states. The second asserts what `shutdown()` can be observed to do: a second call
 finds nothing to close, and the next fetch builds a client again. The recovery assertion carries the
 weight, but the second call is not worthless either — an implementation that left closed entries in
-the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first
-cannot close the same client twice follows from taking the entries out before the first await; it
-cannot be reproduced without a client-creation seam the plan does not have, so it is documented
+the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. The third and the fourth read the
+trim through an internal accessor, which is the only place the trim is visible, because closing a
+client changes nothing a fetch can answer: the next request for that host builds a client again and
+gets the same response. They pin the cache staying at the cap after a checkout that goes over it,
+and the entry the trim closes being the one whose expiry comes first — 2 pins and 2 probes, which
+the security-checklist section below lists with the rest of this pass. That a call overlapping the
+first cannot close the same client twice follows from taking the entries out before the first await;
+it cannot be reproduced without a client-creation seam the plan does not have, so it is documented
 rather than tested. Everything else about the cache is not observable from outside when two hosts
 are answered by the same address: what is asserted is the key, because the guarantee that a pin is
 never reused for another host or a proxied request rests on it; the TTL clock is monotonic so an NTP
 step cannot stretch or shrink it, and eviction is by expiry among idle entries, not by use, which
-the code states plainly. A client in use is never pruned; `shutdown()` closes every client
-regardless of use, so calling it when no `fetch` is in flight is a caller's contract and the suite
-does not assert the failure a shutdown during a fetch causes — that is a misuse, not a supported
-path.
+the code states plainly and the trim pin reads through the accessor, on the input where every entry
+is idle so the earliest expiry is also the first created — an LRU could not be told apart there,
+which the header names. A client in use is never pruned; `shutdown()` closes every client regardless
+of use, so calling it when no `fetch` is in flight is a caller's contract and the suite does not
+assert the failure a shutdown during a fetch causes — that is a misuse, not a supported path.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket: the
 `/healthz` tests start the server on an ephemeral port (never the configured one) and use Vapor's
@@ -1013,9 +1019,9 @@ its pin failing on the rule it names:
   an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
 
 What the pass could not pin is documented instead: the connect timeout as a limit of its own, the
-header-block size, which neither side caps, the timing form of the constant-time token compare, the
-NUL byte in a password, which the dependency measures with `strlen`, and the value of a hop that is
-not the last one.
+header-block size, which this port reads no limit of its own for and which the reference caps only
+on the server side, the timing form of the constant-time token compare, the NUL byte in a password,
+which the dependency measures with `strlen`, and the value of a hop that is not the last one.
 
 ## Soak
 

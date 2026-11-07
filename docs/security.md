@@ -9,7 +9,8 @@ Method: each rule was read in the port and in the reference at `c4d54f87`; where
 express it as a pin, the pin was shown failing on the rule by patching production code, rebuilding
 and reverting byte-identically. 8 pins and 7 probes across five suites landed with this pass, and
 the probes are named in the suite headers. `docs/testing.md` records the method; the pins that
-already existed before this pass are named here with their own counts.
+already existed before this pass are named here by the rule they pin, and a count is given only
+where this pass added one.
 
 ## The finding this pass closed — a repeated response header name
 
@@ -27,9 +28,11 @@ Which test can fail on it: `RepeatedResponseHeadersTests` — 3 pins and 2 probe
 repeated name, one name written two ways is one entry, and the first `Location` is the hop taken.
 The stub server writes headers as ordered pairs for these (`Behavior.headerPairs`), because
 `Behavior.headers` is a dictionary and cannot hold two values for one name. Red before the fix: the
-repeated-name pin and the hop pin failed. The case pin passed at red for the reason its header names
-— a case-insensitive lookup found one of the two entries by chance — so it reads the count, and it
-is red only under its probe.
+repeated-name pin and the hop pin failed on the last-wins rule; the case pin as first written
+passed, for the reason its header names — a case-insensitive lookup answers one of the two entries,
+and dictionary order is not fixed — so it now reads the count first, and under the pre-fix rule,
+which is its probe, that count fails. The first probe is the pre-fix rule itself, so all three pins
+are red on the rule they name.
 
 What this pass cannot pin: which spelling of the name the one entry holds; both values for one name,
 which the port does not model; the canonical spelling a key gets upstream; the case rules of the

@@ -13,7 +13,9 @@ import Testing
 /// that pin cannot show is a refusal on the cached hop — the only address the stub can be reached
 /// through is loopback, which a denying policy refuses on the first hop as well, so no response
 /// here can distinguish a cached hop that was checked from one that was not, and the pin reads the
-/// count the seam keeps instead.
+/// count the seam keeps instead. Its probe flips the count by making the cached hop not go through
+/// the seam at all; a patch that kept the seam call for that hop and skipped only the policy there
+/// could not be read, which is why the pin names the lookup it reads rather than the check.
 @Suite struct FetcherSecurityTests {
     @Test func privateTargetsAreRefusedWhenTheHatchIsOffAndAllowedWhenItIsOn() async throws {
         try await FetchTestSupport.withServer(behaviors: ["/feed": StubFeedServer.Behavior(body: Data("x".utf8))]) { server in

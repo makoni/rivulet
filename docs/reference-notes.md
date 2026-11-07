@@ -269,8 +269,8 @@ Hash: SHA-256 hex (`internal/crypto`); uniqueness per feed: `UNIQUE(feed_id, has
   lowercased name and the unescaped value, so `http&colon;example.org` is checked as the address
   `http:example.org` — a name in the entity table is part of the value before the scheme is read,
   and `&colon;` is one of them. And `isPositiveInteger` is `strconv.Atoi`, which reads a leading
-  `+` as part of the number, so `width="+10"` is a positive integer. Both are pinned by the hostile
-  corpus and by `SanitizerTests`.
+  `+` as part of the number, so `width="+10"` is a positive integer. The entity case is pinned
+  by the hostile corpus, and the sign by `SanitizerTests`.
 - Three attributes are mandatory, and they decide what happens to the content: `a` needs `href`,
   `iframe` needs `src`, `img` and `source` need `src` or `srcset`. An element missing one writes
   nothing for itself but still writes its content, except an `iframe`, which writes nothing at all.

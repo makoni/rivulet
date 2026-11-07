@@ -14,10 +14,10 @@ import Testing
 /// reference's own corpus has no case for — 1 pin and 1 probe, shown by patching
 /// `isPositiveInteger` to refuse a leading plus and reverting byte-identically. What that pin
 /// cannot show: the number itself, because the rule is only that the sign belongs to the value, so
-/// any positive value the parse accepts answers the same; the error branch of `Atoi`, which the
-/// corpus pins for the inputs the parse cannot read; and the reference's reading of the sign, which
-/// was verified by running the reference on the toolchain `docs/testing.md` records, not by
-/// patching this port.
+/// any positive value the parse accepts answers the same; the error branch of `Atoi`, which this
+/// suite's own `TestImgSanitization` cases pin through `10px` rather than the corpus, which has no
+/// case the parse cannot read; and the reference's reading of the sign, which was verified by
+/// running the reference on the toolchain `docs/testing.md` records, not by patching this port.
 @Suite struct SanitizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
 
