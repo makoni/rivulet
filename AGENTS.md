@@ -15,74 +15,95 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands `add`,
-`remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
-the duplicate read, then the category read — the url written as the command read it, the category
-resolved from the named title or from the default, the account resolved from `--user` or from the
-single account, the delete that applies the account it is given, and the listing order with the
-lowercased title as the tiebreaker, are pinned by `FeedValidationTests`, `FeedManagementReadsTests`
-and `FeedCommandTests`. What those headers name as unpinnable: the single-row limit of the duplicate
-read, the order between the duplicate read and the category read at the command level — a category
-name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
-the command level, which the read suite pins, the wording of the lines and of the reported failures,
-and the rules the port names rather than the reference. The command surface is recorded in
-`docs/parity.md`. The second slice is merged (PR #48): `backup` and `vacuum` as runs, with the
-destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
-main file, the copy being a file of its own that does not change with the source afterwards, a
-destination the command did not create reported rather than built or overwritten and read against a
-row the pin writes after the control run, the file rebuilt without losing a row, and the flag that
-gates the migrations, pinned by `MaintenanceCommandTests`, with the storage rules these commands
-call pinned by `MaintenanceTests`. What that header names as unpinnable: the truncating checkpoint
-the vacuum run ends with, because `RivuletApplication` runs a best-effort one after every command;
-which file the environment names, which `ConfigTests` pin; reusing an existing empty destination
-file; the size of the main file before the run, because the checkpoint at the end of a run moves the
-rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
-only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
-fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
-rules the port names rather than the reference. The third slice is merged (PR #49): `list` answers
-one listing per run, with the flag naming which read the run makes, no flag still meaning the feeds,
-the pair of flags reported as the rule the port names rather than picked, the account the run
-resolves reaching the category read and not the account read, the line carrying the stored position
-and the stored admin flag rather than the schema default, one line carrying one row, the run writing
-nothing, and the title order being the port's byte order, pinned by `ListingCommandTests` over the
-in-process console, with the two orders it reads pinned as reads by `CategoryRepositoryTests` and
-`UserRepositoryTests`. What that header names as unpinnable: the wording of the lines and of the
-reported failures apart from the values the pins read off a line and the rule name the run writes; a
-flag the command does not know, which the command-signature parser rejects before the command runs;
-which fields a line carries and their order on the line; the header line, read only as the one line
-that is not a row; the `position` column, which is the port's own and recorded in `docs/parity.md`;
-the guards that read what the pin built before the run, which bite only on the storage rules; the
-single-row limit of the reads; the account resolution, which `FeedCommandTests` pin; the flag that
-gates the migrations; that these commands fetch nothing and sleep nothing; and the collation the
-reference's Postgres answers `ORDER BY title` with, which this port cannot have. The shape is flags
-because `@Argument` has no default, so a run cannot name an optional listing. The fourth slice is
-merged (PR #50): the in-process cadence loop, pinned as the calls the loop makes through its seam —
-the wait before the first read, which is the reference's shape, the interval the loop was built with
-on every wait, one read per wait, the instant the clock gives at each read, the reported failing
-read with the loop going on, the empty read reported as nothing, nothing read after the seam answers
-stop, and the jobs of a tick before the next read, which is the port's shape — by `CadenceLoopTests`
-through test seams that record each call. What that header names as unpinnable: that any time
-passes, since the seam stands in for a sleep; the number of iterations, which is the answer the seam
-gives; the order the jobs of one tick are recorded in, which concurrency does not fix, so the pins
-read the calls across the tick boundary; the shape and the field names of a report, which are the
-port's choice; that the reference's ticker goroutine has no stop rule at all, so the stop answer is
-the port's own, recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks,
-which this port has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the
-real seam implementation, which sleeps, so its decisions are read through test seams that name the
-interval as zero (`SystemCadenceTests`) and its real signal source lands with the process harness.
-The fifth slice is merged (PR #51): the process harness (`Support/SpawnedProcess.swift`) reads the
-built binary as the events it answers — the port the serve event reports, the response a request on
-that port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
-exit), and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring
-that runs the loop to its end and the hook once after it pinned as the calls it makes through its
-seams by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves —
-waits that answer on an event, the probed port, the child killed on both paths, and the line the
-harness reads as the serve event, from which a pin reads only the port value; that the child exits
-at all, because a patch that made the child never exit hangs a pin rather than flipping what it
-reads, while a child that writes no line fails the pin through the harness; which part of the
-shutdown emptied the WAL, because a clean close checkpoints on its own; which line is the serve
-event and its wording; the order the two paths of the decision answer on, which no in-process test
-can read either; the answer belonging to the decision the path was created for, and a cancelled wait
+Current focus: **Stage 7 — Acceptance & hardening**, whose first slice opens as PR #55: the hostile
+bodies the fetcher cannot read as written — a stream that inflates far past the size it is stored
+in, and a stream the decoder cannot finish — read as which limit answers. The body cap, counted on
+the bytes the decoder produces as the reference's `MaxBytesReader` counts them, is the only limit,
+because the ratio guard the port had of its own refused a body upstream would have read; and the
+reduced 10k-entry scenario, pinned as the plan the schema answers for the hot unread listing, the
+page the query is given, the relevance order the FTS index answers at the corpus size, the batch the
+retention pass takes with the rows it leaves for the next run, and one wall-clock bound the read
+path stays inside — 4 pins and 5 probes by `FetcherHostileInputTests`, 5 pins and 6 probes by
+`LargeFeedTests`, which is the reduced scenario the default CI job runs rather than the gated 100k
+corpus. What those headers name as unpinnable: which parts the accumulator is given, because no
+patch can change what the pipeline hands it, so the cap rule is read through the guard being absent;
+the fixture encoder, checked against `gunzip` by hand; the memory budget, documented because no pin
+reads memory; the numbers of another machine, which the timed pin reads as a bound rather than as a
+measurement; the plan the planner chooses for a corpus of a different size; and the category the
+reference gives a body it cannot inflate, which is the port's divergence recorded in
+`docs/reference-notes.md`. The parity harness and the client matrix follow, and the parity harness
+cannot run on this machine because the Docker daemon is not reachable.
+
+**Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
+is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed
+commands `add`, `remove` and `list` (PR #47). The order the rule reads — the guard, then the
+absolute-URL rule, then the duplicate read, then the category read — the url written as the command
+read it, the category resolved from the named title or from the default, the account resolved from
+`--user` or from the single account, the delete that applies the account it is given, and the
+listing order with the lowercased title as the tiebreaker, are pinned by `FeedValidationTests`,
+`FeedManagementReadsTests` and `FeedCommandTests`. What those headers name as unpinnable: the
+single-row limit of the duplicate read, the order between the duplicate read and the category read
+at the command level — a category name the command cannot resolve answers `0`, so the guard runs
+first — the rows below the feed at the command level, which the read suite pins, the wording of the
+lines and of the reported failures, and the rules the port names rather than the reference. The
+command surface is recorded in `docs/parity.md`. The second slice is merged (PR #48): `backup` and
+`vacuum` as runs, with the destination read as it was given, the copy as the snapshot at the run
+rather than the bytes of the main file, the copy being a file of its own that does not change with
+the source afterwards, a destination the command did not create reported rather than built or
+overwritten and read against a row the pin writes after the control run, the file rebuilt without
+losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`, with the
+storage rules these commands call pinned by `MaintenanceTests`. What that header names as
+unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
+best-effort one after every command; which file the environment names, which `ConfigTests` pin;
+reusing an existing empty destination file; the size of the main file before the run, because the
+checkpoint at the end of a run moves the rows from the WAL into it; the shape guards that read what
+the pin built before the run, which bite only on the storage rules; the copy being a plain file with
+no `-wal` beside it; that these commands fetch nothing and sleep nothing; the wording of the lines
+and of the reported failures; and the rules the port names rather than the reference. The third
+slice is merged (PR #49): `list` answers one listing per run, with the flag naming which read the
+run makes, no flag still meaning the feeds, the pair of flags reported as the rule the port names
+rather than picked, the account the run resolves reaching the category read and not the account
+read, the line carrying the stored position and the stored admin flag rather than the schema
+default, one line carrying one row, the run writing nothing, and the title order being the port's
+byte order, pinned by `ListingCommandTests` over the in-process console, with the two orders it
+reads pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`. What that header names
+as unpinnable: the wording of the lines and of the reported failures apart from the values the pins
+read off a line and the rule name the run writes; a flag the command does not know, which the
+command-signature parser rejects before the command runs; which fields a line carries and their
+order on the line; the header line, read only as the one line that is not a row; the `position`
+column, which is the port's own and recorded in `docs/parity.md`; the guards that read what the pin
+built before the run, which bite only on the storage rules; the single-row limit of the reads; the
+account resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these
+commands fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER
+BY title` with, which this port cannot have. The shape is flags because `@Argument` has no default,
+so a run cannot name an optional listing. The fourth slice is merged (PR #50): the in-process
+cadence loop, pinned as the calls the loop makes through its seam — the wait before the first read,
+which is the reference's shape, the interval the loop was built with on every wait, one read per
+wait, the instant the clock gives at each read, the reported failing read with the loop going on,
+the empty read reported as nothing, nothing read after the seam answers stop, and the jobs of a tick
+before the next read, which is the port's shape — by `CadenceLoopTests` through test seams that
+record each call. What that header names as unpinnable: that any time passes, since the seam stands
+in for a sleep; the number of iterations, which is the answer the seam gives; the order the jobs of
+one tick are recorded in, which concurrency does not fix, so the pins read the calls across the tick
+boundary; the shape and the field names of a report, which are the port's choice; that the
+reference's ticker goroutine has no stop rule at all, so the stop answer is the port's own, recorded
+in `docs/parity.md`; the reference's second ticker for the cleanup tasks, which this port has no
+loop for and which `RetentionTests` pin as storage rules; the pool cap; the real seam
+implementation, which sleeps, so its decisions are read through test seams that name the interval as
+zero (`SystemCadenceTests`) and its real signal source lands with the process harness. The fifth
+slice is merged (PR #51): the process harness (`Support/SpawnedProcess.swift`) reads the built
+binary as the events it answers — the port the serve event reports, the response a request on that
+port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop exit),
+and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring that
+runs the loop to its end and the hook once after it pinned as the calls it makes through its seams
+by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves — waits
+that answer on an event, the probed port, the child killed on both paths, and the line the harness
+reads as the serve event, from which a pin reads only the port value; that the child exits at all,
+because a patch that made the child never exit hangs a pin rather than flipping what it reads, while
+a child that writes no line fails the pin through the harness; which part of the shutdown emptied
+the WAL, because a clean close checkpoints on its own; which line is the serve event and its
+wording; the order the two paths of the decision answer on, which no in-process test can read
+either; the answer belonging to the decision the path was created for, and a cancelled wait
 answering only its own wait, which bite only inside the child across two decisions; the reference's
 HTTP servers being shut down before the pool, which this port has no piece for; `SIGHUP`, which the
 reference feeds to a certificate reload and which is not ported; and the reference's log lines,
@@ -102,32 +123,32 @@ bytes it holds for a file the test writes — are pinned by `SystemFileSystemSpa
 the copy would truly need, which is the documented choice of the port rather than a fact about
 SQLite; that the check runs before the migrations, which nothing in the run answers, so the pins
 read only that it ran before the write, and not the order between the check and the destination
-rules, which no pin reads; and the wording of the reported failure. `vacuum` is not
-checked, because it rebuilds the file it already holds rather than writing a copy beside it, and
-`Vacuum` carries the filesystem it does not read so that pin can fail on a patch that reads the room
-there. The seventh slice is merged (PR #53): `--force` as the flag the `backup` run reads, pinned
-what the run replaces — the file the destination names, read as the filesystem reads the path rather
-than as a database the run can open, a directory reported rather than deleted, the flag not skipping
-the room check, a run that cannot hold the copy removing nothing, and the flag not building the
-directory the storage layer needs — 5 pins and 8 probes by `BackupForceTests`. What that header
-names as unpinnable: an empty destination file, which the flag path replaces and the no-flag path
-reuses with the same answer, the type guard's other branches, and the shape guard that reads the row
-the pin wrote after the control run, which bites only on the storage rules. No environment flag is
-ported for the account path: the reference's CLI reads the environment through its config parser,
-but the only name it reads there that resolves an account is `ADMIN_USERNAME` for `create-admin` —
-`METRICS_USERNAME` is basic auth for the metrics endpoint, not an account — and nothing there
-resolves an account for a command, so there is no read to mirror; the port's `--user` with the
-single-account fallback stays the rule. The eighth slice is merged (PR #54): `--verify` as the call
-the run makes through the `DatabaseVerifier` seam — that the run calls the seam nothing without the
-flag, that it makes the one call for the destination as the run read it and after the write, that it
-reports the failure the seam answers with and leaves the copy as written, that the flag does not
-change the room check, and that it does not build the directory the storage layer needs — 5 pins and
-9 probes by `BackupVerifyTests`, plus 4 pins and 6 probes by `SystemDatabaseVerifierTests`, which
-reads what the implementation answers for a real file: the clean answer, the problems the damaged
-copy has, the file left as the bytes the storage rule wrote, and the failure reported for a path the
-check cannot open rather than the clean answer. What those headers name as unpinnable: the problems
-of a real file, which the seam answers in place of the machine, and the connection the check opens,
-which no patch can show because the command has no other connection to read through.
+rules, which no pin reads; and the wording of the reported failure. `vacuum` is not checked, because
+it rebuilds the file it already holds rather than writing a copy beside it, and `Vacuum` carries the
+filesystem it does not read so that pin can fail on a patch that reads the room there. The seventh
+slice is merged (PR #53): `--force` as the flag the `backup` run reads, pinned what the run replaces
+— the file the destination names, read as the filesystem reads the path rather than as a database
+the run can open, a directory reported rather than deleted, the flag not skipping the room check, a
+run that cannot hold the copy removing nothing, and the flag not building the directory the storage
+layer needs — 5 pins and 8 probes by `BackupForceTests`. What that header names as unpinnable: an
+empty destination file, which the flag path replaces and the no-flag path reuses with the same
+answer, the type guard's other branches, and the shape guard that reads the row the pin wrote after
+the control run, which bites only on the storage rules. No environment flag is ported for the
+account path: the reference's CLI reads the environment through its config parser, but the only name
+it reads there that resolves an account is `ADMIN_USERNAME` for `create-admin` — `METRICS_USERNAME`
+is basic auth for the metrics endpoint, not an account — and nothing there resolves an account for a
+command, so there is no read to mirror; the port's `--user` with the single-account fallback stays
+the rule. The eighth slice is merged (PR #54): `--verify` as the call the run makes through the
+`DatabaseVerifier` seam — that the run calls the seam nothing without the flag, that it makes the
+one call for the destination as the run read it and after the write, that it reports the failure the
+seam answers with and leaves the copy as written, that the flag does not change the room check, and
+that it does not build the directory the storage layer needs — 5 pins and 9 probes by
+`BackupVerifyTests`, plus 4 pins and 6 probes by `SystemDatabaseVerifierTests`, which reads what the
+implementation answers for a real file: the clean answer, the problems the damaged copy has, the
+file left as the bytes the storage rule wrote, and the failure reported for a path the check cannot
+open rather than the clean answer. What those headers name as unpinnable: the problems of a real
+file, which the seam answers in place of the machine, and the connection the check opens, which no
+patch can show because the command has no other connection to read through.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the

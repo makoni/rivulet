@@ -250,7 +250,11 @@ public actor Fetcher {
         // are allowed up to the limit, as upstream does: its CheckRedirect counts requests rather
         // than refusing a repeated URL.
         configuration.redirectConfiguration = .disallow
-        configuration.decompression = options.decompression ? .enabled(limit: .ratio(25)) : .disabled
+        // No limit on how far a stream may expand: the reference has none, and the body cap is the
+        // only limit, counted on the bytes the decoder produced. `.none` is safe here because the
+        // accumulator applies that cap to the parts the decompression handler passes on, so a stream
+        // that inflates past the cap is refused by the cap rather than by a ratio guard.
+        configuration.decompression = options.decompression ? .enabled(limit: .none) : .disabled
         // Only the connect timeout is a separate limit: the request deadline is the one the whole
         // fetch shares, passed to `execute` per hop, the way the reference's client timeout covers
         // the whole call including redirects.
@@ -363,6 +367,13 @@ public actor Fetcher {
     /// upstream; and `error.http_client_error` needs an error that is not a `*url.Error`, which the
     /// fetch path does not produce. Rivulet therefore reports a deadline itself instead of calling
     /// it a network failure.
+    ///
+    /// A body the decoder cannot finish is one of the errors this mapping reports as a network
+    /// failure, and that is a divergence: the reference reports it as `error.http_body_read`, because
+    /// its decompression reader sits inside the body read, while here the decoder is part of the
+    /// client's pipeline, so the failure arrives through the client path. Same failure, another
+    /// category; recorded in `docs/reference-notes.md` and pinned as the category the size cap does
+    /// not own.
     private func mapError(_ error: any Error) -> FetchError {
         if let clientError = error as? HTTPClientError {
             switch clientError {

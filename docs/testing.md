@@ -964,6 +964,31 @@ migrations, which `MaintenanceCommandTests` pin for both commands; the wording o
 the reported failures; and the rules the port names rather than the reference, which has no command
 here to compare with.
 
+## Robustness (stage 7)
+
+`FetcherHostileInputTests` is the hostile body corpus for the fetcher: a stream that inflates far
+past the size it is stored in, and a stream the decoder cannot finish. The rule is which limit
+answers. The reference has the body cap, counted on the bytes the decoder produces because
+`MaxBytesReader` wraps the decompression reader, and no limit on how far a stream may expand; the
+port had a ratio guard of its own, which refused a body upstream would have read, and that guard is
+gone, so the cap is the only limit. 4 pins and 5 probes, over the stub server.
+
+`LargeFeedTests` is the reduced 10k-entry scenario the plan names, and it is what runs in the
+default CI job: the plan the schema answers for the hot unread listing, the page the query is given,
+the relevance order the FTS index answers at the corpus size, and the batch the retention pass takes
+at the documented size with the rows it leaves for the next run. 5 pins and 6 probes, two of them on
+the page pin: the page size dropped from the clause, and the order read in the direction the query
+did not ask for, which is what the head of the page asserts. The plan pin reads the text the query
+builder produces, which is internal for that reason: a pin cannot name a plan without the text the
+read runs, so it reads the builder rather than writing its own `SELECT`.
+
+The budgets the plan names are documented, not asserted, because a number this machine measured
+cannot be a pin: the corpus read path measures 1 to 4 ms, and the one pin that reads a duration
+reads a bound of 250 ms, which the probe that answers the ranked read row by row crosses by a second
+or more; the suite runs in about 1.2 s, well inside the CI job. The memory budget is the corpus rows
+plus the body the fetcher can hold, which is the 15 MiB cap the configuration reads by default; no
+pin reads memory, so the budget is a documented number.
+
 ## Soak
 
 `Scripts/soak.sh` is the stage-4 artifact the plan names: at least 2h over at least 20 local stub
@@ -1017,13 +1042,15 @@ value below what it requires; that is the whole of what they can show.
 each of its rules can fail on the rule it names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
---filter HeavyTests`.
+--filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the
+default job, and it is not gated.
 - A few storage tests need at least two event loops (one pooled connection per loop); they
 `Test.cancel` on single-loop runners. CI runners always expose ≥2 event loops.
 
 CI runs on Linux: `ubuntu-latest` with the `swift:latest` container and a 15-minute job timeout.
-Keep the default suite well under that. Stage 7 adds a cheap CI slice (reduced hostile corpus +
-reduced large-feed smoke); the full parity harness runs on demand via `Scripts/parity.sh`.
+Keep the default suite well under that. Stage 7's cheap CI slice is in the default job — the reduced
+hostile corpus and the reduced large-feed scenario, both ungated — and the full parity harness runs
+on demand via `Scripts/parity.sh`.
 
 ## Framework
 
