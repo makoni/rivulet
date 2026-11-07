@@ -53,7 +53,7 @@ read counts as nothing; and the check runs at the start of the run, before anyth
 beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
 read, so that pin can fail on a patch that reads the room there.
 
-- - The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
+- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
 and the suite header: without the flag a destination that already holds something is refused and
 left as it was, and with the flag the file the destination names is replaced by the snapshot at the
 run, read as the filesystem reads the path rather than as a database the run can open, while a path
@@ -196,7 +196,7 @@ the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSyste
 `FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
 `Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` was 472 then, under
 the cap.
-With PR #53 the files are `BackupForceTests.swift` 247, `Support/CommandRun.swift` 29,
+With PR #53 the files are `BackupForceTests.swift` 248, `Support/CommandRun.swift` 29,
 `Support/DatabaseContent.swift` 36 and `MaintenanceCommandTests.swift` 407, after the two
 helpers moved out of it and the unused imports came out of them.
 - The account rule is the port's own: `--user` with the single-account fallback, and no

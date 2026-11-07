@@ -118,17 +118,6 @@ but the only name it reads there that resolves an account is `ADMIN_USERNAME` fo
 `METRICS_USERNAME` is basic auth for the metrics endpoint, not an account — and nothing there
 resolves an account for a command, so there is no read to mirror; the port's `--user` with the
 single-account fallback stays the rule. The `--verify` flag follows.
-as what the run replaces — the file the destination names, read as the filesystem reads the path
-rather than as a database the run can open, a directory reported rather than deleted, the flag not
-skipping the room check, a run that cannot hold the copy removing nothing, and the flag not building
-the directory the storage layer needs — 5 pins and 6 probes by `BackupForceTests`. What that header
-names as unpinnable: an empty destination file, which the flag path replaces and the no-flag path
-reuses with the same answer, the type guard's other branches, and the branch where the destination's
-existence cannot be read. No environment flag is ported for the account path: the reference's CLI
-reads the environment through its config parser, but the only account it reads from there is the one
-`create-admin` takes from `ADMIN_USERNAME`, and nothing there resolves an account for a command, so
-there is no read to mirror; the port's `--user` with the single-account fallback stays the rule. The
-`--verify` flag follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
