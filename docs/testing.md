@@ -72,8 +72,16 @@ read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
 the in-process console against the file the pin names and answers the outcome the pins read. The
 filesystem the run reads is the seam the pin names, because the room of the machine this process
 runs on is not something a pin can name; the default answers enough room for anything, so the pins
-that do not read the free-space check answer as they did before it. It moved out of
-`MaintenanceCommandTests` with PR #53, when a second suite started reading it.
+that do not read the free-space check answer as they did before it. The database the copy check
+reads is the seam the pin names for the same reason, because the problems a real file has cannot be
+named by a pin, so the default answers a clean check and the pins that do not read the verify step
+answer as they did before it. It moved out of `MaintenanceCommandTests` with PR #53, when a second
+suite started reading it.
+- `RecordingVerifier.swift` — the `DatabaseVerifier` seam the verify pins drive: answers the
+problems the pin names and records the calls the run made through it, with whether the file was
+already there at the call, which is how a pin reads the check as running after the write rather
+than before it. The recording is a read the helper makes on the filesystem itself, not a rule the
+check applies, so a pin that reads the check as not running answers a control that does run it.
 
 - `DatabaseContent.swift` — the content read the command suites share: the tables a file holds and
 one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
