@@ -2,7 +2,6 @@ import Foundation
 import Testing
 @testable import RivuletCore
 
-
 /// `rivulet backup` and `rivulet vacuum` as runs through the in-process console over a temp
 /// database: where the copy lands, what it holds, and what the run leaves on the filesystem.
 ///

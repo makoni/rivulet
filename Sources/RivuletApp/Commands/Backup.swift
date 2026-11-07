@@ -90,10 +90,11 @@ extension RivuletCLI {
         /// Replaces the file the destination names, which is what a run without `--force` refuses.
         ///
         /// The path is read as the filesystem reads it, so the run replaces a file and nothing
-        /// else: a directory at the destination is reported rather than deleted, and a path whose
-        /// attributes cannot be read is not read as a file, so nothing is removed there. An empty
-        /// file is replaced here and reused without the flag, which leaves the same file with the
-        /// same content either way, so no pin can tell the two apart.
+        /// else: a directory at the destination is reported rather than deleted, a path whose
+        /// attributes cannot be read is not read as a file, so nothing is removed there, and a
+        /// symlink reads as the type its target has, so the link itself is removed. An empty file
+        /// is replaced here and reused without the flag, which leaves the same path with the same
+        /// content either way, so no pin tells the two apart.
         private static func replaceDestination(at path: String) throws {
             let attributes = try? FileManager.default.attributesOfItem(atPath: path)
             if attributes?[.type] as? FileAttributeType == .typeRegular {

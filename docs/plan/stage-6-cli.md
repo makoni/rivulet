@@ -53,16 +53,16 @@ read counts as nothing; and the check runs at the start of the run, before anyth
 beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
 read, so that pin can fail on a patch that reads the room there.
 
-- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
+- - The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
 and the suite header: without the flag a destination that already holds something is refused and
 left as it was, and with the flag the file the destination names is replaced by the snapshot at the
 run, read as the filesystem reads the path rather than as a database the run can open, while a path
 that is a directory is reported rather than deleted; the flag does not skip the room check, a run
 that cannot hold the copy removes nothing, and the flag does not build the directory the storage
-layer needs. Pinned by `BackupForceTests`: 5 pins and 6 probes, with what no patch can flip named in
+layer needs. Pinned by `BackupForceTests`: 5 pins and 8 probes, with what no patch can flip named in
 the header — an empty destination file, which the flag path replaces and the no-flag path reuses
-with the same answer, the type guard's other branches, and the branch where the destination's
-existence cannot be read.
+with the same answer, the type guard's other branches, the shape guard that reads the row the pin
+wrote after the control run, and the branch where the destination's existence cannot be read.
 
 ## Implementation notes
 
@@ -89,15 +89,16 @@ cannot read, and the bytes it holds for a file the test writes — are pinned by
 `SystemFileSystemSpaceTests`, which both headers name. The `--force` flag is pinned by
 `BackupForceTests` as what the run replaces, read as the filesystem reads the destination rather
 than as a database the run can open. The two helpers the command suites share moved to `Support/`
-with PR #53, which is the second suite reading them: `CommandRun.swift`, which runs one command with
-the seam the pin names, and `DatabaseContent.swift`, which reads a file through its own driver. The
-in-process cadence loop is pinned as the calls the loop makes through its seam by `CadenceLoopTests`
-(PR #50): the wait before the first read, the interval every wait is given, one read per wait, the
-instant each read answers, the reported failing read with the loop going on, the empty read reported
-as nothing, nothing read after the seam answers stop, and the jobs of a tick before the next read.
-The real seam sleeps, so its decisions are read through test seams that name the interval as zero
-(`SystemCadenceTests`) and the real signal path is read only by the process-level harness, where the
-wiring that starts the loop for `serve` is read too.
+with PR #53, which is the second suite reading the run helper and the third reading the content
+read: `CommandRun.swift`, which runs one command with the seam the pin names, and
+`DatabaseContent.swift`, which reads a file through its own driver. The in-process cadence loop is
+pinned as the calls the loop makes through its seam by `CadenceLoopTests` (PR #50): the wait before
+the first read, the interval every wait is given, one read per wait, the instant each read answers,
+the reported failing read with the loop going on, the empty read reported as nothing, nothing read
+after the seam answers stop, and the jobs of a tick before the next read. The real seam sleeps, so
+its decisions are read through test seams that name the interval as zero (`SystemCadenceTests`) and
+the real signal path is read only by the process-level harness, where the wiring that starts the
+loop for `serve` is read too.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
 - Process-level (`ServeProcessTests`, PR #51): the built binary answers `/healthz` on the port the
 argument names, read as the port the serve event reports; SIGTERM exits with 0, which is the
@@ -195,15 +196,16 @@ the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSyste
 `FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
 `Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` was 472 then, under
 the cap.
-With PR #53 the files are `BackupForceTests.swift` 235, `Support/CommandRun.swift` 31,
-`Support/DatabaseContent.swift` 37 and `MaintenanceCommandTests.swift` 408, after the two helpers
-moved out of it.
+With PR #53 the files are `BackupForceTests.swift` 247, `Support/CommandRun.swift` 29,
+`Support/DatabaseContent.swift` 36 and `MaintenanceCommandTests.swift` 407, after the two
+helpers moved out of it and the unused imports came out of them.
 - The account rule is the port's own: `--user` with the single-account fallback, and no
 environment flag for the environment path, which the flag polish closes: the reference's CLI reads
-the environment through its config parser (`internal/cli/cli.go`), but the only account name it
-reads from there is the one `create-admin` takes from `ADMIN_USERNAME`, and no read resolves an
-account for a command, so there is nothing to mirror. The `LIST_USER` and `ADD_USER` names the
-earlier plan imagined are not ported, and nothing the pins read changes.
+the environment through its config parser (`internal/cli/cli.go`), but the only name it reads there
+that resolves an account is the one `create-admin` takes from `ADMIN_USERNAME` — `METRICS_USERNAME`
+is basic auth for the metrics endpoint, not an account — and no read resolves an account for a
+command, so there is nothing to mirror. The `LIST_USER` and `ADD_USER` names the earlier plan
+imagined are not ported, and nothing the pins read changes.
 - Width: `ClientAuthTests.swift:18` and `EntryQueryTests.swift:11` read 101 characters. They
 predate PR #53 and are not files this slice touches, so they stay as they are, as do the older
 suites under `Tests/RivuletCoreTests/`, where the width rule was applied slice by slice rather than

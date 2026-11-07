@@ -79,7 +79,8 @@ that do not read the free-space check answer as they did before it. It moved out
 one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
 is testing. `content(at:on:as:)` reads a file through its own driver, which is what the copy pins
 need, because the copy is not the connection the test seeded with. It moved out of
-`MaintenanceCommandTests` with PR #53, which is the second suite reading it.
+`MaintenanceCommandTests` with PR #53, the third suite reading the content read after
+`MaintenanceTests` and `MaintenanceCommandTests` themselves, which read it at different levels.
 
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
 status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the head
@@ -922,7 +923,14 @@ the destination rules; and the wording of the reported failure.
 ### The `--force` flag the `backup` run reads (`BackupForceTests`, PR #53)
 
 The flag is the port's own: the reference has no `backup` command, so there is nothing upstream to
-compare with. 5 pins and 6 probes, one per rule, each showing its pin failing on the rule it names.
+The flag is the port's own: the reference has no `backup` command, so there is nothing upstream to
+compare with. 5 pins and 8 probes, one per rule, each showing its pin failing on the rule it names.
+The rule is one: without the flag a destination that already holds something is refused and left as
+it was, and with the flag the file the destination names is replaced by the snapshot the run writes,
+read as the filesystem reads the path rather than as a database the run can open, while a path that
+is a directory is reported rather than deleted. The flag does not skip the room check, a run that
+cannot hold the copy removes nothing, and the flag does not build the directory the storage layer
+needs.
 The rule is one: without the flag a destination that already holds something is refused and left as
 it was, and with the flag the file the destination names is replaced by the snapshot the run writes,
 read as the filesystem reads the path rather than as a database the run can open, while a path that
@@ -931,7 +939,17 @@ cannot hold the copy removes nothing, and the flag does not build the directory 
 needs.
 
 What the pins can fail on, each with a probe that patches the rule and reverts byte-identically,
+What the pins can fail on, each with a probe that patches the rule and reverts byte-identically,
 named by what it flips: the flag read as absent, which refused the pins reading a replacement and
+the controls reading a run with room or a file replaced; the destination read as a database the run
+can open, which refused the pin naming bytes and the two controls reading bytes replaced; the room
+check skipped on the force path, which wrote a copy over the bytes the no-room pin named; the
+destination removed before the check, which left no bytes for that pin to read; the removal taking
+whatever the path is rather than a file, which deleted the directory the pin that names a directory
+as the destination built; the directory built on the force path, which answered the pin reading
+nothing created with a copy; the write skipped on the force path, which left nothing for the copy
+reads that show the controls writing; and the flag read as always on, which replaced the bytes the
+no-flag control reads and is the only patch that can flip that control.
 the controls reading a run with room or a file replaced; the destination read as a database the run
 can open, which refused the pin naming bytes and the two controls reading bytes replaced; the room
 check skipped on the force path, which wrote a copy over the bytes the no-room pin named; the
@@ -940,7 +958,19 @@ whatever the path is rather than a file, which deleted the directory the pin tha
 directory as the destination built; and the
 directory built on the force path, which answered the pin reading nothing created with a copy.
 
-What the header names as unpinnable: an empty destination file, which the flag path replaces and
+What the header names as unpinnable: an empty destination file, which the flag path replaces and the
+no-flag path reuses, both answers leaving the same path with the same content; the type guard's
+other branches — a path read as something other than a regular file, one whose attributes cannot be
+read, and a symlink, which reads as the type its target has so the link itself is removed — which no
+path a pin builds answers; the shape guard that reads the row the pin wrote after the control run,
+which no patch of the command flips and which bites only on the storage rules `MaintenanceTests`
+pins; the order the removal and the migrations run in, which nothing in the run answers; the order
+between the room check and the destination rule on the no-flag path, which no pin reads — what a pin
+reads is that the check ran before anything was removed, written or read; the numbers a real
+filesystem reports, which the seam answers in place of the machine; the flag that gates the
+migrations, which `MaintenanceCommandTests` pin for both commands; the wording of the lines and of
+the reported failures; and the rules the port names rather than the reference, which has no command
+here to compare with.
 the no-flag path reuses, both answers leaving the same file with the same content; the type guard's
 other branches — a path read as something other than a regular file, and one whose attributes cannot
 be read — which no path a pin builds answers; the order the removal and the migrations run in, which

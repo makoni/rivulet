@@ -10,36 +10,41 @@ import Testing
 /// destination that already holds something: without the flag it is refused and left as it was —
 /// the rule `MaintenanceCommandTests` pin — and with the flag the file the destination names is
 /// replaced by the snapshot the run writes, read as the filesystem reads the path rather than as a
-/// database the run can open, and a path that is a directory is reported rather than deleted. The
+/// database the run can open, while a path that is a directory is reported rather than deleted. The
 /// flag does not change the room check, does not let a run that cannot write remove anything, and
 /// does not build the directory the storage layer needs.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
-/// with each probe named by what it flips — six probes for five pins: the flag read as absent,
+/// with each probe named by what it flips — eight probes for five pins: the flag read as absent,
 /// which refused the pins reading a replacement and the controls reading a run with room or a file
 /// replaced; the destination read as a database the run can open, which refused the pin naming
 /// bytes and the two controls reading bytes replaced; the room check skipped on the force path,
 /// which wrote a copy over the bytes the no-room pin named; the destination removed before the
 /// check, which left no bytes for that pin to read; the removal taking whatever the path is rather
 /// than a file, which deleted the directory the pin that names a directory as the destination
-/// built; and the directory built on the
-/// force path, which answered the pin reading nothing created with a copy.
+/// built; the directory built on the force path, which answered the pin reading nothing created
+/// with a copy; the write skipped on the force path, which left nothing for the copy reads that
+/// show the controls writing; and the flag read as always on, which replaced the bytes the no-flag
+/// control reads and is the only patch that can flip that control.
 ///
 /// What these pins cannot fail on: an empty destination file, which the flag path replaces and the
-/// no-flag path reuses, because both answers leave the same file with the same content, and reuse
+/// no-flag path reuses, because both answers leave the same path with the same content, and reuse
 /// is named as unpinnable by `MaintenanceCommandTests`; the type guard's other branches — a path
 /// read as something other than a regular file, and one whose attributes cannot be read — which no
-/// path this pin builds answers; the order the removal of the destination and the migrations run
-/// in, which nothing in the run answers; the order between the room check and the destination rule
-/// on the no-flag path, which no pin reads — what the pins read is that the check ran before
-/// anything was removed or written, which the pin naming no room can fail on because the bytes the
-/// pin wrote are still there; the numbers a real filesystem reports, which the seam answers in
-/// place of the machine, so the room it answers is never read here; the size of the main file
-/// before the run, because the checkpoint at the end of the run moves the rows from the WAL into
-/// it; the flag that gates the migrations, which `MaintenanceCommandTests` pin for both commands;
-/// the copy being a plain file with no `-wal` beside it; the wording of the lines and of the
-/// reported failures; that these commands fetch nothing and sleep nothing; and the rules the port
-/// names rather than the reference, which has no command here to compare with.
+/// path this pin builds answers, and a symlink at the destination, which reads as the type its
+/// target has, so the link itself is what the guard removes; the shape guard that reads the row the
+/// pin wrote after the control run, which no patch of the command flips and which bites only on the
+/// storage rules `MaintenanceTests` pins, as the same class is named there; the order the removal
+/// of the destination and the migrations run in, which nothing in the run answers; the order
+/// between the room check and the destination rule on the no-flag path, which no pin reads — what a
+/// pin reads is that the check ran before anything was removed, written or read; the numbers a real
+/// filesystem reports, which the seam answers in place of the machine, so the room it answers is
+/// never read here; the size of the main file before the run, because the checkpoint at the end of
+/// the run moves the rows from the WAL into it; the flag that gates the migrations, which
+/// `MaintenanceCommandTests` pin for both commands; the copy being a plain file with no `-wal`
+/// beside it; the wording of the lines and of the reported failures; that these commands fetch
+/// nothing and sleep nothing; and the rules the port names rather than the reference, which has no
+/// command here to compare with.
 @Suite struct BackupForceTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -125,7 +130,11 @@ import Testing
 
             let previous = database.directory.appendingPathComponent("previous.db").path
             let control = try await runCommand(databasePath: database.path, arguments: ["backup", previous])
-            #expect(!control.failed, "the control run writes the copy: \(control.output)")
+            #expect(!control.failed, "the control run did not fail: \(control.output)")
+
+            // The write is not read by the line above, which reads only the run's answer; the copy
+            // read here is what shows it, because a patch that skipped the write left no file for
+            // this read to open.
             let first = try await content(at: previous, on: database, as: "first")
 
             // One row written after the control run: a run that replaces the destination carries
@@ -203,10 +212,11 @@ import Testing
 
     @Test func theForceFlagDoesNotBuildTheDirectoryTheStorageLayerNeeds() async throws {
         try await withMigratedStorage { database, storage in
-            try await storage.withConnection { connection in
+            let atTheRun = try await storage.withConnection { connection in
                 let feed = try await seedFeed(connection)
                 _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
                     hash: "no-parent", content: "<p>Row for the run with no parent directory</p>")
+                return try await content(on: connection)
             }
 
             // The port does not build the directory the storage layer needs, with the flag or
@@ -222,14 +232,17 @@ import Testing
             #expect(!FileManager.default.fileExists(
                 atPath: (missing as NSString).deletingLastPathComponent), "no directory was created")
 
-            // The control on the same file: with the directory the pin built, the run with the flag
-            // writes the copy, so the readings above are the rule and not a command that writes
-            // nothing.
+            // The control on the same shape as a file: with the directory the pin built, the run
+            // with the flag answers it, and the copy read after the run is what shows the write, so
+            // the readings above are the rule and not a command that writes nothing.
             let parent = database.directory.appendingPathComponent("built-dir")
             try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
             let control = try await runCommand(databasePath: database.path,
                 arguments: ["backup", "--force", parent.appendingPathComponent("force.db").path])
-            #expect(!control.failed, "the control run writes the copy: \(control.output)")
+            #expect(!control.failed, "the control run on the same shape as a file did not fail: \(control.output)")
+            let copy = try await content(at: parent.appendingPathComponent("force.db").path,
+                on: database, as: "control")
+            #expect(copy == atTheRun, "the control run wrote the copy: \(copy)")
         }
     }
 }

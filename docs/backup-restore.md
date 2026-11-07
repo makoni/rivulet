@@ -28,8 +28,8 @@ Rules SQLite enforces for the destination:
   `file is not a database`; with `--force` the run removes what is there first, so SQLite writes
   to a path it does not find rather than one it found;
 - an existing empty file is reused, which is what `--force` does to it too: the run removes it and
-writes a new one, and both answers leave the same file with the same content, so no pin can tell the
-two.
+writes a new one, so both answers leave the same path with the same content — a different file, the
+same rows — and no pin can tell the two apart.
 
 Free space: budget about twice the database size. The snapshot is a complete copy written next to
 the source, and keeping the previous backup while the new one is written doubles that space.
