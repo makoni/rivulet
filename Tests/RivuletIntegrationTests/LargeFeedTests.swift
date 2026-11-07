@@ -6,15 +6,14 @@ import Testing
 /// budgets the suite documents. Four of the five pins read something countable — the plan the
 /// schema answers, the page the query is given, the relevance order the FTS index answers, and the
 /// batch the retention pass takes — so those pins cannot fail because one machine was slower than
-/// another. The fifth pin reads a wall-clock bound, which is the machine's number and not a rule,
-/// and it is the only pin this suite can fail on a slow runner.
+/// another. The fifth pin reads a wall-clock bound, which is the machine's number and not a rule.
 ///
 /// `HeavyTests` is the opt-in 100k corpus gated on `RIVULET_HEAVY`; this suite is the reduced
 /// version that runs in the default CI job, so it is not gated and stays well inside the job's
-/// time. On this machine the corpus read path measures 1 to 4 ms and the suite about 2 s; the bound
-/// the timed pin reads is 250 ms, so the pin is not the measured time but the distance a wrong
-/// implementation has to cross. The memory budget `docs/testing.md` documents is not read by any
-/// pin, because nothing here can name the memory a process holds.
+/// time. On this machine the corpus read path measures 1 to 4 ms and the suite about 1.2 s; the
+/// bound the timed pin reads is 250 ms, so the pin is not the measured time but the distance a
+/// wrong implementation has to cross. The memory budget `docs/testing.md` documents is not read by
+/// any pin, because nothing here can name the memory a process holds.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
 /// with each probe named by what it flips — six probes for five pins: the owner read through an
@@ -38,6 +37,7 @@ import Testing
 /// the transaction boundary — which this suite reads only as the batch at the documented size; the
 /// wording of the reported failures; and the rules the port names rather than the reference, whose
 /// storage layer is Postgres and has no index of this shape.
+
 @Suite struct LargeFeedTests {
     private let feeds = 100
     private let entries = 10_000

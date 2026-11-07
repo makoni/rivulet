@@ -985,7 +985,7 @@ read runs, so it reads the builder rather than writing its own `SELECT`.
 The budgets the plan names are documented, not asserted, because a number this machine measured
 cannot be a pin: the corpus read path measures 1 to 4 ms, and the one pin that reads a duration
 reads a bound of 250 ms, which the probe that answers the ranked read row by row crosses by a second
-or more; the suite runs in about 2 s, well inside the CI job. The memory budget is the corpus rows
+or more; the suite runs in about 1.2 s, well inside the CI job. The memory budget is the corpus rows
 plus the body the fetcher can hold, which is the 15 MiB cap the configuration reads by default; no
 pin reads memory, so the budget is a documented number.
 
