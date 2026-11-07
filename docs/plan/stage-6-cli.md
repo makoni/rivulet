@@ -232,10 +232,11 @@ helpers moved out of it and the unused imports came out of them. With PR #54 the
 `BackupVerifyTests.swift` 238, `SystemDatabaseVerifierTests.swift` 136,
 `Support/RecordingVerifier.swift` 48, `Storage/SystemDatabaseVerifier.swift` 53,
 `Storage/DatabaseVerifier.swift` 14 and `Commands/Backup.swift` 124 — all under the size aim, so
-nothing needs a split.
+nothing needs a split. The single-expression code lines that read over the width in the new files
 are the ones the wrapping rule exempts: the `#expect` calls with the comment argument, the
 `databases.database(...)` call with the logger and the event loop, the `help` string, and the
-`problems` read that names the flag, the seam and the path in one expression.
+`problems` read that names the flag, the seam and the path in one expression. One pin name was
+shortened to the width, because a declaration line is not an expression the rule exempts.
 - The check reads the copy through FluentKit's `Databases` container, because these package versions
 do not answer a `Database` for one path any other way: `SQLDatabase.fluent(.sqlite(.file(path)))`
 does not exist, and `fluent(_:)` is Cache and Sessions. The container is closed before the answer
