@@ -758,14 +758,21 @@ Semantics:
     — the difference is the mechanism, not the property.
   - The body cap is enforced by AsyncHTTPClient's response accumulator, which counts the
     decompressed body — the same thing the reference's `MaxBytesReader` counts when it wraps the
-    decompression reader, so only the mechanism differs.
+    decompression reader, so only the mechanism differs. The cap is the only limit the fetcher
+    applies to a body: there is no guard on how far a compressed stream may expand, because
+    upstream has none, and the port had one (`limit: .ratio(25)`) that refused a body upstream
+    would have read. It is removed, and the pins that read the cap counting the bytes the decoder
+    produced are `Tests/RivuletIntegrationTests/FetcherHostileInputTests.swift`.
+  - A body the decoder cannot finish is reported through the network category, where the reference
+    reports `error.http_body_read`: the reference's decompression reader sits inside the body read,
+    while here the decoder is part of the client's pipeline, so the failure arrives through the
+    client path and the mapping has no category for it. Same failure, another category, pinned as
+    the category the size cap does not own.
   - `Accept-Encoding: gzip` only (AsyncHTTPClient decompresses gzip and deflate, not brotli); no
     `Connection: close` because Rivulet keeps a connection pool; the advertised user agent is
     Rivulet's own. Brotli, TLS-error tolerance and HTTP/2 toggles are deferred. The pool runs on
     AsyncHTTPClient's defaults (60 s idle, 8 connections per host), not the reference's
-    `MaxIdleConns: 50` / `IdleConnTimeout: 10s` (90 s is Go's default, not what Miniflux sets); the
-    decompression-bomb guard (`limit: .ratio(25)`) is a Rivulet addition, since upstream relies on
-    the body cap alone.
+    `MaxIdleConns: 50` / `IdleConnTimeout: 10s` (90 s is Go's default, not what Miniflux sets).
   - Every direct redirect hop is validated: the fetcher follows redirects itself, one request per
     hop, so the address policy runs on each direct hop the way the reference's dialer `Control`
     does, and the exception is the same — the dial to an explicitly configured proxy is not checked.

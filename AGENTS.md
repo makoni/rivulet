@@ -15,7 +15,29 @@ work (`docs/plan/stage-N-*.md`). 3. `docs/reference-notes.md` — verified Minif
 (scheduling, auth, endpoints, retention). Re-check the clone when in doubt. 4.
 `docs/architecture.md` and `docs/testing.md`.
 
-Current focus: **Stage 6 — CLI & operations**, with its first slice merged: the feed commands `add`,
+Current focus: **Stage 7 — Acceptance & hardening**, with its first slice opens as PR #55: the
+hostile bodies the fetcher cannot read as written — a stream that inflates far past the size it is
+stored in, and a stream the decoder cannot finish — read as which limit answers. The body cap,
+counted on the bytes the decoder produces as the reference's `MaxBytesReader` counts them, is the
+only limit, because the ratio guard the port had of its own refused a body upstream would have read;
+and the reduced 10k-entry scenario, pinned as the plan the schema answers for the hot unread
+listing, the page the query is given, the relevance order the FTS index answers at the corpus size,
+the batch the retention pass takes with the rows it leaves for the next run, and one wall-clock
+bound the read path stays inside — 4 pins and 5 probes by `FetcherHostileInputTests`, 5 pins and 5
+probes by `LargeFeedTests`, which is the reduced scenario the default CI job runs rather than the
+gated 100k corpus. What those headers name as unpinnable: which parts the accumulator is given,
+because no patch can change what the pipeline hands it, so the cap rule is read through the guard
+being absent; the fixture encoder, checked against `gunzip` by hand; the memory budget, documented
+because no pin reads memory; the numbers of another machine, which the timed pin reads as a bound
+rather than as a measurement; the plan the planner chooses for a corpus of a different size; and the
+category the reference gives a body it cannot inflate, which is the port's divergence recorded in
+`docs/reference-notes.md`. The parity harness and the client matrix follow, and the parity harness
+cannot run on this machine because the Docker daemon is not reachable.
+
+Stage 6 is in progress with its eight slices merged; one exit criterion is still open, the
+deployment runbook, which is stage 8's.
+
+**Stage 6 — CLI & operations** is in progress with its first slice merged: the feed commands `add`,
 `remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
 the duplicate read, then the category read — the url written as the command read it, the category
 resolved from the named title or from the default, the account resolved from `--user` or from the

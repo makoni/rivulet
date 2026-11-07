@@ -145,7 +145,11 @@ extension EntryRepository {
     /// FTS relation for search (`internal/storage/entry_query_builder.go`);
     /// the same shape works in SQLite. `paginate` adds the ordering, `LIMIT`
     /// and `OFFSET`; `count` leaves them out.
-    private static func selectSQL(
+    ///
+    /// Internal, so the plan pin reads the text this builder produces instead of
+    /// writing its own `SELECT`: the plan is read on the text the read runs, so a
+    /// patch that changes what the builder writes changes the plan the pin reads.
+    static func selectSQL(
         _ query: EntryQuery,
         columns: SQLQueryString,
         paginate: Bool
