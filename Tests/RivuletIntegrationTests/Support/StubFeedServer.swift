@@ -28,6 +28,10 @@ final class StubFeedServer: Sendable {
         var cutConnection = false
         /// Answer without `Content-Length`, which makes the transfer chunked.
         var chunked = false
+        /// Response headers written as ordered pairs, so one name can appear twice: `headers` is a
+        /// dictionary, so it cannot hold two values for the same name, and the order the wire
+        /// carries is what the tests that read a repeated name depend on.
+        var headerPairs: [(String, String)] = []
     }
 
     /// A request the server received.
@@ -200,6 +204,11 @@ final class StubFeedServer: Sendable {
                 status: HTTPResponseStatus(statusCode: behavior.status)
             )
             for (name, value) in behavior.headers {
+                head.headers.add(name: name, value: value)
+            }
+            // The pairs are written after the dictionary, so a test that depends on the order the
+            // wire carries uses only the pairs and not both at once.
+            for (name, value) in behavior.headerPairs {
                 head.headers.add(name: name, value: value)
             }
 

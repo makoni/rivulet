@@ -31,8 +31,27 @@ being absent; the fixture encoder, checked against `gunzip` by hand; the memory 
 because no pin reads memory; the numbers of another machine, which the timed pin reads as a bound
 rather than as a measurement; the plan the planner chooses for a corpus of a different size; and the
 category the reference gives a body it cannot inflate, which is the port's divergence recorded in
-`docs/reference-notes.md`. The parity harness and the client matrix follow, and the parity harness
-cannot run on this machine because the Docker daemon is not reachable.
+`docs/reference-notes.md`. The second slice is the security checklist, which opens as PR #56:
+`docs/security.md` names for each of its sub-items — SSRF, the size and time caps, the auth
+behavior, the sanitizer bypass surface, and the dependency audit — what the rule is, where the port
+reads it, which test can fail on it, and what no test can show. 8 pins and 7 probes: the response
+name that appears twice keeps the first value, as the reference's `Header.Get` reads it, which is
+the finding closed in production code, with the same name written two ways counting as one name and
+the first `Location` being the hop taken; the address policy running on the hop that took its client
+from the cache, read as the seam's call count, because no answer on that hop can be refused through
+the stub; the client cache staying at its cap after a checkout that goes over it, and the entry the
+trim closes being the one whose expiry comes first, both read through an internal accessor, because
+closing a client changes nothing a fetch can answer; the sign `strconv.Atoi` reads as part of the
+number, so `width="+10"` is kept; and the entity table membership the sanitizer's scheme check reads
+through, because the check runs on the decoded value. What the pass could not pin is documented
+rather than asserted: the connect timeout as a limit of its own, which needs a client-creation seam
+the plan does not have; the header-block size, which this port reads no limit of its own for
+and which the reference caps only on the server side; the timing form of the constant-time
+token compare; the NUL byte in a password, which the dependency measures with `strlen` and which
+`docs/parity.md` records; and the header value of a hop that is not the last one, which `fetch` does
+not return. The dependency audit found no advisory that affects a pin. The parity harness and the
+client matrix follow, and the parity harness cannot run on this machine because the Docker daemon is
+not reachable.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

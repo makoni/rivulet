@@ -14,11 +14,13 @@ a CLI-first interface and no web UI.
 | [Testing strategy](testing.md) | Unit, fixture, integration and acceptance testing; TDD workflow |
 | [Reference notes](reference-notes.md) | Verified Miniflux v2.3.3 behavior condensed for the plan |
 | [Parity notes](parity.md) | Where Rivulet knowingly differs from Miniflux, and why |
+| [Security checklist](security.md) | SSRF, size and time caps, auth behavior, sanitizer bypass, dependency audit: what is pinned, what cannot be |
 | [AGENTS.md](../AGENTS.md) | Working agreement for AI agents and contributors (TDD-first) |
 
 Planned documents (created by the stages that need them): `clients.md` (stage 7),
-`deploy.md` (stage 8). `parity.md` was created in stage 3 and grows with the later stages. API
-documentation and tutorials are built with DocC and published later (stage 8).
+`deploy.md` (stage 8). `security.md` is stage 7's checklist and `parity.md` was created in stage 3;
+both grow with the later stages. API documentation and tutorials are built with DocC and published
+later (stage 8).
 
 ## Plan at a glance
 

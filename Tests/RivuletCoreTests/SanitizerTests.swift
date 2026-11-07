@@ -9,6 +9,15 @@ import Testing
 /// `<body>` before parsing, which the sanitizer does too, so a case that depends on the tree shape
 /// — the implicit `p` close, a `td` outside a table, the depth limit — is a tree pin as much as a
 /// rule pin.
+///
+/// The case the security checklist adds pins the sign as `strconv.Atoi` reads it, which the
+/// reference's own corpus has no case for — 1 pin and 1 probe, shown by patching
+/// `isPositiveInteger` to refuse a leading plus and reverting byte-identically. What that pin
+/// cannot show: the number itself, because the rule is only that the sign belongs to the value, so
+/// any positive value the parse accepts answers the same; the error branch of `Atoi`, which this
+/// suite's own `TestImgSanitization` cases pin through `10px` rather than the corpus, which has no
+/// case the parse cannot read; and the reference's reading of the sign, which was verified by
+/// running the reference on the toolchain `docs/testing.md` records, not by patching this port.
 @Suite struct SanitizerTests {
     private let options = SanitizerOptions(openLinksInNewTab: true)
 
@@ -110,6 +119,18 @@ import Testing
             #"<img src="https://example.org/image.png" loading="lazy">"#
         ),
     ]) func imgRule(input: String, expected: String) {
+        #expect(sanitize(input) == expected)
+    }
+
+    /// Traced against the reference, which has no case for the plus form: `isPositiveInteger` is
+    /// `strconv.Atoi`, and `Atoi` reads a leading plus as part of the number, so `+10` is a
+    /// positive integer and the attribute is kept. The output below is the reference's own,
+    /// produced by running Miniflux v2.3.3 at commit `c4d54f87` on Go 1.26.0 through the method
+    /// `docs/testing.md` records.
+    @Test func aWidthWithAnExplicitPlusIsAPositiveInteger() {
+        let input = #"<img src="https://example.org/image.png" width="+10" height="20">"#
+        let expected =
+            #"<img src="https://example.org/image.png" width="+10" height="20" loading="lazy">"#
         #expect(sanitize(input) == expected)
     }
 

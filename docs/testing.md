@@ -138,7 +138,7 @@ else that matters — one lookup for a direct hop, the answer handed to the poli
 pinned to the answer it was built from — is tested through the resolver seam, with a seeded resolver
 for the pinning and a counting one for the single lookup.
 
-The cache has two behaviour tests. The first pins the one effect that can be observed from outside
+The cache has four behaviour tests. The first pins the one effect that can be observed from outside
 an eviction: while a request is in flight the client serving it must not be closed, or that request
 is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
 the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
@@ -146,17 +146,23 @@ test at a known point without a sleep, and the body is held long enough for the 
 which the test states. The second asserts what `shutdown()` can be observed to do: a second call
 finds nothing to close, and the next fetch builds a client again. The recovery assertion carries the
 weight, but the second call is not worthless either — an implementation that left closed entries in
-the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. That a call overlapping the first
-cannot close the same client twice follows from taking the entries out before the first await; it
-cannot be reproduced without a client-creation seam the plan does not have, so it is documented
+the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. The third and the fourth read the
+trim through an internal accessor, which is the only place the trim is visible, because closing a
+client changes nothing a fetch can answer: the next request for that host builds a client again and
+gets the same response. They pin the cache staying at the cap after a checkout that goes over it,
+and the entry the trim closes being the one whose expiry comes first — 2 pins and 2 probes, which
+the security-checklist section below lists with the rest of this pass. That a call overlapping the
+first cannot close the same client twice follows from taking the entries out before the first await;
+it cannot be reproduced without a client-creation seam the plan does not have, so it is documented
 rather than tested. Everything else about the cache is not observable from outside when two hosts
 are answered by the same address: what is asserted is the key, because the guarantee that a pin is
 never reused for another host or a proxied request rests on it; the TTL clock is monotonic so an NTP
 step cannot stretch or shrink it, and eviction is by expiry among idle entries, not by use, which
-the code states plainly. A client in use is never pruned; `shutdown()` closes every client
-regardless of use, so calling it when no `fetch` is in flight is a caller's contract and the suite
-does not assert the failure a shutdown during a fetch causes — that is a misuse, not a supported
-path.
+the code states plainly and the trim pin reads through the accessor, on the input where every entry
+is idle so the earliest expiry is also the first created — an LRU could not be told apart there,
+which the header names. A client in use is never pruned; `shutdown()` closes every client regardless
+of use, so calling it when no `fetch` is in flight is a caller's contract and the suite does not
+assert the failure a shutdown during a fetch causes — that is a misuse, not a supported path.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket: the
 `/healthz` tests start the server on an ephemeral port (never the configured one) and use Vapor's
@@ -247,8 +253,9 @@ a tag name, a NUL in an attribute key — neither is ever in the allowlist — t
 table, and where comment data ends, because the renderer writes nothing for a comment.
 
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
-`Fixtures/sanitizer/hostile_corpus.txt`: 145 inputs that try to make the sanitizer write active
-content, each with the output the reference produced for it and the rule that output pins. The
+`Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
+content, each with the output the reference produced for it and the rule that output pins (145 from
+stage 3, plus the entity-table case the stage-7 security checklist added). The
 inputs are ours, not upstream's; the outputs were written by running Miniflux v2.3.3 at commit
 `c4d54f87` with the reference's test helper options — `OpenLinksInNewTab: true`, base URL
 `http://example.org/`, `TZ=UTC` — the same method the parser corpus uses, so a failure here is a
@@ -988,6 +995,33 @@ reads a bound of 250 ms, which the probe that answers the ranked read row by row
 or more; the suite runs in about 1.2 s, well inside the CI job. The memory budget is the corpus rows
 plus the body the fetcher can hold, which is the 15 MiB cap the configuration reads by default; no
 pin reads memory, so the budget is a documented number.
+
+## Security checklist (stage 7)
+
+The checklist itself is `docs/security.md`. What it could pin landed as pins, and what it could not
+is named there and in the suite headers. 8 pins and 7 probes across five suites, each probe showing
+its pin failing on the rule it names:
+
+- `RepeatedResponseHeadersTests` — a response name that appears twice keeps the first value, as the
+  reference's `Header.Get` answers, and one name written two ways is one name; the first `Location`
+  is the hop the fetch takes. 3 pins and 2 probes over the stub server, which now writes headers as
+  ordered pairs because `Behavior.headers` is a dictionary and cannot hold two values for one name.
+  This is the finding the pass closed in production code.
+- `FetcherSecurityTests` — the address policy runs on the hop that took its client from the cache,
+  read as the seam's call count across two fetches of one host: 1 pin and 1 probe.
+- `FetcherClientCacheTests` — the cache stays at the cap after a checkout that goes over it, and the
+  entry the trim closes is the one whose expiry comes first, both read through an internal accessor,
+  because nothing a fetch can answer changes when a different entry is closed: 2 pins and 2 probes.
+- `SanitizerTests` — `width="+10"` is a positive integer, because `strconv.Atoi` reads the sign as
+  part of the number: 1 pin and 1 probe, with the expected value taken from the reference.
+- `SanitizerHostileCorpusTests` — the scheme check reads the value the entity table decodes, so
+  membership in that table is part of the rule; the case is `href="http&colon;example.org"`, kept as
+  an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
+
+What the pass could not pin is documented instead: the connect timeout as a limit of its own, the
+header-block size, which this port reads no limit of its own for and which the reference caps only
+on the server side, the timing form of the constant-time token compare, the NUL byte in a password,
+which the dependency measures with `strlen`, and the value of a hop that is not the last one.
 
 ## Soak
 
