@@ -49,7 +49,7 @@ Rivulet is CLI-first. The commands that exist so far:
 | `rivulet add <url>` | Adds one feed row, for the account named by `--user` or the single account |
 | `rivulet remove <url>` | Removes one feed row and the rows below it |
 | `rivulet list` | Lists one listing: the feeds of one account in the order the reference's query builder answers, the categories in the order its category read answers, or every account in the order its user read answers; `--categories` and `--users` name which one, and no flag means the feeds |
-| `rivulet backup <destination>` | Writes a point-in-time copy of the database to `destination`, used as the path is read, after the free-space check it makes at its start |
+| `rivulet backup <destination>` | Writes a point-in-time copy of the database to `destination`, used as the path is read, after the free-space check it makes at its start; a destination that already holds something is refused and left as it was, unless `--force` names it as one the run may replace |
 | `rivulet vacuum` | Rebuilds the database file, releasing the free pages the rows left behind |
 | `rivulet --help` | Lists all commands, including the planned ones |
 

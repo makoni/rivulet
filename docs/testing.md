@@ -68,6 +68,20 @@ and backdates timestamps for the retention suites.
 `PRAGMA quick_check` failures without shipping a corrupt database fixture.
 - `FileSize.swift` — file size in bytes, throwing when the file is missing or its metadata cannot be
 read, so an assertion that a WAL is empty cannot be satisfied by a deleted file.
+- `CommandRun.swift` — the `runCommand` helper the command suites share: runs one command through
+the in-process console against the file the pin names and answers the outcome the pins read. The
+filesystem the run reads is the seam the pin names, because the room of the machine this process
+runs on is not something a pin can name; the default answers enough room for anything, so the pins
+that do not read the free-space check answer as they did before it. It moved out of
+`MaintenanceCommandTests` with PR #53, when a second suite started reading it.
+
+- `DatabaseContent.swift` — the content read the command suites share: the tables a file holds and
+one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
+is testing. `content(at:on:as:)` reads a file through its own driver, which is what the copy pins
+need, because the copy is not the connection the test seeded with. It moved out of
+`MaintenanceCommandTests` with PR #53, the third suite reading the content read after
+`MaintenanceTests` and `MaintenanceCommandTests` themselves, which read it at different levels.
+
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
 status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the head
 so a body can arrive later than a deadline), cut connections, chunked responses, charset headers.
@@ -715,6 +729,11 @@ rules they call are pinned as storage rules by `MaintenanceTests`, so what these
 command's own choice: the destination as the command read it, the copy as the snapshot rather than
 the file bytes, a destination the command did not create, and the file rebuilt without losing a row.
 
+The run helper and the content read these pins use moved to `Support/` with PR #53, which is the
+second suite reading them, so the 17 probes were re-run on the moved shape: the boundary read as
+strictly less still flips the two run pins that read the room. The pins read the same rules as
+before, only through the shared helper.
+
 The pins are falsifiable through the shape the data has to be in. The snapshot pin needs the source
 to hold free pages and one row that lives only in the WAL, so a patch that copied the file bytes
 answered a copy without that row and with the size of the bloated source. The independence pin needs
@@ -900,6 +919,42 @@ with a probe; the factor the copy would truly need, which is the documented choi
 rather than a fact about SQLite; that the check runs before the migrations, which nothing in the run
 answers, so the pins read only that it ran before the write, and not the order between the check and
 the destination rules; and the wording of the reported failure.
+
+### The `--force` flag the `backup` run reads (`BackupForceTests`, PR #53)
+The flag is the port's own: the reference has no `backup` command, so there is nothing upstream to
+compare with. 5 pins and 8 probes, one per rule, each showing its pin failing on the rule it names.
+The rule is one: without the flag a destination that already holds something is refused and left as
+it was, and with the flag the file the destination names is replaced by the snapshot the run writes,
+read as the filesystem reads the path rather than as a database the run can open, while a path that
+is a directory is reported rather than deleted. The flag does not skip the room check, a run that
+cannot hold the copy removes nothing, and the flag does not build the directory the storage layer
+needs.
+
+What the pins can fail on, each with a probe that patches the rule and reverts byte-identically,
+named by what it flips: the flag read as absent, which refused the pins reading a replacement and
+the controls reading a run with room or a file replaced; the destination read as a database the run
+can open, which refused the pin naming bytes and the two controls reading bytes replaced; the room
+check skipped on the force path, which wrote a copy over the bytes the no-room pin named; the
+destination removed before the check, which left no bytes for that pin to read; the removal taking
+whatever the path is rather than a file, which deleted the directory the pin that names a directory
+as the destination built; the directory built on the force path, which answered the pin reading
+nothing created with a copy; the write skipped on the force path, which left nothing for the copy
+reads that show the controls writing; and the flag read as always on, which replaced the bytes the
+no-flag control reads and is the only patch that can flip that control.
+
+What the header names as unpinnable: an empty destination file, which the flag path replaces and the
+no-flag path reuses, both answers leaving the same path with the same content; the type guard's
+other branches — a path read as something other than a regular file, one whose attributes cannot be
+read, and a symlink, which reads as the type its target has so the link itself is removed — which no
+path a pin builds answers; the shape guard that reads the row the pin wrote after the control run,
+which no patch of the command flips and which bites only on the storage rules `MaintenanceTests`
+pins; the order the removal and the migrations run in, which nothing in the run answers; the order
+between the room check and the destination rule on the no-flag path, which no pin reads — what a pin
+reads is that the check ran before anything was removed, written or read; the numbers a real
+filesystem reports, which the seam answers in place of the machine; the flag that gates the
+migrations, which `MaintenanceCommandTests` pin for both commands; the wording of the lines and of
+the reported failures; and the rules the port names rather than the reference, which has no command
+here to compare with.
 
 ## Soak
 

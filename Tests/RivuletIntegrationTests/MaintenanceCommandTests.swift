@@ -1,9 +1,5 @@
-import ConsoleKit
-import Fluent
 import Foundation
-import SQLKit
 import Testing
-import RivuletApp
 @testable import RivuletCore
 
 /// `rivulet backup` and `rivulet vacuum` as runs through the in-process console over a temp
@@ -27,13 +23,13 @@ import RivuletApp
 /// directory the storage layer needs; that the vacuum run rebuilds the file the environment names
 /// and releases the free pages the rows left behind; that it leaves the rows it rebuilds; and that
 /// the migration flag gates both commands, read on a schema the command created rather than one the
-/// test built; that the run refuses when the filesystem it reads has less room than the
-/// estimate the rule builds, and writes nothing, which a patch that copied first and refused
-/// after fails; that the boundary is read as strictly less, so the run at equality writes the
-/// copy; that the check is the backup run's, which a patch that read the room for the vacuum run
-/// fails; that the run reads the room through the seam it was given, which a patch that used the
-/// process filesystem fails; and that the estimate the run reads is the bytes the seam answered
-/// for the main file and for the `-wal` beside it.
+/// test built; that the run refuses when the filesystem it reads has less room than the estimate
+/// the rule builds, and writes nothing, which a patch that copied first and refused after fails;
+/// that the boundary is read as strictly less, so the run at equality writes the copy; that the
+/// check is the backup run's, which a patch that read the room for the vacuum run fails; that the
+/// run reads the room through the seam it was given, which a patch that used the process filesystem
+/// fails; and that the estimate the run reads is the bytes the seam answered for the main file and
+/// for the `-wal` beside it.
 ///
 /// What these pins cannot fail on: the truncating checkpoint `vacuum()` ends with, because
 /// `RivuletApplication.shutdown()` runs a best-effort truncating checkpoint after every command, so
@@ -49,13 +45,13 @@ import RivuletApp
 /// pinned by `SystemFileSystemSpaceTests`, and its room is never read here; that the check runs
 /// before the migrations, which nothing in the run answers, so the pins read only that it ran
 /// before the write, and the order between the check and the destination rules, which no pin reads;
-/// the factor the copy would truly need, which is the documented choice of the port rather
-/// than a fact about SQLite, read as the rule the pins name; the shape guards that read what the
-/// pin built before the run — the WAL holding one row, the file bloated past the size the pin
-/// reads, the copy being openable as a database — which bite only on the storage rules
-/// `MaintenanceTests` pins, not on a patch of the command; the wording of the lines and of the
-/// reported failures; that these commands fetch nothing and sleep nothing; and the rules the port
-/// names, not the reference, which has no command here to compare with.
+/// the factor the copy would truly need, which is the documented choice of the port rather than a
+/// fact about SQLite, read as the rule the pins name; the shape guards that read what the pin built
+/// before the run — the WAL holding one row, the file bloated past the size the pin reads, the copy
+/// being openable as a database — which bite only on the storage rules `MaintenanceTests` pins, not
+/// on a patch of the command; the wording of the lines and of the reported failures; that these
+/// commands fetch nothing and sleep nothing; and the rules the port names, not the reference, which
+/// has no command here to compare with.
 @Suite struct MaintenanceCommandTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -71,7 +67,7 @@ import RivuletApp
             defer { outside.remove() }
             let destination = outside.path("rivulet-2026-11-05.db")
 
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", destination])
             #expect(!outcome.failed, "the run: \(outcome.output)")
             #expect(FileManager.default.fileExists(atPath: destination),
                 "the copy is at the path the command was given: \(outcome.output)")
@@ -101,14 +97,14 @@ import RivuletApp
             let atTheRun = try await storage.withConnection { connection in
                 _ = try await seedEntry(connection, userID: bloated.0, feedID: bloated.1,
                     hash: "in-the-wal", content: "<p>Not in the main file</p>")
-                return try await Self.content(on: connection)
+                return try await content(on: connection)
             }
             #expect(atTheRun.entries.count == 1, "the row the pin left in the WAL: \(atTheRun.entries)")
             #expect(try fileSize(database.path + "-wal") > 0,
                 "the row the pin reads is in the WAL, not in the main file")
 
             let destination = database.directory.appendingPathComponent("copy.db").path
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", destination])
             #expect(!outcome.failed, "the run: \(outcome.output)")
 
             let copy = try await content(at: destination, on: database, as: "copy")
@@ -127,12 +123,12 @@ import RivuletApp
                 let feed = try await seedFeed(connection)
                 _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
                     hash: "at-the-run", content: "<p>Written before the run</p>")
-                return (content: try await Self.content(on: connection), userID: feed.userID,
+                return (content: try await content(on: connection), userID: feed.userID,
                     feedID: feed.feedID)
             }
 
             let destination = database.directory.appendingPathComponent("copy.db").path
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", destination])
             #expect(!outcome.failed, "the run: \(outcome.output)")
 
             // A patch that made the copy the same file under another name — a link — answered this
@@ -140,7 +136,7 @@ import RivuletApp
             let after = try await storage.withConnection { connection in
                 _ = try await seedEntry(connection, userID: before.userID, feedID: before.feedID,
                     hash: "after-the-run", content: "<p>Written after the run</p>")
-                return try await Self.content(on: connection)
+                return try await content(on: connection)
             }
             #expect(after.entries.count == before.content.entries.count + 1,
                 "the source has the row the copy must not carry: \(after.entries)")
@@ -156,10 +152,10 @@ import RivuletApp
                 let feed = try await seedFeed(connection)
                 _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
                     hash: "source", content: "<p>Source row</p>")
-                return try await Self.content(on: connection)
+                return try await content(on: connection)
             }
 
-            let outcome = try await run(databasePath: database.path,
+            let outcome = try await runCommand(databasePath: database.path,
                 arguments: ["backup", database.directory.appendingPathComponent("copy.db").path])
             #expect(!outcome.failed, "the run: \(outcome.output)")
 
@@ -190,7 +186,7 @@ import RivuletApp
             // as success, and the same patch rewrote the copy from the source, which is why the pin
             // writes a row the copy must not carry.
             let previous = database.directory.appendingPathComponent("previous.db").path
-            let control = try await run(databasePath: database.path, arguments: ["backup", previous])
+            let control = try await runCommand(databasePath: database.path, arguments: ["backup", previous])
             #expect(!control.failed, "the control run writes the copy: \(control.output)")
             let first = try await content(at: previous, on: database, as: "first")
 
@@ -200,12 +196,12 @@ import RivuletApp
             let source = try await storage.withConnection { connection in
                 _ = try await seedEntry(connection, userID: graph.0, feedID: graph.1,
                     hash: "after-the-refusal", content: "<p>Row an overwrite would carry</p>")
-                return try await Self.content(on: connection)
+                return try await content(on: connection)
             }
             #expect(source.entries.count == first.entries.count + 1,
                 "the row the pin wrote after the control run: \(source.entries)")
 
-            let second = try await run(databasePath: database.path, arguments: ["backup", previous])
+            let second = try await runCommand(databasePath: database.path, arguments: ["backup", previous])
             #expect(second.failed, "a run that wrote nothing reports it: \(second.output)")
             let copy = try await content(at: previous, on: database, as: "again")
             #expect(copy == first, "the copy the control run wrote is left as it was: \(copy)")
@@ -214,7 +210,7 @@ import RivuletApp
             let text = database.directory.appendingPathComponent("text.db").path
             let bytes = "not a database"
             try bytes.write(to: URL(fileURLWithPath: text), atomically: true, encoding: .utf8)
-            let third = try await run(databasePath: database.path, arguments: ["backup", text])
+            let third = try await runCommand(databasePath: database.path, arguments: ["backup", text])
             #expect(third.failed, "the run reports the refusal rather than an empty run: \(third.output)")
             #expect(try String(contentsOfFile: text, encoding: .utf8) == bytes,
                 "the file that was already there is left as it was")
@@ -234,7 +230,7 @@ import RivuletApp
             // seam answers a room here, so what this pin reads is the destination rule, not the
             // room decision; the order the two answer in is not something a pin can read.
             let missing = database.directory.appendingPathComponent("missing-dir/copy.db").path
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", missing])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", missing])
             #expect(outcome.failed,
                 "the run reports it rather than answering as an empty run: \(outcome.output)")
             #expect(!FileManager.default.fileExists(atPath: missing), "no file was created")
@@ -245,7 +241,7 @@ import RivuletApp
             // copy, so the readings above are the rule rather than a command that writes nothing.
             let parent = database.directory.appendingPathComponent("built-dir")
             try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-            let control = try await run(databasePath: database.path,
+            let control = try await runCommand(databasePath: database.path,
                 arguments: ["backup", parent.appendingPathComponent("copy.db").path])
             #expect(!control.failed, "the control run writes the copy: \(control.output)")
         }
@@ -265,23 +261,23 @@ import RivuletApp
             let wal = database.path + "-wal"
             let space = RecordingSpace(sizes: [database.path: 4000, wal: 0], free: 7000)
             let destination = database.directory.appendingPathComponent("no-room.db").path
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination],
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", destination],
                 space: space)
 
             #expect(outcome.failed, "the run that had less room than the estimate: \(outcome.output)")
             // Nothing was written, which is what a patch that copied first and refused after would
-            // answer with a copy here: the check is the run's start, not a rule read after
-            // the write.
+            // answer with a copy here: the check is the run's start, not a rule read after the
+            // write.
             #expect(!FileManager.default.fileExists(atPath: destination), "no copy was written")
             #expect(space.all() == [.size(database.path), .size(wal), .space(database.directory.path)],
                 "the reads the run made before it refused: \(space.all())")
 
             // The control: the same run with room answers a copy, so the failure above is the rule
-            // and not a command that writes nothing. The room named here is exactly the estimate, so
-            // the control sits at the boundary too, and the `<=` patch flips it as well as the next
-            // pin. What this pin reads on its own is that a run with room did not fail.
+            // and not a command that writes nothing. The room named here is exactly the estimate,
+            // so the control sits at the boundary too, and the `<=` patch flips it as well as the
+            // next pin. What this pin reads on its own is that a run with room did not fail.
             let room = RecordingSpace(sizes: [database.path: 4000, wal: 0], free: 8000)
-            let control = try await run(databasePath: database.path,
+            let control = try await runCommand(databasePath: database.path,
                 arguments: ["backup", database.directory.appendingPathComponent("room.db").path],
                 space: room)
             #expect(!control.failed, "the control run with room did not fail: \(control.output)")
@@ -301,7 +297,7 @@ import RivuletApp
             let space = RecordingSpace(sizes: [database.path: 1000, database.path + "-wal": 1000],
                 free: 4000)
             let destination = database.directory.appendingPathComponent("exact.db").path
-            let outcome = try await run(databasePath: database.path, arguments: ["backup", destination],
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["backup", destination],
                 space: space)
 
             #expect(!outcome.failed, "the run at the boundary: \(outcome.output)")
@@ -322,7 +318,7 @@ import RivuletApp
             // here answered a refusal on a seam named as having none. The pin reads that the run
             // did not fail and asked for nothing; the rebuild itself is read by another pin.
             let space = RecordingSpace(sizes: [database.path: 4000, database.path + "-wal": 0], free: 0)
-            let outcome = try await run(databasePath: database.path, arguments: ["vacuum"], space: space)
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["vacuum"], space: space)
             #expect(!outcome.failed, "the vacuum run asked for nothing: \(outcome.output)")
             #expect(space.all().isEmpty, "the reads the vacuum run made: \(space.all())")
         }
@@ -344,7 +340,7 @@ import RivuletApp
             let bloated = try fileSize(database.path)
             #expect(bloated > 3_000_000, "the file the pin bloated: \(bloated)")
 
-            let outcome = try await run(databasePath: database.path, arguments: ["vacuum"])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["vacuum"])
             #expect(!outcome.failed, "the run: \(outcome.output)")
 
             // The rule this pin names is that the run rebuilds the file: a patch that reported the
@@ -363,10 +359,10 @@ import RivuletApp
                     _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
                         hash: "kept-\(index)", content: "<p>Row the rebuild must keep</p>")
                 }
-                return try await Self.content(on: connection)
+                return try await content(on: connection)
             }
 
-            let outcome = try await run(databasePath: database.path, arguments: ["vacuum"])
+            let outcome = try await runCommand(databasePath: database.path, arguments: ["vacuum"])
             #expect(!outcome.failed, "the run: \(outcome.output)")
 
             // A patch that deleted the rows before rebuilding answered this pin with an empty file.
@@ -381,7 +377,7 @@ import RivuletApp
         // run made rather than a schema the test built, and the copy carries them.
         let on = try TemporaryDirectory()
         defer { on.remove() }
-        let onRun = try await run(databasePath: on.path("on.db"), arguments: ["backup", on.path("copy.db")])
+        let onRun = try await runCommand(databasePath: on.path("on.db"), arguments: ["backup", on.path("copy.db")])
         #expect(!onRun.failed, "the run with the flag on: \(onRun.output)")
         #expect(try await tables(at: on.path("on.db")).contains("feeds"), "the flag on migrates")
         #expect(try await tables(at: on.path("copy.db")).contains("feeds"),
@@ -392,7 +388,7 @@ import RivuletApp
         let off = try TemporaryDirectory()
         defer { off.remove() }
         let offEnvironment = ["RUN_MIGRATIONS": "false"]
-        let offBackup = try await run(databasePath: off.path("off.db"),
+        let offBackup = try await runCommand(databasePath: off.path("off.db"),
             arguments: ["backup", off.path("copy.db")], environment: offEnvironment)
         #expect(!offBackup.failed, "the run with the flag off: \(offBackup.output)")
         let offTables = try await tables(at: off.path("off.db"))
@@ -401,72 +397,11 @@ import RivuletApp
         #expect(!offCopyTables.contains("feeds"),
             "the copy holds the schema the command did not create: \(offCopyTables)")
 
-        let offVacuum = try await run(databasePath: off.path("vacuum.db"),
+        let offVacuum = try await runCommand(databasePath: off.path("vacuum.db"),
             arguments: ["vacuum"], environment: offEnvironment)
         #expect(!offVacuum.failed, "the vacuum run with the flag off: \(offVacuum.output)")
         let vacuumTables = try await tables(at: off.path("vacuum.db"))
         #expect(!vacuumTables.contains("feeds"),
             "the flag off does not migrate for the vacuum run: \(vacuumTables)")
-    }
-
-    // MARK: - Setup
-
-    private struct RunOutcome: Sendable {
-        let output: String
-        let failed: Bool
-    }
-
-    /// What one database holds: the tables it has and one digest line per entry, ordered by id.
-    ///
-    /// The pins read the rows through SQL, so a pin is not satisfied by the read it is testing.
-    private struct Content: Sendable, Equatable {
-        let tables: [String]
-        let entries: [String]
-    }
-
-    /// Runs one command against the file the pin names, through the in-process console.
-    ///
-    /// The filesystem the run reads is the seam the pin names, because the room a real filesystem
-    /// has is the machine's and cannot be named by a pin. The default answers enough room for
-    /// anything, so the pins that do not read the check answer as they did before it.
-    private func run(databasePath: String, arguments: [String],
-        environment: [String: String] = [:],
-        space: any FileSystemSpace = RecordingSpace(sizes: [:], free: Int64.max)) async throws -> RunOutcome {
-        var values = environment
-        values["DATABASE_URL"] = databasePath
-        let console = TestConsole()
-        var failed = false
-        do {
-            try await RivuletCLI.run(console: console, environment: values,
-                arguments: ["rivulet"] + arguments, space: space)
-        } catch {
-            failed = true
-        }
-        return RunOutcome(output: console.output, failed: failed)
-    }
-
-    /// The content of another file, read through its own driver: the copy the run wrote is not the
-    /// connection the test seeded with, so a pin is not satisfied by the write it is testing.
-    private func content(at path: String, on database: TestDatabase, as id: String) async throws
-        -> Content {
-        database.registerDriver(at: path, as: DatabaseID(string: id))
-        let copy = SQLiteStorage(database: database.app.db(DatabaseID(string: id)), path: path)
-        return try await copy.withConnection { connection in try await Self.content(on: connection) }
-    }
-
-    /// Content read through the storage the pin was handed.
-    private func content(of storage: SQLiteStorage) async throws -> Content {
-        try await storage.withConnection { connection in try await Self.content(on: connection) }
-    }
-
-    private static func content(on connection: any Database) async throws -> Content {
-        let sql = try sqlDatabase(connection)
-        let tables = try await sql.raw("""
-            SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name
-            """).all().map { try $0.decode(column: "name", as: String.self) }
-        let entries = try await sql.raw("""
-            SELECT id || '|' || hash || '|' || content AS digest FROM entries ORDER BY id
-            """).all().map { try $0.decode(column: "digest", as: String.self) }
-        return Content(tables: tables, entries: entries)
     }
 }
