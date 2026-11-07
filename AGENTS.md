@@ -86,7 +86,7 @@ can read either; the answer belonging to the decision the path was created for, 
 answering only its own wait, which bite only inside the child across two decisions; the reference's
 HTTP servers being shut down before the pool, which this port has no piece for; `SIGHUP`, which the
 reference feeds to a certificate reload and which is not ported; and the reference's log lines,
-which have no layer here. The sixth slice is open as PR #52: the free-space check the `backup` run
+which have no layer here. The sixth slice is merged (PR #52): the free-space check the `backup` run
 makes at its start, read as the decision the rule answers through the `FileSystemSpace` seam — the
 estimate as the bytes the source holds as the filesystem reads them, times the factor the stage-1
 note documents for `VACUUM INTO` (2), the bytes the WAL holds counted, the room read at the

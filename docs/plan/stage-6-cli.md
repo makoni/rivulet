@@ -6,7 +6,7 @@ second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48)
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
 with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the
-free-space check the `backup` run makes at its start, is open as PR #52. **Effort:** M. **Depends
+free-space check the `backup` run makes at its start, is merged (PR #52). **Effort:** M. **Depends
 on:** Stages 1–5.
 
 ## Scope
@@ -41,7 +41,7 @@ disposition. The wiring runs the loop to its end and the hook once after it, whi
 reference's position for the teardown. The `SIGHUP` the reference feeds to a certificate reload is
 not ported, and the reference's HTTP servers are shut down before the pool, which this port has no
 piece for.
-- [ ] The free-space check the `backup` run makes lands with PR #52 as the decision the rule
+- [x] The free-space check the `backup` run makes landed with PR #52 as the decision the rule
 answers, read through the `FileSystemSpace` seam because the room a filesystem has is the machine's
 and no pin can name it: the estimate is the bytes the source holds as the filesystem reads them —
 the main file plus the `-wal` beside it as the filesystem reads it — times the factor the stage-1
@@ -161,7 +161,7 @@ write, so the check would have to run on the file the run wrote.
 - `backup` has no overwrite flag: an existing destination is refused. A `--force` flag would be the
 port's own choice, not the reference's, and the rule that a run which wrote nothing reports it would
 then have to be read again on the other side of that flag.
-- The free-space check the stage scope names lands with PR #52 as a startup check, not as a
+- The free-space check the stage scope names landed with PR #52 as a startup check, not as a
 `backup` rule: the pins read the decision the rule answers through the seam, and the run pins read
 that a run which cannot hold the copy writes nothing. The room of the machine this suite runs on is
 not something a pin can name, so the room `statvfs` answers here is never read; what that
