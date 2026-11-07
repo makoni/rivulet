@@ -117,8 +117,8 @@ ported for the account path: the reference's CLI reads the environment through i
 but the only name it reads there that resolves an account is `ADMIN_USERNAME` for `create-admin` —
 `METRICS_USERNAME` is basic auth for the metrics endpoint, not an account — and nothing there
 resolves an account for a command, so there is no read to mirror; the port's `--user` with the
-single-account fallback stays the rule. The eighth slice opens as PR #54: `--verify` as the call the
-run makes through the `DatabaseVerifier` seam — that the run calls the seam nothing without the
+single-account fallback stays the rule. The eighth slice is merged (PR #54): `--verify` as the call
+the run makes through the `DatabaseVerifier` seam — that the run calls the seam nothing without the
 flag, that it makes the one call for the destination as the run read it and after the write, that it
 reports the failure the seam answers with and leaves the copy as written, that the flag does not
 change the room check, and that it does not build the directory the storage layer needs — 5 pins and

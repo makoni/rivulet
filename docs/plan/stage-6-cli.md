@@ -5,11 +5,10 @@ progress — the first slice, the feed commands `add`, `remove` and `list`, is m
 second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The third slice,
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
-with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the
-free-space check the `backup` run makes at its start, is merged (PR #52), the seventh, `--force`, is
-merged (PR #53), and the eighth, the check `--verify` gives the `backup` run, is the flag polish's
-last piece and opens as PR #54. **Effort:** M. **Depends
-on:** Stages 1–5.
+with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the free-
+space check the `backup` run makes at its start, is merged (PR #52), the seventh, `--force`, is
+merged (PR #53), and the eighth, the check `--verify` gives the `backup` run and the last piece of
+the flag polish, is merged (PR #54). **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
 
@@ -66,7 +65,7 @@ the header — an empty destination file, which the flag path replaces and the n
 with the same answer, the type guard's other branches, the shape guard that reads the row the pin
 wrote after the control run, and the branch where the destination's existence cannot be read.
 
-- `--verify` opens as PR #54 as the call the run makes through the `DatabaseVerifier` seam, read
+- `--verify` landed with PR #54 as the call the run makes through the `DatabaseVerifier` seam, read
 as the run's own rule rather than as the storage rule `MaintenanceTests` pin for `quick_check`.
 With the flag the run reads the copy it wrote at the path as it read it, after the write, through a
 connection of its own, because the connection it wrote the copy through cannot answer for it, and
@@ -197,7 +196,7 @@ should not grow a second one without a reason.
 - `add` writes what it read, so the tracked-parameter case is pinned only as "the url as read"; the
 cleaner the reference applies on its discovery path lands with `quickadd` in stage 5, and the two
 paths are then where a parameter is dropped or kept.
-- `backup` verifying the copy it wrote opens as PR #54 as the call the run makes through the
+- `backup` verifying the copy it wrote landed with PR #54 as the call the run makes through the
 `DatabaseVerifier` seam, the shape the room pins read: the run reads the file at the path as it read
 it, after the write, through a connection of its own, and reports what the check observed as the
 failure. The copy is left as written, because the runbook restores another backup rather than
