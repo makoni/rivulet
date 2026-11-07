@@ -53,6 +53,15 @@ read counts as nothing; and the check runs at the start of the run, before anyth
 beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
 read, so that pin can fail on a patch that reads the room there.
 
+- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs and
+the suite header: without the flag a destination that already holds something is refused and left as
+it was, and with the flag what the destination holds as the filesystem reads it is replaced by the
+snapshot at the run; the flag does not skip the room check, a run that cannot hold the copy removes
+nothing, and the flag does not build the directory the storage layer needs. Pinned by
+`BackupForceTests`: 4 pins and 5 probes, with what no patch can flip named in the header — an empty
+destination file, which the flag path replaces and the no-flag path reuses with the same answer, and
+the branch where the destination's existence cannot be read.
+
 ## Implementation notes
 
 - In-process console tests use `TestConsole`; process-level behavior (signals, exit codes of the
@@ -75,14 +84,18 @@ written, the copy written at the boundary the rule reads as equal, and no room r
 vacuum run. The system implementation of the seam answers the numbers of this machine, so its room
 is never read here; the two answers a test can name without the machine — nothing for a path it
 cannot read, and the bytes it holds for a file the test writes — are pinned by
-`SystemFileSystemSpaceTests`, which both headers name. The in-process cadence loop is pinned as the
-calls the loop makes through its seam by `CadenceLoopTests` (PR #50): the wait before the first
-read, the interval every wait is given, one read per wait, the instant each read answers, the
-reported failing read with the loop going on, the empty read reported as nothing, nothing read after
-the seam answers stop, and the jobs of a tick before the next read. The real seam sleeps, so its
-decisions are read through test seams that name the interval as zero (`SystemCadenceTests`) and the
-real signal path is read only by the process-level harness, where the wiring that starts the loop
-for `serve` is read too.
+`SystemFileSystemSpaceTests`, which both headers name. The `--force` flag is pinned by
+`BackupForceTests` as what the run replaces, read as the filesystem reads the destination rather
+than as a database the run can open. The two helpers the command suites share moved to `Support/`
+with PR #53, which is the second suite reading them: `CommandRun.swift`, which runs one command with
+the seam the pin names, and `DatabaseContent.swift`, which reads a file through its own driver. The
+in-process cadence loop is pinned as the calls the loop makes through its seam by `CadenceLoopTests`
+(PR #50): the wait before the first read, the interval every wait is given, one read per wait, the
+instant each read answers, the reported failing read with the loop going on, the empty read reported
+as nothing, nothing read after the seam answers stop, and the jobs of a tick before the next read.
+The real seam sleeps, so its decisions are read through test seams that name the interval as zero
+(`SystemCadenceTests`) and the real signal path is read only by the process-level harness, where the
+wiring that starts the loop for `serve` is read too.
 - `create-admin` → the resulting credentials authenticate over the API (cross-check with stage 5).
 - Process-level (`ServeProcessTests`, PR #51): the built binary answers `/healthz` on the port the
 argument names, read as the port the serve event reports; SIGTERM exits with 0, which is the
@@ -112,8 +125,9 @@ is meant to hold as it grows — split by command when the next slice adds to it
 maintenance pins that read over the width (the `run` calls with the arguments and the `#expect`
 calls with the comment argument), which the wrapping rule exempts, and the content read being
 written twice — once in `MaintenanceTests` and once in `MaintenanceCommandTests` — which stays
-duplicated because the two suites read it at different levels; it moves to `Support/` when a third
-suite reads it.
+duplicated because the two suites read it at different levels. It landed in
+`Support/DatabaseContent.swift` with PR #53, the third suite reading it, and `MaintenanceTests`
+keeps its own read because it reads only the digest rows at the storage level.
 - Style findings from PR #49 that do not change behavior: `run` in `List` is 43 lines against the
 ~40 aim, which stays because the print switch is the whole command; `ListingCommandTests.swift`
 imports `Foundation` and `ConsoleKit` that the committed code does not use — its probes patch
@@ -153,14 +167,17 @@ should not grow a second one without a reason.
 - `add` writes what it read, so the tracked-parameter case is pinned only as "the url as read"; the
 cleaner the reference applies on its discovery path lands with `quickadd` in stage 5, and the two
 paths are then where a parameter is dropped or kept.
-- `backup` does not verify the copy it wrote: the runbook says to verify it by opening the file and
-running `PRAGMA quick_check`. If the command is to do that itself, that belongs to this stage's flag
-polish, and a pin for it needs a copy the run can be shown to fail on, which means a damaged
-destination written after the copy — the storage rules refuse a damaged destination before the
-write, so the check would have to run on the file the run wrote.
-- `backup` has no overwrite flag: an existing destination is refused. A `--force` flag would be the
-port's own choice, not the reference's, and the rule that a run which wrote nothing reports it would
-then have to be read again on the other side of that flag.
+- `backup` does not verify the copy it wrote: the runbook says to verify it by opening the file
+and running `PRAGMA quick_check`. Recorded as the next slice of the flag polish, and pinnable: the
+check lands as the call the run makes through a verifier seam, so the pin reads the call the seam
+recorded and the failure the run reports for a check the seam answers as failing, which is the shape
+the room pins read; `Support/DatabaseCorruption.swift` gives a real file that fails `quick_check`
+for the storage rules, and no input answers a damaged copy for the check the run makes on the file
+it wrote, so what no patch can flip is named in the header rather than pinned.
+- `backup` has no overwrite flag: an existing destination is refused. `--force` landed with PR #53
+as the port's own choice, not the reference's, and the rule that a run which wrote nothing reports
+it is read again on the other side of the flag: a run that cannot hold the copy removes nothing, so
+the destination is left as it was.
 - The free-space check the stage scope names landed with PR #52 as a startup check, not as a
 `backup` rule: the pins read the decision the rule answers through the seam, and the run pins read
 that a run which cannot hold the copy writes nothing. The room of the machine this suite runs on is
@@ -175,6 +192,12 @@ can fail on a patch that reads the room there. The new files are below the size 
 the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSystemSpace.swift` 43,
 `FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
 `Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` is 472, under the cap.
-- The account rule is the port's own: `--user` with the single-account fallback. If a flag is wanted
-for the environment path (`LIST_USER`, `ADD_USER`), that belongs to this stage's flag polish, not to
-the read.
+With PR #53 the files are `BackupForceTests.swift` 204, `Support/CommandRun.swift` 31,
+`Support/DatabaseContent.swift` 37 and `MaintenanceCommandTests.swift` 408, after the two helpers
+moved out of it.
+- The account rule is the port's own: `--user` with the single-account fallback. No environment
+flag is ported for the environment path, and the flag polish closes that question: the reference's
+CLI reads no environment variables at all — `internal/cli/cli.go` reads none — and the one command
+that needs an account takes the username as an argument, so there is no read to mirror. The
+`LIST_USER` and `ADD_USER` names the earlier plan imagined are not ported, and nothing the pins read
+changes.

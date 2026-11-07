@@ -105,7 +105,15 @@ read only that it ran before the write, and not the order between the check and 
 rules, which no pin reads; and the wording of the reported failure. `vacuum` is not
 checked, because it rebuilds the file it already holds rather than writing a copy beside it, and
 `Vacuum` carries the filesystem it does not read so that pin can fail on a patch that reads the room
-there. The flag polish follows.
+there. The seventh slice is open as PR #53: `--force` as
+the flag the `backup` run reads, pinned as what the run replaces — the destination read as the
+filesystem reads it rather than as a database the run can open, the flag not skipping the room
+check, a run that cannot hold the copy removing nothing, and the flag not building the directory the
+storage layer needs — 4 pins and 5 probes by `BackupForceTests`. What that header names as
+unpinnable: an empty destination file, which the flag path replaces and the no-flag path reuses with
+the same answer, and the branch where the destination's existence cannot be read. No environment
+flag is ported for the account path: the reference's CLI reads no environment variables at all and
+takes the username as an argument, so there is no read to mirror. The `--verify` flag follows.
 
 Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the

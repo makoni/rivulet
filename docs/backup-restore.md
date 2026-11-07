@@ -12,12 +12,19 @@ exposes the same helper as `rivulet backup <destination>`, which is the path as 
 it: a relative value is the process's working directory, the port does not create a missing parent
 directory, and a destination that already holds something is refused rather than overwritten.
 
+`--force` is the flag that lets the run replace what the destination holds. Without it the
+destination is left as it was; with it the run removes what is there and writes the snapshot at the
+run in its place. The flag does not change the room check, and a run that cannot hold the copy
+removes nothing, so the destination of a refused run is still there to read. The flag is the port's
+own: the reference has no backup command to have a flag for.
+
 Rules SQLite enforces for the destination:
 
 - the parent directory must exist;
 - the destination must not be an existing non-empty file: a previous backup is refused
   (`output file already exists`), and any other non-empty non-database file fails with
-  `file is not a database`;
+  `file is not a database`; with `--force` the run removes what is there first, so SQLite writes
+  to a path it does not find rather than one it found;
 - an existing empty file is reused.
 
 Free space: budget about twice the database size. The snapshot is a complete copy written next to
@@ -37,6 +44,9 @@ not checked, because it rebuilds the file it already holds rather than writing a
 ```sh
 # Put the target outside the data directory; the path is used as it is read.
 rivulet backup "/var/backups/rivulet-$(date +%F).db"
+
+# Replacing the copy the same name holds is the flag, not the default.
+rivulet backup --force "/var/backups/rivulet-$(date +%F).db"
 ```
 
 A backup is a plain SQLite file. Verify it by opening it and running `PRAGMA quick_check`
