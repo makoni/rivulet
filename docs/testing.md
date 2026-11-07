@@ -142,7 +142,7 @@ The cache has four behaviour tests. The first pins the one effect that can be ob
 an eviction: while a request is in flight the client serving it must not be closed, or that request
 is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
 the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
-the test at a known point without a sleep, and the body is held long enough for the fillers to run,
+test at a known point without a sleep, and the body is held long enough for the fillers to run,
 which the test states. The second asserts what `shutdown()` can be observed to do: a second call
 finds nothing to close, and the next fetch builds a client again. The recovery assertion carries the
 weight, but the second call is not worthless either — an implementation that left closed entries in
