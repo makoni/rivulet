@@ -87,14 +87,16 @@ extension RivuletCLI {
             try await rivulet.shutdown()
         }
 
-        /// Replaces what the destination holds, which is what a run without `--force` refuses.
+        /// Replaces the file the destination names, which is what a run without `--force` refuses.
         ///
-        /// The destination is read as the filesystem reads it, so what this reads is whether the
-        /// path is there, not whether it is a database the run can open. An empty file is replaced
-        /// here and reused without the flag, which leaves the same file with the same content
-        /// either way, so no pin can tell the two apart.
+        /// The path is read as the filesystem reads it, so the run replaces a file and nothing
+        /// else: a directory at the destination is reported rather than deleted, and a path whose
+        /// attributes cannot be read is not read as a file, so nothing is removed there. An empty
+        /// file is replaced here and reused without the flag, which leaves the same file with the
+        /// same content either way, so no pin can tell the two apart.
         private static func replaceDestination(at path: String) throws {
-            if FileManager.default.fileExists(atPath: path) {
+            let attributes = try? FileManager.default.attributesOfItem(atPath: path)
+            if attributes?[.type] as? FileAttributeType == .typeRegular {
                 try FileManager.default.removeItem(atPath: path)
             }
         }

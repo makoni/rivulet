@@ -53,14 +53,16 @@ read counts as nothing; and the check runs at the start of the run, before anyth
 beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
 read, so that pin can fail on a patch that reads the room there.
 
-- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs and
-the suite header: without the flag a destination that already holds something is refused and left as
-it was, and with the flag what the destination holds as the filesystem reads it is replaced by the
-snapshot at the run; the flag does not skip the room check, a run that cannot hold the copy removes
-nothing, and the flag does not build the directory the storage layer needs. Pinned by
-`BackupForceTests`: 4 pins and 5 probes, with what no patch can flip named in the header — an empty
-destination file, which the flag path replaces and the no-flag path reuses with the same answer, and
-the branch where the destination's existence cannot be read.
+- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
+and the suite header: without the flag a destination that already holds something is refused and
+left as it was, and with the flag the file the destination names is replaced by the snapshot at the
+run, read as the filesystem reads the path rather than as a database the run can open, while a path
+that is a directory is reported rather than deleted; the flag does not skip the room check, a run
+that cannot hold the copy removes nothing, and the flag does not build the directory the storage
+layer needs. Pinned by `BackupForceTests`: 5 pins and 6 probes, with what no patch can flip named in
+the header — an empty destination file, which the flag path replaces and the no-flag path reuses
+with the same answer, the type guard's other branches, and the branch where the destination's
+existence cannot be read.
 
 ## Implementation notes
 
@@ -192,12 +194,16 @@ can fail on a patch that reads the room there. The new files are below the size 
 the cap (`FreeSpaceCheck.swift` 55, `FileSystemSpace.swift` 19, `SystemFileSystemSpace.swift` 43,
 `FreeSpaceCheckTests.swift` 133, `SystemFileSystemSpaceTests.swift` 46,
 `Support/RecordingSpace.swift` 50), and `MaintenanceCommandTests.swift` is 472, under the cap.
-With PR #53 the files are `BackupForceTests.swift` 204, `Support/CommandRun.swift` 31,
+With PR #53 the files are `BackupForceTests.swift` 235, `Support/CommandRun.swift` 31,
 `Support/DatabaseContent.swift` 37 and `MaintenanceCommandTests.swift` 408, after the two helpers
 moved out of it.
-- The account rule is the port's own: `--user` with the single-account fallback. No environment
-flag is ported for the environment path, and the flag polish closes that question: the reference's
-CLI reads no environment variables at all — `internal/cli/cli.go` reads none — and the one command
-that needs an account takes the username as an argument, so there is no read to mirror. The
-`LIST_USER` and `ADD_USER` names the earlier plan imagined are not ported, and nothing the pins read
-changes.
+- The account rule is the port's own: `--user` with the single-account fallback, and no
+environment flag for the environment path, which the flag polish closes: the reference's CLI reads
+the environment through its config parser (`internal/cli/cli.go`), but the only account name it
+reads from there is the one `create-admin` takes from `ADMIN_USERNAME`, and no read resolves an
+account for a command, so there is nothing to mirror. The `LIST_USER` and `ADD_USER` names the
+earlier plan imagined are not ported, and nothing the pins read changes.
+- Width: `ClientAuthTests.swift:18` and `EntryQueryTests.swift:11` read 101 characters. They
+predate PR #53 and are not files this slice touches, so they stay as they are, as do the older
+suites under `Tests/RivuletCoreTests/`, where the width rule was applied slice by slice rather than
+repo-wide. The files this commit changes are clean, counted in characters.

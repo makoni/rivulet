@@ -16,7 +16,9 @@ directory, and a destination that already holds something is refused rather than
 destination is left as it was; with it the run removes what is there and writes the snapshot at the
 run in its place. The flag does not change the room check, and a run that cannot hold the copy
 removes nothing, so the destination of a refused run is still there to read. The flag is the port's
-own: the reference has no backup command to have a flag for.
+own: the reference has no backup command to have a flag for. What the run replaces is the file the
+path names, read as the filesystem reads it; a path that is a directory is reported rather than
+deleted.
 
 Rules SQLite enforces for the destination:
 
@@ -25,7 +27,9 @@ Rules SQLite enforces for the destination:
   (`output file already exists`), and any other non-empty non-database file fails with
   `file is not a database`; with `--force` the run removes what is there first, so SQLite writes
   to a path it does not find rather than one it found;
-- an existing empty file is reused.
+- an existing empty file is reused, which is what `--force` does to it too: the run removes it and
+writes a new one, and both answers leave the same file with the same content, so no pin can tell the
+two.
 
 Free space: budget about twice the database size. The snapshot is a complete copy written next to
 the source, and keeping the previous backup while the new one is written doubles that space.

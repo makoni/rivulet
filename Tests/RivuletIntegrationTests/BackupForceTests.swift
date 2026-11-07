@@ -8,44 +8,76 @@ import Testing
 /// The flag is the port's own: Miniflux's CLI dispatches by flags and has no `backup` command at
 /// all, so there is nothing upstream to compare with. The rule is what the run does with a
 /// destination that already holds something: without the flag it is refused and left as it was —
-/// the rule `MaintenanceCommandTests` pin — and with the flag what the destination holds is
-/// replaced by the snapshot the run writes, read as the filesystem reads the destination rather
-/// than as a database the run can open. The flag does not change the room check, does not let a run
-/// that cannot write remove anything, and does not build the directory the storage layer needs.
+/// the rule `MaintenanceCommandTests` pin — and with the flag the file the destination names is
+/// replaced by the snapshot the run writes, read as the filesystem reads the path rather than as a
+/// database the run can open, and a path that is a directory is reported rather than deleted. The
+/// flag does not change the room check, does not let a run that cannot write remove anything, and
+/// does not build the directory the storage layer needs.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting byte-identically:
-/// that the flag is what allows the write, so a patch that read it as absent refused the run and
-/// left the destination as it was; that what the run leaves is the snapshot at the run rather than
-/// the file the destination already was, so a patch that wrote nothing answered the content read
-/// before the run; that the destination is read as the filesystem reads it and not as a database
-/// the run can open, so a patch that replaced only what it could open as a database refused the
-/// bytes this pin wrote; that the flag does not skip the room check and a run that cannot write
-/// removes nothing, so a patch that skipped the check on the force path, or one that removed the
-/// destination before the check, left no bytes here for the pin to read; and that the flag does not
-/// build the directory the storage layer needs, so a patch that created it on the force path wrote
-/// a copy where this pin reads nothing must be.
+/// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
+/// with each probe named by what it flips — six probes for five pins: the flag read as absent,
+/// which refused the pins reading a replacement and the controls reading a run with room or a file
+/// replaced; the destination read as a database the run can open, which refused the pin naming
+/// bytes and the two controls reading bytes replaced; the room check skipped on the force path,
+/// which wrote a copy over the bytes the no-room pin named; the destination removed before the
+/// check, which left no bytes for that pin to read; the removal taking whatever the path is rather
+/// than a file, which deleted the directory the last pin built; and the directory built on the
+/// force path, which answered the pin reading nothing created with a copy.
 ///
 /// What these pins cannot fail on: an empty destination file, which the flag path replaces and the
 /// no-flag path reuses, because both answers leave the same file with the same content, and reuse
-/// is named as unpinnable by `MaintenanceCommandTests`; the branch where the destination's
-/// existence cannot be read by the filesystem, which no file this pin builds answers; the order the
-/// removal of the destination and the migrations run in, which nothing in the run answers; the
-/// order between the room check and the destination rule on the no-flag path, which no pin reads —
-/// what the pins read is that the check ran before anything was removed or written, which the pin
-/// naming no room can fail on because the bytes the pin wrote are still there; the numbers a real
-/// filesystem reports, which the seam answers in place of the machine, so the room it answers is
-/// never read here; the size of the main file before the run, because the checkpoint at the end of
-/// the run moves the rows from the WAL into it; the flag that gates the migrations, which
-/// `MaintenanceCommandTests` pin for both commands; the copy being a plain file with no `-wal`
-/// beside it; the wording of the lines and of the reported failures; that these commands fetch
-/// nothing and sleep nothing; and the rules the port names rather than the reference, which has no
-/// command here to compare with.
+/// is named as unpinnable by `MaintenanceCommandTests`; the type guard's other branches — a path
+/// read as something other than a regular file, and one whose attributes cannot be read — which no
+/// path this pin builds answers; the order the removal of the destination and the migrations run
+/// in, which nothing in the run answers; the order between the room check and the destination rule
+/// on the no-flag path, which no pin reads — what the pins read is that the check ran before
+/// anything was removed or written, which the pin naming no room can fail on because the bytes the
+/// pin wrote are still there; the numbers a real filesystem reports, which the seam answers in
+/// place of the machine, so the room it answers is never read here; the size of the main file
+/// before the run, because the checkpoint at the end of the run moves the rows from the WAL into
+/// it; the flag that gates the migrations, which `MaintenanceCommandTests` pin for both commands;
+/// the copy being a plain file with no `-wal` beside it; the wording of the lines and of the
+/// reported failures; that these commands fetch nothing and sleep nothing; and the rules the port
+/// names rather than the reference, which has no command here to compare with.
 @Suite struct BackupForceTests {
     init() {
         TestLogging.bootstrapOnce()
     }
 
     // MARK: - Pins
+
+    @Test func theForceFlagReplacesTheFileTheDestinationNamesAndNotAPathThatIsADirectory() async throws {
+        try await withMigratedStorage { database, storage in
+            let atTheRun = try await storage.withConnection { connection in
+                let feed = try await seedFeed(connection)
+                _ = try await seedEntry(connection, userID: feed.userID, feedID: feed.feedID,
+                    hash: "not-a-file", content: "<p>Row for the run given a directory</p>")
+                return try await content(on: connection)
+            }
+
+            // The guard reads the path as the filesystem reads it, so the run replaces a file and
+            // nothing else: a patch that removed whatever the path was deleted the directory the
+            // pin built, which is what a run has to report rather than delete.
+            let directory = database.directory.appendingPathComponent("previous")
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let outcome = try await runCommand(databasePath: database.path,
+                arguments: ["backup", "--force", directory.path])
+            #expect(outcome.failed, "the run given a directory reports it: \(outcome.output)")
+            #expect(FileManager.default.fileExists(atPath: directory.path),
+                "the directory the pin built is left as it was: \(outcome.output)")
+
+            // The control, on the same shape as a file: the run replaces it, so the readings above
+            // are the type rule and not a command that writes nothing at a path it cannot write to.
+            let file = database.directory.appendingPathComponent("previous-file")
+            try "not a database".write(to: file, atomically: true, encoding: .utf8)
+            let control = try await runCommand(databasePath: database.path,
+                arguments: ["backup", "--force", file.path])
+            #expect(!control.failed, "the control run on the same shape as a file did not fail: \(control.output)")
+            let replaced = try await content(at: file.path, on: database, as: "control")
+            #expect(replaced == atTheRun, "the control run replaced the file: \(replaced)")
+        }
+    }
+
 
     @Test func theForceFlagReplacesADestinationTheRunWouldRefuseWithoutIt() async throws {
         try await withMigratedStorage { database, storage in
