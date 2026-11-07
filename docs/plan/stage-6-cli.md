@@ -53,7 +53,7 @@ read counts as nothing; and the check runs at the start of the run, before anyth
 beside it, which the run pin reads — and which is why `Vacuum` carries the filesystem it does not
 read, so that pin can fail on a patch that reads the room there.
 
-- The `--force` flag the `backup` run reads lands with PR #53 as one rule, in the code, the docs
+- The `--force` flag the `backup` run reads landed with PR #53 as one rule, in the code, the docs
 and the suite header: without the flag a destination that already holds something is refused and
 left as it was, and with the flag the file the destination names is replaced by the snapshot at the
 run, read as the filesystem reads the path rather than as a database the run can open, while a path
