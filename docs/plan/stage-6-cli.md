@@ -75,7 +75,7 @@ runbook restores another backup rather than repairing a file a check named, so a
 failing check does not remove what it read. Without the flag the run calls the check nothing, and
 the flag changes neither the room check nor the directory the storage layer needs. Pinned by
 `BackupVerifyTests`: 5 pins and 9 probes, and by `SystemDatabaseVerifierTests`, which reads what the
-implementation answers for a real file: 4 pins and 5 probes — the clean answer, the problems the
+implementation answers for a real file: 4 pins and 6 probes — the clean answer, the problems the
 damaged copy has, the file left as the bytes the storage rule wrote, and the failure reported for a
 path the check cannot open rather than the clean answer. What no patch can flip is named in the two
 headers, among them the connection the check opens, which no patch can show because the command
@@ -229,22 +229,21 @@ the cap.
 With PR #53 the files are `BackupForceTests.swift` 248, `Support/CommandRun.swift` 29,
 `Support/DatabaseContent.swift` 36 and `MaintenanceCommandTests.swift` 407, after the two
 helpers moved out of it and the unused imports came out of them. With PR #54 the files are
-`BackupVerifyTests.swift` 233, `SystemDatabaseVerifierTests.swift` 130,
-`Support/RecordingVerifier.swift` 48, `Storage/SystemDatabaseVerifier.swift` 54,
-`Storage/DatabaseVerifier.swift` 15 and `Commands/Backup.swift` 125 — all under the size aim, so
-nothing needs a split. The single-expression code lines that read over the width in the new files
+`BackupVerifyTests.swift` 238, `SystemDatabaseVerifierTests.swift` 136,
+`Support/RecordingVerifier.swift` 48, `Storage/SystemDatabaseVerifier.swift` 53,
+`Storage/DatabaseVerifier.swift` 14 and `Commands/Backup.swift` 124 — all under the size aim, so
+nothing needs a split.
 are the ones the wrapping rule exempts: the `#expect` calls with the comment argument, the
 `databases.database(...)` call with the logger and the event loop, the `help` string, and the
 `problems` read that names the flag, the seam and the path in one expression.
 - The check reads the copy through FluentKit's `Databases` container, because these package versions
 do not answer a `Database` for one path any other way: `SQLDatabase.fluent(.sqlite(.file(path)))`
 does not exist, and `fluent(_:)` is Cache and Sessions. The container is closed before the answer
-leaves, so the connection the check opened does not outlive the call that opened it. It is
-named with `MultiThreadedEventLoopGroup.singleton` and `NIOThreadPool.singleton`, because the
-`MultiThreadedEventLoopGroup.singleton` and `NIOThreadPool.singleton`, because the singletons these
-packages exported as `SystemEventLoop` and `SystemEventLoopGroup` are no longer in SwiftNIO. The
-three direct products `RivuletCore` now names — `FluentSQLiteDriver`, `NIOPosix`, `Logging` — are
-the approved addition: all three were already in the dependency graph, and `FluentSQL` is not
+leaves, so the connection the check opened does not outlive the call that opened it. It is named
+with `MultiThreadedEventLoopGroup.singleton` and `NIOThreadPool.singleton`, because the singletons
+these packages exported as `SystemEventLoop` and `SystemEventLoopGroup` are no longer in SwiftNIO.
+The three direct products `RivuletCore` now names — `FluentSQLiteDriver`, `NIOPosix`, `Logging` —
+are the approved addition: all three were already in the dependency graph, and `FluentSQL` is not
 imported, because nothing here uses what it exports.
 - The account rule is the port's own: `--user` with the single-account fallback, and no
 environment flag for the environment path, which the flag polish closes: the reference's CLI reads

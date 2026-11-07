@@ -122,7 +122,7 @@ run makes through the `DatabaseVerifier` seam — that the run calls the seam no
 flag, that it makes the one call for the destination as the run read it and after the write, that it
 reports the failure the seam answers with and leaves the copy as written, that the flag does not
 change the room check, and that it does not build the directory the storage layer needs — 5 pins and
-9 probes by `BackupVerifyTests`, plus 4 pins and 5 probes by `SystemDatabaseVerifierTests`, which
+9 probes by `BackupVerifyTests`, plus 4 pins and 6 probes by `SystemDatabaseVerifierTests`, which
 reads what the implementation answers for a real file: the clean answer, the problems the damaged
 copy has, the file left as the bytes the storage rule wrote, and the failure reported for a path the
 check cannot open rather than the clean answer. What those headers name as unpinnable: the problems

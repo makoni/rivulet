@@ -8,28 +8,34 @@ import Testing
 /// test builds, so the pins name a real copy written by the storage rule and the damage
 /// `Support/DatabaseCorruption.swift` does to it. What the pins read is the answer for the file at
 /// the path: the clean answer for a file the check read as clean, the problems for a file the pin
-/// damaged, the copy left as the bytes the storage rule wrote, and the failure reported for a path
+/// damaged, the file left as the bytes the storage rule wrote, and the failure reported for a path
 /// the check cannot open — the same failure the startup check reports, so page damage and a path
-/// that cannot be read are told apart in the runbook. The rule that a check which ran and observed
-/// no rows is not the clean answer is a storage rule pinned by `MaintenanceTests`. What these pins
-/// can fail on, each checked by patching the implementation and reverting byte-identically, with
-/// each probe named by what it flips — five probes for four pins: the answer read as problems for
-/// every file, which answered the pin naming a clean copy with problems and the pin naming a
-/// damaged file with a problem that does not name the page it damaged; the answer read as nothing
-/// for every file, which answered the pin naming a damaged file with nothing; the journal mode set
-/// on the connection the check opened, which rewrote the two header bytes the pin read as the mode
-/// the storage rule wrote; the failure that prevented the check from running read as the clean
-/// answer rather than as the failure reported, which answered the pin naming a path it cannot open
-/// as clean; and the path built by the check before it read it, which answered the pin reading
-/// nothing created with a directory it wrote. What these pins cannot fail on: that the check opens
-/// a connection of its own, which no patch of this implementation can flip because there is no
-/// other connection for it to read through — what the pins read is the answer for the file at the
-/// path, and a connection on the source would have answered the same thing for the same file; the
-/// branch where the check ran and observed no rows, which no real file answers and which
-/// `MaintenanceTests` pin as a storage rule; the connection being closed after the check, which
-/// nothing a pin reads answers; the wording of the reported failure; the numbers of this machine,
-/// which the check reads as the file has them; and the rules the port names rather than the
-/// reference, which has no command here to compare with.
+/// that cannot be read are told apart in the runbook.
+///
+/// What these pins can fail on, each checked by patching the implementation and reverting byte-
+/// identically, with each probe named by what it flips — six probes for four pins: the answer read
+/// as problems for every file, which answered the pin naming a clean copy with problems and the pin
+/// naming a damaged file with a problem that does not name the page it damaged; the answer read as
+/// nothing for every file, which answered the pin naming a damaged file with nothing; the journal
+/// mode set on the connection the check opened, which rewrote the header bytes the pin compared
+/// after the check; the failure that prevented the check from running read as the clean answer
+/// rather than as the failure reported, which answered the pin naming a path it cannot open as
+/// clean; that same failure reported through a different storage failure, which answered the pin
+/// reading the mapping as another error; and the path built by the check before it reads it, which
+/// answered the pin reading nothing created with a directory it wrote.
+///
+/// What these pins cannot fail on: that the check opens a connection of its own, which no patch of
+/// this implementation can flip because there is no other connection for it to read through — what
+/// the pins read is the answer for the file at the path, and a connection on the source would have
+/// answered the same thing for the same file; the branch where the check ran and observed no rows,
+/// which no real file answers and which no pin reaches here, and which `MaintenanceTests` pin only
+/// as what the check answers for a healthy file, a damaged page and a file that is not a database;
+/// the detail read of the reported failure, which any non-empty wording satisfies; the header bytes
+/// read before the check, which are the shape guard that bites only on the storage rules
+/// `MaintenanceTests` pin; the connection being closed after the check, which nothing a pin reads
+/// answers; the wording of the reported failure; the numbers of this machine, which the check reads
+/// as the file has them; and the rules the port names rather than the reference, which has no
+/// command here to compare with.
 @Suite struct SystemDatabaseVerifierTests {
     init() {
         TestLogging.bootstrapOnce()

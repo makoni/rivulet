@@ -25,20 +25,25 @@ import Testing
 /// the room check skipped on the verify path, which let a run that could not hold the copy write
 /// and call; the directory built on the verify path, which answered the pin reading nothing created
 /// with a copy and a call; and the write skipped when the flag was given, which left nothing for
-/// the copy reads that show the control runs wrote. What these pins cannot fail on: the problems of
-/// a real file, which the seam answers in place of the machine and which
-/// `SystemDatabaseVerifierTests` reads on a real one; the connection the check opens, which no
-/// patch of this command can flip because the command has no other connection to read through; the
-/// answer the check gives for a file whose check ran and observed no rows, which is the same answer
-/// as the clean one through this seam and which `MaintenanceTests` pin as a storage rule; the
-/// wording of the lines and of the reported failure; the order between the check and the
-/// application's shutdown, which nothing in the run answers; the `-wal` and `-shm` files the
-/// check's connection can leave beside the copy, which are the copy's own because WAL is a property
-/// of the file it is; the size of the main file before the run, because the checkpoint at the end
-/// of the run moves the rows from the WAL into it; the flag that gates the migrations, which
-/// `MaintenanceCommandTests` pin for both commands; that these commands fetch nothing and sleep
-/// nothing; and the rules the port names rather than the reference, which has no command here to
-/// compare with.
+/// the copy reads that show the control runs wrote.
+///
+/// What these pins cannot fail on: the problems of a real file, which the seam answers in place of
+/// the machine and which `SystemDatabaseVerifierTests` reads on a real one; the connection the
+/// check opens, which no patch of this command can flip because the command has no other connection
+/// to read through; the branch where the check ran and observed no rows, which no real file answers
+/// and which no pin reaches here — through this seam it is the failing answer, not the clean one,
+/// and `MaintenanceTests` pin only what the check answers for a healthy file, a damaged page and a
+/// file that is not a database; the guards that read the run as not failing, which any
+/// implementation that does not throw satisfies, so they cannot fail on the flag rule; the copy
+/// reads through a second driver, which bite only on the storage rules `MaintenanceTests` pin; the
+/// read that the copy was not there before the run, which is what the pin built; the wording of the
+/// lines and of the reported failure; the order between the check and the application's shutdown,
+/// which nothing in the run answers; the `-wal` and `-shm` files the check's connection can leave
+/// beside the copy, which are the copy's own because WAL is a property of the file it is; the size
+/// of the main file before the run, because the checkpoint at the end of the run moves the rows
+/// from the WAL into it; the flag that gates the migrations, which `MaintenanceCommandTests` pin
+/// for both commands; that these commands fetch nothing and sleep nothing; and the rules the port
+/// names rather than the reference, which has no command here to compare with.
 @Suite struct BackupVerifyTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -146,7 +151,7 @@ import Testing
         }
     }
 
-    @Test func theVerifyFlagDoesNotChangeTheRoomCheckAndCallsNothingWhenTheRunCannotWrite() async throws {
+    @Test func theVerifyFlagDoesNotChangeTheRoomCheckAndCallsNothingWithoutRoom() async throws {
         try await withMigratedStorage { database, storage in
             let atTheRun = try await storage.withConnection { connection in
                 let feed = try await seedFeed(connection)

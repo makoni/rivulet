@@ -55,10 +55,11 @@ rivulet backup --force "/var/backups/rivulet-$(date +%F).db"
 
 A backup is a plain SQLite file. Verify it by opening it and running `PRAGMA quick_check`
 (`SQLiteStorage.quickCheck()` does that and maps problems to
-`StorageError.databaseCorrupt(details:)`), or by restoring it on a scratch copy. The `--verify` flag does the check inside the run: it opens the file the run wrote at the path it
-was given, reports what the check observed as the failure, and leaves the copy as it was written —
-the run below restores another backup rather than repairing a file, so a run that reports a failing
-check removes nothing.
+`StorageError.databaseCorrupt(details:)`), or by restoring it on a scratch copy. The `--verify`
+flag does the same check inside the run: it opens the file the run wrote at the path it was given,
+reports what the check observed as the failure, and leaves the copy as it was written — the run
+below restores another backup rather than repairing a file, so a run that reports a failing check
+removes nothing.
 
 ## Restoring
 
