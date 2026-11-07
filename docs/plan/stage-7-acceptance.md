@@ -1,7 +1,7 @@
 # Stage 7 — Acceptance & hardening
 
 **Goal:** prove real-world compatibility with clients and parity with Miniflux; harden the edges.
-**Status:** in progress — the first slice is the robustness work and opens as PR #55: the hostile
+**Status:** in progress — the first slice is the robustness work, merged (PR #55): the hostile
 bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
 suite documents. The parity harness, the client matrix and the replay of captured request sequences
 follow. **Effort:** M. **Depends on:** Stages 5–6.
@@ -17,7 +17,7 @@ follow. **Effort:** M. **Depends on:** Stages 5–6.
       `docs/parity.md`.
 - [ ] Replay of captured real-client request sequences (redacted) as contract tests where
       possible.
-- [x] Robustness opens as PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
+- [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
       a stream that inflates far past the size it is stored in, and a stream the decoder cannot
       finish — read as which limit answers, and the 10k-entry scenario with the budgets documented.
       The malformed corpora the stage-3 fixtures already hold are read as they are, not rewritten.
