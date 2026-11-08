@@ -111,19 +111,24 @@ def read(name, query):
     """The fields one side's storage answers, in the order it reads them.
 
     The content field can hold the character a delimited read uses to split, and a newline inside
-    it, so the reference side is read as CSV rather than as pipe-separated lines. This port's
-    driver answers rows as fields, which needs no delimiter at all.
+    it, so the reference side is read as CSV over the whole text rather than line by line: a field
+    with a newline in it is one row, not two. This port's driver answers rows as fields, which
+    needs no delimiter at all. A value the storage cannot read is nothing on both sides, so the
+    field is the empty string rather than the name of nothing.
     """
+    import csv
+
     if ENGINES[name] == "postgres":
-        import csv
+        import io
         import subprocess
 
         out = subprocess.run(["psql", "-At", "-c", f"COPY ({query}) TO STDOUT WITH (FORMAT csv)"],
                              capture_output=True, text=True).stdout
-        return [row for row in csv.reader(out.splitlines()) if row]
+        return [row for row in csv.reader(io.StringIO(out)) if row]
+
     import sqlite3
 
-    return [[str(value) for value in row] for row in
+    return [[("" if value is None else str(value)) for value in row] for row in
             sqlite3.connect(os.environ["PARITY_DATABASE_URL"]).execute(query)]
 
 def key_for(url):
