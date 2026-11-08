@@ -69,22 +69,30 @@ recorded collation row, the response header read with the first value winning ov
 values, the proxy running as `none` on the reference side, the ASCII account name, and the report
 naming every rule and what the run cannot show. 20 crafted inputs plus the baseline, which is
 asserted to report nothing, so each probe is single-firing; the patch round showed each rule can
-fail on the rule it names and reverted the file byte-identically. What the harness cannot show: the
-run half cannot execute on this machine — the Docker daemon is not reachable for this user and no
-Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver, so the
-shell is checked by `bash -n` and by its fourteen checks, eleven of which name a value the run
-declares or a count it declares against the committed files, each seen to fail on such a value or by
-taking the file it names away, while the three that read the run's own data fail only on a run; the
-pinned version on the port side, because the rule that reads it reads only the reference side, where
-the run names the pinned version and the port names the build it ran; that the run ran at all,
-because it is on demand and not in CI; that the two sides read the same bytes over the network,
-because each fetch is its own hop; the row order for rows sharing one value, which SQL does not fix;
-the clock fields, which each side wrote at its own write instant; the other half of the table rule,
-which cannot be probed alone because removing a row also makes the difference itself a finding, so
-it is documented rather than probed; and the four classes the corpus cannot reach, which are named
-in the table rather than asserted. The client matrix, the replay of captured client request
-sequences, the performance notes, and the live parity run on a machine where the daemon and Postgres
-are reachable follow.
+fail on the rule it names and reverted the file byte-identically. The fourth slice, the run half
+executed here for the first time, opens as PR #58: what the run hands over, the terminal the secure
+console read needs, and the login half the run reaches and cannot pass. What the harness cannot
+show: the run half is on demand and not in CI, so it is checked here by `bash -n` and by its
+nineteen checks, twelve of which name a value the run declares or a count it declares against the
+committed files, each seen to fail on such a value or by taking the file it names away, while the
+seven that read the machine or the run's own data fail only on a run — three of those seven were
+seen to fail here: a port something already holds, the base its own side answers on, by pointing the
+run at a binary that exits at once, and the login answer, by the run itself; the pinned version on
+the port side, because the rule that reads it reads only the reference side, where the run names the
+pinned version and the port names the build it ran; that the run ran at all, because it is on demand
+and not in CI; that the two sides read the same bytes over the network, because each fetch is its
+own hop; the row order for rows sharing one value, which SQL does not fix; the clock fields, which
+each side wrote at its own write instant; the response name read with the value that response
+answered, which is one read on run data; the other half of the table rule, which cannot be probed
+alone because removing a row also makes the difference itself a finding, so it is documented rather
+than probed; the login half, which the run reaches here and cannot pass, because the reference reads
+the integration row the login read runs on, where the enabled flag that read requires is set only by
+its web form, while this port has no integration table at all — the credential pair sits on the
+account row, which the run had not set either, and it has no web form; and the four classes
+the corpus cannot reach, which are named in the table rather than asserted. The client matrix, the
+replay of captured client request sequences, the performance notes, and the live parity run with an
+authenticated pair, which needs a path that sets the flag the login read requires on the reference
+side and the credential pair on this side, follow.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed
@@ -364,7 +372,8 @@ We work test-first: **red → green → refactor**.
 - Write a failing test before writing production code.
 - Bug fixes start with a regression test that reproduces the bug.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
-test, not just a unit test. - Ported Miniflux behavior must bring the corresponding ported tests.
+test, not just a unit test.
+- Ported Miniflux behavior must bring the corresponding ported tests.
 - Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
 XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
@@ -392,9 +401,11 @@ only the seams the plan requires.
 One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
 to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
-- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Two things are
-exempt because neither can be broken without changing what it says: a Markdown table row, and an
-inline code span longer than the width, which stays whole on its own line. Code lines are single
+- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Four things are
+exempt because none can be broken without changing what it says: a Markdown table row; an inline
+code span longer than the width; a line the check half reads as one whole string, which is a
+manifest record line or a generated report item line; and a shell command line or a guard message,
+which the run reads as one line. Each stays whole on its own line. Code lines are single
 expressions and are not split to meet the width. A commit that only rewraps does not change
 behavior, so it does not reopen a review that already approved the words.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
@@ -457,7 +468,8 @@ commit that completes a stage.
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
-support conditional GET with ETag`. - Behavior + its tests + doc updates land in the same commit.
+support conditional GET with ETag`.
+- Behavior + its tests + doc updates land in the same commit.
 - Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
 `.gitignore`.
 

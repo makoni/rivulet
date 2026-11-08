@@ -50,10 +50,15 @@ CANNOT_SHOW = [
     "the clock fields, which each side wrote at its own write instant",
     "the rules the stage-3 corpora already pin, which the run re-reads rather than pins",
     "the rules that are tautologies on run data because the collector writes both sides from one "
-    "source, so they can only be shown on crafted data",
+    "source, so they can only be shown on crafted data: the input digests, the flags, the names "
+    "the run asked with, and the response name read with the value that response answered, which "
+    "are one read on a run",
+    "the login half as one rule on both sides, because the reference reads the integration row "
+    "where the enabled flag that read requires is set only by its web form, while this port has "
+    "no integration table and no flag, so the run has no path that sets the values for both sides",
     "the pinned version on the port side, because the rule that reads it reads only the reference "
     "side, where the run names the pinned version and the port names the build it ran",
-    "the guards, which are shown only by declaring a value below what they require, and the two "
+    "the guards, which are shown only by declaring a value below what they require, and the seven "
     "that read data rather than a declared value, which fail only on a run",
     "the four classes no corpus input can reach, which are named in the table rather than asserted",
 ]
@@ -135,10 +140,10 @@ def feed_row(side, row):
 def item_hex(value):
     """The hex field the reference's item read takes, read as `fmt.Sscanf` with `%016x` reads it.
 
-    The prefix decides which form it is: with the prefix the field is the value after it, and without
-    the prefix the whole value is the field, which is the form the clients that do not follow the
-    reference's own write send. Nothing here normalises the padding, because the scan keeps what it
-    read rather than the whole value.
+    The prefix decides which form it is: with the prefix the field is the value after it, and
+    without the prefix the whole value is the field, which is the form the clients that do not
+    follow the reference's own write send. Nothing here normalises the padding, because the scan
+    keeps what it read rather than the whole value.
     """
     return value.split("reader/item/")[-1]
 
@@ -180,9 +185,9 @@ def rule_request_sequence_is_the_same_on_both_sides(pair):
 
 
 def rule_recorded_classes_are_exercised_by_the_corpus(pair):
-    """Each recorded row names an input that reaches it. The other half is not read here:
-    a class the manifest reaches but no row names is a difference nothing covers, so the
-    and the probe that drops a row shows that half through them."""
+    """Each recorded row names an input that reaches it. The other half is not read here: a class
+    the manifest reaches but no row names is a difference nothing covers, so the difference rules
+    read it, and the probe that drops a row shows that half through them."""
     found = []
     for row in pair["recorded"]:
         key = row["exercised_by"]

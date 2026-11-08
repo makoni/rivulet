@@ -1105,11 +1105,13 @@ map rather than as values.
 
 The shapes the collector arranges are what the rules read, and each is a shape, not a value: a
 response name kept as the list of its values in the order they arrive, taken once per name in the
-order it first appears, which is what `Header.Get` reads through, because keeping one value per name
-would make the header rule impossible to fire on a run — `Tools/parity/stub_server.py` is the stub
-that writes one name twice, and it was seen to answer two values for it on a live socket; the login
-recorded as the first request, on the route the reference registers for it with the form names it
-reads, because a pair document carrying requests before the login answer is a run that never
+order it first appears, which is what `Header.Get` reads through, so `Tools/parity/stub_server.py`
+is the stub that writes one name twice on the hop the corpus is served on, and the read takes each
+name once, in the order it first appears; but the pair document carries the response each side
+answered the collector with, and the fetch hop is not in it, so on run data the value the rule
+compares is written from the same read as the list it reads, and only crafted data can fire it; the
+login recorded as the first request, on the route the reference registers for it with the form names
+it reads, because a pair document carrying requests before the login answer is a run that never
 authenticated; the token sent as the `Authorization` name the auth read reads, `GoogleLogin auth=`,
 split as `strings.Fields` splits it; the status taken from a failed response, because the status
 rule can otherwise never see the 404 or the 405 it compares, and a non-JSON answer recorded as the
@@ -1121,6 +1123,19 @@ newline is one field, not two rows — and this port's driver answering rows as 
 delimiter at all, and a value the storage cannot read being the empty string on both sides rather
 than the name of nothing; and the version named on the reference side only, because the port side
 names the build it ran.
+
+What the run hands over, and what the first live run here showed: the flags are handed to the
+reference one name at a time with its own `-e`, because a flag name handed bare is read as the image
+the run pulls; the reference runs on the host network, because a container in a namespace of its own
+has its own loopback and the corpus is served on this machine's; its connection string has to name
+the SSL mode, because the driver it reads that string through defaults to `require` when the string
+names no mode; `CREATE_ADMIN` is a boolean for its parser, with the account as two names beside it,
+so a value written as `name:password` is an invalid boolean; the schema is applied by a run of its
+own through its own flag, with the migrations gated off as the guard says; the name
+`DATABASE_URL` is not one value for the two sides, so each side is
+handed its own; the port's own side is served before the collector reads it; the secure console read
+takes its value from a terminal rather than from a pipe, so the run gives that command one; and the
+due rule is strict, so the batch read cannot see a feed written at the same instant it reads.
 
 What it cannot show, and the harness and the docs say so:
 
@@ -1135,27 +1150,38 @@ the rule, not an assertion, so no probe covers it;
 nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
 alone — removing the row also makes the difference itself a finding;
 - the rules that are tautologies on run data because the collector writes both sides from one
-source: the input digests, the flags, and the names the run asked with. They can only be shown on
-crafted data, where the two sides are written apart, and the probes for them are crafted, not run;
+source: the input digests, the flags, the names the run asked with, and the response name read with
+the value that response answered, which are one read on a run. They can only be shown on crafted
+data, where the two sides are written apart, and the probes for them are crafted, not run;
+- the login half as one rule on both sides: the reference reads the integration row the login read
+runs on, where the enabled flag that read requires is set only by its web form, which this port has
+no equivalent of — it has no integration table and no flag, and its own path for the pair is the
+console command — so the two sides cannot be set up through one path, and the pair document here
+carries the unauthorized answer on both sides;
 - the pinned version on the port side, which the rule that reads it does not read: the probe that
 changes the version shows which half the rule reads by failing on the reference side alone;
-- the fourteen checks the shell makes. Eleven name a value the run declares or a count the run
-declares against the committed files — the pinned tag, the pinned commit, the two corpus counts, the
-exercised-row count, the proxy mode, the address policy, the account name, the two declared ports,
-the Postgres host, the manifest being there, and the report being present — and each was seen to
-fail, by declaring a value below what it requires or by taking the file it names away. That is the
-whole of what they show. The three that read the run's own data — a manifest key with no file beside
-it, a side the run recorded nothing for, and the daemon being reachable — fail only on a run, and
-the last fails here because this machine gives neither;
+- the nineteen checks the shell makes. Twelve name a value the run declares or a count the run
+declares against the committed files — the pinned tag, the pinned commit, the two counts, the
+exercised-row count, the manifest being there and the file each of its keys names, the proxy mode,
+the address policy, the account name, the report being present, and the network the run declares —
+and each was seen to fail, by declaring a value below what it requires or by taking the file it
+names away. That is the whole of what they show. The seven that read the machine or the run's own
+data — the two declared ports, the Postgres server, the daemon, the two bases answering, the login
+answer, and the rows each side recorded — fail only on a run, and three of them were seen to fail
+here: a port something already holds, the base its own side answers on, by pointing the run at a
+binary that exits at once, and the login answer, by the run itself;
 - the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
 the media proxy, the wording of a rule the port names — which are named in the table as not
 reachable here rather than asserted;
-- the run half itself, on this machine: the Docker daemon is not reachable for this user and no
-Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So the
-collector is checked here only by `bash -n` and by the guards above, not by a run;
-- what the width rule does not reach: the manifest's record lines, which are one record, and the
-shell's command lines and guard messages, which cannot be broken at a word without changing what the
-run reads.
+- the run half itself, which is not in CI and cannot be probed: it runs only when the machine gives
+the daemon and a Postgres server, which the reference needs because its `go.mod` has no SQLite
+driver. Here it executed end to end through the collector for the first time, and what it reported
+was the login half, so the committed report is the one written from the table by hand rather than
+one a run wrote;
+- what the width rule does not reach: the manifest's record lines, which are one record, the
+report's item lines, which are one item each and read as whole strings by the rule that reads the
+report, and the shell's command lines and guard messages, which cannot be broken at a word without
+changing what the run reads.
 
 ## Running
 

@@ -64,7 +64,7 @@ affected, these are measurements of a library we decided not to use.
 
 ## Follow-ups for stage 3
 
-- - Ported in stage 3: the reference's tests for these files assert only the decoded strings, so
+- Ported in stage 3: the reference's tests for these files assert only the decoded strings, so
   the golden outputs for the parser fixtures are defined by us and recorded as golden files in
   `Tests/RivuletCoreTests/Fixtures/parser/golden/`.
 - The 8 parser fixtures are used by the reference only in benchmarks and fuzz seeds; no golden
