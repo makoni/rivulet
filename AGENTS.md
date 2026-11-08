@@ -344,7 +344,7 @@ is the parsed title while this port writes the row with the create defaults; the
 before the read that could answer it; the title guard's own branch, which is read on a row whose
 title an earlier input in the same pin wrote; the order between the absolute rule and the duplicate
 read, pinned as pure logic by `FeedValidationTests`; the reference's localized strings for the rules
-the wordings of the storage failures this suite cannot trigger. `invalidData(named:)` moved to
+the port names by name; and the wordings of the storage failures this suite cannot trigger. `invalidData(named:)` moved to
 `GoogleReaderHandlers`, which both handler files of this path use, that file now takes the finder
 `RivuletApplication` owns and closes in `shutdown()`, and `withServedApp` gained an optional
 environment so a quickadd pin can name the target rule for the stub server it answers on. Two of the
