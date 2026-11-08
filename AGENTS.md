@@ -344,10 +344,11 @@ is the parsed title while this port writes the row with the create defaults; the
 before the read that could answer it; the title guard's own branch, which is read on a row whose
 title an earlier input in the same pin wrote; the order between the absolute rule and the duplicate
 read, pinned as pure logic by `FeedValidationTests`; the reference's localized strings for the rules
-the port names by name; and the wordings of the storage failures this suite cannot trigger. `invalidData(named:)` moved to
-`GoogleReaderHandlers`, which both handler files of this path use, that file now takes the finder
-`RivuletApplication` owns and closes in `shutdown()`, and `withServedApp` gained an optional
-environment so a quickadd pin can name the target rule for the stub server it answers on. Two of the
+the port names by name; and the wordings of the storage failures this suite cannot trigger.
+`invalidData(named:)` moved to `GoogleReaderHandlers`, which both handler files of this path use,
+and that file now takes the finder `RivuletApplication` owns and closes in `shutdown()`;
+`withServedApp` gained an optional environment so a quickadd pin can name the target rule for the
+stub server it answers on. Two of the
 three shapes the run sends for these endpoints carry no class, and the quickadd shape names the one
 its key set can show, the title inside the request, because the rule that reads key sets reads no
 coverage; the two scan classes are recorded as classes the corpus cannot reach. What follows: the

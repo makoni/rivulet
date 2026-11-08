@@ -10,12 +10,13 @@ import Foundation
 /// the response came from, which is the reference's `EffectiveURL()` and not the URL the call was
 /// given — the two are different answers for a document that was redirected. Only after that does
 /// the scan read the document, and the base it resolves against is the URL this call was given,
-/// which is what the reference answers when the document carries no `<base href>`: its own read of
-/// that tag is not ported, and its canonical step does not change the base the scan is given. What
-/// the reference has and this port does not — the `<base href>` read, the canonical URL, the
-/// YouTube, GitHub and RSS-Bridge handlers, the well-known paths — is recorded in
-/// `docs/parity.md`, as is the fact that the reference's subscription value also carries a title
-/// and a format that nothing in this port uses.
+/// which is what the reference answers when the document has no `<base href>` or when that value
+/// is not absolute: its read of that tag is trimmed and used only when it is absolute, and that
+/// read is not ported; its canonical step does not change the base the scan is given. What the
+/// reference has and this port does not — the `<base href>` read, the canonical URL, the YouTube,
+/// GitHub and RSS-Bridge handlers, the well-known paths — is recorded in `docs/parity.md`, as is
+/// the fact that the reference's subscription value also carries a title and a format that nothing
+/// in this port uses.
 public struct SubscriptionFinder: Sendable {
     private let fetcher: Fetcher
     private let builder: FetchRequestBuilder
