@@ -16,8 +16,7 @@ tolerance table and the parser error corpus | | Integration | `Tests/RivuletInte
 SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP | | Soak |
 `Scripts/soak.sh` with `Scripts/soak_check.py` | A real-time run over local stub feeds, run by hand
 and not in CI: its checks read the data each round leaves behind |
-| Acceptance | `Tools/parity` (stage 7) | Real clients checklist + semantic
-diff against real Miniflux in Docker |
+| Acceptance | `Tools/parity` with `Scripts/parity.sh` (stage 7) | Semantic comparator over observable behaviour against real Miniflux in Docker, run by hand and not in CI: its rules read the pair document the run leaves behind, and the tolerance table is read as data from `docs/parity.md` |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
 to a real socket through Vapor's client). Fixture files are target resources (`resources:
@@ -1072,6 +1071,84 @@ failure rather than a false pass, which the check states;
 as large as the rows, the database being fresh — can fail, and each was seen to fail by declaring a
 value below what it requires; that is the whole of what they can show.
 
+## Parity harness
+
+`Scripts/parity.sh` is the stage-7 artifact the plan names: real Miniflux and Rivulet read the same
+corpus, and the difference between the two answers is read class by class against the tolerance
+table. It is not a test and it is not in CI — it is a run against two live systems, so the
+determinism rules above do not apply to it. The halves are separated the way the soak's are: the
+shell is the run half, `Tools/parity/parity_check.py` is the check half, and
+`Tools/parity/collect.py` writes the pair document the check half reads.
+
+Each rule is a function over the data a run leaves behind — the pair document, the table, the
+manifest, the committed report — rather than an assertion about a live process, and that is what
+makes each of them falsifiable: `python3 Tools/parity/probes.py` crafts one input per rule that
+violates it and asserts that the rule reports it alone. 18 rules, 20 crafted inputs, and the
+baseline, which is asserted to report nothing: the baseline is one run where every difference the
+comparator sees is covered by a recorded row, so a probe that reports a second rule is a probe that
+did not isolate its own input.
+
+The rules were written after the probe set: with the rules stubbed, all 20 crafted inputs fail on
+the rule they name, and the patch round shows the same for each rule read as data — one patch per
+rule that changes what the rule reads (the header rule reading the last value of a list instead of
+the first, the order rule reading sorted lists instead of order, the counts rule recomputing instead
+of reading what the side reports, the map rule reading an id as the other side's row, the table rule
+reading only the presence of a name, the version rule accepting any version string that starts with
+the major number), the probe for that rule seen to fail, and the file reverting byte-identically.
+
+What the rules read is the tolerance table in `docs/parity.md` as data, and the corpus manifest, so
+the comparator has no preference of its own: a row marked `accepted` is a deviation the port keeps,
+a row marked `fixed` is a rule the port already keeps, and a difference whose class no row names is
+a finding. Requests are paired by key rather than by position, so a run that answered the same
+requests in a different order still matches, and the row ids of the two databases are read as the
+map rather than as values.
+
+The shapes the collector arranges are what the rules read, and each is a shape, not a value: a
+response name kept as the list of its values in the order they arrive, which is what `Header.Get`
+reads through, because keeping one value per name would make the header rule impossible to fire on a
+run — `Tools/parity/stub_server.py` is the stub that writes one name twice, and it was seen to
+answer two values for it on a live socket; the login recorded as the first request, on the route the
+reference registers for it with the form names it reads, because a pair document carrying requests
+before the login answer is a run that never authenticated; the token sent as the `Authorization`
+name the auth read reads, `GoogleLogin auth=`, split as `strings.Fields` splits it; the status taken
+from a failed response, because the status rule can otherwise never see the 404 or the 405 it
+compares; the manifest key carried as the name the run added the feed under, resolved through the
+feed url, because neither side has a column that holds it; and the version named on the reference
+side only, because the port side names the build it ran.
+
+What it cannot show, and the harness and the docs say so:
+
+- that the run ran at all, because it is on demand and not in CI;
+- that the two sides read the same bytes over the network, because each fetch is its own hop;
+- the row order a storage read answers for rows sharing one value, which SQL does not fix;
+- the clock fields, which each side wrote at its own write instant. The rule that reads the parse
+  results can never fail on a clock difference, because it never reads one: that half of its name is
+  the rule, not an assertion, so no probe covers it;
+- the rules the stage-3 corpora already pin, which the run re-reads rather than pins;
+- the other half of the table rule: a class the manifest reaches but no row names is a difference
+  nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
+  alone — removing the row also makes the difference itself a finding;
+- the rules that are tautologies on run data because the collector writes both sides from one
+  source: the input digests, the flags, and the names the run asked with. They can only be shown on
+  crafted data, where the two sides are written apart, and the probes for them are crafted, not run;
+- the pinned version on the port side, which the rule that reads it does not read: the probe that
+  changes the version shows which half the rule reads by failing on the reference side alone;
+- the eleven guards that read a declared value — the pinned tag, the pinned commit, the two corpus
+  counts, the exercised-row count, the proxy mode, the address policy, the account name, the report
+  being present, the two declared ports, and the Postgres host. Each was seen to fail by declaring a
+  value below what it requires, and that is the whole of what they show; the two checks that read
+  data rather than a declared value — a manifest key with no file beside it, and a side the run
+  recorded nothing for — fail only on a run;
+- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
+  the media proxy, the wording of a rule the port names — which are named in the table as not
+  reachable here rather than asserted;
+- the run half itself, on this machine: the Docker daemon is not reachable for this user and no
+  Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So
+  the collector is checked here only by `bash -n` and by the guards above, not by a run;
+- what the width rule does not reach: the manifest's record lines, which are one record, and the
+  shell's command lines and guard messages, which cannot be broken at a word without changing what
+  the run reads.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
@@ -1079,6 +1156,9 @@ value below what it requires; that is the whole of what they can show.
 - `swift test --filter RivuletIntegrationTests` — integration only.
 - `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
 each of its rules can fail on the rule it names.
+- `Scripts/parity.sh` — the parity run, outside CI.
+  `python3 Tools/parity/probes.py` checks that each of its rules can fail on the rule it names, and
+  `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the guards alone.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

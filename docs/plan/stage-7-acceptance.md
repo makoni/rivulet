@@ -5,18 +5,27 @@
 bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
 suite documents. The second slice is the security checklist, merged (PR #56): the checklist is
 `docs/security.md`, and the rules it could express as pins landed there — 8 pins and 7 probes across
-five suites, one finding closed in production code. The parity harness, the client matrix and the
-replay of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
+five suites, one finding closed in production code. The third slice is the parity harness, which
+opens as PR #57: the comparator reads a comparison run as the pair document it leaves behind, the
+tolerance table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on
+the rule it names — 18 rules, 20 crafted inputs plus the baseline. The client matrix and the replay
+of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
       FeedFlow (iOS/Android), optionally Reeder Classic — setup instructions and a manual
       checklist (subscribe, add a feed from the client, sync read state, star, counts).
-- [ ] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): run real Miniflux in Docker
-      and Rivulet against the same local feed corpus; semantic diff of observable behavior
-      (entries, counts, ids, endpoint payloads); tolerances and known deviations documented in
-      `docs/parity.md`.
+- [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
+      read the same corpus, and the difference is read class by class against the tolerance table,
+      which is read as data from `docs/parity.md` rather than restated in the comparator. The
+      corpus is the five documents under `Tools/parity/corpus/` plus the three request shapes the
+      table names, and the manifest names the classes each input can reach; what the corpus cannot
+      reach is named there rather than asserted. The run half cannot execute on this machine — the
+      Docker daemon is not reachable for this user and no Postgres server answers, which the
+      reference needs because its `go.mod` has no SQLite driver — so the report committed under
+      `docs/` is the one the harness writes from the table, and the guards in the shell are the
+      half that can be checked here.
 - [ ] Replay of captured real-client request sequences (redacted) as contract tests where
       possible.
 - [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
@@ -65,10 +74,23 @@ replay of captured request sequences follow. **Effort:** M. **Depends on:** Stag
   table the sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1
   probe).
 - Client checklist executed manually and attached to the stage status.
+- `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 18 rules over the data one run
+  leaves behind, each shown to fail on the rule it names: 20 crafted inputs plus the baseline, which
+  is asserted to report nothing, so each probe is single-firing. The rules were written after the
+  probe set: with the rules stubbed all 18 fail, and the patch round changes what each rule reads,
+  shows the probe for that rule failing, and reverts the file byte-identically.
+  `Scripts/parity.sh` is the run half: its eleven guards that read a declared value fail on a
+  value the run declares below what they require, and each was seen to fail that way; the two that
+  read data rather than a declared value fail only on a run. The run itself is checked here only by
+  `bash -n`, because the machine cannot start the reference side.
 
 ## Exit criteria
 
-- [ ] `docs/parity.md`: deviations listed, each either fixed or consciously accepted.
+- [x] `docs/parity.md`: deviations listed, each either fixed or consciously accepted. The harness
+      section reads them as data, names the classes its corpus cannot reach, and the report it
+      writes (`docs/parity-report.md`) names every rule, every class and what the run cannot show.
+      The acceptance run against a live reference is what is still open: it needs a machine where
+      the Docker daemon is reachable for the user and a Postgres server answers.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes).
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the

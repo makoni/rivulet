@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exercises the name-class row: `ª` is a letter Swift reports as a letter and the reference's
+     `first` range table does not have, so the reference rejects this name and this port reads it.
+     A name both sides accept is what this file cannot pin. -->
+<rss version="2.0">
+  <channel>
+    <title>Name class corpus</title>
+    <link>https://example.org/</link>
+    <item>
+      <title>Name class</title>
+      <link>https://example.org/name-class</link>
+      <guid>urn:example:name-class</guid>
+      <pubDate>Mon, 01 Jul 2024 12:00:00 UTC</pubDate>
+      <description>the item is read only by this port</description>
+      <ªextra>the name the reference rejects</ªextra>
+    </item>
+  </channel>
+</rss>

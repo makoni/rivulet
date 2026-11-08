@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exercises the zone-abbreviation row: `PST` is resolved through the machine's tzdata by the
+     reference, which is inside a daylight-saving period here, and through this port's fixed table.
+     The zone name is what this file cannot pin, because only the offset is comparable. -->
+<rss version="2.0">
+  <channel>
+    <title>Zone corpus</title>
+    <link>https://example.org/</link>
+    <item>
+      <title>Zone abbreviation</title>
+      <link>https://example.org/zone</link>
+      <guid>urn:example:zone-pst</guid>
+      <pubDate>Mon, 01 Jul 2024 00:00:00 PST</pubDate>
+      <description>the instant the two zones part on</description>
+    </item>
+  </channel>
+</rss>

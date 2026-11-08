@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exercises the sub-second row: the reference keeps the part below the second on its date column,
+     this port reads whole seconds. The rounding direction is what this file cannot pin, because the
+     value here is below a second and both read it as a cut, not as a round. -->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Sub-second corpus</title>
+  <link href="https://example.org/"/>
+  <entry>
+    <title>Sub second</title>
+    <link href="https://example.org/sub-second"/>
+    <id>urn:example:sub-second</id>
+    <published>2024-07-01T00:00:00.000001Z</published>
+    <summary>the value one side keeps and the other cuts</summary>
+  </entry>
+</feed>
