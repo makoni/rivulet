@@ -162,9 +162,9 @@ fi
 PORT=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
 python3 "$STUB" "$PORT" >>"$WORK/server.log" 2>&1 &
 stub_pid=$!
-# One trap for both halves, set before either exists: the stub process and the reference
-# container are the two things a run leaves behind, and a second run cannot start while
-# either is still held.
+# One trap for both halves, set as soon as the first of them exists: the stub process and the
+# reference container are the two things a run leaves behind, and a second run cannot start
+# while either is still held.
 trap 'kill "$stub_pid" 2>/dev/null || true; docker stop parity-reference >/dev/null 2>&1 || true' EXIT
 swift build >/dev/null
 RIVULET=${RIVULET:-$(swift build --show-bin-path)/rivulet}
