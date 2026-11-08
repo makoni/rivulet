@@ -40,6 +40,7 @@ DEFAULTS = {"pair": os.path.join(HERE, "baseline.json"),
             "manifest": os.path.join(HERE, "corpus", "manifest.txt"),
             "report": os.path.join(HERE, "..", "..", "docs", "parity-report.md")}
 SECTION = "## Parity harness (stage 7)"
+ITEM_PREFIX = "tag:google.com,2005:reader/item/"
 
 PINNED_REFERENCE = "v2.3.3 at c4d54f87"
 CANNOT_SHOW = [
@@ -65,7 +66,7 @@ RULES = [
     "statuses_match_except_where_a_recorded_row_covers_them",
     "order_compared_only_through_the_recorded_collation_row",
     "response_headers_read_with_the_first_value_winning",
-    "media_proxy_is_off_on_the_reference_side",
+    "media_proxy_is_none_on_the_reference_side",
     "names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides",
     "report_names_every_rule_and_what_the_run_cannot_show",
 ]
@@ -124,6 +125,17 @@ def feed_row(side, row):
     return next((feed["row"] for feed in side["feeds"] if feed["file"] == row["file"]), None)
 
 
+def item_hex(value):
+    """The hex field the reference's item read takes, read as `fmt.Sscanf` with `%016x` reads it.
+
+    The prefix decides which form it is: with the prefix the field is the value after it, and without
+    the prefix the whole value is the field, which is the form the clients that do not follow the
+    reference's own write send. Nothing here normalises the padding, because the scan keeps what it
+    read rather than the whole value.
+    """
+    return value.split("reader/item/")[-1]
+
+
 def rule_flags_are_the_same_on_both_sides(pair):
     ref, port = sides(pair)
     names = sorted(set(ref["run"]["flags"]) | set(port["run"]["flags"]))
@@ -132,8 +144,12 @@ def rule_flags_are_the_same_on_both_sides(pair):
 
 
 def rule_run_names_the_pinned_reference_version(pair):
-    return [f"{side['side']} ran {side['run']['reference']!r}, not the pinned {PINNED_REFERENCE!r}"
-            for side in sides(pair) if side["run"]["reference"] != PINNED_REFERENCE]
+    """Only the reference side can name the pinned version: the port side names the build it ran."""
+    side = pair["reference"]
+    if side["run"]["reference"] == PINNED_REFERENCE:
+        return []
+    return [f"the run read the reference as {side['run']['reference']!r}, not the pinned "
+            f"{PINNED_REFERENCE!r}"]
 
 
 def rule_inputs_are_the_same_on_both_sides(pair):
@@ -224,7 +240,7 @@ def rule_payload_ids_read_through_the_map(pair):
         rows = {row["row"]: row for row in side["entries"]}
         for one in side["requests"]:
             for item in one["document"].get("items", []):
-                row = rows.get(int(item["id"], 16))
+                row = rows.get(int(item_hex(item["id"]), 16))
                 if row is None:
                     found.append(f"{side['side']}: item id {item['id']} is not the form of a row this "
                                  f"side has")
@@ -287,9 +303,9 @@ def rule_response_headers_read_with_the_first_value_winning(pair):
     ref, port = sides(pair)
     found = []
     for left, right in request_pairs(pair):
-        repeated = [name for name, _ in left["headers"] if [x for x, _ in left["headers"]].count(name) > 1]
-        for name in sorted(set(repeated)):
-            first = next(value for key, value in left["headers"] if key == name)
+        repeated = sorted(name for name, values in left["headers"].items() if len(values) > 1)
+        for name in repeated:
+            first = left["headers"][name][0]
             for side, one in ((ref, left), (port, right)):
                 if name in one["acted_on"] and one["acted_on"][name] != first:
                     found.append(f"{side['side']}: {name} appears twice and that response answered "
@@ -297,9 +313,9 @@ def rule_response_headers_read_with_the_first_value_winning(pair):
     return found
 
 
-def rule_media_proxy_is_off_on_the_reference_side(pair):
+def rule_media_proxy_is_none_on_the_reference_side(pair):
     mode = pair["reference"]["run"]["media_proxy_mode"]
-    if mode == "off":
+    if mode == "none":
         return []
     return [f"the reference ran with the proxy mode {mode!r}, so the content values are its rewrite "
             f"rather than the stored bytes"]

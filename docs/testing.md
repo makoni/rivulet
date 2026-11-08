@@ -1088,12 +1088,13 @@ baseline, which is asserted to report nothing: the baseline is one run where eve
 comparator sees is covered by a recorded row, so a probe that reports a second rule is a probe that
 did not isolate its own input.
 
-The rules were written after the probe set: with the rules stubbed, all 18 fail on the rule they
-name, and the patch round shows the same for each rule read as data — one patch per rule that
-changes what the rule reads (the header rule reading the last value instead of the first, the order
-rule reading sorted lists instead of order, the counts rule recomputing instead of reading what the
-side reports, the map rule reading an id as the other side's row, the table rule reading only the
-presence of a name), the probe for that rule seen to fail, and the file reverting byte-identically.
+The rules were written after the probe set: with the rules stubbed, all 20 crafted inputs fail on
+the rule they name, and the patch round shows the same for each rule read as data — one patch per
+rule that changes what the rule reads (the header rule reading the last value of a list instead of
+the first, the order rule reading sorted lists instead of order, the counts rule recomputing instead
+of reading what the side reports, the map rule reading an id as the other side's row, the table rule
+reading only the presence of a name, the version rule accepting any version string that starts with
+the major number), the probe for that rule seen to fail, and the file reverting byte-identically.
 
 What the rules read is the tolerance table in `docs/parity.md` as data, and the corpus manifest, so
 the comparator has no preference of its own: a row marked `accepted` is a deviation the port keeps,
@@ -1101,6 +1102,14 @@ a row marked `fixed` is a rule the port already keeps, and a difference whose cl
 a finding. Requests are paired by key rather than by position, so a run that answered the same
 requests in a different order still matches, and the row ids of the two databases are read as the
 map rather than as values.
+
+The four shapes the collector arranges are what the rules read, and each is a shape, not a
+a value: a response name kept as the list of its values in the order they arrive, which is what
+`Header.Get` reads through, because keeping one value per name would make the header rule impossible
+to fire on a run; the login recorded as the first request, because a pair document carrying requests
+before the login answer is a run that never authenticated; the manifest key carried as the feed
+the run gave, because neither side has a column named `file`; and the version named on the reference
+side only, because the port side names the build it ran.
 
 What it cannot show, and the harness and the docs say so:
 
@@ -1114,19 +1123,24 @@ What it cannot show, and the harness and the docs say so:
 - the other half of the table rule: a class the manifest reaches but no row names is a difference
   nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
   alone — removing the row also makes the difference itself a finding;
-- the numbers and values the shell declares (the pinned reference, the two corpus counts, the
-  exercised-row count, the proxy mode, the address policy, the account name, the report being
-  present, the Postgres host): each of the eight guards was seen to fail by declaring a value below
-  what it requires, and that is the whole of what they show;
-- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
-  the media proxy, the wording of a rule the port names — which are named in the table as not
-  reachable here rather than asserted;
+- the pinned version on the port side, which the rule that reads it does not read: the probe that
+  changes the version shows which half the rule reads by failing on the reference side alone;
+- the numbers and values the shell declares — the pinned reference, the two corpus counts, the
+  exercised-row count, the proxy mode, the address policy, the account name, the Postgres host, and
+  the report being present. Each was seen to fail by declaring a value below what it requires, and
+  that is the whole of what they show; the two checks that read the data rather than a declared
+  value — a manifest key with no file beside it, and a side the run recorded nothing for — fail only
+  on a run;
+- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed
+  media proxy, the wording of a rule the port names — which are named in the table as not reachable
+  here rather than asserted;
 - the run half itself, on this machine: the Docker daemon is not reachable for this user and no
   Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So
   the collector is checked here only by `bash -n` and by the guards above, not by a run;
-- what the width rule does not reach, and the docs say so: a manifest record line, which is one
-  record, and the shell's command lines and guard messages, which cannot be broken at a word
-  without changing what the run reads.
+- what the width rule does not reach: the manifest's record lines, which are one record, and the
+  shell's command lines and guard messages, which cannot be broken at a word without changing what
+  the run reads.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
@@ -1134,9 +1148,9 @@ What it cannot show, and the harness and the docs say so:
 - `swift test --filter RivuletIntegrationTests` — integration only.
 - `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
 each of its rules can fail on the rule it names.
-- `Scripts/parity.sh` — the parity run, outside CI. `python3 Tools/parity/probes.py` checks that
-each of its rules can fail on the rule it names, and `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the
-guards alone.
+- `Scripts/parity.sh` — the parity run, outside CI.
+  `python3 Tools/parity/probes.py` checks that each of its rules can fail on the rule it names, and
+  `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the guards alone.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

@@ -16,7 +16,7 @@ Rules the run applied:
 - statuses_match_except_where_a_recorded_row_covers_them
 - order_compared_only_through_the_recorded_collation_row
 - response_headers_read_with_the_first_value_winning
-- media_proxy_is_off_on_the_reference_side
+- media_proxy_is_none_on_the_reference_side
 - names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides
 - report_names_every_rule_and_what_the_run_cannot_show
 

@@ -157,28 +157,21 @@
      "LSID": "sid",
      "SID": "sid"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
-      "nosniff"
-     ],
-     [
-      "X-Frame-Options",
-      "DENY"
-     ],
-     [
-      "Referrer-Policy",
+    "headers": {
+     "Referrer-Policy": [
       "no-referrer"
      ],
-     [
-      "X-Trace",
-      "one"
+     "X-Content-Type-Options": [
+      "nosniff"
      ],
-     [
-      "X-Trace",
+     "X-Frame-Options": [
+      "DENY"
+     ],
+     "X-Trace": [
+      "one",
       "two"
      ]
-    ],
+    },
     "key": "request/repeated_header",
     "method": "POST",
     "path": "/reader/api/0/login",
@@ -201,20 +194,17 @@
       }
      ]
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "corpus/tag_order.xml",
     "method": "GET",
     "path": "/reader/api/0/tag/list",
@@ -229,20 +219,17 @@
     "document": {
      "itemRefs": []
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/stream_items_ids",
     "method": "GET",
     "path": "/reader/api/0/stream/items/ids",
@@ -258,7 +245,7 @@
      "items": [
       {
        "enclosure": [],
-       "id": "000000000000003d",
+       "id": "tag:google.com,2005:reader/item/000000000000003d",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/41",
         "title": "Zebra"
@@ -266,7 +253,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000003e",
+       "id": "tag:google.com,2005:reader/item/000000000000003e",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/41",
         "title": "apple"
@@ -274,7 +261,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000003f",
+       "id": "tag:google.com,2005:reader/item/000000000000003f",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/42",
         "title": "Foster parenting"
@@ -282,7 +269,7 @@
       },
       {
        "enclosure": [],
-       "id": "0000000000000040",
+       "id": "tag:google.com,2005:reader/item/0000000000000040",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/44",
         "title": "Zone abbreviation"
@@ -290,7 +277,7 @@
       },
       {
        "enclosure": [],
-       "id": "0000000000000041",
+       "id": "tag:google.com,2005:reader/item/0000000000000041",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/45",
         "title": "Sub second"
@@ -298,7 +285,7 @@
       },
       {
        "enclosure": [],
-       "id": "0000000000000042",
+       "id": "tag:google.com,2005:reader/item/0000000000000042",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/43",
         "title": "Name class"
@@ -312,20 +299,17 @@
      ],
      "updated": 1719792300
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/stream_items_contents",
     "method": "POST",
     "path": "/reader/api/0/stream/items/contents",
@@ -337,20 +321,17 @@
     "document": {
      "error": "Method Not Allowed"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/method_mismatch",
     "method": "GET",
     "path": "/reader/api/0/edit-tag",
@@ -362,20 +343,17 @@
     "document": {
      "body": "html"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/no_trailing_slash",
     "method": "GET",
     "path": "/reader/api/0",
@@ -391,9 +369,9 @@
     "POLLING_PARSING_ERROR_LIMIT": "0",
     "RUN_MIGRATIONS": "false"
    },
-   "media_proxy_mode": "off",
+   "media_proxy_mode": "none",
    "network": "loopback",
-   "reference": "v2.3.3 at c4d54f87",
+   "reference": "rivulet at 56498c1",
    "user": "parity"
   },
   "side": "port"
@@ -541,28 +519,21 @@
      "LSID": "sid",
      "SID": "sid"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
-      "nosniff"
-     ],
-     [
-      "X-Frame-Options",
-      "DENY"
-     ],
-     [
-      "Referrer-Policy",
+    "headers": {
+     "Referrer-Policy": [
       "no-referrer"
      ],
-     [
-      "X-Trace",
-      "one"
+     "X-Content-Type-Options": [
+      "nosniff"
      ],
-     [
-      "X-Trace",
+     "X-Frame-Options": [
+      "DENY"
+     ],
+     "X-Trace": [
+      "one",
       "two"
      ]
-    ],
+    },
     "key": "request/repeated_header",
     "method": "POST",
     "path": "/reader/api/0/login",
@@ -585,20 +556,17 @@
       }
      ]
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "corpus/tag_order.xml",
     "method": "GET",
     "path": "/reader/api/0/tag/list",
@@ -613,20 +581,17 @@
     "document": {
      "itemRefs": []
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/stream_items_ids",
     "method": "GET",
     "path": "/reader/api/0/stream/items/ids",
@@ -642,7 +607,7 @@
      "items": [
       {
        "enclosure": [],
-       "id": "000000000000000b",
+       "id": "tag:google.com,2005:reader/item/000000000000000b",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/31",
         "title": "Zebra"
@@ -650,7 +615,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000000c",
+       "id": "tag:google.com,2005:reader/item/000000000000000c",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/31",
         "title": "apple"
@@ -658,7 +623,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000000d",
+       "id": "tag:google.com,2005:reader/item/000000000000000d",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/32",
         "title": "Foster parenting"
@@ -666,7 +631,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000000e",
+       "id": "tag:google.com,2005:reader/item/000000000000000e",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/34",
         "title": "Zone abbreviation"
@@ -674,7 +639,7 @@
       },
       {
        "enclosure": [],
-       "id": "000000000000000f",
+       "id": "tag:google.com,2005:reader/item/000000000000000f",
        "origin": {
         "streamId": "tag:google.com,2005:reader/feed/35",
         "title": "Sub second"
@@ -688,20 +653,17 @@
      ],
      "updated": 1719792300
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/stream_items_contents",
     "method": "POST",
     "path": "/reader/api/0/stream/items/contents",
@@ -713,20 +675,17 @@
     "document": {
      "error": "Method Not Allowed"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/method_mismatch",
     "method": "GET",
     "path": "/reader/api/0/edit-tag",
@@ -738,20 +697,17 @@
     "document": {
      "body": "html"
     },
-    "headers": [
-     [
-      "X-Content-Type-Options",
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
       "nosniff"
      ],
-     [
-      "X-Frame-Options",
+     "X-Frame-Options": [
       "DENY"
-     ],
-     [
-      "Referrer-Policy",
-      "no-referrer"
      ]
-    ],
+    },
     "key": "request/no_trailing_slash",
     "method": "GET",
     "path": "/reader/api/0",
@@ -767,7 +723,7 @@
     "POLLING_PARSING_ERROR_LIMIT": "0",
     "RUN_MIGRATIONS": "false"
    },
-   "media_proxy_mode": "off",
+   "media_proxy_mode": "none",
    "network": "loopback",
    "reference": "v2.3.3 at c4d54f87",
    "user": "parity"

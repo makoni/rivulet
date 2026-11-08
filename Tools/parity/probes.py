@@ -81,7 +81,7 @@ def content_not_covered(data):
 
 def id_from_the_other_side(data):
     item = request(data["port"], "request/stream_items_contents")["document"]["items"][0]
-    item["id"] = "%016x" % data["reference"]["entries"][0]["row"]
+    item["id"] = check.ITEM_PREFIX + "%016x" % data["reference"]["entries"][0]["row"]
 
 
 def empty_list_absent(data):
@@ -142,7 +142,7 @@ CRAFTS = [
     ("statuses_match_except_where_a_recorded_row_covers_them", status_not_covered),
     ("order_compared_only_through_the_recorded_collation_row", order_not_covered),
     ("response_headers_read_with_the_first_value_winning", header_kept_the_second_value),
-    ("media_proxy_is_off_on_the_reference_side", proxy_on),
+    ("media_proxy_is_none_on_the_reference_side", proxy_on),
     ("names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides", non_ascii_name),
     ("report_names_every_rule_and_what_the_run_cannot_show", report_missing_a_rule),
 ]

@@ -52,7 +52,7 @@ PINNED_REF=c4d54f87
 PARITY_MIN_CORPUS_FILES=${PARITY_MIN_CORPUS_FILES:-5}
 PARITY_MIN_REQUEST_SHAPES=${PARITY_MIN_REQUEST_SHAPES:-3}
 PARITY_MIN_EXERCISED_ROWS=${PARITY_MIN_EXERCISED_ROWS:-5}
-PARITY_PROXY_MODE=${PARITY_PROXY_MODE:-off}
+PARITY_PROXY_MODE=${PARITY_PROXY_MODE:-none}
 PARITY_USER=${PARITY_USER:-parity}
 PARITY_PASSWORD=${PARITY_PASSWORD:-not-a-secret}
 PARITY_PRIVATE_NETWORKS=${PARITY_PRIVATE_NETWORKS:-true}
@@ -102,7 +102,7 @@ fi
 # reference side, otherwise its content values are its rewrite rather than the stored bytes; the
 # corpus is served on loopback, so the address policy must be the one that allows it on both sides;
 # and the account name must be ASCII, because `LOWER` on SQLite folds ASCII only.
-if [ "$PARITY_PROXY_MODE" != "off" ]; then
+if [ "$PARITY_PROXY_MODE" != "none" ]; then
     fail "the run declared the proxy mode as $PARITY_PROXY_MODE, so the content values are the rewrite"
 fi
 if [ "$PARITY_PRIVATE_NETWORKS" != "true" ]; then
@@ -117,7 +117,7 @@ fi
 
 if [ "$PARITY_DRY_RUN" = "1" ]; then
     log "guards pass: reference $MINIFLUX_REF, $corpus_files corpus inputs, $shapes request shapes,"
-    log "$exercised exercised classes, proxy off, name ASCII, report present"
+    log "$exercised exercised classes, proxy none, name ASCII, report present"
     exit 0
 fi
 

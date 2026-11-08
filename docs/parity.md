@@ -1196,21 +1196,25 @@ data rather than over one test: real Miniflux and Rivulet read the same corpus, 
 between the two answers is read class by class. It is run by hand and not in CI, so the determinism
 rules in `docs/testing.md` do not apply to it, and its two halves are separated the way the soak's
 are: `Scripts/parity.sh` is the run half, `Tools/parity/parity_check.py` is the check half, which
-reads the pair document the run leaves behind rather than the processes that produced it.
+reads the pair document the run leaves behind rather than the processes that produced it, and
+`Tools/parity/collect.py` writes that document from one live comparison.
 
 The tolerance table below is read as data by the check half, and it is the single source of truth
-for what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class
-it names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may
-differ there; and a difference whose class no row names is a finding. The corpus manifest
+for
+what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class it
+names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may differ
+there; and a difference whose class no row names is a finding. The corpus manifest
 (`Tools/parity/corpus/manifest.txt`) names, for each corpus input, the classes it can reach, which
-is what lets a difference be attributed to a class instead of accepted by the comparator's
-preference. The rules that guard the run itself — the flags, the pinned reference version, the input
-digests, the request sequence, the counts, the report — report whatever the data says, whatever the
-table says.
+is
+what lets a difference be attributed to a class instead of accepted by the comparator's preference.
+The rules that guard the run itself — the flags, the pinned reference version, the input digests,
+the
+request sequence, the counts, the report — report whatever the data says, whatever the table says.
 
 The width rule does not reach the manifest's record lines or the shell's command lines: a record is
 one record, and a command or a guard message cannot be broken at a word without changing what the
-run reads, so both stay whole on their own line.
+run
+reads, so both stay whole on their own line.
 
 **The classes the harness reads.**
 
@@ -1226,38 +1230,62 @@ run reads, so both stay whole on their own line.
 | repeated_header_value | security checklist — a response name that appears twice | fixed | request/repeated_header |
 | positions_and_counts | HTML sanitizer — Positions and counts | accepted | not reachable here |
 | bracketed_host | URL layer — Bracketed host | accepted | not reachable here |
-| media_proxy | Google Reader auth path — The media proxy | accepted | not reachable here |
+| media_proxy | Google Reader content endpoint — The media proxy | accepted | not reachable here |
 | error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
 
 The four rows marked `not reachable here` name classes no corpus input can reach: the counts are
-read inside the sanitizer and never written out, the bracketed host answers a fetch decision rather
-than a stored value, the media proxy is turned off on the reference side so the stored bytes are
+read
+inside the sanitizer and never written out, the bracketed host answers a fetch decision rather than
+a
+stored value, the media proxy is run as `none` on the reference side so the stored bytes are
 comparable, and the wording of a rule the port names is not compared at all. They are named here
-rather than asserted, and the run guard that turns the proxy off is what makes the fourth half of
-that list hold.
+rather than asserted, and the run guard that declares the proxy mode is what makes the third half of
+that list hold. `none` is the value the reference's own validator accepts, alongside `http-only` and
+`all`; the harness runs `none`, which is not the reference's default.
 
 **What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from a
 local stub server on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides and the
 account name is ASCII, which is the one place where `LOWER` is the same rule on both sides. Both
-sides run with the same flags — the batch size, the two limits, the migrations gated off — and the
-reference runs with `MEDIA_PROXY_MODE=off`, so its content values are the stored bytes. The request
-sequence is the three shapes the table names plus the login, and the pair document carries, per
-side, the rows it stored, the counts it reports, and the answers it gave. The row ids of the two
-databases are never compared as values: they are the map, and a payload item id is read through it
-in
-the `%016x` form. Order is compared only through the collation row, and the clock fields are never
-compared: only the parse results are, which is what the row that reads them says.
+sides
+run with the same flags — the batch size, the two limits, the migrations gated off — and the
+reference
+runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The request sequence
+is
+the login plus the three shapes the table names, and the pair document carries, per side, the rows
+it
+stored, the counts it reports, and the answers it gave. The row ids of the two databases are never
+compared as values: they are the map, and a payload item id is read through it as the hex field the
+reference's item read takes, with its prefix. Order is compared only through the collation row, and
+the
+clock fields are never compared: only the parse results are, which is what the row that reads them
+says.
+
+Four shapes the run has to arrange, because the rules read them as data rather than as dialects. A
+response name is kept as the list of its values in the order they arrive, which is what `Header.Get`
+reads through: keeping one value per name would make the rule that reads the first value impossible
+to
+fire on a run. The login is recorded as the first request, so a pair document carrying requests
+before
+the login answer is a run that never authenticated. Neither side has a column named `file`, so the
+manifest key is carried as the feed title the run gave when it added the feed, and the entry's row
+is
+read through that feed row. The version is named on the reference side only: the port side names the
+build it ran, which is the half the rule that reads the pinned version does not read.
 
 **What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
-two sides read the same bytes over the network, because each fetch is its own hop; the row order a
-storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
-each
-side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the run
-re-reads rather than pins. On this machine the run half cannot execute: the Docker daemon is not
-reachable for this user (`/var/run/docker.sock` is `root:docker` and the user is not in the `docker`
-group), and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite
-driver. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one input
-per
-rule that violates it and asserts that the rule reports it alone — and the run half is checked by
-`bash -n` and by its guards, each of which was seen to fail on a value the run declares below what
-it requires.
+two
+sides read the same bytes over the network, because each fetch is its own hop; the row order a
+storage
+read answers for rows sharing one value, which SQL does not fix; the clock fields, which each side
+wrote
+at its own write instant; and the rules the stage-3 corpora already pin, which the run re-reads
+rather
+than pins. On this machine the run half cannot execute: the Docker daemon is not reachable for this
+user
+(`/var/run/docker.sock` is `root:docker` and the user is not in the `docker` group), and no Postgres
+server answers, which the reference needs because its `go.mod` has no SQLite driver. So the check
+half
+is what is falsifiable here — `Tools/parity/probes.py` crafts one input per rule that violates it
+and
+asserts that the rule reports it alone — and the run half is checked by `bash -n` and by its guards,
+each of which was seen to fail on a value the run declares below what it requires.

@@ -62,17 +62,23 @@ and requests are paired by key rather than by position, so a run that answered t
 a different order still matches. What the rules read: the flags, the pinned reference version, the
 input digests, the request sequence, the table read against the manifest, the entry set as the
 feed-and-hash pair, the counts against the rows, state and starred for matched entries, the parse
-results with the clock fields never read, the payload item id read through the row map in the
-`%016x` form, the shape rules as the reference writes them, `self` as each side's configured base
-URL, the statuses, the order compared only through the recorded collation row, the response header
-read with the first value winning, the proxy off on the reference side, the ASCII account name, and
+results with the clock fields never read, the payload item id read through the row map as the hex
+field the reference's item read takes with its prefix, the shape rules as the reference writes them,
+`self` as each side's configured base URL, the statuses, the order compared only through the
+recorded
+collation row, the response header read with the first value winning over the list of its values,
+the
+proxy running as `none` on the reference side, the ASCII account name, and
 the report naming every rule and what the run cannot show. 20 crafted inputs plus the baseline,
 which is asserted to report nothing, so each probe is single-firing; the patch round showed each
 rule can fail on the rule it names and reverted the file byte-identically. What the harness cannot
 show: the run half cannot execute on this machine — the Docker daemon is not reachable for this user
 and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver,
 so the shell is checked by `bash -n` and by its eight guards, each seen to fail on a value the run
-declares below what it requires; that the run ran at all, because it is on demand and not in CI;
+declares below what it requires; the pinned version on the port side, because the rule that reads it
+reads only the reference side, where the run names the pinned version and the port names the build
+it
+ran; that the run ran at all, because it is on demand and not in CI;
 that the two sides read the same bytes over the network, because each fetch is its own hop; the row
 order for rows sharing one value, which SQL does not fix; the clock fields, which each side wrote at
 its own write instant; the other half of the table rule, which cannot be probed alone because
@@ -359,8 +365,7 @@ We work test-first: **red → green → refactor**.
 - Write a failing test before writing production code.
 - Bug fixes start with a regression test that reproduces the bug.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
-test, not just a unit test.
-- Ported Miniflux behavior must bring the corresponding ported tests.
+test, not just a unit test. - Ported Miniflux behavior must bring the corresponding ported tests.
 - Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
 XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
@@ -427,12 +432,9 @@ are counted on that head.
 
 ## Commands
 
-```sh
-swift build                            # debug build
+```sh swift build                            # debug build
 swift test                             # all tests (unit + integration); must be green
-swift test --filter RivuletCoreTests   # fast unit loop
-swift run rivulet --help
-```
+swift test --filter RivuletCoreTests   # fast unit loop swift run rivulet --help ```
 
 ## Conventions
 
@@ -456,8 +458,7 @@ commit that completes a stage.
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
-support conditional GET with ETag`.
-- Behavior + its tests + doc updates land in the same commit.
+support conditional GET with ETag`. - Behavior + its tests + doc updates land in the same commit.
 - Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
 `.gitignore`.
 
