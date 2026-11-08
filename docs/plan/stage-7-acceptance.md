@@ -5,8 +5,8 @@
 bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
 suite documents. The second slice is the security checklist, merged (PR #56): the checklist is
 `docs/security.md`, and the rules it could express as pins landed there — 8 pins and 7 probes across
-five suites, one finding closed in production code. The third slice is the parity harness, which
-opens as PR #57: the comparator reads a comparison run as the pair document it leaves behind, the
+five suites, one finding closed in production code. The third slice is the parity harness, merged as
+PR #57: the comparator reads a comparison run as the pair document it leaves behind, the
 tolerance table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on
 the rule it names — 18 rules, 20 crafted inputs plus the baseline. The client matrix and the replay
 of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.

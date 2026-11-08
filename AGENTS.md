@@ -50,7 +50,7 @@ and which the reference caps only on the server side; the timing form of the con
 token compare; the NUL byte in a password, which the dependency measures with `strlen` and which
 `docs/parity.md` records; and the header value of a hop that is not the last one, which `fetch` does
 not return. The dependency audit found no advisory that affects a pin. The third slice is the parity
-harness, which opens as PR #57: the comparator reads a comparison run as the pair document it leaves
+harness, merged as PR #57: the comparator reads a comparison run as the pair document it leaves
 behind, so each of its 18 rules is a function over data rather than an assertion about a live
 process. The halves are separated the way the soak's are — `Scripts/parity.sh` is the run half,
 `Tools/parity/parity_check.py` is the check half, `Tools/parity/collect.py` writes the pair document
