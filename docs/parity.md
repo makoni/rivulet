@@ -1188,11 +1188,7 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
 | The room the copy needs | nothing to compare: the reference has no free-space check, and its CLI has no backup command to check for | the estimate is the bytes the source holds as the filesystem reads them — the main file plus the `-wal` beside it as the filesystem reads it — times the factor 2 `docs/plan/stage-1-storage.md` documents for `VACUUM INTO`; the room is read at the directory the destination is in, which is the current directory for a destination named as a bare name, and the comparison is strictly less, so a destination with exactly the estimate holds the copy; a room the filesystem cannot read answers a refusal, and a size it cannot read counts as nothing | The port's own rule, read at the start of the `backup` run before anything is written, so a run that cannot hold the copy writes nothing; `vacuum` is not checked, because it rebuilds the file it already holds rather than writing a copy beside it |
-
 ## Parity harness (stage 7)
-
-
-
 
 The harness is the stage-7 exit criterion that compares the port with the reference over the same
 data rather than over one test: real Miniflux and Rivulet read the same corpus, and the difference
@@ -1212,9 +1208,10 @@ preference. The rules that guard the run itself — the flags, the pinned refere
 digests, the request sequence, the counts, the report — report whatever the data says, whatever the
 table says.
 
-The width rule does not reach the manifest's record lines or the shell's command lines: a record is
-one record, and a command or a guard message cannot be broken at a word without changing what the
-run reads, so both stay whole on their own line.
+The width rule does not reach the manifest's record lines, the report's item lines, or the shell's
+command lines: a record and an item are each one thing the check half reads as data, and a command
+or a guard message cannot be broken at a word without changing what the run reads, so all three stay
+whole on their own line.
 
 **The classes the harness reads.**
 
@@ -1258,36 +1255,60 @@ pair document carries them only on the answers a handler produced: the reference
 written before its auth middleware carry only what the mux writes, and the port's 404 answer is
 written by the router rather than by the port's handler.
 
+**What the run hands over.** The flags are handed to the reference one name at a time with its own
+`-e`, because a flag name handed bare is not a flag: the first name after the last option is the
+image the run pulls. The reference runs on the network the run declares, which has to be the host's,
+because a container in a namespace of its own has its own loopback and the corpus is served on this
+machine's. Its connection string has to name the SSL mode, because the reference's own default is
+`require` and a server that does not offer SSL answers an error before anything is read, while the
+read on this side is libpq, whose own default does not require it. `CREATE_ADMIN` is a boolean for
+the reference's parser and the account is the two names beside it, so a value written as
+`name:password` is an invalid boolean and the run reports it before anything runs. The reference's
+schema is applied by a run of its own through the reference's own flag, which is the same shape this
+port's `migrate` command is, because the migrations are gated off as the guard says. The name
+`DATABASE_URL` is not one value for the two sides: for the reference it is the server its config
+reads, for this port it is the file its rows are written to, so each side is handed its own value
+for that name, and the port is served by the run before the collector reads it. Its account is
+written through the console seam, whose secure read takes its value from a terminal rather than from
+a pipe, so the run gives that command a terminal. The due rule is strict, so the batch read cannot
+see a feed written at the same instant it reads, and the run lets the clock move past that instant.
+
 Seven shapes the run has to arrange, because the rules read them as data rather than as dialects. A
 response name is kept as the list of its values in the order they arrive, which is what `Header.Get`
-reads through: keeping one value per name would make the rule that reads the first value impossible
-to fire on a run, so the stub writes one name twice and the read takes each name once, in the order
-it first appears. The login is recorded as the first request, on the route the reference registers
-for it with the form names it reads, so a pair document carrying requests before the login answer is
-a run that never authenticated, and the token is then sent as the `Authorization` name the auth read
-reads. A non-JSON answer is recorded as the text it is, because the redirect body is text, and the
-status is taken from a failed response, which is the only way the status rule can see the 404 or the
-405 it compares. The manifest key is carried as the name the run added the feed under, resolved
-through the feed url, because neither side has a column that holds it and the stored title is the
-parsed feed title. The version is named on the reference side only: the port side names the build it
-ran, which is the half the rule that reads the pinned version does not read. The storage read keeps
-the fields as the storage answers them, so the reference side is read as CSV over the whole text
-rather than line by line — a field holding the delimiter or a newline is one field, not two rows —
-and this port's driver answers rows as fields and needs no delimiter at all. A value the storage
-cannot read is nothing on both sides, so the field is the empty string rather than the name of
-nothing.
+reads through: the stub writes one name twice, on the hop the corpus is served on, and the read
+takes each name once, in the order it first appears; but the pair document carries the response each
+side answered the collector with, and the fetch hop is not in it, so on run data the value the rule
+compares is written from the same read as the list it reads, and only crafted data can fire it. The
+login is recorded as the first request, on the route the reference registers for it with the form
+names it reads, so a pair document carrying requests before the login answer is a run that never
+authenticated, and the token is then sent as the `Authorization` name the auth read reads. A
+non-JSON answer is recorded as the text it is, because the redirect body is text, and the status is
+taken from a failed response, which is the only way the status rule can see the 404 or the 405 it
+compares. The manifest key is carried as the name the run added the feed under, resolved through the
+feed url, because neither side has a column that holds it and the stored title is the parsed feed
+title. The version is named on the reference side only: the port side names the build it ran, which
+is the half the rule that reads the pinned version does not read. The storage read keeps the fields
+as the storage answers them, so the reference side is read as CSV over the whole text rather than
+line by line — a field holding the delimiter or a newline is one field, not two rows — and this
+port's driver answers rows as fields and needs no delimiter at all. A value the storage cannot read
+is nothing on both sides, so the field is the empty string rather than the name of nothing.
 
 **What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
 two sides read the same bytes over the network, because each fetch is its own hop; the row order a
 storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
 each side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the
-run re-reads rather than pins. On this machine the run half cannot execute: the Docker daemon is not
-reachable for this user (`/var/run/docker.sock` is `root:docker` and the user is not in the `docker`
-group), and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite
-driver. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one input
-per rule that violates it and asserts that the rule reports it alone — and the run half is checked
-by `bash -n` and by its guards, each of which was seen to fail on a value the run declares below
-what it requires.
-
-
-
+run re-reads rather than pins. On this machine the run half executed for the first time, with
+Postgres as a container, and what it reported was the login half: the reference's login read runs on
+the integration row, and the only path that writes that row is its web form, which this port does
+not have at all — its own path is the console command — so the two sides cannot be set up through
+one path, and the pair document here carries the unauthorized answer on both sides. The report is
+written by the run only when the guards pass, so the committed report is the one written from the
+table by hand. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one
+input per rule that violates it and asserts that the rule reports it alone — and the run half is
+checked by `bash -n` and by its nineteen checks, twelve of which name a value the run declares or a
+count it declares against the committed files, each seen to fail on such a value or by taking the
+file it names away, while the seven that read the machine or the run's own data fail only on a run:
+the two ports the run declares, the Postgres server answering, the daemon reachable, the two bases
+answering, the login answer, and the rows each side recorded. Three of those seven were seen to fail
+here on the run's own data: a port something already holds, the base its own side answers on, by
+pointing the run at a binary that exits at once, and the login answer, by the run itself.

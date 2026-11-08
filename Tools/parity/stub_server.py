@@ -2,11 +2,12 @@
 """The stub the run serves the corpus from: it writes one response name twice, on purpose.
 
 The header rule reads a name that appears twice as the list of its values in the order they arrive,
-which is what `Header.Get` reads through. A stub that writes a name once — and `python3 -m
-http.server` writes none at all — leaves that rule nothing to read on run data, so the stub is the
-half that makes the rule reachable there. The value each side acted on is recorded with the
-response,
-which is what the rule compares the first value against.
+which is what `Header.Get` reads through, so writing the name twice is what makes the shape the rule
+reads exist on a run. But the pair document carries the response each side answered the collector
+with, and the fetch hop this stub answers is not in it, so on run data the value the rule compares
+is written from the same read as the list it reads, and only crafted data can fire the rule. The
+value each side acted on is recorded with the response, which is what the rule compares the first
+value against.
 
 Run it through `Scripts/parity.sh`; it is not a check and it asserts nothing.
 """

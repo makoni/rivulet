@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """The run half's data reader: one live comparison read as the pair document the rules apply to.
 
-This is not a check and it cannot be falsified on this machine, because it only runs when the Docker
-daemon is reachable and a Postgres server answers — the two things `Scripts/parity.sh` guards. What
-it
-writes is the pair document `parity_check.py` reads: per side, the run it ran, the digest of each
-input the manifest names, the rows it stored, the counts it reports, and the requests it answered.
+This is not a check and it asserts nothing: it only runs when the machine gives the two things the
+shell guards, the daemon for the reference side and a Postgres server the reference needs because
+its `go.mod` has no SQLite driver. What it writes is the pair document `parity_check.py` reads: per
+side, the run it ran, the digest of each input the manifest names, the rows it stored, the counts it
+reports, and the requests it answered. It was run here for the first time, and the login answers it
+recorded were the unauthorized answers, because the integration row the login read runs on was not
+there for either side.
 
 Seven things a live run has to arrange, and the shapes below are what the rules read them as.
 
