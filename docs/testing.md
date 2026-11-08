@@ -990,10 +990,13 @@ title guard reads the title the write before it left, because the input that run
 first is the same row the guard's input then reads, and a pin that read the seeded title would
 have passed on a patch that ran the write for the empty value.
 
-Three claims are named in the headers rather than pinned, because no patch can make them fail: the
-order between the absolute rule and the duplicate read, which no input can fail both at once; the
-title guard's own branch, whose value is the same as the create default; and `rename`'s own
-empty-title guard, which the handler's title test answers before the read, so no input reaches it.
+Two claims are named in the headers rather than pinned, because no patch can make them fail: the
+order between the absolute rule and the duplicate read, which no input can fail both at once, and
+`rename`'s own empty-title guard, which the handler's title test answers before the read, so no
+input reaches it. The title guard's own branch is pinned, on the pin that reads the title the input
+before it wrote, so a patch that ran the write for the empty value fails; the order between the
+create and the validation is read as the guard's wording, because the read that found no row left
+0 and the guard reads its own value before the duplicate read.
 The same is true of the discovery steps this port does not have, of the title and format the
 reference's subscription value carries, and of the reference parsing the discovered feed inside the
 request, where its `streamName` is the parsed title while this port writes the row with the create
@@ -1199,13 +1202,13 @@ data — the two declared ports, the Postgres server, the daemon, the two bases 
 answer, and the rows each side recorded — fail only on a run, and three of them were seen to fail
 here: a port something already holds, the base its own side answers on, by pointing the run at a
 binary that exits at once, and the login answer, by the run itself;
-- the five classes no coverage-reading rule can see — the grapheme and code-point counts, the
-bracketed host, the media proxy, the wording of a rule the port names, and the title the parsed
-feed carries — which are named in the table as not reachable here rather than asserted. Two rows
-that name a shape are not in that list, because a shape the run sends does reach them: the
-minimal scan and the relation test are exercised by the quickadd request, and the only thing
-that difference can be read as is the key set the answer carries, which the rule that reads key
-sets reads without consulting the table.
+- the six classes no coverage-reading rule can see — the grapheme and code-point counts, the
+bracketed host, the media proxy, the wording of a rule the port names, and the two scan classes,
+which the corpus cannot reach because every corpus file is a feed document, answered by the format
+check before the scan reads a `link` — which are named in the table as not reachable here rather
+than asserted. The one row this path adds that a shape reaches is the title inside the request:
+the quickadd request is asked with a feed document, and the only thing its answer can part on is
+the key set, which the rule that reads key sets reads without consulting the table.
 - the run half itself, which is not in CI and cannot be probed: it runs only when the machine gives
 the daemon and a Postgres server, which the reference needs because its `go.mod` has no SQLite
 driver. Here it executed end to end through the collector for the first time, and what it reported

@@ -60,7 +60,7 @@ CANNOT_SHOW = [
     "side, where the run names the pinned version and the port names the build it ran",
     "the guards, which are shown only by declaring a value below what they require, and the seven "
     "that read data rather than a declared value, which fail only on a run",
-    "the five classes no coverage-reading rule can see, which are named in the table rather "
+    "the six classes no coverage-reading rule can see, which are named in the table rather "
     "than asserted",
 ]
 RULES = [

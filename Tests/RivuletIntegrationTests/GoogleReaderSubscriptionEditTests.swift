@@ -24,9 +24,10 @@ import RivuletApp
 /// What these pins cannot show: `rename`'s own empty-title guard, which the handler's title test
 /// answers before the read, so no input reaches it; `move`'s category answer, which the type check
 /// runs before the read that could answer it, so the read can only answer it for a label the
-/// handler has already refused; the title guard's own branch, which is pinned as writing nothing
-/// for the empty value but cannot be told apart from the write running with that value, because the
-/// value it would write is the same as the create default; the order between the absolute rule and
+/// handler has already refused; the title guard's own branch, which is told apart only on the pin
+/// where the row already holds a title an earlier input wrote — on a freshly created row the guard
+/// and the write answer the same value, which is the create default; the order between the absolute
+/// rule and
 /// the duplicate read, and between the guard and the reads, which no input can fail both at once —
 /// pinned as pure logic by `FeedValidationTests`; the reference's localized strings for the rules
 /// the port names by name, which `docs/parity.md` records; the wordings of the storage failures
@@ -245,8 +246,10 @@ import RivuletApp
                 "Feed", "", 0)
 
             // The input fails the duplicate rule, and the category the tag names is created before
-            // the validation reads it: a patch that ran the validation first answered the category
-            // rule here, because the title the tag named did not have a row yet.
+            // the validation reads it. A patch that ran the validation first answers the guard's
+            // wording here, because the read that found no row left 0 and the guard reads its own
+            // value before the duplicate read; the reference reads the duplicate rule before the
+            // category check, so the category rule cannot be the answer for this input.
             #expect(try await socket.status("edit",
                 pairs: ["s=feed/https://e/1", "ac=subscribe", "a=user/-/label/New"]) ==
                 .internalServerError, "the status the rule name is written under")

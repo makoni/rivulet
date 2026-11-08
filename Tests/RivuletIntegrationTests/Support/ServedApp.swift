@@ -15,10 +15,6 @@ import RivuletApp
 /// happy path, and a started server that is not stopped trips `HTTPServer`'s deinit assertion
 /// instead of reporting the real failure. The per-test temporary directory is removed here, so the
 /// teardown rule of `docs/testing.md` stays in one place.
-///
-/// The environment the pins name is added to the one this helper always sets, because a pin that
-/// reads the application's own fetcher has to name the target rule for the stub server it answers
-/// on — the value the configuration reads, not a seam this helper stands in for.
 func withServedApp(environment: [String: String] = [:],
     _ body: (SQLiteStorage, Application, String) async throws -> Void) async throws {
     let directory = try TemporaryDirectory()

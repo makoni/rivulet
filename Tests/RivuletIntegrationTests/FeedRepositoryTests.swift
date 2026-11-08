@@ -8,14 +8,9 @@ import Testing
 /// CRUD round-trip and fetch-state bookkeeping for ``FeedRepository``, and the write the
 /// subscription handlers use (1 pin, 2 probes): it names only the column the caller names — the
 /// title and not the category, so each half is read on a row whose other column already holds a
-/// value and a patch that wrote the column the caller did not name answered a different row; and
-/// the failure reported for a row the read does not find.
-///
-/// What these pins cannot show is named here: the single-row limit of the reads; the statement the
-/// reference's whole-row write builds, which no answer here can tell from a write that set only the
-/// columns the row already held; the two stamps, which the clock answers within the same second as
-/// the create, so no pin can tell the write's time from the create's or a patch that moved the
-/// create stamp; and the rules the port names rather than the reference.
+/// value and a patch that wrote the column the caller did not name answered a different row. The
+/// failure reported for a row the read does not find is pinned by another test in this suite, which
+/// the probe driver has no patch for.
 ///
 /// What these pins cannot show is named here: the single-row limit of the reads; the statement the
 /// reference's whole-row write builds, which no answer here can tell from a write that set only the

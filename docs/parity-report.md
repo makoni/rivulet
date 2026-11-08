@@ -47,4 +47,4 @@ What the run cannot show:
 - the login half as one rule on both sides, because the reference reads the integration row where the enabled flag that read requires is set only by its web form, while this port has no integration table and no flag, so the run has no path that sets the values for both sides
 - the pinned version on the port side, because the rule that reads it reads only the reference side, where the run names the pinned version and the port names the build it ran
 - the guards, which are shown only by declaring a value below what they require, and the seven that read data rather than a declared value, which fail only on a run
-- the five classes no coverage-reading rule can see, which are named in the table rather than asserted
+- the six classes no coverage-reading rule can see, which are named in the table rather than asserted

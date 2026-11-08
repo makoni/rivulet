@@ -13,14 +13,15 @@ import RivuletApp
 /// half answers on its own; the absolute guard that runs before the fetch, which no value the
 /// guard refuses can reach; the zero answer when the scan finds nothing, with the field written
 /// without `omitempty` and the three that have it not written; the pick, which is the first
-/// value the scan answered; and the status a failing fetch maps to here, which is not the
-/// status the fetch failure maps to on the paths that read the row before writing it.  What
-/// these pins cannot show: the discovery steps this port does not have — the well-known paths,
-/// the canonical URL, the YouTube, GitHub and RSS-Bridge handlers — which the `minimal_scan`
-/// row of `docs/parity.md` records; that the reference parses the discovered feed inside this
-/// branch, so its `streamName` is the parsed title while this port writes the row with the
-/// create defaults and the title comes on the next pass, which no pin here can fail on; the
-/// wordings of the fetch failure, which are the fetcher's own and the reference's localized
+/// value the scan answered; and the status a failing fetch maps to here, which this endpoint
+/// decides on its own, because the reference answers 500 for the discovery failure as well.  What
+/// these pins cannot show: the discovery steps this port does not have — the `<base href>` read,
+/// the canonical URL, the YouTube, GitHub and RSS-Bridge handlers, the well-known paths, which the
+/// `minimal_scan` row of `docs/parity.md` records; that the reference parses the discovered feed
+/// inside this branch, so its `streamName` is the parsed title while this port writes the row with
+/// the create defaults and the title comes on the next pass; no pin here can fail on that, and the
+/// parity run reads it only as the key set the answer carries, which is the `parsed_title` row.
+/// The wordings of the fetch failure, which are the fetcher's own and the reference's localized
 /// strings; and the storage failure this suite cannot trigger.
 @Suite struct GoogleReaderSubscriptionQuickAddTests {
     private let routes = "/reader/api/0/subscription/"
@@ -40,6 +41,9 @@ import RivuletApp
                 #expect(answer == "{\"numResults\":1,\"query\":\"http://127.0.0.1:\(server.port)/feed.xml\","
                     + "\"streamId\":\"feed/1\"}", "the query half answers on its own")
 
+                // The account here has one category, so this half cannot tell which read answered
+                // it; the title order that read has is falsifiable in the edit suite, where the
+                // account has two.
                 let row = try #require(try await socket.feed("http://127.0.0.1:\(server.port)/feed.xml"))
                 #expect(try await socket.categoryTitle(try #require(row.id)) == "All",
                     "in the category the read answered, because the form carried no tag")

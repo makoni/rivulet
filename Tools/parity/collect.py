@@ -11,7 +11,7 @@ integration row is there for every user on the reference side, but its enabled f
 its web form, and on this side the credential pair sits on the account row, which the run had not
 set either.
 
-Seven things a live run has to arrange, and the shapes below are what the rules read them as.
+Eight things a live run has to arrange, and the shapes below are what the rules read them as.
 
 The login: `POST /accounts/ClientLogin`, read with the form names the reference reads, and recorded
 as

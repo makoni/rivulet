@@ -1169,20 +1169,25 @@ steps by `SubscriptionFinderTests`.
   there answers the write rather than the 404 the rename branch answers.
 - The category the form does not name is `FirstCategory`, which is `ORDER BY title ASC LIMIT 1`. The
   reference reads the title twice for `getOrCreateCategory` — `CategoryTitleExists` and then
-  `CategoryByTitle` — which is the same answer as the single read here, so that pair cannot be
-  pinned apart.
+  `CategoryByTitle` — and this port reads it once. That is the same answer only for a title the pair
+  compares as it is given: the reference's first read folds the case, so the pair is the row
+  `The category read that folds the case` below, and the pins read only this port's side of it.
 - The scan reads every `link` that carries a `type` attribute and dispatches on the value as the
   attribute holds it, with no fold; the WordPress skip belongs to the `application/json` branch
   alone; the set is keyed by the resolved value; and the answers come in the order the tokens
-  arrive.
+  arrive. The base it resolves against is the URL the scan was given, which is what the reference
+  answers when the document carries no `<base href>`.
 
 **Known differences.**
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| Minimal discovery scan | `FindSubscriptions` has seven steps — the format check, the canonical URL, the YouTube, GitHub and RSS-Bridge handlers, the HTML scan, the well-known paths — and the scan resolves against the canonical URL, which after that step may be another URL | the format check and the HTML scan only, resolving against the URL the call was given, because the canonical step is not ported | A page the reference reaches through a step this port does not have answers `numResults: 0` here; the plan names this as the minimal discovery, and the pins read the two steps this port has |
+| Minimal discovery scan | `FindSubscriptions` has seven steps — the format check, the canonical URL, the YouTube, GitHub and RSS-Bridge handlers, the HTML scan, the well-known paths — and the HTML scan resolves against `getBaseURL`, which is the `<base href>` value when that is absolute and otherwise the URL the call was given | the format check and the HTML scan only, resolving against the URL the call was given, because the `<base href>` read and the canonical step are not ported | A page the reference reaches through a step this port does not have answers `numResults: 0` here, and a page with an absolute `<base href>` resolves its relative links against another base; the plan names this as the minimal discovery, and the pins read the two steps this port has |
 | The relation test | dispatches on the `type` attribute alone, so a `link` with a type and no `rel` is a subscription | requires `rel` to be the whole value `alternate`, folded, which is the rule the plan names | A link with a type and no relation, or a relation with more than one token, is a subscription upstream and is skipped here |
 | The title inside the request | `subscribe` fetches and parses the url, so the stored title and site url are the parsed values, and `quickadd` writes `streamName` with the parsed title | writes the row with the create defaults, so the title and the site url are written by the next refresh pass | The answer carries a different title and the stored row carries a different title; the scan's own value also carries a title and a format that nothing in this port reads |
+| The category read that folds the case | `getOrCreateCategory` reads the title twice: `CategoryTitleExists` with `lower(title)=lower($2)`, then `CategoryByTitle` with the title as given, so for a title stored in another case the pair answers no row | one read, `byTitle`, which compares the title as given and creates the row when it finds nothing | A label that exists with a different case gets a second row here and the request answers `OK`, while upstream the move branch answers the category rule and the subscribe branch has no row to read. The pins read only this port's side, so the difference is named here rather than asserted |
+| The category the create read has no row for | `subscribe` reads the value the category pair answered, which for a title no write produced is nothing | answers `googlereader: category not found` under 500 | Reachable only where the write this port runs cannot produce a row, which no input here does |
+| The stamp the write leaves | `UpdateFeed` names no `updated_at` in its SET list: it writes `checked_at` with the value the request read carried | the write stamps `updated_at` with the time it runs at | The row carries a stamp the reference does not write for this path; the clock fields are never compared, and no pin reads the stamp |
 
 ## CLI feed commands (stage 6)
 
@@ -1270,25 +1275,27 @@ reads, so all four stay whole on their own line.
 | bracketed_host | URL layer — Bracketed host | accepted | not reachable here |
 | media_proxy | Google Reader content endpoint — The media proxy | accepted | not reachable here |
 | error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
-| minimal_scan | Google Reader subscription path — Minimal discovery scan | accepted | request/subscription_quickadd |
-| relation_test | Google Reader subscription path — The relation test | accepted | request/subscription_quickadd |
-| parsed_title | Google Reader subscription path — The title inside the request | accepted | not reachable here |
+| minimal_scan | Google Reader subscription path — Minimal discovery scan | accepted | not reachable here |
+| relation_test | Google Reader subscription path — The relation test | accepted | not reachable here |
+| parsed_title | Google Reader subscription path — The title inside the request | accepted | request/subscription_quickadd |
 
-The five rows marked `not reachable here` name classes no coverage-reading rule can see: the
+The six rows marked `not reachable here` name classes no coverage-reading rule can see: the
 counts are read inside the sanitizer and never written out, the bracketed host answers a fetch
 decision rather than a stored value, the media proxy is run as `none` on the reference side so
 the stored bytes are comparable, the wording of a rule the port names is not compared at all,
-and the title the parsed feed carries is a value no rule compares. They are named here rather
-than asserted, and the run guard that declares the proxy mode is what makes the third half of
-that list hold. `none` is the value the reference's own validator accepts, alongside `http-only`
-and `all`; the harness runs `none`, which is not the reference's default.
+and the two scan classes are read only from an HTML document, which the corpus has none of: every
+corpus file is a feed document, answered by the format check before the scan reads a `link`.
+They are named here rather than asserted, and the run guard that declares the proxy mode is what
+makes the third half of that list hold. `none` is the value the reference's own validator accepts,
+alongside `http-only` and `all`; the harness runs `none`, which is not the reference's default.
 
-The two rows this path adds are exercised by the shape the run sends for the discovery, which
-reaches them as the key set its answer carries when the discovery answers differently. That is
-the half the table cannot cover: the rule that reads key sets reads no coverage, so a scan
-difference is reported as a finding even though a row names its class. The row for the title
-inside the request cannot be reached at all, because the rule that reads the values an answer
-carries reads the entries, not the feed row the title is written on.
+The one row this path adds that a shape can reach is the title inside the request, and it is
+reached as the key set the quickadd answer carries: the reference writes `streamName` with the
+parsed title, and this port omits the field because the row it wrote carries the create default.
+That is the half the table cannot cover: the rule that reads key sets reads no coverage, so the
+difference is reported as a finding even though a row names its class. The other two rows this
+path adds name classes the corpus cannot reach for the reason above, so they are recorded as not
+reachable here rather than pointed at a shape the run sends.
 
 **What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served
 from `Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for
@@ -1320,7 +1327,7 @@ written through the console seam, whose secure read takes its value from a termi
 a pipe, so the run gives that command a terminal. The due rule is strict, so the batch read cannot
 see a feed written at the same instant it reads, and the run lets the clock move past that instant.
 
-Seven shapes the run has to arrange, because the rules read them as data rather than as dialects. A
+Eight shapes the run has to arrange, because the rules read them as data rather than as dialects. A
 response name is kept as the list of its values in the order they arrive, which is what `Header.Get`
 reads through: the stub writes one name twice, on the hop the corpus is served on, and the read
 takes each name once, in the order it first appears; but the pair document carries the response each
@@ -1338,7 +1345,9 @@ is the half the rule that reads the pinned version does not read. The storage re
 as the storage answers them, so the reference side is read as CSV over the whole text rather than
 line by line — a field holding the delimiter or a newline is one field, not two rows — and this
 port's driver answers rows as fields and needs no delimiter at all. A value the storage cannot read
-is nothing on both sides, so the field is the empty string rather than the name of nothing.
+is nothing on both sides, so the field is the empty string rather than the name of nothing. The
+three subscription shapes are the answers the handlers give, asked with the names each handler
+reads, so the only thing they can part on is the key set an answer carries.
 
 **What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
 two sides read the same bytes over the network, because each fetch is its own hop; the row order a

@@ -165,11 +165,12 @@ import Testing
             <link rel="alternate" type="application/rss+xml" href="/a%zz">
             </head></html>
             """.utf8)
-        // The reference resolves against the URL it reached, which after its canonical step may be
-        // another URL — the deviation the same table row records. Here the scan is given one base,
-        // so a patch that resolved against the root moved `sub/a` to the root, and a patch that
-        // passed the value the parse cannot read through added the last case. The base is given
-        // with the trailing slash because the resolution rule drops a base path that is not a
+        // The reference resolves against the `<base href>` value when the document has one, and
+        // otherwise against the URL it was given — the deviation the same table row records. Here
+        // the scan is given one base, so a patch that resolved against the root moved `sub/a` to
+        // the root, and a patch that passed the value the parse cannot read through added the last
+        // case. The base is given with the trailing slash because the resolution rule drops a base
+        // path that is not a
         // directory, which the URL layer pins on its own.
         #expect(SubscriptionDocumentLinks.feedURLs(document: document, contentType: "text/html",
             documentURL: "https://example.org/blog/") == [

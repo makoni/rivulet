@@ -88,7 +88,7 @@ alone because removing a row also makes the difference itself a finding, so it i
 than probed; the login half, which the run reaches here and cannot pass, because the reference reads
 the integration row the login read runs on, where the enabled flag that read requires is set only by
 its web form, while this port has no integration table at all — the credential pair sits on the
-account row, which the run had not set either, and it has no web form; and the four classes
+account row, which the run had not set either, and it has no web form; and the six classes
 the corpus cannot reach, which are named in the table rather than asserted. The client matrix, the
 replay of captured client request sequences, the performance notes, and the live parity run with an
 authenticated pair, which needs a path that sets the flag the login read requires on the reference
@@ -341,17 +341,17 @@ What those headers name as unpinnable: the discovery steps this port does not ha
 nothing here uses; the reference parsing the discovered feed inside the request, so its `streamName`
 is the parsed title while this port writes the row with the create defaults; the empty-title guard
 `rename` declares, which no input reaches; `move`'s category answer, which the type check runs
-before the read that could answer it; the title guard's own branch, whose value is the same as the
-create default; the order between the absolute rule and the duplicate read, pinned as pure logic by
-`FeedValidationTests`; the reference's localized strings for the rules the port names by name; and
+before the read that could answer it; the title guard's own branch, which is read on a row whose
+title an earlier input in the same pin wrote; the order between the absolute rule and the duplicate
+read, pinned as pure logic by `FeedValidationTests`; the reference's localized strings for the rules
 the wordings of the storage failures this suite cannot trigger. `invalidData(named:)` moved to
 `GoogleReaderHandlers`, which both handler files of this path use, that file now takes the finder
 `RivuletApplication` owns and closes in `shutdown()`, and `withServedApp` gained an optional
-environment so a quickadd pin can name the target rule for the stub server it answers on. The three
-shapes the run sends for these endpoints are named by the manifest with no class beside them,
-because the difference they can show is the key set the answer carries, which the rule that reads
-key sets reads without consulting the table. What follows: the Fever parameter set, `quickadd`
-discovery, the icon route, OPML and the acceptance journey.
+environment so a quickadd pin can name the target rule for the stub server it answers on. Two of the
+three shapes the run sends for these endpoints carry no class, and the quickadd shape names the one
+its key set can show, the title inside the request, because the rule that reads key sets reads no
+coverage; the two scan classes are recorded as classes the corpus cannot reach. What follows: the
+Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

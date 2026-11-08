@@ -12,10 +12,9 @@ import Foundation
 /// scan reads; the scan's own order, the dedupe and the resolution are in that file.
 enum SubscriptionLinkRules {
     /// The WordPress test is part of the `application/json` case, not of the scan: the reference
-    /// skips a value whose href names that path inside the branch, so a value with the same path
-    /// read through one of the other branches is read. skips a value whose href names that path
-    /// inside the branch, so a value with the same path read through one of the other branches is
-    /// read.
+    /// skips a value whose href names that path inside that branch, so the same path read through
+    /// one of the other branches is read. The pin that shows this puts the path in two branches at
+    /// once, which is the only input where the two answers can part.
     static func format(forType type: String, href: String) -> FeedFormat? {
         switch type {
         case "application/rss+xml": return .rss

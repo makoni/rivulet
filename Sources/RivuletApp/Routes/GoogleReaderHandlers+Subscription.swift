@@ -162,7 +162,10 @@ extension GoogleReaderHandlers {
 
     /// `getOrCreateCategory`: the value the stream read left decides which read runs, and the row
     /// that is not there is created. The reference reads the title twice — `CategoryTitleExists`
-    /// and then `CategoryByTitle` — which is the same answer as the one read here.
+    /// and then `CategoryByTitle` — which is the same answer as the one read here only for a title
+    /// it compares as it is given: the first of those two folds the case, so for a title stored in
+    /// another case the pair answers no row where this read creates one, which `docs/parity.md`
+    /// records as the divergence this suite cannot show.
     private func category(_ categories: CategoryRepository, userID: Int,
         stream: GoogleReaderStream) async throws -> Category? {
         if stream.id.isEmpty { return try await categories.first(userID: userID) }

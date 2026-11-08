@@ -4,8 +4,9 @@ import Testing
 
 /// The two steps this port has for `subscription/quickadd` discovery, read end to end through the
 /// fetcher against a stub server. Ported from `internal/reader/subscription/finder.go`
-/// (`FindSubscriptions`) at `c4d54f87`; the upstream file has no test for these steps, so these
-/// pins are the port's own.
+/// (`FindSubscriptions`) at `c4d54f87`. The upstream file tests the scan as pure logic, which is
+/// the half `SubscriptionDocumentLinksTests` pins, and has no test for the two steps this port
+/// has, so these pins are the port's own.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting (5 pins, 5
 /// probes): the response is read before the body, so a status failure is reported even when the
@@ -13,12 +14,13 @@ import Testing
 /// scanned first answered the href inside the document; the answer for a document that is already
 /// a feed is the URL the response came from, which is a different answer for a hop that was
 /// redirected; the base the scan resolves against is the URL this call was given, which the
-/// reference changes with its canonical step before the scan — the deviation `docs/parity.md`
-/// records — so a patch that resolved against the effective URL fails; and a document with no
-/// matching link answers nothing rather than failing the call.
+/// reference answers the same only when the document carries no `<base href>` — the deviation
+/// `docs/parity.md` records — so a patch that resolved against the effective URL fails; and a
+/// document with no matching link answers nothing rather than failing the call.
 ///
-/// What these pins cannot show: the steps this port lacks — the well-known paths, the canonical
-/// URL, the YouTube, GitHub and RSS-Bridge handlers — which the `minimal_scan` row records; the
+/// What these pins cannot show: the steps this port lacks — the `<base href>` read, the canonical
+/// URL, the YouTube, GitHub and RSS-Bridge handlers, the well-known paths — which the
+/// `minimal_scan` row records; the
 /// request headers, which are the fetcher's rules pinned by the fetch suite; the reference's
 /// logging, which this port has no layer for; the title and format the reference's subscription
 /// value carries, which nothing here uses; and the size cap, which the fetcher owns. The scan's

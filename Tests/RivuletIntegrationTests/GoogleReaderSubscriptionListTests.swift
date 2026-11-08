@@ -14,10 +14,11 @@ import RivuletApp
 /// branches of the icon link, which a patch that wrote the link for any icon row fails on; and
 /// the base the link is built from, which a patch that took it from the host the request came
 /// in on fails on.  What these pins cannot show: the columns the listing read selects, which no
-/// answer here can distinguish from a read that selected all of them; the order between rows
-/// sharing one parsing-error count, which SQL does not fix; the `hide_globally` field the
-/// reference reads on the same row, which this port's schema does not have; and the one read
-/// the reference's category pair answers the same as.
+/// answer here can distinguish from a read that selected all of them; the collation the reference
+/// answers `ORDER BY title` with inside one error count — the port's own tiebreak, the lowercased
+/// title, is pinned as a read elsewhere — the `hide_globally` field the reference reads on the same
+/// row, which this port's schema does not have; and the case fold the reference's first category
+/// read applies, which this port reads as the title as given.
 @Suite struct GoogleReaderSubscriptionListTests {
     private let routes = "/reader/api/0/subscription/"
 
@@ -81,8 +82,8 @@ import RivuletApp
             // Three branches: a feed with no icon row, an icon row with nothing to write, and one
             // with a value. A patch that wrote the link for any icon row, or that read the hash as
             // the external id, answered the first two differently. The rows answer in the order the
-            // sort read builds them, which the pin above pins; only the middle one has a link to
-            // write.
+            // sort read builds them, which the pin above pins, so the row with a value to write is
+            // the first one in the answer.
             let none = try await socket.seedFeed(all, "https://e/1", "a", "", 0)
             let blank = try await socket.seedFeed(all, "https://e/2", "b", "", 1,
                 icon: try await socket.seedIcon("h1", ""))

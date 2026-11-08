@@ -5,8 +5,12 @@ import Testing
 /// `internal/googlereader/response.go` at `c4d54f87`. The goldens are the reference's own output
 /// for these documents at the toolchain `go.mod` pins.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (8 pins, 6
-/// probes): the key order, which is the order the document declares its fields in — for
+/// What these pins can fail on, each checked by patching the rule and reverting where a patch can
+/// change one document alone (8 pins, 6 probes, and the six are all on the three documents this
+/// path builds: the other five pins are goldens read against the reference's output, and a patch
+/// that changed the writer for them would change every document at once, so the driver has no probe
+/// that fires on one of them alone): the key order, which is the order the document declares its
+/// fields in — for
 /// `streamIDResponse` that is `itemRefs` before `continuation`, which a patch that wrote them the
 /// other way fails; the fields written without `omitempty`, which a patch that added it fails on
 /// the input where the value is empty, so `id` of `itemRef` and all four fields of the user

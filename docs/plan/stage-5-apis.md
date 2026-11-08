@@ -10,7 +10,7 @@ logic too, and the handlers for the four endpoints this piece implements merged 
 real socket, with the three POST write handlers — `rename-tag`, `disable-tag` and `mark-all-as-read`
 — merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
-endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
+endpoints, opens as PR #59, over the same socket with the minimal discovery pinned as pure logic.
 The rest of the handlers are not started. **Effort:** XL.
 **Depends on:** Stage 4.
 
@@ -69,7 +69,7 @@ The rest of the handlers are not started. **Effort:** XL.
       base url, the item id in the full reference form, and the answer carrying every row the ids
       name, with the storage read pinned by `EntryContentsReadTests` and the categories rule for one
       item by `GoogleReaderItemCategoriesTests`. The media proxy is recorded in `docs/parity.md`,
-      because this port has none. The three subscription endpoints merged with PR #59, pinned
+      because this port has none. The three subscription endpoints, opens as PR #59, pinned
       over the same socket: the listing order, the six fields of the subscription document with
       the label being the category title, the icon link's two branches and the base it is built
       from, the whole merged list read for `s` against the single value read for `a`, the
