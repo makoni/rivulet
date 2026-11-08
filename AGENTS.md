@@ -45,9 +45,9 @@ closing a client changes nothing a fetch can answer; the sign `strconv.Atoi` rea
 number, so `width="+10"` is kept; and the entity table membership the sanitizer's scheme check reads
 through, because the check runs on the decoded value. What the pass could not pin is documented
 rather than asserted: the connect timeout as a limit of its own, which needs a client-creation seam
-the plan does not have; the header-block size, which this port reads no limit of its own for
-and which the reference caps only on the server side; the timing form of the constant-time
-token compare; the NUL byte in a password, which the dependency measures with `strlen` and which
+the plan does not have; the header-block size, which this port reads no limit of its own for and
+which the reference caps only on the server side; the timing form of the constant-time token
+compare; the NUL byte in a password, which the dependency measures with `strlen` and which
 `docs/parity.md` records; and the header value of a hop that is not the last one, which `fetch` does
 not return. The dependency audit found no advisory that affects a pin. The third slice is the parity
 harness, merged as PR #57: the comparator reads a comparison run as the pair document it leaves
@@ -65,28 +65,26 @@ feed-and-hash pair, the counts against the rows, state and starred for matched e
 results with the clock fields never read, the payload item id read through the row map as the hex
 field the reference's item read takes with its prefix, the shape rules as the reference writes them,
 `self` as each side's configured base URL, the statuses, the order compared only through the
-recorded
-collation row, the response header read with the first value winning over the list of its values,
-the
-proxy running as `none` on the reference side, the ASCII account name, and
-the report naming every rule and what the run cannot show. 20 crafted inputs plus the baseline,
-which is asserted to report nothing, so each probe is single-firing; the patch round showed each
-rule can fail on the rule it names and reverted the file byte-identically. What the harness cannot
-show: the run half cannot execute on this machine — the Docker daemon is not reachable for this user
-and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver,
-so the shell is checked by `bash -n` and by its eleven guards that read a declared value, each seen
-to fail on a value the run declares below what it requires, while the two that read data fail only
-on a run; the pinned version on the port side, because the rule that reads it
-reads only the reference side, where the run names the pinned version and the port names the build
-it
-ran; that the run ran at all, because it is on demand and not in CI;
-that the two sides read the same bytes over the network, because each fetch is its own hop; the row
-order for rows sharing one value, which SQL does not fix; the clock fields, which each side wrote at
-its own write instant; the other half of the table rule, which cannot be probed alone because
-removing a row also makes the difference itself a finding, so it is documented rather than probed;
-and the four classes the corpus cannot reach, which are named in the table rather than asserted. The
-client matrix, the replay of captured client request sequences, the performance notes, and the live
-parity run on a machine where the daemon and Postgres are reachable follow.
+recorded collation row, the response header read with the first value winning over the list of its
+values, the proxy running as `none` on the reference side, the ASCII account name, and the report
+naming every rule and what the run cannot show. 20 crafted inputs plus the baseline, which is
+asserted to report nothing, so each probe is single-firing; the patch round showed each rule can
+fail on the rule it names and reverted the file byte-identically. What the harness cannot show: the
+run half cannot execute on this machine — the Docker daemon is not reachable for this user and no
+Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver, so the
+shell is checked by `bash -n` and by its fourteen checks, eleven of which name a value the run
+declares or a count it declares against the committed files, each seen to fail on such a value or by
+taking the file it names away, while the three that read the run's own data fail only on a run; the
+pinned version on the port side, because the rule that reads it reads only the reference side, where
+the run names the pinned version and the port names the build it ran; that the run ran at all,
+because it is on demand and not in CI; that the two sides read the same bytes over the network,
+because each fetch is its own hop; the row order for rows sharing one value, which SQL does not fix;
+the clock fields, which each side wrote at its own write instant; the other half of the table rule,
+which cannot be probed alone because removing a row also makes the difference itself a finding, so
+it is documented rather than probed; and the four classes the corpus cannot reach, which are named
+in the table rather than asserted. The client matrix, the replay of captured client request
+sequences, the performance notes, and the live parity run on a machine where the daemon and Postgres
+are reachable follow.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

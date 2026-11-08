@@ -1084,9 +1084,9 @@ Each rule is a function over the data a run leaves behind — the pair document,
 manifest, the committed report — rather than an assertion about a live process, and that is what
 makes each of them falsifiable: `python3 Tools/parity/probes.py` crafts one input per rule that
 violates it and asserts that the rule reports it alone. 18 rules, 20 crafted inputs, and the
-baseline, which is asserted to report nothing: the baseline is one run where every difference the
-comparator sees is covered by a recorded row, so a probe that reports a second rule is a probe that
-did not isolate its own input.
+baseline, which is asserted to report nothing. The baseline is crafted data, not run data: it is one
+document where every difference the comparator sees is covered by a recorded row, so a probe that
+reports a second rule is a probe that did not isolate its own input.
 
 The rules were written after the probe set: with the rules stubbed, all 20 crafted inputs fail on
 the rule they name, and the patch round shows the same for each rule read as data — one patch per
@@ -1104,17 +1104,23 @@ requests in a different order still matches, and the row ids of the two database
 map rather than as values.
 
 The shapes the collector arranges are what the rules read, and each is a shape, not a value: a
-response name kept as the list of its values in the order they arrive, which is what `Header.Get`
-reads through, because keeping one value per name would make the header rule impossible to fire on a
-run — `Tools/parity/stub_server.py` is the stub that writes one name twice, and it was seen to
-answer two values for it on a live socket; the login recorded as the first request, on the route the
-reference registers for it with the form names it reads, because a pair document carrying requests
-before the login answer is a run that never authenticated; the token sent as the `Authorization`
-name the auth read reads, `GoogleLogin auth=`, split as `strings.Fields` splits it; the status taken
-from a failed response, because the status rule can otherwise never see the 404 or the 405 it
-compares; the manifest key carried as the name the run added the feed under, resolved through the
-feed url, because neither side has a column that holds it; and the version named on the reference
-side only, because the port side names the build it ran.
+response name kept as the list of its values in the order they arrive, taken once per name in the
+order it first appears, which is what `Header.Get` reads through, because keeping one value per name
+would make the header rule impossible to fire on a run — `Tools/parity/stub_server.py` is the stub
+that writes one name twice, and it was seen to answer two values for it on a live socket; the login
+recorded as the first request, on the route the reference registers for it with the form names it
+reads, because a pair document carrying requests before the login answer is a run that never
+authenticated; the token sent as the `Authorization` name the auth read reads, `GoogleLogin auth=`,
+split as `strings.Fields` splits it; the status taken from a failed response, because the status
+rule can otherwise never see the 404 or the 405 it compares, and a non-JSON answer recorded as the
+text it is; the manifest key carried as the name the run added the feed under, resolved through the
+feed url, because neither side has a column that holds it and the stored title is the parsed feed
+title; the storage read keeping the fields as the storage answers them, with the reference side
+parsed as CSV over the whole text rather than line by line — a field holding the delimiter or a
+newline is one field, not two rows — and this port's driver answering rows as fields, which needs no
+delimiter at all, and a value the storage cannot read being the empty string on both sides rather
+than the name of nothing; and the version named on the reference side only, because the port side
+names the build it ran.
 
 What it cannot show, and the harness and the docs say so:
 
@@ -1122,32 +1128,34 @@ What it cannot show, and the harness and the docs say so:
 - that the two sides read the same bytes over the network, because each fetch is its own hop;
 - the row order a storage read answers for rows sharing one value, which SQL does not fix;
 - the clock fields, which each side wrote at its own write instant. The rule that reads the parse
-  results can never fail on a clock difference, because it never reads one: that half of its name is
-  the rule, not an assertion, so no probe covers it;
+results can never fail on a clock difference, because it never reads one: that half of its name is
+the rule, not an assertion, so no probe covers it;
 - the rules the stage-3 corpora already pin, which the run re-reads rather than pins;
 - the other half of the table rule: a class the manifest reaches but no row names is a difference
-  nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
-  alone — removing the row also makes the difference itself a finding;
+nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
+alone — removing the row also makes the difference itself a finding;
 - the rules that are tautologies on run data because the collector writes both sides from one
-  source: the input digests, the flags, and the names the run asked with. They can only be shown on
-  crafted data, where the two sides are written apart, and the probes for them are crafted, not run;
+source: the input digests, the flags, and the names the run asked with. They can only be shown on
+crafted data, where the two sides are written apart, and the probes for them are crafted, not run;
 - the pinned version on the port side, which the rule that reads it does not read: the probe that
-  changes the version shows which half the rule reads by failing on the reference side alone;
-- the eleven guards that read a declared value — the pinned tag, the pinned commit, the two corpus
-  counts, the exercised-row count, the proxy mode, the address policy, the account name, the report
-  being present, the two declared ports, and the Postgres host. Each was seen to fail by declaring a
-  value below what it requires, and that is the whole of what they show; the two checks that read
-  data rather than a declared value — a manifest key with no file beside it, and a side the run
-  recorded nothing for — fail only on a run;
+changes the version shows which half the rule reads by failing on the reference side alone;
+- the fourteen checks the shell makes. Eleven name a value the run declares or a count the run
+declares against the committed files — the pinned tag, the pinned commit, the two corpus counts, the
+exercised-row count, the proxy mode, the address policy, the account name, the two declared ports,
+the Postgres host, the manifest being there, and the report being present — and each was seen to
+fail, by declaring a value below what it requires or by taking the file it names away. That is the
+whole of what they show. The three that read the run's own data — a manifest key with no file beside
+it, a side the run recorded nothing for, and the daemon being reachable — fail only on a run, and
+the last fails here because this machine gives neither;
 - the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
-  the media proxy, the wording of a rule the port names — which are named in the table as not
-  reachable here rather than asserted;
+the media proxy, the wording of a rule the port names — which are named in the table as not
+reachable here rather than asserted;
 - the run half itself, on this machine: the Docker daemon is not reachable for this user and no
-  Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So
-  the collector is checked here only by `bash -n` and by the guards above, not by a run;
+Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So the
+collector is checked here only by `bash -n` and by the guards above, not by a run;
 - what the width rule does not reach: the manifest's record lines, which are one record, and the
-  shell's command lines and guard messages, which cannot be broken at a word without changing what
-  the run reads.
+shell's command lines and guard messages, which cannot be broken at a word without changing what the
+run reads.
 
 ## Running
 

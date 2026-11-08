@@ -1191,6 +1191,9 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 
 ## Parity harness (stage 7)
 
+
+
+
 The harness is the stage-7 exit criterion that compares the port with the reference over the same
 data rather than over one test: real Miniflux and Rivulet read the same corpus, and the difference
 between the two answers is read class by class. It is run by hand and not in CI, so the determinism
@@ -1200,21 +1203,18 @@ reads the pair document the run leaves behind rather than the processes that pro
 `Tools/parity/collect.py` writes that document from one live comparison.
 
 The tolerance table below is read as data by the check half, and it is the single source of truth
-for
-what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class it
-names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may differ
-there; and a difference whose class no row names is a finding. The corpus manifest
+for what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class
+it names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may
+differ there; and a difference whose class no row names is a finding. The corpus manifest
 (`Tools/parity/corpus/manifest.txt`) names, for each corpus input, the classes it can reach, which
-is
-what lets a difference be attributed to a class instead of accepted by the comparator's preference.
-The rules that guard the run itself — the flags, the pinned reference version, the input digests,
-the
-request sequence, the counts, the report — report whatever the data says, whatever the table says.
+is what lets a difference be attributed to a class instead of accepted by the comparator's
+preference. The rules that guard the run itself — the flags, the pinned reference version, the input
+digests, the request sequence, the counts, the report — report whatever the data says, whatever the
+table says.
 
 The width rule does not reach the manifest's record lines or the shell's command lines: a record is
 one record, and a command or a guard message cannot be broken at a word without changing what the
-run
-reads, so both stay whole on their own line.
+run reads, so both stay whole on their own line.
 
 **The classes the harness reads.**
 
@@ -1234,67 +1234,60 @@ reads, so both stay whole on their own line.
 | error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
 
 The four rows marked `not reachable here` name classes no corpus input can reach: the counts are
-read
-inside the sanitizer and never written out, the bracketed host answers a fetch decision rather than
-a
-stored value, the media proxy is run as `none` on the reference side so the stored bytes are
+read inside the sanitizer and never written out, the bracketed host answers a fetch decision rather
+than a stored value, the media proxy is run as `none` on the reference side so the stored bytes are
 comparable, and the wording of a rule the port names is not compared at all. They are named here
 rather than asserted, and the run guard that declares the proxy mode is what makes the third half of
 that list hold. `none` is the value the reference's own validator accepts, alongside `http-only` and
 `all`; the harness runs `none`, which is not the reference's default.
 
-**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from a
-local stub server on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides and the
-account name is ASCII, which is the one place where `LOWER` is the same rule on both sides. Both
-sides
-run with the same flags — the batch size, the two limits, the migrations gated off — and the
-reference
-runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The request sequence
-is
-the login plus the three shapes the table names, and the pair document carries, per side, the rows
-it
-stored, the counts it reports, and the answers it gave. The row ids of the two databases are never
-compared as values: they are the map, and a payload item id is read through it as the hex field the
-reference's item read takes, with its prefix. Order is compared only through the collation row, and
-the
-clock fields are never compared: only the parse results are, which is what the row that reads them
-says.
+**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from
+`Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides
+and the account name is ASCII, which is the one place where `LOWER` is the same rule on both sides.
+Both sides run with the same flags — the batch size, the two limits, the migrations gated off — and
+the reference runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The
+request sequence is the login plus the three shapes the table names, and the pair document carries,
+per side, the rows it stored, the counts it reports, and the answers it gave. The row ids of the two
+databases are never compared as values: they are the map, and a payload item id is read through it
+as the hex field the reference's item read takes, with its prefix. Order is compared only through
+the collation row, and that row is quoted from the CLI feed commands, which the run half never runs:
+the run reaches the same order through the `tag/list` labels, which are built on the same categories
+read the row names. The clock fields are never compared: only the parse results are, which is what
+the row that reads them says. No rule compares the three names the response builder writes, so the
+pair document carries them only on the answers a handler produced: the reference's two answers
+written before its auth middleware carry only what the mux writes, and the port's 404 answer is
+written by the router rather than by the port's handler.
 
-Four shapes the run has to arrange, because the rules read them as data rather than as dialects. A
+Seven shapes the run has to arrange, because the rules read them as data rather than as dialects. A
 response name is kept as the list of its values in the order they arrive, which is what `Header.Get`
 reads through: keeping one value per name would make the rule that reads the first value impossible
-to
-fire on a run. The login is recorded as the first request, so a pair document carrying requests
-before
-the login answer is a run that never authenticated. Neither side has a column named `file`, so the
-manifest key is carried as the feed title the run gave when it added the feed, and the entry's row
-is
-read through that feed row. The version is named on the reference side only: the port side names the
-build it ran, which is the half the rule that reads the pinned version does not read.
+to fire on a run, so the stub writes one name twice and the read takes each name once, in the order
+it first appears. The login is recorded as the first request, on the route the reference registers
+for it with the form names it reads, so a pair document carrying requests before the login answer is
+a run that never authenticated, and the token is then sent as the `Authorization` name the auth read
+reads. A non-JSON answer is recorded as the text it is, because the redirect body is text, and the
+status is taken from a failed response, which is the only way the status rule can see the 404 or the
+405 it compares. The manifest key is carried as the name the run added the feed under, resolved
+through the feed url, because neither side has a column that holds it and the stored title is the
+parsed feed title. The version is named on the reference side only: the port side names the build it
+ran, which is the half the rule that reads the pinned version does not read. The storage read keeps
+the fields as the storage answers them, so the reference side is read as CSV over the whole text
+rather than line by line — a field holding the delimiter or a newline is one field, not two rows —
+and this port's driver answers rows as fields and needs no delimiter at all. A value the storage
+cannot read is nothing on both sides, so the field is the empty string rather than the name of
+nothing.
 
 **What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
-two
-sides read the same bytes over the network, because each fetch is its own hop; the row order a
-storage
-read answers for rows sharing one value, which SQL does not fix; the clock fields, which each side
-wrote
-at its own write instant; and the rules the stage-3 corpora already pin, which the run re-reads
-rather
-than pins. On this machine the run half cannot execute: the Docker daemon is not reachable for this
-user
-(`/var/run/docker.sock` is `root:docker` and the user is not in the `docker` group), and no Postgres
-server answers, which the reference needs because its `go.mod` has no SQLite driver. So the check
-half
-is what is falsifiable here — `Tools/parity/probes.py` crafts one input per rule that violates it
-and
-asserts that the rule reports it alone — and the run half is checked by `bash -n` and by its guards,
-each of which was seen to fail on a value the run declares below what it requires.
+two sides read the same bytes over the network, because each fetch is its own hop; the row order a
+storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
+each side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the
+run re-reads rather than pins. On this machine the run half cannot execute: the Docker daemon is not
+reachable for this user (`/var/run/docker.sock` is `root:docker` and the user is not in the `docker`
+group), and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite
+driver. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one input
+per rule that violates it and asserts that the rule reports it alone — and the run half is checked
+by `bash -n` and by its guards, each of which was seen to fail on a value the run declares below
+what it requires.
 
 
-Order is compared only through the collation row, and that row is quoted from the CLI feed commands,
-which the run half never runs: the run reaches the same order through the `tag/list` labels, which
-are built on the same categories read the row names. The clock fields are never compared: only the
-parse results are, which is what the row that reads them says. No rule compares the three names the
-response builder writes, so the pair document carries them only on the answers a handler produced:
-the reference's two answers written before its auth middleware carry only what the mux writes, and
-the port's 404 answer is written by the router rather than by the port's handler.
+
