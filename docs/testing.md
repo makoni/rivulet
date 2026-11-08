@@ -1103,12 +1103,17 @@ a finding. Requests are paired by key rather than by position, so a run that ans
 requests in a different order still matches, and the row ids of the two databases are read as the
 map rather than as values.
 
-The four shapes the collector arranges are what the rules read, and each is a shape, not a
-a value: a response name kept as the list of its values in the order they arrive, which is what
-`Header.Get` reads through, because keeping one value per name would make the header rule impossible
-to fire on a run; the login recorded as the first request, because a pair document carrying requests
-before the login answer is a run that never authenticated; the manifest key carried as the feed
-the run gave, because neither side has a column named `file`; and the version named on the reference
+The shapes the collector arranges are what the rules read, and each is a shape, not a value: a
+response name kept as the list of its values in the order they arrive, which is what `Header.Get`
+reads through, because keeping one value per name would make the header rule impossible to fire on a
+run — `Tools/parity/stub_server.py` is the stub that writes one name twice, and it was seen to
+answer two values for it on a live socket; the login recorded as the first request, on the route the
+reference registers for it with the form names it reads, because a pair document carrying requests
+before the login answer is a run that never authenticated; the token sent as the `Authorization`
+name the auth read reads, `GoogleLogin auth=`, split as `strings.Fields` splits it; the status taken
+from a failed response, because the status rule can otherwise never see the 404 or the 405 it
+compares; the manifest key carried as the name the run added the feed under, resolved through the
+feed url, because neither side has a column that holds it; and the version named on the reference
 side only, because the port side names the build it ran.
 
 What it cannot show, and the harness and the docs say so:
@@ -1123,17 +1128,20 @@ What it cannot show, and the harness and the docs say so:
 - the other half of the table rule: a class the manifest reaches but no row names is a difference
   nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
   alone — removing the row also makes the difference itself a finding;
+- the rules that are tautologies on run data because the collector writes both sides from one
+  source: the input digests, the flags, and the names the run asked with. They can only be shown on
+  crafted data, where the two sides are written apart, and the probes for them are crafted, not run;
 - the pinned version on the port side, which the rule that reads it does not read: the probe that
   changes the version shows which half the rule reads by failing on the reference side alone;
-- the numbers and values the shell declares — the pinned reference, the two corpus counts, the
-  exercised-row count, the proxy mode, the address policy, the account name, the Postgres host, and
-  the report being present. Each was seen to fail by declaring a value below what it requires, and
-  that is the whole of what they show; the two checks that read the data rather than a declared
-  value — a manifest key with no file beside it, and a side the run recorded nothing for — fail only
-  on a run;
-- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed
-  media proxy, the wording of a rule the port names — which are named in the table as not reachable
-  here rather than asserted;
+- the eleven guards that read a declared value — the pinned tag, the pinned commit, the two corpus
+  counts, the exercised-row count, the proxy mode, the address policy, the account name, the report
+  being present, the two declared ports, and the Postgres host. Each was seen to fail by declaring a
+  value below what it requires, and that is the whole of what they show; the two checks that read
+  data rather than a declared value — a manifest key with no file beside it, and a side the run
+  recorded nothing for — fail only on a run;
+- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
+  the media proxy, the wording of a rule the port names — which are named in the table as not
+  reachable here rather than asserted;
 - the run half itself, on this machine: the Docker daemon is not reachable for this user and no
   Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver. So
   the collector is checked here only by `bash -n` and by the guards above, not by a run;

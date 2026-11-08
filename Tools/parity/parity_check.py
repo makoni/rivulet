@@ -49,6 +49,13 @@ CANNOT_SHOW = [
     "the row order a storage read answers for rows sharing one value, which SQL does not fix",
     "the clock fields, which each side wrote at its own write instant",
     "the rules the stage-3 corpora already pin, which the run re-reads rather than pins",
+    "the rules that are tautologies on run data because the collector writes both sides from one "
+    "source, so they can only be shown on crafted data",
+    "the pinned version on the port side, because the rule that reads it reads only the reference "
+    "side, where the run names the pinned version and the port names the build it ran",
+    "the guards, which are shown only by declaring a value below what they require, and the two "
+    "that read data rather than a declared value, which fail only on a run",
+    "the four classes no corpus input can reach, which are named in the table rather than asserted",
 ]
 RULES = [
     "flags_are_the_same_on_both_sides",

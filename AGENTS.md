@@ -74,8 +74,9 @@ which is asserted to report nothing, so each probe is single-firing; the patch r
 rule can fail on the rule it names and reverted the file byte-identically. What the harness cannot
 show: the run half cannot execute on this machine — the Docker daemon is not reachable for this user
 and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver,
-so the shell is checked by `bash -n` and by its eight guards, each seen to fail on a value the run
-declares below what it requires; the pinned version on the port side, because the rule that reads it
+so the shell is checked by `bash -n` and by its eleven guards that read a declared value, each seen
+to fail on a value the run declares below what it requires, while the two that read data fail only
+on a run; the pinned version on the port side, because the rule that reads it
 reads only the reference side, where the run names the pinned version and the port names the build
 it
 ran; that the run ran at all, because it is on demand and not in CI;

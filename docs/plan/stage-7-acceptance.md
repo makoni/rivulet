@@ -79,8 +79,9 @@ of captured request sequences follow. **Effort:** M. **Depends on:** Stages 5–
   is asserted to report nothing, so each probe is single-firing. The rules were written after the
   probe set: with the rules stubbed all 18 fail, and the patch round changes what each rule reads,
   shows the probe for that rule failing, and reverts the file byte-identically.
-  `Scripts/parity.sh` is the run half: its eight guards fail on a value the run declares below what
-  they require, and each was seen to fail that way; the run itself is checked here only by
+  `Scripts/parity.sh` is the run half: its eleven guards that read a declared value fail on a
+  value the run declares below what they require, and each was seen to fail that way; the two that
+  read data rather than a declared value fail only on a run. The run itself is checked here only by
   `bash -n`, because the machine cannot start the reference side.
 
 ## Exit criteria
