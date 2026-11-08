@@ -70,9 +70,9 @@ values, the proxy running as `none` on the reference side, the ASCII account nam
 naming every rule and what the run cannot show. 20 crafted inputs plus the baseline, which is
 asserted to report nothing, so each probe is single-firing; the patch round showed each rule can
 fail on the rule it names and reverted the file byte-identically. The fourth slice, the run half
-executed here for the first time, opens as PR #58: what the run hands over, the terminal the secure
-console read needs, and the login half the run reaches and cannot pass. What the harness cannot
-show: the run half is on demand and not in CI, so it is checked here by `bash -n` and by its
+executed here for the first time, is merged as PR #58: what the run hands over, the terminal the
+secure console read needs, and the login half the run reaches and cannot pass. What the harness
+cannot show: the run half is on demand and not in CI, so it is checked here by `bash -n` and by its
 nineteen checks, twelve of which name a value the run declares or a count it declares against the
 committed files, each seen to fail on such a value or by taking the file it names away, while the
 seven that read the machine or the run's own data fail only on a run — three of those seven were

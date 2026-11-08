@@ -8,7 +8,7 @@ suite documents. The second slice is the security checklist, merged (PR #56): th
 five suites, one finding closed in production code. The third slice is the parity harness, merged as
 PR #57: the comparator reads a comparison run as the pair document it leaves behind, the tolerance
 table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on the rule it
-names — 18 rules, 20 crafted inputs plus the baseline. The fourth slice opens as PR #58: the run
+names — 18 rules, 20 crafted inputs plus the baseline. The fourth slice is merged as PR #58: the run
 half executed here for the first time, with Postgres as a container, and what it reported was the
 login half, which the run reaches and cannot pass. The client matrix and the replay of captured
 request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
