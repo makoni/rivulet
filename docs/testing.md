@@ -970,6 +970,38 @@ migrations, which `MaintenanceCommandTests` pin for both commands; the wording o
 the reported failures; and the rules the port names rather than the reference, which has no command
 here to compare with.
 
+### The three subscription endpoints (`GoogleReaderSubscriptionRoutesTests`, PR #59)
+
+The three routes the reference registers for subscriptions are pinned over the same socket,
+through the shared helper `Support/SubscriptionSocket.swift`, which carries the token as the form
+field the merged read answers on the POST half and through the header the transport pins on the GET
+half, and writes the rows through SQL so that no pin is satisfied by the read it is testing. 62
+probes in this slice, one per rule, each seen to fail on the rule it names and to revert the file
+byte-identically: 13 for the scan read as pure logic, 5 for the two steps the finder has, 6 for the
+document shapes, 4 for the three routes, 6 for the listing, 4 for the quickadd, 19 for the edit
+handler, and 5 for the two storage reads this path calls — 3 for the title order the category read
+answers and 2 for the write that names only the column the caller names.
+
+Two pins had to read the answer as well as the document, because a wrong write is not something
+the document states. The pin that names the status the integer read failure maps to here reads
+the status as well as the wording: the wording is what the response builder writes for any
+status, so a pin that read only the wording could not fail on the status. The pin that names the
+title guard reads the title the write before it left, because the input that runs the rename
+first is the same row the guard's input then reads, and a pin that read the seeded title would
+have passed on a patch that ran the write for the empty value.
+
+Two claims are named in the headers rather than pinned, because no patch can make them fail: the
+order between the absolute rule and the duplicate read, which no input can fail both at once, and
+`rename`'s own empty-title guard, which the handler's title test answers before the read, so no
+input reaches it. The title guard's own branch is pinned, on the pin that reads the title the input
+before it wrote, so a patch that ran the write for the empty value fails; the order between the
+create and the validation is read as the guard's wording, because the read that found no row left
+0 and the guard reads its own value before the duplicate read.
+The same is true of the discovery steps this port does not have, of the title and format the
+reference's subscription value carries, and of the reference parsing the discovered feed inside the
+request, where its `streamName` is the parsed title while this port writes the row with the create
+defaults. These are recorded in `docs/parity.md`.
+
 ## Robustness (stage 7)
 
 `FetcherHostileInputTests` is the hostile body corpus for the fetcher: a stream that inflates far
@@ -1170,9 +1202,13 @@ data — the two declared ports, the Postgres server, the daemon, the two bases 
 answer, and the rows each side recorded — fail only on a run, and three of them were seen to fail
 here: a port something already holds, the base its own side answers on, by pointing the run at a
 binary that exits at once, and the login answer, by the run itself;
-- the classes no corpus input can reach — the grapheme and code-point counts, the bracketed host,
-the media proxy, the wording of a rule the port names — which are named in the table as not
-reachable here rather than asserted;
+- the six classes no coverage-reading rule can see — the grapheme and code-point counts, the
+bracketed host, the media proxy, the wording of a rule the port names, and the two scan classes,
+which the corpus cannot reach because every corpus file is a feed document, answered by the format
+check before the scan reads a `link` — which are named in the table as not reachable here rather
+than asserted. The one row this path adds that a shape reaches is the title inside the request:
+the quickadd request is asked with a feed document, and the only thing its answer can part on is
+the key set, which the rule that reads key sets reads without consulting the table.
 - the run half itself, which is not in CI and cannot be probed: it runs only when the machine gives
 the daemon and a Postgres server, which the reference needs because its `go.mod` has no SQLite
 driver. Here it executed end to end through the collector for the first time, and what it reported

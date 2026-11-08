@@ -29,7 +29,7 @@ set -euo pipefail
 #        MINIFLUX_REF=deadbeef PARITY_DRY_RUN=1 Scripts/parity.sh        # the pinned commit guard
 #        MINIFLUX_TAG=2.3.4 PARITY_DRY_RUN=1 Scripts/parity.sh           # the pinned tag guard
 #        PARITY_MIN_CORPUS_FILES=6 PARITY_DRY_RUN=1 Scripts/parity.sh    # the corpus count guard
-#        PARITY_MIN_REQUEST_SHAPES=4 PARITY_DRY_RUN=1 Scripts/parity.sh  # the shapes count guard
+#        PARITY_MIN_REQUEST_SHAPES=7 PARITY_DRY_RUN=1 Scripts/parity.sh  # the shapes count guard
 #        PARITY_MIN_EXERCISED_ROWS=6 PARITY_DRY_RUN=1 Scripts/parity.sh  # the table guard
 #        PARITY_PROXY_MODE=http-only PARITY_DRY_RUN=1 Scripts/parity.sh  # the proxy guard
 #        PARITY_PRIVATE_NETWORKS=false PARITY_DRY_RUN=1 Scripts/parity.sh # the policy guard
@@ -56,7 +56,7 @@ WORK=${PARITY_WORK:-$(mktemp -d)}
 PINNED_TAG=2.3.3
 PINNED_REF=c4d54f87
 PARITY_MIN_CORPUS_FILES=${PARITY_MIN_CORPUS_FILES:-5}
-PARITY_MIN_REQUEST_SHAPES=${PARITY_MIN_REQUEST_SHAPES:-3}
+PARITY_MIN_REQUEST_SHAPES=${PARITY_MIN_REQUEST_SHAPES:-6}
 PARITY_MIN_EXERCISED_ROWS=${PARITY_MIN_EXERCISED_ROWS:-5}
 PARITY_PROXY_MODE=${PARITY_PROXY_MODE:-none}
 PARITY_USER=${PARITY_USER:-parity}

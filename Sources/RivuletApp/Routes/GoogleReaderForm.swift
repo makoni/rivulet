@@ -1,17 +1,19 @@
 // Ported from Go's `Request.ParseForm` and `Form.Get`, which the Google Reader path reads through
 // `internal/googlereader/middleware.go` (Apache-2.0); adapted for Swift/SQLite.
 
-/// The merged form the POST path reads.
-///
-/// The order is Go's: the urlencoded body pairs come first, then the query pairs, so the value this
-/// read answers for a name both sides carry is the body one, which `GoogleReaderAuthTests` pins.
-/// The body is part of the form only when the media type is `application/x-www-form-urlencoded` —
-/// the caller decides that, and the same suite pins that a multipart body is not read.
-///
-/// What this read cannot show: that a name the form does not carry and a name whose value is empty
-/// answer the same, which is why the guards read the answer rather than the presence, and that Go
-/// reports the `;` error at the end of the read while keeping the pairs read before it, which this
-/// read answers the same for.
+/// The merged form the POST path reads.  The order is Go's: the urlencoded body pairs come
+/// first, then the query pairs, so the value this read answers for a name both sides carry is
+/// the body one, which `GoogleReaderAuthTests` pins. The body is part of the form only when the
+/// media type is `application/x-www-form-urlencoded` — the caller decides that, and the same
+/// suite pins that a multipart body is not read.  The answer for a name has two halves, and
+/// this read keeps them apart: `value(named:)` is what Go's `Form.Get` answers, which is the
+/// empty string for a name the form does not carry and for a name it carries with an empty
+/// value, while `has(named:)` is Go's `Values.Has`, which answers differently for those two.
+/// The guards that read the answer are the ones that cannot tell the halves apart; the one
+/// guard that reads the presence is `subscription/edit`, and the pin that shows the difference
+/// is there.  What this read cannot show: that Go reports the `;` error at the end of the read
+/// while keeping the pairs read before it, which this read answers the same for, and the escape
+/// wording, which `docs/parity.md` records as the quoting divergence.
 struct GoogleReaderForm {
     /// What Go's `ParseForm` reports as an error for the whole form. The pair-level errors are two,
     /// and both are the request failing here rather than one pair being skipped — the pins that put
@@ -70,12 +72,21 @@ struct GoogleReaderForm {
         pairs.filter { $0.name == name }.map(\.value)
     }
 
+    /// `r.Form.Has(name)`: whether the form carries the name at all. A pair with no `=` is a name
+    /// with an empty value, so this answers `true` for a name the value read answers the empty
+    /// string for — the two halves `subscription/edit` reads apart, which is what that suite's pin
+    /// shows.
+    func has(named name: String) -> Bool {
+        pairs.contains { $0.name == name }
+    }
+
     /// `r.PostForm[name]`, in the order the body pairs came in.
     func postValues(named name: String) -> [String] {
         postPairs.filter { $0.name == name }.map(\.value)
     }
 
-    // MARK: - Rules
+    // MARK:
+    // - Rules
 
     /// Go's `parseQuery`: the pairs split on `&`, the empty ones skipped, and the name and the
     /// value each unescaped — a pair with no `=` is a name with an empty value.

@@ -52,6 +52,40 @@ enum GoogleReaderShape {
         return .object(pairs)
     }
 
+    /// `subscriptionResponse`: the six fields are written in the order the struct declares them,
+    /// and none has `omitempty`, so an empty value is written as an empty string.
+    static func subscriptionResponse(id: String, title: String, categories: [JSONValue], url: String,
+        htmlURL: String, iconURL: String) -> JSONValue {
+        .object([
+            (key: "id", value: .string(id)),
+            (key: "title", value: .string(title)),
+            (key: "categories", value: .array(categories)),
+            (key: "url", value: .string(url)),
+            (key: "htmlUrl", value: .string(htmlURL)),
+            (key: "iconUrl", value: .string(iconURL)),
+        ])
+    }
+
+    /// `subscriptionsResponse`: the list is built with `make` before it is written, so an empty
+    /// document answers `[]` and not `null`.
+    static func subscriptionsResponse(subscriptions: [JSONValue]) -> JSONValue {
+        .object([(key: "subscriptions", value: .array(subscriptions))])
+    }
+
+    /// `quickAddResponse`: `numResults` has neither `omitempty` nor the string option, so it is
+    /// written as a number even when it is 0, and the other three are written only when they have a
+    /// value.
+    static func quickAddResponse(numResults: Int, query: String = "", streamID: String = "",
+        streamName: String = "") -> JSONValue {
+        var pairs: [(key: String, value: JSONValue)] = [(key: "numResults", value: .integer(numResults))]
+        if !query.isEmpty { pairs.append((key: "query", value: .string(query))) }
+        if !streamID.isEmpty { pairs.append((key: "streamId", value: .string(streamID))) }
+        if !streamName.isEmpty {
+            pairs.append((key: "streamName", value: .string(streamName)))
+        }
+        return .object(pairs)
+    }
+
     /// `tagsResponse`.
     static func tagsResponse(tags: [JSONValue]) -> JSONValue {
         .object([(key: "tags", value: .array(tags))])

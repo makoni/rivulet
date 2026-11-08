@@ -11,7 +11,7 @@ integration row is there for every user on the reference side, but its enabled f
 its web form, and on this side the credential pair sits on the account row, which the run had not
 set either.
 
-Seven things a live run has to arrange, and the shapes below are what the rules read them as.
+Eight things a live run has to arrange, and the shapes below are what the rules read them as.
 
 The login: `POST /accounts/ClientLogin`, read with the form names the reference reads, and recorded
 as
@@ -42,6 +42,12 @@ the parsed feed title, so `file` is the name the run added the feed under, resol
 url
 the run gave. The row id is the run's own, so the two sides carry different ones and nothing here
 normalises them.
+
+The subscription shapes: the three endpoints this path implements are recorded as the answers
+they give, asked with the names each handler reads — `output` for the listing, `s` and `ac` for
+the edit, `output` and `quickadd` for the discovery. Nothing here compares what those names
+carried, so the two shapes that answer the same document reach no class the table names, and the
+discovery shape can only show its difference as the key set its answer carries.
 
 What is normalised is the dialect, not the value: Postgres answers `t` for a boolean where SQLite
 answers `1`, so the boolean is read as the same value on both sides. The date is not normalised: the
@@ -84,6 +90,9 @@ REQUESTS = [
     ("request/stream_items_ids", "GET", "/reader/api/0/stream/items/ids", "token"),
     ("request/stream_items_contents", "POST", "/reader/api/0/stream/items/contents", "token"),
     ("request/method_mismatch", "POST", "/reader/api/0/edit-tag", "token"),
+    ("request/subscription_list", "GET", "/reader/api/0/subscription/list", "token"),
+    ("request/subscription_edit", "POST", "/reader/api/0/subscription/edit", "token"),
+    ("request/subscription_quickadd", "POST", "/reader/api/0/subscription/quickadd", "token"),
 ]
 STREAM = "user/-/state/com.google/reading-list"
 
@@ -91,6 +100,9 @@ STREAM = "user/-/state/com.google/reading-list"
 def keys():
     return [line.split("|")[0].strip() for line in open(MANIFEST) if line and not
 line.startswith("#")]
+
+# The document the discovery shape is asked with is the first corpus input the manifest names.
+SCAN_INPUT = next(key for key in keys() if key.startswith("corpus/"))
 
 
 def call(base, method, path, token, form=None):
@@ -161,6 +173,16 @@ BASES[name],
         for key, method, path, when in REQUESTS:
             if when == "login":
                 form = {"Email": USER, "Passwd": PASSWORD, "output": "json"}
+            elif key == "request/subscription_edit":
+                # The names this handler reads, with no title, so the branch writes nothing and
+                # answers the plain-text `OK` on both sides.
+                form = {"output": "json", "s": STREAM, "ac": "edit"}
+            elif key == "request/subscription_quickadd":
+                # The discovery answers on the document the corpus serves, so the shape is asked
+                # with a corpus input. The two sides answer with a different key set when the
+                # discovery differs, which is the half the table cannot cover.
+                form = {"output": "json",
+                        "quickadd": "http://127.0.0.1:" + PORT + "/" + os.path.basename(SCAN_INPUT)}
             elif method == "POST":
                 form = {"output": "json", "s": STREAM, "a": STREAM}
             else:

@@ -116,6 +116,18 @@ public struct FeedRepository {
             .delete()
     }
 
+    /// `UpdateFeed` for the two columns the subscription handlers modify: the title the rename
+    /// writes and the category the move writes. A column the caller does not name is left as the
+    /// row held it, which is what the reference's modification request does with a field it does
+    /// not carry. The stamp is this port's own: the reference's write names no `updated_at` at all,
+    /// so the value here is the time the write runs at, and no pin reads it.
+    public func update(feed: Feed, title: String?, categoryID: Int?) async throws {
+        if let title { feed.title = title }
+        if let categoryID { feed.categoryID = categoryID }
+        feed.updatedAt = Int(Date.now.timeIntervalSince1970)
+        try await feed.update(on: database)
+    }
+
     /// Records a successful fetch (upstream `UpdateFeed`): stores the conditional-GET headers, the
     /// site URL the caller resolved, the next check time and the check time the caller read from
     /// its clock, and resets the parsing failure state. The title stays as the row held it, as the

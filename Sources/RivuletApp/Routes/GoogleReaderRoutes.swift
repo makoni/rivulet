@@ -13,9 +13,9 @@ public enum GoogleReaderRoutes {
     /// would cover `/healthz` too. `baseURL` is the configured value, which is what the contents
     /// handler writes for its `self` link rather than the host the request came in on.
     public static func register(on application: Application, storage: SQLiteStorage,
-        hasher: BcryptHasher, baseURL: URL) {
+        hasher: BcryptHasher, baseURL: URL, finder: SubscriptionFinder) {
         let auth = GoogleReaderAuth(storage: storage)
-        let handlers = GoogleReaderHandlers(storage: storage)
+        let handlers = GoogleReaderHandlers(storage: storage, finder: finder)
 
         application.post("accounts", "ClientLogin") { request in
             try await Self.clientLogin(request, auth: auth, hasher: hasher)
@@ -46,6 +46,19 @@ public enum GoogleReaderRoutes {
         })
         protected.get("user-info", use: auth.withAuth { _, userID, _ in
             try await handlers.userInfo(userID: userID)
+        })
+
+        // The three subscription endpoints, registered as the exact paths the reference's mux has
+        // them. The first is the GET that applies the output check; the other two read the merged
+        // form.
+        protected.get("subscription", "list", use: auth.withAuth { request, userID, _ in
+            try await handlers.list(query: request.url.query ?? "", userID: userID, baseURL: baseURL)
+        })
+        protected.post("subscription", "edit", use: auth.withAuth { request, userID, _ in
+            try await handlers.edit(form: try auth.form(for: request), userID: userID)
+        })
+        protected.post("subscription", "quickadd", use: auth.withAuth { request, userID, _ in
+            try await handlers.quickAdd(form: try auth.form(for: request), userID: userID)
         })
         protected.get("stream", "items", "ids", use: auth.withAuth { request, userID, _ in
             try await handlers.streamItemIDs(query: request.url.query ?? "", userID: userID)
