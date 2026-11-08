@@ -11,3 +11,6 @@ corpus/sub_second_date.xml | sub_second_cut | the rounding direction, which a va
 request/method_mismatch | method_mismatch | the wording of the answer
 request/no_trailing_slash | trailing_slash | the reference's redirect body, written before its auth middleware
 request/repeated_header | repeated_header_value | a hop that is not the last one, which fetch does not return
+request/subscription_list | none | the values the six fields carry, which no rule compares
+request/subscription_edit | none | the plain-text answer the handler writes, which no rule compares
+request/subscription_quickadd | minimal_scan,relation_test | the key set the answer carries when the discovery answers differently, which the rule that reads key sets reads without consulting the table

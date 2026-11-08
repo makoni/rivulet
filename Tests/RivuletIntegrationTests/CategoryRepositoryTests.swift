@@ -12,14 +12,19 @@ import Testing
 /// lowercases both sides and excludes the row it is checking, the rename writes what the request
 /// carries, and the named delete keeps at least one category — its guard runs before any write —
 /// moves the feeds of the deleted rows to the first remaining title, per user on both the read that
-/// counts and the statement that deletes.
+/// counts and the statement that deletes. The read the subscription handler builds is pinned too,
+/// which the pin below names (1 pin, 3 probes): it answers the smallest title of the account rather
+/// than the row that came first, it applies the account it is given, and an account with no rows
+/// answers nothing rather than a failure.
 ///
 /// What this suite cannot show is named here: the row order the delete's read answers its rows in,
 /// which the statement does not order, so a patch that took any remaining row in that order
 /// answered the same as the pick; the transaction boundary, which is the caller's, because no pin
-/// can make a statement fail in the middle of one; and the order of the reassignment and the
+/// can make a statement fail in the middle of one; the order of the reassignment and the
 /// delete, which is the same for every input that reaches them — the guard is pinned as running
-/// before both.
+/// before both; the single-row limit of the title read, because the pin that names the order is
+/// answered the same by a read that read every match and took the first; and the `hide_globally`
+/// column the reference reads on the same row, which this port's schema does not have.
 @Suite struct CategoryRepositoryTests {
     @Test func createStoresTheFieldsAndDefaultsPositionToZero() async throws {
         try await withMigratedStorage { _, storage in
@@ -119,6 +124,50 @@ import Testing
 
                 #expect(try await categories.listByTitle(userID: userID).map(\.title)
                     == ["All", "News", "Tech"])
+            }
+        }
+    }
+
+    @Test func firstAnswersTheSmallestTitleOfTheAccountNotTheRowThatCameFirst() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let users = UserRepository(connection)
+                let categories = CategoryRepository(connection)
+                let alice = try await users.create(username: "alice", passwordHash: "a", isAdmin: false)
+                let aliceID = try #require(alice.id)
+
+                // The row the account creates is `All`, so `AI` is the second row and the first
+                // under the title order: a patch that read the row that came first answered `All`
+                // here.
+                let lower = try await categories.create(userID: aliceID, title: "AI")
+                let lowerID = try #require(lower.id)
+                #expect(try await categories.first(userID: aliceID)?.id == lowerID,
+                    "the read ordered by title")
+                // The account condition, read on an account with a smaller title: a patch that
+                // dropped the filter answered bob's row for alice.
+                let bob = try await users.create(username: "bob", passwordHash: "b", isAdmin: false)
+                let bobID = try #require(bob.id)
+                let bobRow = try await categories.create(userID: bobID, title: "A")
+                let bobRowID = try #require(bobRow.id)
+                #expect(try await categories.first(userID: aliceID)?.id == lowerID,
+                    "the row of another account is not this account's row")
+                #expect(try await categories.first(userID: bobID)?.id == bobRowID,
+                    "and the read answers for the account it is given")
+                // The answer for an account with no rows, which the reference reports as nothing
+                // with no error: the account is built through SQL so the repository has no row for
+                // it.
+                guard let sql = connection as? any SQLDatabase else {
+                    throw StorageError.notSQLDatabase
+                }
+                try await sql.raw("""
+                    INSERT INTO users (username, password_hash, is_admin, created_at, updated_at)
+                    VALUES ('carol', 'h', 0, 1, 1)
+                    """).run()
+                let row = try await sql.raw("""
+                    SELECT id FROM users WHERE username = \(bind: "carol")
+                    """).first()
+                let carolID = try #require(row).decode(column: "id", as: Int.self)
+                #expect(try await categories.first(userID: carolID) == nil, "the account with no rows")
             }
         }
     }

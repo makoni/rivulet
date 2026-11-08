@@ -10,7 +10,10 @@
     "corpus/zone_pst.xml": 1,
     "request/method_mismatch": 0,
     "request/no_trailing_slash": 0,
-    "request/repeated_header": 0
+    "request/repeated_header": 0,
+    "request/subscription_edit": 0,
+    "request/subscription_list": 0,
+    "request/subscription_quickadd": 0
    },
    "starred": 0,
    "unread": 6
@@ -142,7 +145,10 @@
    "corpus/zone_pst.xml": "sha256-corpus/zone_pst.xml",
    "request/method_mismatch": "sha256-request/method_mismatch",
    "request/no_trailing_slash": "sha256-request/no_trailing_slash",
-   "request/repeated_header": "sha256-request/repeated_header"
+   "request/repeated_header": "sha256-request/repeated_header",
+   "request/subscription_edit": "sha256-request/subscription_edit",
+   "request/subscription_list": "sha256-request/subscription_list",
+   "request/subscription_quickadd": "sha256-request/subscription_quickadd"
   },
   "requests": [
    {
@@ -352,6 +358,81 @@
     "method": "GET",
     "path": "/reader/api/0",
     "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "subscriptions": []
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_list",
+    "method": "GET",
+    "path": "/reader/api/0/subscription/list",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "ac=edit",
+     "output=json",
+     "s=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "body": "OK"
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_edit",
+    "method": "POST",
+    "path": "/reader/api/0/subscription/edit",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "quickadd=http://127.0.0.1:9010/tag_order.xml"
+    ],
+    "document": {
+     "numResults": 0
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_quickadd",
+    "method": "POST",
+    "path": "/reader/api/0/subscription/quickadd",
+    "status": 200
    }
   ],
   "run": {
@@ -381,7 +462,10 @@
     "corpus/zone_pst.xml": 1,
     "request/method_mismatch": 0,
     "request/no_trailing_slash": 0,
-    "request/repeated_header": 0
+    "request/repeated_header": 0,
+    "request/subscription_edit": 0,
+    "request/subscription_list": 0,
+    "request/subscription_quickadd": 0
    },
    "starred": 0,
    "unread": 5
@@ -498,7 +582,10 @@
    "corpus/zone_pst.xml": "sha256-corpus/zone_pst.xml",
    "request/method_mismatch": "sha256-request/method_mismatch",
    "request/no_trailing_slash": "sha256-request/no_trailing_slash",
-   "request/repeated_header": "sha256-request/repeated_header"
+   "request/repeated_header": "sha256-request/repeated_header",
+   "request/subscription_edit": "sha256-request/subscription_edit",
+   "request/subscription_list": "sha256-request/subscription_list",
+   "request/subscription_quickadd": "sha256-request/subscription_quickadd"
   },
   "requests": [
    {
@@ -697,6 +784,81 @@
     "method": "GET",
     "path": "/reader/api/0",
     "status": 307
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "subscriptions": []
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_list",
+    "method": "GET",
+    "path": "/reader/api/0/subscription/list",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "ac=edit",
+     "output=json",
+     "s=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "body": "OK"
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_edit",
+    "method": "POST",
+    "path": "/reader/api/0/subscription/edit",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "quickadd=http://127.0.0.1:9010/tag_order.xml"
+    ],
+    "document": {
+     "numResults": 0
+    },
+    "headers": {
+     "Referrer-Policy": [
+      "no-referrer"
+     ],
+     "X-Content-Type-Options": [
+      "nosniff"
+     ],
+     "X-Frame-Options": [
+      "DENY"
+     ]
+    },
+    "key": "request/subscription_quickadd",
+    "method": "POST",
+    "path": "/reader/api/0/subscription/quickadd",
+    "status": 200
    }
   ],
   "run": {

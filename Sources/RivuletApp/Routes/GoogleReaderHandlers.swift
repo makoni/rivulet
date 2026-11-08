@@ -13,8 +13,13 @@ struct GoogleReaderHandlers: Sendable {
     /// Module-internal because the write-handlers file of this path uses the same storage seam.
     let storage: SQLiteStorage
 
-    init(storage: SQLiteStorage) {
+    /// The discovery the quickadd handler calls, which is the fetcher the application was built
+    /// with.
+    let finder: SubscriptionFinder
+
+    init(storage: SQLiteStorage, finder: SubscriptionFinder) {
         self.storage = storage
+        self.finder = finder
     }
 
     /// `editTagHandler`. The handler reads `a` and `r` from `PostForm`, but the item ids from the
@@ -158,6 +163,11 @@ struct GoogleReaderHandlers: Sendable {
 
     /// The four rules below are shared by the handler files of this path, so they are
     /// module-internal rather than private.
+    /// `fmt.Errorf("googlereader: invalid data in %s", name)`: what the handlers answer when the
+    /// stream read reports, which names the parameter rather than the error the read gave.
+    static func invalidData(named name: String) -> String {
+        "googlereader: invalid data in \(name)"
+    }
 
     static func streams(_ values: [String], userID: Int) throws -> [GoogleReaderStream] {
         try values.map { try GoogleReaderStream.parse(streamID: $0, userID: userID) }

@@ -63,13 +63,12 @@ extension RivuletCLI {
                 // `ServeWiringTests` pins — the jobs a tick had started run before the shutdown, as
                 // the reference holds it through `pool.Shutdown` in the stop branch.
                 let clock = SystemClock()
-                let fetcher = Fetcher(options: config.fetcher)
-                let pipeline = RefreshPipeline(storage: rivulet.storage, fetcher: fetcher,
+                let pipeline = RefreshPipeline(storage: rivulet.storage, fetcher: rivulet.fetcher,
                     options: config.fetcher, nextCheck: NextCheckPolicy(), clock: clock)
                 let signalSource = ServerSignalSource(rivulet.application)
                 let wiring = ServeWiring(config: config, storage: rivulet.storage,
                     cadence: SystemCadence(signalSource: signalSource),
-                    runner: pipeline, hook: ApplicationShutdownHook(rivulet: rivulet, fetcher: fetcher))
+                    runner: pipeline, hook: ApplicationShutdownHook(rivulet: rivulet))
 
                 try await serveCommand.run(using: &serverContext)
                 try await wiring.run()

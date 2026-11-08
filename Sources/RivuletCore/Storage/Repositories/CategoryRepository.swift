@@ -60,6 +60,17 @@ public struct CategoryRepository {
             .first()
     }
 
+    /// `FirstCategory`: the row this account has with the smallest title, which is not the row that
+    /// came first. `CategoryRepositoryTests` pins the order, the account filter and the answer for
+    /// a row that is not there. The reference reads `hide_globally` on the same row, which this
+    /// port's schema does not have.
+    public func first(userID: Int) async throws -> Category? {
+        try await Category.query(on: database)
+            .filter(\Category.$userID == userID)
+            .sort(\Category.$title)
+            .first()
+    }
+
     /// `CategoryIDExists`: the answer is read for the pair `(user_id, id)`, so a row of another
     /// user with the same id is not this user's category, which is what `FeedManagementReadsTests`
     /// pins. The single row is what the reference reads; a pin cannot tell a single-row read from

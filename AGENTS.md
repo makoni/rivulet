@@ -55,7 +55,7 @@ behind, so each of its 18 rules is a function over data rather than an assertion
 process. The halves are separated the way the soak's are — `Scripts/parity.sh` is the run half,
 `Tools/parity/parity_check.py` is the check half, `Tools/parity/collect.py` writes the pair document
 — and the tolerance table is read as data from `docs/parity.md` rather than restated in the
-comparator: 12 rows, 11 marked `accepted` and one `fixed`, and a difference whose class no row names
+comparator: 15 rows, 14 marked `accepted` and one `fixed`, and a difference whose class no row names
 is a finding. The corpus manifest names, for each input, the classes it can reach, which is what
 lets a difference be attributed to a class rather than accepted by the comparator's own preference,
 and requests are paired by key rather than by position, so a run that answered the same requests in
@@ -321,8 +321,37 @@ What that header names as unpinnable: the page size, because this port's read fo
 no `LIMIT` clause at all, as the reference's `fetchEntries` has none; the media proxy, which this
 port does not have and which `docs/parity.md` records; the inner join on categories, which this
 port's schema cannot leave unfulfilled; and the order of the two statements that build the
-attachments. What follows: the Fever parameter set, `quickadd` discovery, the icon route, OPML and
-the acceptance journey.
+attachments. The subscription slice, opens as PR #59, pins the three endpoints over the same socket:
+the listing answers the order the sort read builds rather than the id order, the six fields of the
+subscription document carry the values this handler writes with the label being the category title
+and not the feed title, the `omitempty` half of the category document is read on a category whose
+title is empty, and the icon link is written only for an icon row with a non-empty external id,
+built from the configured base; `edit` reads `s` as the whole merged list while `a` is the single
+value the same read answers, runs the stream count guard before the tag read, opens the write branch
+on the presence test rather than on the value, runs the rename before the type check, and maps the
+integer read failure to 500 where the same read answers 400 for `mark-all-as-read`; `quickadd` reads
+its name from the merged form, runs the absolute rule before the fetch, answers the zero document
+when the scan finds nothing, and takes the first value the scan answered. 7 pins and 13 probes pin
+the scan as pure logic, 5 pins and 5 probes pin the two steps this port has over a stub server, 2
+pins and 4 probes pin the three routes, 4 pins and 6 probes the listing, 4 pins and 4 probes the
+quickadd, 9 pins and 19 probes the edit handler, and the two storage reads this path calls are
+pinned as reads with 1 pin and 3 probes for the title order and 1 pin and 2 probes for the write.
+What those headers name as unpinnable: the discovery steps this port does not have, which the
+`minimal_scan` row records; the title and format the reference's subscription value carries, which
+nothing here uses; the reference parsing the discovered feed inside the request, so its `streamName`
+is the parsed title while this port writes the row with the create defaults; the empty-title guard
+`rename` declares, which no input reaches; `move`'s category answer, which the type check runs
+before the read that could answer it; the title guard's own branch, whose value is the same as the
+create default; the order between the absolute rule and the duplicate read, pinned as pure logic by
+`FeedValidationTests`; the reference's localized strings for the rules the port names by name; and
+the wordings of the storage failures this suite cannot trigger. `invalidData(named:)` moved to
+`GoogleReaderHandlers`, which both handler files of this path use, that file now takes the finder
+`RivuletApplication` owns and closes in `shutdown()`, and `withServedApp` gained an optional
+environment so a quickadd pin can name the target rule for the stub server it answers on. The three
+shapes the run sends for these endpoints are named by the manifest with no class beside them,
+because the difference they can show is the key set the answer carries, which the rule that reads
+key sets reads without consulting the table. What follows: the Fever parameter set, `quickadd`
+discovery, the icon route, OPML and the acceptance journey.
 
 Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
 due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly

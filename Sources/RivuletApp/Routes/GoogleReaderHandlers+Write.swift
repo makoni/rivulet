@@ -142,12 +142,6 @@ extension GoogleReaderHandlers {
 
     // MARK: - Handler rules
 
-    /// `fmt.Errorf("googlereader: invalid data in %s", name)`: what this handler answers when the
-    /// stream read reports, which names the parameter rather than the error the read gave.
-    private static func invalidData(named name: String) -> String {
-        "googlereader: invalid data in \(name)"
-    }
-
     /// The two wordings that name different things: this handler's guard and `disableTagHandler`'s.
     private static let renameLabelsMessage = "googlereader: only labels supported"
     private static let disableLabelsMessage = "googlereader: only labels are supported"

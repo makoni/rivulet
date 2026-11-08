@@ -1144,6 +1144,46 @@ writes, and the two ways the stream branches read the same exclude name — is p
 | The part below a second | `before` is a `time.Time`, so a microsecond value keeps its sub-second part and an entry published at that part is marked | the entry column holds whole seconds, so the answer is the whole part of the value | `GoogleReaderTimestampTests` pins the port's side — cut to whole seconds rather than rounded — and the reference's side has nothing to pin here |
 | The media proxy | `RewriteDocumentWithAbsoluteProxyURL` rewrites the document's media links and `ProxifyEnclosureURL` rewrites the attachment urls, by the configured mode and resource types, with the hmac of the private key as the path segment | no proxy, so the stored content and the attachment urls are written as they are | With the reference's default mode `http-only` an https value is unchanged anyway, so the pins read the stored values; an http resource, the `all` mode and a custom proxy url are where the two answers differ |
 
+## Google Reader subscription path (stage 5)
+
+The three routes the reference registers for subscriptions — `GET subscription/list`,
+`POST subscription/edit` and `POST subscription/quickadd` — are pinned over a real socket, one
+handler per endpoint, by `GoogleReaderSubscriptionRoutesTests`, `GoogleReaderSubscriptionListTests`,
+`GoogleReaderSubscriptionEditTests` and `GoogleReaderSubscriptionQuickAddTests`; the discovery the
+plan names for `quickadd` is pinned as pure logic by `SubscriptionDocumentLinksTests` and its two
+steps by `SubscriptionFinderTests`.
+
+**Matching the reference.**
+
+- The output check is applied by `subscription/list` alone: `edit` and `quickadd` never read
+  `output`, so each of the three routes is pinned on an input where its own guard answers.
+- `s` is the whole merged list, while `a` is the single value the same read answers, and the branch
+  that writes the tag is opened by `Form.Has` — the only guard on this path that reads the presence
+  of a name rather than its value, so a name carried with an empty value runs the branch.
+- The order the guards run in is the reference's: the count of the stream list before the `a` read,
+  the title test before the type check, and the type check before the move.
+- The status each answer is written under is the reference's: the guards and the two not-found rules
+  are 400, `strconv.ParseInt` is 500 here where the same read answers 400 for `mark-all-as-read`,
+  and every failure of the `subscribe` branch is 500, including the rule the validation reports. The
+  `unsubscribe` branch writes `OK` without reading the row, so a stream naming a row that is not
+  there answers the write rather than the 404 the rename branch answers.
+- The category the form does not name is `FirstCategory`, which is `ORDER BY title ASC LIMIT 1`. The
+  reference reads the title twice for `getOrCreateCategory` — `CategoryTitleExists` and then
+  `CategoryByTitle` — which is the same answer as the single read here, so that pair cannot be
+  pinned apart.
+- The scan reads every `link` that carries a `type` attribute and dispatches on the value as the
+  attribute holds it, with no fold; the WordPress skip belongs to the `application/json` branch
+  alone; the set is keyed by the resolved value; and the answers come in the order the tokens
+  arrive.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| Minimal discovery scan | `FindSubscriptions` has seven steps — the format check, the canonical URL, the YouTube, GitHub and RSS-Bridge handlers, the HTML scan, the well-known paths — and the scan resolves against the canonical URL, which after that step may be another URL | the format check and the HTML scan only, resolving against the URL the call was given, because the canonical step is not ported | A page the reference reaches through a step this port does not have answers `numResults: 0` here; the plan names this as the minimal discovery, and the pins read the two steps this port has |
+| The relation test | dispatches on the `type` attribute alone, so a `link` with a type and no `rel` is a subscription | requires `rel` to be the whole value `alternate`, folded, which is the rule the plan names | A link with a type and no relation, or a relation with more than one token, is a subscription upstream and is skipped here |
+| The title inside the request | `subscribe` fetches and parses the url, so the stored title and site url are the parsed values, and `quickadd` writes `streamName` with the parsed title | writes the row with the create defaults, so the title and the site url are written by the next refresh pass | The answer carries a different title and the stored row carries a different title; the scan's own value also carries a title and a format that nothing in this port reads |
+
 ## CLI feed commands (stage 6)
 
 The reference's CLI dispatches by flags on the executable (`-create-admin`, `-refresh-feeds`,
@@ -1230,31 +1270,35 @@ reads, so all four stay whole on their own line.
 | bracketed_host | URL layer — Bracketed host | accepted | not reachable here |
 | media_proxy | Google Reader content endpoint — The media proxy | accepted | not reachable here |
 | error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
+| minimal_scan | Google Reader subscription path — Minimal discovery scan | accepted | request/subscription_quickadd |
+| relation_test | Google Reader subscription path — The relation test | accepted | request/subscription_quickadd |
+| parsed_title | Google Reader subscription path — The title inside the request | accepted | not reachable here |
 
-The four rows marked `not reachable here` name classes no corpus input can reach: the counts are
-read inside the sanitizer and never written out, the bracketed host answers a fetch decision rather
-than a stored value, the media proxy is run as `none` on the reference side so the stored bytes are
-comparable, and the wording of a rule the port names is not compared at all. They are named here
-rather than asserted, and the run guard that declares the proxy mode is what makes the third half of
-that list hold. `none` is the value the reference's own validator accepts, alongside `http-only` and
-`all`; the harness runs `none`, which is not the reference's default.
+The five rows marked `not reachable here` name classes no coverage-reading rule can see: the
+counts are read inside the sanitizer and never written out, the bracketed host answers a fetch
+decision rather than a stored value, the media proxy is run as `none` on the reference side so
+the stored bytes are comparable, the wording of a rule the port names is not compared at all,
+and the title the parsed feed carries is a value no rule compares. They are named here rather
+than asserted, and the run guard that declares the proxy mode is what makes the third half of
+that list hold. `none` is the value the reference's own validator accepts, alongside `http-only`
+and `all`; the harness runs `none`, which is not the reference's default.
 
-**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from
-`Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides
-and the account name is ASCII, which is the one place where `LOWER` is the same rule on both sides.
-Both sides run with the same flags — the batch size, the two limits, the migrations gated off — and
-the reference runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The
-request sequence is the login plus the three shapes the table names, and the pair document carries,
-per side, the rows it stored, the counts it reports, and the answers it gave. The row ids of the two
-databases are never compared as values: they are the map, and a payload item id is read through it
-as the hex field the reference's item read takes, with its prefix. Order is compared only through
-the collation row, and that row is quoted from the CLI feed commands, which the run half never runs:
-the run reaches the same order through the `tag/list` labels, which are built on the same categories
-read the row names. The clock fields are never compared: only the parse results are, which is what
-the row that reads them says. No rule compares the three names the response builder writes, so the
-pair document carries them only on the answers a handler produced: the reference's two answers
-written before its auth middleware carry only what the mux writes, and the port's 404 answer is
-written by the router rather than by the port's handler.
+The two rows this path adds are exercised by the shape the run sends for the discovery, which
+reaches them as the key set its answer carries when the discovery answers differently. That is
+the half the table cannot cover: the rule that reads key sets reads no coverage, so a scan
+difference is reported as a finding even though a row names its class. The row for the title
+inside the request cannot be reached at all, because the rule that reads the values an answer
+carries reads the entries, not the feed row the title is written on.
+
+**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served
+from `Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for
+both sides and the account name is ASCII, which is the one place where `LOWER` is the same rule
+on both sides. Both sides run with the same flags — the batch size, the two limits, the
+migrations gated off — and the reference runs with `MEDIA_PROXY_MODE=none`, so its content
+values are the stored bytes. The request sequence is the login plus the six shapes the manifest
+names, four of which a table row reads — the three it already named and the shape this path adds
+— while the other two reach no class the table names, so a difference on them is a finding by
+itself.
 
 **What the run hands over.** The flags are handed to the reference one name at a time with its own
 `-e`, because a flag name handed bare is not a flag: the first name after the last option is the

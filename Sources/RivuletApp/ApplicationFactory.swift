@@ -24,8 +24,12 @@ public enum ApplicationFactory {
         HealthRoutes.register(on: application)
 
         let storage = SQLiteStorage(database: application.db(.sqlite), path: config.databasePath)
+        // The fetcher belongs to the application, so the routes that read a document through it and
+        // the refresh path that runs through it are the same one, and the teardown closes it once.
+        let fetcher = Fetcher(options: config.fetcher)
         GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher(),
-            baseURL: config.baseURL)
-        return RivuletApplication(application: application, storage: storage)
+            baseURL: config.baseURL,
+            finder: SubscriptionFinder(fetcher: fetcher, options: config.fetcher))
+        return RivuletApplication(application: application, storage: storage, fetcher: fetcher)
     }
 }

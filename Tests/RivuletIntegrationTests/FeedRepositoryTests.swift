@@ -1,10 +1,27 @@
 import Foundation
 import Fluent
 import FluentSQLiteDriver
+import SQLKit
 import Testing
 @testable import RivuletCore
 
-/// CRUD round-trip and fetch-state bookkeeping for ``FeedRepository``.
+/// CRUD round-trip and fetch-state bookkeeping for ``FeedRepository``, and the write the
+/// subscription handlers use (1 pin, 2 probes): it names only the column the caller names — the
+/// title and not the category, so each half is read on a row whose other column already holds a
+/// value and a patch that wrote the column the caller did not name answered a different row; and
+/// the failure reported for a row the read does not find.
+///
+/// What these pins cannot show is named here: the single-row limit of the reads; the statement the
+/// reference's whole-row write builds, which no answer here can tell from a write that set only the
+/// columns the row already held; the two stamps, which the clock answers within the same second as
+/// the create, so no pin can tell the write's time from the create's or a patch that moved the
+/// create stamp; and the rules the port names rather than the reference.
+///
+/// What these pins cannot show is named here: the single-row limit of the reads; the statement the
+/// reference's whole-row write builds, which no answer here can tell from a write that set only the
+/// columns the row already held; the two stamps, which the clock answers within the same second as
+/// the create, so no pin can tell the write's time from the create's or a patch that moved the
+/// create stamp; and the rules the port names rather than the reference.
 @Suite struct FeedRepositoryTests {
     /// Creates a user with one category and one feed.
     private func seedFeed(_ connection: any Database) async throws -> (User, Category, Feed) {
@@ -240,6 +257,46 @@ import Testing
                 } catch let error as StorageError {
                     #expect(error == .feedNotFound(id: 999))
                 }
+            }
+        }
+    }
+
+    @Test func updateWritesOnlyTheColumnTheCallerNames() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let feeds = FeedRepository(connection)
+                let categories = CategoryRepository(connection)
+                let (user, _, feed) = try await seedFeed(connection)
+                let userID = try #require(user.id)
+                let feedID = try #require(feed.id)
+                let newsRow = try await categories.create(userID: userID, title: "News")
+                let news = try #require(newsRow.id)
+
+                // A title the row already holds, written through SQL, so the value this pin reads
+                // back is not the create default: a patch that wrote the column the caller did not
+                // name answered something else here, which is not what the reference's request
+                // carries.
+                guard let sql = connection as? any SQLDatabase else {
+                    throw StorageError.notSQLDatabase
+                }
+                try await sql.raw("UPDATE feeds SET title = 'Stored title' WHERE id = \(bind: feedID)").run()
+
+                // The move names the category and not the title.
+                let held = try #require(try await feeds.fetch(id: feedID))
+                try await feeds.update(feed: held, title: nil, categoryID: news)
+                let movedRow = try await feeds.fetch(id: feedID)
+                let moved = try #require(movedRow)
+                #expect(moved.title == "Stored title",
+                    "the column the caller did not name is left as the row held it")
+                #expect(moved.categoryID == news, "and the column it named is written")
+                // The rename names the title and not the category, so the write that came first is
+                // still there: a patch that wrote the column for a nil value answered the account's
+                // default category here rather than the row the pin had moved.
+                try await feeds.update(feed: moved, title: "Renamed", categoryID: nil)
+                let renamedRow = try await feeds.fetch(id: feedID)
+                let renamed = try #require(renamedRow)
+                #expect(renamed.title == "Renamed")
+                #expect(renamed.categoryID == news, "the earlier write is still there")
             }
         }
     }

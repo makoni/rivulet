@@ -5,17 +5,22 @@ import Testing
 /// `internal/googlereader/response.go` at `c4d54f87`. The goldens are the reference's own output
 /// for these documents at the toolchain `go.mod` pins.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting: the key order,
-/// which is the order the document declares its fields in — for `streamIDResponse` that is
-/// `itemRefs` before `continuation`, which a patch that wrote them the other way fails; the fields
-/// written without `omitempty`, which a patch that added it fails on the input where the value is
-/// empty, so `id` of `itemRef` and all four fields of the user document are written even when
-/// empty; the fields written with `omitempty`, which a patch that always wrote them fails on the
-/// same input; that an empty list is written as `[]` and not `null`, because the reference builds
-/// the slice with `make` before it writes it, which a patch that wrote `null` for an empty document
-/// fails; and the two halves of the `continuation` rule, which is written as a JSON string by the
-/// document's `,string` option and omitted when it is 0 — a patch that wrote it as a number, or
-/// that wrote the zero, fails.
+/// What these pins can fail on, each checked by patching the rule and reverting (8 pins, 6
+/// probes): the key order, which is the order the document declares its fields in — for
+/// `streamIDResponse` that is `itemRefs` before `continuation`, which a patch that wrote them the
+/// other way fails; the fields written without `omitempty`, which a patch that added it fails on
+/// the input where the value is empty, so `id` of `itemRef` and all four fields of the user
+/// document are written even when empty; the fields written with `omitempty`, which a patch that
+/// always wrote them fails on the same input; that an empty list is written as `[]` and not
+/// `null`, because the reference builds the slice with `make` before it writes it, which a patch
+/// that wrote `null` for an empty document fails; and the two halves of the `continuation` rule,
+/// which is written as a JSON string by the document's `,string` option and omitted when it is 0 —
+/// a patch that wrote it as a number, or that wrote the zero, fails. The three documents the
+/// subscription handlers build add two rules of their own: `numResults` is written as a number
+/// even when it is 0 because it has neither `omitempty` nor the `,string` option, which a patch
+/// that followed the continuation's rule fails on; and the `[]` the subscriptions list answers is
+/// the handler building the slice with `make`, which is the same rule as above read on this
+/// document.
 ///
 /// The content document adds three rules of its own: every one of its fourteen item fields is
 /// written because no field of that document has `omitempty`, the key order is the order the struct
@@ -28,7 +33,9 @@ import Testing
 /// because the item-ids read builds the document with the id alone; that half is pinned as the
 /// writer's rule. For the content document the same applies to the values: the entry url is written
 /// in two places by the handler, and the two parts that hold the entry content are the same value
-/// twice, which is the handler's choice rather than the document's.
+/// twice, which is the handler's choice rather than the document's. The reference's encoder answers
+/// `null` for a nil slice, which this port's JSON layer has no form for, so the pins read the list
+/// the handler builds rather than the empty document the reference's own build path can leave.
 @Suite struct GoogleReaderShapeTests {
     @Test func theItemRefWritesTheIdAndOmitsTheFieldsThatAreEmpty() {
         // `id` has no `omitempty`, so an empty one is still written; the other two are omitted when
@@ -88,6 +95,59 @@ import Testing
             "and the list in the order it is built in")
     }
 
+    @Test func theSubscriptionDocumentWritesEveryFieldInDeclaredOrder() {
+        // None of the six fields has `omitempty`, so the empty values are written as empty strings,
+        // and the goldens are the reference's own output for these values at the toolchain `go.mod`
+        // pins.
+        let category = GoogleReaderShape.categoryResponse(id: "user/1/label/All", label: "All",
+            type: "folder")
+        #expect(GoogleReaderShape.subscriptionResponse(id: "feed/7", title: "Title",
+            categories: [category], url: "https://example.org/feed.xml",
+            htmlURL: "https://example.org", iconURL: "").written() ==
+            "{\"id\":\"feed/7\",\"title\":\"Title\",\"categories\":[{\"id\":\"user/1/label/All\",\"label\":\"All\",\"type\":\"folder\"}],\"url\":\"https://example.org/feed.xml\",\"htmlUrl\":\"https://example.org\",\"iconUrl\":\"\"}",
+            "the six fields in the order the document declares them")
+
+        // The same document with the category's two `omitempty` fields empty: the reference writes
+        // them when the subscription document has a value for them, and this input is where the two
+        // rules of the category document meet — the list is built with `make` by the handler, so it
+        // is `[]`.
+        #expect(GoogleReaderShape.subscriptionResponse(id: "feed", title: "",
+            categories: [GoogleReaderShape.categoryResponse(id: "user/1/label/")], url: "",
+            htmlURL: "", iconURL: "").written() ==
+            "{\"id\":\"feed\",\"title\":\"\",\"categories\":[{\"id\":\"user/1/label/\"}],\"url\":\"\",\"htmlUrl\":\"\",\"iconUrl\":\"\"}",
+            "the empty values are written, and the category writes only its id")
+    }
+
+    @Test func theSubscriptionsDocumentWritesAnEmptyListFromTheHandlersBuild() {
+        // The reference writes `null` for a nil slice, which this port's JSON layer has no form
+        // for, so `[]` is what the handler builds with `make` before it writes the document; that
+        // is the same rule the header names, read here on the subscriptions list.
+        #expect(GoogleReaderShape.subscriptionsResponse(subscriptions: []).written() ==
+            "{\"subscriptions\":[]}", "the empty list")
+        #expect(GoogleReaderShape.subscriptionsResponse(subscriptions: [GoogleReaderShape.subscriptionResponse(
+            id: "feed/7", title: "T", categories: [GoogleReaderShape.categoryResponse(
+                id: "user/1/label/All", label: "All", type: "folder")], url: "u", htmlURL: "",
+            iconURL: "")]).written() ==
+            "{\"subscriptions\":[{\"id\":\"feed/7\",\"title\":\"T\",\"categories\":[{\"id\":\"user/1/label/All\",\"label\":\"All\",\"type\":\"folder\"}],\"url\":\"u\",\"htmlUrl\":\"\",\"iconUrl\":\"\"}]}",
+            "and the list in the order it is built in")
+    }
+
+    @Test func theQuickAddDocumentWritesNumResultsAsANumberEvenWhenZero() {
+        // `numResults` has neither `omitempty` nor the `,string` option, so the zero is written as
+        // a number — a patch that followed the continuation's rule here answered `"0"` as a string,
+        // and a patch that added `omitempty` answered `{}`. The goldens are the reference's own
+        // output.
+        #expect(GoogleReaderShape.quickAddResponse(numResults: 0).written() == "{\"numResults\":0}",
+            "the field without omitempty, as a number")
+        #expect(GoogleReaderShape.quickAddResponse(numResults: 1, query: "https://example.org/feed.xml",
+            streamID: "feed/7", streamName: "T").written() ==
+            "{\"numResults\":1,\"query\":\"https://example.org/feed.xml\",\"streamId\":\"feed/7\",\"streamName\":\"T\"}",
+            "the four fields in the order the document declares them")
+        #expect(GoogleReaderShape.quickAddResponse(numResults: 1, streamID: "feed/7").written() ==
+            "{\"numResults\":1,\"streamId\":\"feed/7\"}",
+            "the two halves of the rule that omit an empty value")
+    }
+
     @Test func theContentDocumentWritesEveryFieldInDeclaredOrder() {
         // No field of the item document has `omitempty`, so the golden is written from the document
         // rule alone; the key order is the order `response.go` declares the fields in.
@@ -117,7 +177,8 @@ import Testing
         // A patch that added `omitempty` to any field would answer a document without it, so the
         // same document built from empty values is what the rule reads.
         let emptyItem = GoogleReaderShape.contentItem(
-            id: "tag:google.com,2005:reader/item/0000000000000007", categories: ["user/7/state/com.google/reading-list"], title: "T",
+            id: "tag:google.com,2005:reader/item/0000000000000007",
+            categories: ["user/7/state/com.google/reading-list"], title: "T",
             crawlTimeMsec: "1000", timestampUsec: "2000000", published: 2, updated: 3, author: "",
             alternate: [GoogleReaderShape.contentHrefType(href: "u", type: "text/html")],
             summary: GoogleReaderShape.contentText(direction: "ltr", content: ""),
