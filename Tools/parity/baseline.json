@@ -1,0 +1,777 @@
+{
+ "port": {
+  "counts": {
+   "entries": 6,
+   "per_file": {
+    "corpus/name_class.xml": 1,
+    "corpus/sub_second_date.xml": 1,
+    "corpus/table_content.xml": 1,
+    "corpus/tag_order.xml": 2,
+    "corpus/zone_pst.xml": 1,
+    "request/method_mismatch": 0,
+    "request/no_trailing_slash": 0,
+    "request/repeated_header": 0
+   },
+   "starred": 0,
+   "unread": 6
+  },
+  "entries": [
+   {
+    "clock": {
+     "crawlTimeMsec": "161000",
+     "timestampUsec": "161000000",
+     "updated": 161000
+    },
+    "content": "the byte order puts this first",
+    "file": "corpus/tag_order.xml",
+    "hash": "h1",
+    "published": 1719792000,
+    "row": 61,
+    "starred": false,
+    "status": "unread",
+    "title": "Zebra"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "162000",
+     "timestampUsec": "162000000",
+     "updated": 162000
+    },
+    "content": "the collation puts this first",
+    "file": "corpus/tag_order.xml",
+    "hash": "h2",
+    "published": 1719792000,
+    "row": 62,
+    "starred": false,
+    "status": "unread",
+    "title": "apple"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "163000",
+     "timestampUsec": "163000000",
+     "updated": 163000
+    },
+    "content": "<table>y<tbody><tr><td>z</td></tr></tbody></table>",
+    "file": "corpus/table_content.xml",
+    "hash": "h3",
+    "published": 1719792000,
+    "row": 63,
+    "starred": false,
+    "status": "unread",
+    "title": "Foster parenting"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "164000",
+     "timestampUsec": "164000000",
+     "updated": 164000
+    },
+    "content": "the instant the two zones part on",
+    "file": "corpus/zone_pst.xml",
+    "hash": "h4",
+    "published": 1719820800,
+    "row": 64,
+    "starred": false,
+    "status": "unread",
+    "title": "Zone abbreviation"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "165000",
+     "timestampUsec": "165000000",
+     "updated": 165000
+    },
+    "content": "the value one side keeps",
+    "file": "corpus/sub_second_date.xml",
+    "hash": "h5",
+    "published": "1719792000",
+    "row": 65,
+    "starred": false,
+    "status": "unread",
+    "title": "Sub second"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "166000",
+     "timestampUsec": "166000000",
+     "updated": 166000
+    },
+    "content": "the item this port reads alone",
+    "file": "corpus/name_class.xml",
+    "hash": "h6",
+    "published": 1719792000,
+    "row": 66,
+    "starred": false,
+    "status": "unread",
+    "title": "Name class"
+   }
+  ],
+  "feeds": [
+   {
+    "file": "corpus/tag_order.xml",
+    "row": 41,
+    "title": "tag_order.xml"
+   },
+   {
+    "file": "corpus/table_content.xml",
+    "row": 42,
+    "title": "table_content.xml"
+   },
+   {
+    "file": "corpus/name_class.xml",
+    "row": 43,
+    "title": "name_class.xml"
+   },
+   {
+    "file": "corpus/zone_pst.xml",
+    "row": 44,
+    "title": "zone_pst.xml"
+   },
+   {
+    "file": "corpus/sub_second_date.xml",
+    "row": 45,
+    "title": "sub_second_date.xml"
+   }
+  ],
+  "inputs": {
+   "corpus/name_class.xml": "sha256-corpus/name_class.xml",
+   "corpus/sub_second_date.xml": "sha256-corpus/sub_second_date.xml",
+   "corpus/table_content.xml": "sha256-corpus/table_content.xml",
+   "corpus/tag_order.xml": "sha256-corpus/tag_order.xml",
+   "corpus/zone_pst.xml": "sha256-corpus/zone_pst.xml",
+   "request/method_mismatch": "sha256-request/method_mismatch",
+   "request/no_trailing_slash": "sha256-request/no_trailing_slash",
+   "request/repeated_header": "sha256-request/repeated_header"
+  },
+  "requests": [
+   {
+    "acted_on": {
+     "X-Trace": "one"
+    },
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "Auth": "sid",
+     "LSID": "sid",
+     "SID": "sid"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ],
+     [
+      "X-Trace",
+      "one"
+     ],
+     [
+      "X-Trace",
+      "two"
+     ]
+    ],
+    "key": "request/repeated_header",
+    "method": "POST",
+    "path": "/reader/api/0/login",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "tags": [
+      {
+       "id": "user/1/state/com.google/label/Zebra",
+       "label": "Zebra"
+      },
+      {
+       "id": "user/1/state/com.google/label/apple",
+       "label": "apple"
+      }
+     ]
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "corpus/tag_order.xml",
+    "method": "GET",
+    "path": "/reader/api/0/tag/list",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "stream=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "itemRefs": []
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/stream_items_ids",
+    "method": "GET",
+    "path": "/reader/api/0/stream/items/ids",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "stream=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "items": [
+      {
+       "enclosure": [],
+       "id": "000000000000003d",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/41",
+        "title": "Zebra"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000003e",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/41",
+        "title": "apple"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000003f",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/42",
+        "title": "Foster parenting"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "0000000000000040",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/44",
+        "title": "Zone abbreviation"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "0000000000000041",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/45",
+        "title": "Sub second"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "0000000000000042",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/43",
+        "title": "Name class"
+       }
+      }
+     ],
+     "self": [
+      {
+       "href": "http://127.0.0.1:9001/reader/api/0/stream/items/contents"
+      }
+     ],
+     "updated": 1719792300
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/stream_items_contents",
+    "method": "POST",
+    "path": "/reader/api/0/stream/items/contents",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [],
+    "document": {
+     "error": "Method Not Allowed"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/method_mismatch",
+    "method": "GET",
+    "path": "/reader/api/0/edit-tag",
+    "status": 404
+   },
+   {
+    "acted_on": {},
+    "asked": [],
+    "document": {
+     "body": "html"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/no_trailing_slash",
+    "method": "GET",
+    "path": "/reader/api/0",
+    "status": 200
+   }
+  ],
+  "run": {
+   "base_url": "http://127.0.0.1:9001",
+   "flags": {
+    "BATCH_SIZE": "100",
+    "FETCHER_ALLOW_PRIVATE_NETWORKS": "true",
+    "POLLING_LIMIT_PER_HOST": "0",
+    "POLLING_PARSING_ERROR_LIMIT": "0",
+    "RUN_MIGRATIONS": "false"
+   },
+   "media_proxy_mode": "off",
+   "network": "loopback",
+   "reference": "v2.3.3 at c4d54f87",
+   "user": "parity"
+  },
+  "side": "port"
+ },
+ "reference": {
+  "counts": {
+   "entries": 5,
+   "per_file": {
+    "corpus/name_class.xml": 0,
+    "corpus/sub_second_date.xml": 1,
+    "corpus/table_content.xml": 1,
+    "corpus/tag_order.xml": 2,
+    "corpus/zone_pst.xml": 1,
+    "request/method_mismatch": 0,
+    "request/no_trailing_slash": 0,
+    "request/repeated_header": 0
+   },
+   "starred": 0,
+   "unread": 5
+  },
+  "entries": [
+   {
+    "clock": {
+     "crawlTimeMsec": "101000",
+     "timestampUsec": "101000000",
+     "updated": 101000
+    },
+    "content": "the byte order puts this first",
+    "file": "corpus/tag_order.xml",
+    "hash": "h1",
+    "published": 1719792000,
+    "row": 11,
+    "starred": false,
+    "status": "unread",
+    "title": "Zebra"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "102000",
+     "timestampUsec": "102000000",
+     "updated": 102000
+    },
+    "content": "the collation puts this first",
+    "file": "corpus/tag_order.xml",
+    "hash": "h2",
+    "published": 1719792000,
+    "row": 12,
+    "starred": false,
+    "status": "unread",
+    "title": "apple"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "103000",
+     "timestampUsec": "103000000",
+     "updated": 103000
+    },
+    "content": "<p>y</p><table><tbody><tr><td>z</td></tr></tbody></table>",
+    "file": "corpus/table_content.xml",
+    "hash": "h3",
+    "published": 1719792000,
+    "row": 13,
+    "starred": false,
+    "status": "unread",
+    "title": "Foster parenting"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "104000",
+     "timestampUsec": "104000000",
+     "updated": 104000
+    },
+    "content": "the instant the two zones part on",
+    "file": "corpus/zone_pst.xml",
+    "hash": "h4",
+    "published": 1719817200,
+    "row": 14,
+    "starred": false,
+    "status": "unread",
+    "title": "Zone abbreviation"
+   },
+   {
+    "clock": {
+     "crawlTimeMsec": "105000",
+     "timestampUsec": "105000000",
+     "updated": 105000
+    },
+    "content": "the value one side keeps",
+    "file": "corpus/sub_second_date.xml",
+    "hash": "h5",
+    "published": "1719792000.000001",
+    "row": 15,
+    "starred": false,
+    "status": "unread",
+    "title": "Sub second"
+   }
+  ],
+  "feeds": [
+   {
+    "file": "corpus/tag_order.xml",
+    "row": 31,
+    "title": "tag_order.xml"
+   },
+   {
+    "file": "corpus/table_content.xml",
+    "row": 32,
+    "title": "table_content.xml"
+   },
+   {
+    "file": "corpus/name_class.xml",
+    "row": 33,
+    "title": "name_class.xml"
+   },
+   {
+    "file": "corpus/zone_pst.xml",
+    "row": 34,
+    "title": "zone_pst.xml"
+   },
+   {
+    "file": "corpus/sub_second_date.xml",
+    "row": 35,
+    "title": "sub_second_date.xml"
+   }
+  ],
+  "inputs": {
+   "corpus/name_class.xml": "sha256-corpus/name_class.xml",
+   "corpus/sub_second_date.xml": "sha256-corpus/sub_second_date.xml",
+   "corpus/table_content.xml": "sha256-corpus/table_content.xml",
+   "corpus/tag_order.xml": "sha256-corpus/tag_order.xml",
+   "corpus/zone_pst.xml": "sha256-corpus/zone_pst.xml",
+   "request/method_mismatch": "sha256-request/method_mismatch",
+   "request/no_trailing_slash": "sha256-request/no_trailing_slash",
+   "request/repeated_header": "sha256-request/repeated_header"
+  },
+  "requests": [
+   {
+    "acted_on": {
+     "X-Trace": "one"
+    },
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "Auth": "sid",
+     "LSID": "sid",
+     "SID": "sid"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ],
+     [
+      "X-Trace",
+      "one"
+     ],
+     [
+      "X-Trace",
+      "two"
+     ]
+    ],
+    "key": "request/repeated_header",
+    "method": "POST",
+    "path": "/reader/api/0/login",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json"
+    ],
+    "document": {
+     "tags": [
+      {
+       "id": "user/1/state/com.google/label/apple",
+       "label": "apple"
+      },
+      {
+       "id": "user/1/state/com.google/label/Zebra",
+       "label": "Zebra"
+      }
+     ]
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "corpus/tag_order.xml",
+    "method": "GET",
+    "path": "/reader/api/0/tag/list",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "stream=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "itemRefs": []
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/stream_items_ids",
+    "method": "GET",
+    "path": "/reader/api/0/stream/items/ids",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [
+     "output=json",
+     "stream=user/-/state/com.google/reading-list"
+    ],
+    "document": {
+     "items": [
+      {
+       "enclosure": [],
+       "id": "000000000000000b",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/31",
+        "title": "Zebra"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000000c",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/31",
+        "title": "apple"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000000d",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/32",
+        "title": "Foster parenting"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000000e",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/34",
+        "title": "Zone abbreviation"
+       }
+      },
+      {
+       "enclosure": [],
+       "id": "000000000000000f",
+       "origin": {
+        "streamId": "tag:google.com,2005:reader/feed/35",
+        "title": "Sub second"
+       }
+      }
+     ],
+     "self": [
+      {
+       "href": "http://127.0.0.1:8080/reader/api/0/stream/items/contents"
+      }
+     ],
+     "updated": 1719792300
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/stream_items_contents",
+    "method": "POST",
+    "path": "/reader/api/0/stream/items/contents",
+    "status": 200
+   },
+   {
+    "acted_on": {},
+    "asked": [],
+    "document": {
+     "error": "Method Not Allowed"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/method_mismatch",
+    "method": "GET",
+    "path": "/reader/api/0/edit-tag",
+    "status": 405
+   },
+   {
+    "acted_on": {},
+    "asked": [],
+    "document": {
+     "body": "html"
+    },
+    "headers": [
+     [
+      "X-Content-Type-Options",
+      "nosniff"
+     ],
+     [
+      "X-Frame-Options",
+      "DENY"
+     ],
+     [
+      "Referrer-Policy",
+      "no-referrer"
+     ]
+    ],
+    "key": "request/no_trailing_slash",
+    "method": "GET",
+    "path": "/reader/api/0",
+    "status": 307
+   }
+  ],
+  "run": {
+   "base_url": "http://127.0.0.1:8080",
+   "flags": {
+    "BATCH_SIZE": "100",
+    "FETCHER_ALLOW_PRIVATE_NETWORKS": "true",
+    "POLLING_LIMIT_PER_HOST": "0",
+    "POLLING_PARSING_ERROR_LIMIT": "0",
+    "RUN_MIGRATIONS": "false"
+   },
+   "media_proxy_mode": "off",
+   "network": "loopback",
+   "reference": "v2.3.3 at c4d54f87",
+   "user": "parity"
+  },
+  "side": "reference"
+ }
+}

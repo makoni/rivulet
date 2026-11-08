@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exercises the collation row: the two titles share one category, so the listing order is the
+     only thing the two answers can part on. No fixture can pin the order between rows that share a
+     title, so this file pins only the pair it names. -->
+<rss version="2.0">
+  <channel>
+    <title>Collation corpus</title>
+    <link>https://example.org/</link>
+    <item>
+      <title>apple</title>
+      <link>https://example.org/apple</link>
+      <guid>urn:example:tag-order:apple</guid>
+      <pubDate>Mon, 01 Jul 2024 12:00:00 UTC</pubDate>
+      <description>the title a collation puts first</description>
+    </item>
+    <item>
+      <title>Zebra</title>
+      <link>https://example.org/zebra</link>
+      <guid>urn:example:tag-order:zebra</guid>
+      <pubDate>Mon, 01 Jul 2024 12:00:00 UTC</pubDate>
+      <description>the title the byte order puts first</description>
+    </item>
+  </channel>
+</rss>

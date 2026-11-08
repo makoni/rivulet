@@ -1188,3 +1188,76 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
 | The room the copy needs | nothing to compare: the reference has no free-space check, and its CLI has no backup command to check for | the estimate is the bytes the source holds as the filesystem reads them — the main file plus the `-wal` beside it as the filesystem reads it — times the factor 2 `docs/plan/stage-1-storage.md` documents for `VACUUM INTO`; the room is read at the directory the destination is in, which is the current directory for a destination named as a bare name, and the comparison is strictly less, so a destination with exactly the estimate holds the copy; a room the filesystem cannot read answers a refusal, and a size it cannot read counts as nothing | The port's own rule, read at the start of the `backup` run before anything is written, so a run that cannot hold the copy writes nothing; `vacuum` is not checked, because it rebuilds the file it already holds rather than writing a copy beside it |
+
+## Parity harness (stage 7)
+
+The harness is the stage-7 exit criterion that compares the port with the reference over the same
+data rather than over one test: real Miniflux and Rivulet read the same corpus, and the difference
+between the two answers is read class by class. It is run by hand and not in CI, so the determinism
+rules in `docs/testing.md` do not apply to it, and its two halves are separated the way the soak's
+are: `Scripts/parity.sh` is the run half, `Tools/parity/parity_check.py` is the check half, which
+reads the pair document the run leaves behind rather than the processes that produced it.
+
+The tolerance table below is read as data by the check half, and it is the single source of truth
+for what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class
+it names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may
+differ there; and a difference whose class no row names is a finding. The corpus manifest
+(`Tools/parity/corpus/manifest.txt`) names, for each corpus input, the classes it can reach, which
+is what lets a difference be attributed to a class instead of accepted by the comparator's
+preference. The rules that guard the run itself — the flags, the pinned reference version, the input
+digests, the request sequence, the counts, the report — report whatever the data says, whatever the
+table says.
+
+The width rule does not reach the manifest's record lines or the shell's command lines: a record is
+one record, and a command or a guard message cannot be broken at a word without changing what the
+run reads, so both stay whole on their own line.
+
+**The classes the harness reads.**
+
+| Class | Row it comes from | State | Exercised by |
+| --- | --- | --- | --- |
+| foster_parenting | HTML sanitizer — Foster parenting | accepted | corpus/table_content.xml |
+| name_classes | XML reader — Name classes | accepted | corpus/name_class.xml |
+| zone_offset | Date parsing — Zone abbreviations | accepted | corpus/zone_pst.xml |
+| sub_second_cut | Google Reader auth path — The part below a second | accepted | corpus/sub_second_date.xml |
+| collation_order | CLI feed commands — The order the two listing reads answer in | accepted | corpus/tag_order.xml |
+| method_mismatch | Google Reader auth path — A method the pattern does not register | accepted | request/method_mismatch |
+| trailing_slash | Google Reader auth path — No trailing slash | accepted | request/no_trailing_slash |
+| repeated_header_value | security checklist — a response name that appears twice | fixed | request/repeated_header |
+| positions_and_counts | HTML sanitizer — Positions and counts | accepted | not reachable here |
+| bracketed_host | URL layer — Bracketed host | accepted | not reachable here |
+| media_proxy | Google Reader auth path — The media proxy | accepted | not reachable here |
+| error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
+
+The four rows marked `not reachable here` name classes no corpus input can reach: the counts are
+read inside the sanitizer and never written out, the bracketed host answers a fetch decision rather
+than a stored value, the media proxy is turned off on the reference side so the stored bytes are
+comparable, and the wording of a rule the port names is not compared at all. They are named here
+rather than asserted, and the run guard that turns the proxy off is what makes the fourth half of
+that list hold.
+
+**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from a
+local stub server on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides and the
+account name is ASCII, which is the one place where `LOWER` is the same rule on both sides. Both
+sides run with the same flags — the batch size, the two limits, the migrations gated off — and the
+reference runs with `MEDIA_PROXY_MODE=off`, so its content values are the stored bytes. The request
+sequence is the three shapes the table names plus the login, and the pair document carries, per
+side, the rows it stored, the counts it reports, and the answers it gave. The row ids of the two
+databases are never compared as values: they are the map, and a payload item id is read through it
+in
+the `%016x` form. Order is compared only through the collation row, and the clock fields are never
+compared: only the parse results are, which is what the row that reads them says.
+
+**What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
+two sides read the same bytes over the network, because each fetch is its own hop; the row order a
+storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
+each
+side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the run
+re-reads rather than pins. On this machine the run half cannot execute: the Docker daemon is not
+reachable for this user (`/var/run/docker.sock` is `root:docker` and the user is not in the `docker`
+group), and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite
+driver. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one input
+per
+rule that violates it and asserts that the rule reports it alone — and the run half is checked by
+`bash -n` and by its guards, each of which was seen to fail on a value the run declares below what
+it requires.

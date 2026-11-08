@@ -49,9 +49,37 @@ the plan does not have; the header-block size, which this port reads no limit of
 and which the reference caps only on the server side; the timing form of the constant-time
 token compare; the NUL byte in a password, which the dependency measures with `strlen` and which
 `docs/parity.md` records; and the header value of a hop that is not the last one, which `fetch` does
-not return. The dependency audit found no advisory that affects a pin. The parity harness and the
-client matrix follow, and the parity harness cannot run on this machine because the Docker daemon is
-not reachable.
+not return. The dependency audit found no advisory that affects a pin. The third slice is the parity
+harness, which opens as PR #57: the comparator reads a comparison run as the pair document it leaves
+behind, so each of its 18 rules is a function over data rather than an assertion about a live
+process. The halves are separated the way the soak's are — `Scripts/parity.sh` is the run half,
+`Tools/parity/parity_check.py` is the check half, `Tools/parity/collect.py` writes the pair document
+— and the tolerance table is read as data from `docs/parity.md` rather than restated in the
+comparator: 12 rows, 11 marked `accepted` and one `fixed`, and a difference whose class no row names
+is a finding. The corpus manifest names, for each input, the classes it can reach, which is what
+lets a difference be attributed to a class rather than accepted by the comparator's own preference,
+and requests are paired by key rather than by position, so a run that answered the same requests in
+a different order still matches. What the rules read: the flags, the pinned reference version, the
+input digests, the request sequence, the table read against the manifest, the entry set as the
+feed-and-hash pair, the counts against the rows, state and starred for matched entries, the parse
+results with the clock fields never read, the payload item id read through the row map in the
+`%016x` form, the shape rules as the reference writes them, `self` as each side's configured base
+URL, the statuses, the order compared only through the recorded collation row, the response header
+read with the first value winning, the proxy off on the reference side, the ASCII account name, and
+the report naming every rule and what the run cannot show. 20 crafted inputs plus the baseline,
+which is asserted to report nothing, so each probe is single-firing; the patch round showed each
+rule can fail on the rule it names and reverted the file byte-identically. What the harness cannot
+show: the run half cannot execute on this machine — the Docker daemon is not reachable for this user
+and no Postgres server answers, which the reference needs because its `go.mod` has no SQLite driver,
+so the shell is checked by `bash -n` and by its eight guards, each seen to fail on a value the run
+declares below what it requires; that the run ran at all, because it is on demand and not in CI;
+that the two sides read the same bytes over the network, because each fetch is its own hop; the row
+order for rows sharing one value, which SQL does not fix; the clock fields, which each side wrote at
+its own write instant; the other half of the table rule, which cannot be probed alone because
+removing a row also makes the difference itself a finding, so it is documented rather than probed;
+and the four classes the corpus cannot reach, which are named in the table rather than asserted. The
+client matrix, the replay of captured client request sequences, the performance notes, and the live
+parity run on a machine where the daemon and Postgres are reachable follow.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

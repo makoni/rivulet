@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exercises the foster-parenting row: the text token is read while the table is open, so the
+     reference moves it out in front of the table and this port writes it where the insertion point
+     is. The insertion modes this port does not have are what this file cannot pin. -->
+<rss version="2.0">
+  <channel>
+    <title>Foster parenting corpus</title>
+    <link>https://example.org/</link>
+    <item>
+      <title>Foster parenting</title>
+      <link>https://example.org/foster</link>
+      <guid>urn:example:foster-parenting</guid>
+      <pubDate>Mon, 01 Jul 2024 12:00:00 UTC</pubDate>
+      <description>&lt;table&gt;y&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;z&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;</description>
+    </item>
+  </channel>
+</rss>

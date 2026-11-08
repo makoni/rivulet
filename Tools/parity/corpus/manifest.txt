@@ -1,0 +1,13 @@
+# The parity harness's corpus manifest: one line per input, the classes it can reach, and what
+# that input cannot pin on its own. A record line is not wrapped because it is one record, so
+# it is exempt from the width rule; the feed documents are the files beside this one, and the
+# request keys are the request shapes the run sends, which no feed document can carry. The width
+# rule does not reach a record line, because it is one record and cannot be broken at a word.
+corpus/tag_order.xml | collation_order | the order between rows sharing one title, which SQL does not fix
+corpus/table_content.xml | foster_parenting | the insertion modes this port does not have
+corpus/name_class.xml | name_classes | a name both sides accept, which is not a difference
+corpus/zone_pst.xml | zone_offset | the zone name, which the reference reads through the machine's tzdata
+corpus/sub_second_date.xml | sub_second_cut | the rounding direction, which a value below a second cannot show
+request/method_mismatch | method_mismatch | the wording of the answer
+request/no_trailing_slash | trailing_slash | the reference's redirect body, written before its auth middleware
+request/repeated_header | repeated_header_value | a hop that is not the last one, which fetch does not return
