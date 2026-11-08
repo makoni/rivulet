@@ -1188,6 +1188,7 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | What the copy holds | nothing to compare | the snapshot at the run — the content the source had when the run read it, compacted — in a file of its own that does not change with the source afterwards | A byte copy of the main file would answer a copy without what the WAL holds; the pins read the copy through a second driver |
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
 | The room the copy needs | nothing to compare: the reference has no free-space check, and its CLI has no backup command to check for | the estimate is the bytes the source holds as the filesystem reads them — the main file plus the `-wal` beside it as the filesystem reads it — times the factor 2 `docs/plan/stage-1-storage.md` documents for `VACUUM INTO`; the room is read at the directory the destination is in, which is the current directory for a destination named as a bare name, and the comparison is strictly less, so a destination with exactly the estimate holds the copy; a room the filesystem cannot read answers a refusal, and a size it cannot read counts as nothing | The port's own rule, read at the start of the `backup` run before anything is written, so a run that cannot hold the copy writes nothing; `vacuum` is not checked, because it rebuilds the file it already holds rather than writing a copy beside it |
+
 ## Parity harness (stage 7)
 
 The harness is the stage-7 exit criterion that compares the port with the reference over the same
@@ -1259,9 +1260,11 @@ written by the router rather than by the port's handler.
 `-e`, because a flag name handed bare is not a flag: the first name after the last option is the
 image the run pulls. The reference runs on the network the run declares, which has to be the host's,
 because a container in a namespace of its own has its own loopback and the corpus is served on this
-machine's. Its connection string has to name the SSL mode, because the reference's own default is
-`require` and a server that does not offer SSL answers an error before anything is read, while the
-read on this side is libpq, whose own default does not require it. `CREATE_ADMIN` is a boolean for
+machine's. Its connection string has to name the SSL mode, because the driver it reads that string
+through defaults to `require` when the string names no mode, and a server that does not offer SSL
+answers an error before anything is read, while the read on this side is libpq, which prefers rather
+than requires. The reference's own config default is `disable`, but that is what it uses only when
+no connection string is given. `CREATE_ADMIN` is a boolean for
 the reference's parser and the account is the two names beside it, so a value written as
 `name:password` is an invalid boolean and the run reports it before anything runs. The reference's
 schema is applied by a run of its own through the reference's own flag, which is the same shape this

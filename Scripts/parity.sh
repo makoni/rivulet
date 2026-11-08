@@ -35,7 +35,7 @@ set -euo pipefail
 #        PARITY_PRIVATE_NETWORKS=false PARITY_DRY_RUN=1 Scripts/parity.sh # the policy guard
 #        PARITY_USER=pärity PARITY_DRY_RUN=1 Scripts/parity.sh            # the ASCII guard
 #        PARITY_PGHOST=127.0.0.2 Scripts/parity.sh                        # the Postgres guard
-#        PARITY_BASE_PORT=8080 PARITY_REFERENCE_PORT=8080 Scripts/parity.sh # the port guard
+#        PARITY_BASE_PORT=<a port something already holds> Scripts/parity.sh  # the port guard
 #        PARITY_CONTAINER_NETWORK=bridge PARITY_DRY_RUN=1 Scripts/parity.sh # the network guard
 #        RIVULET=/bin/true Scripts/parity.sh                 # the guard that its own side answers
 
@@ -172,11 +172,9 @@ if [ "$PARITY_DRY_RUN" = "1" ]; then
     exit 0
 fi
 
-# Guard 7: the three things a pair document cannot state because they are the run's own data. The
+# Guard 7: the two things this machine has to give the run, which a pair document cannot state. The
 # reference has no SQLite driver, so its side needs a server, and nothing in a pair document can
-# show which engine answered its rows; the daemon is the half that runs the reference at all; and
-# the answers the collector records are the answers a live server gave, so a run that never started
-# its own side records answers that never happened.
+# show which engine answered its rows; the daemon is the half that runs the reference at all.
 if ! pg_isready -h "$PARITY_PGHOST" -p "$PARITY_PGPORT" -q >/dev/null 2>&1; then
     fail "the reference side needs a Postgres server, and the run declared $PARITY_PGHOST:$PARITY_PGPORT, which answers nothing"
 fi
@@ -282,10 +280,10 @@ done
 sleep 1
 "$RIVULET" refresh
 
-# Both sides have to be answered by servers the run started before the collector reads them, and a
-# pair document cannot carry an answer that never happened, so a side the run cannot reach is
-# reported before anything is collected. The reference is a container, and it listens only after its
-# own migrations answer, so the wait is what the run has to make for it.
+# Guard 8: the two bases the run declares, read as the answers they give. A pair document cannot
+# carry an answer that never happened, so a side the run cannot reach is reported before anything is
+# collected. The reference is a container, and it listens only after its own migrations answer, so
+# the wait is what the run has to make for it.
 "$RIVULET" serve >/dev/null &
 serve_pid=$!
 wait_for "$PARITY_REFERENCE_PORT" \
@@ -294,9 +292,8 @@ wait_for "$PARITY_BASE_PORT" \
     || fail "the run declares $PARITY_BASE_PORT as the base its own side answers on, and nothing answers there, so the answers the pair document carries never happened"
 
 python3 "$COLLECT"
-python3 "$COLLECT"
 
-# Guard 8: the login half, which the pair document can state only as the answer it recorded. The
+# Guard 9: the login half, which the pair document can state only as the answer it recorded. The
 # requests after the login are answered through the token that answer carries, so a run that
 # recorded the unauthorized answer never authenticated, and every answer after it is the answer an
 # unauthenticated read gives. On this machine that is what the run reports: the reference reads the
@@ -311,6 +308,8 @@ for side in reference port; do
     fi
 done
 
+# Guard 10: the rows each side recorded, which is what says the pair document is a run rather than
+# an empty document a run wrote when it stored nothing.
 for side in reference port; do
     row_count=$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))[sys.argv[2]]["entries"]))' "$WORK/pair.json" "$side")
     if [ "$row_count" -eq 0 ]; then

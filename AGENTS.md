@@ -398,9 +398,11 @@ only the seams the plan requires.
 One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
 to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
-- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Two things are
-exempt because neither can be broken without changing what it says: a Markdown table row, and an
-inline code span longer than the width, which stays whole on its own line. Code lines are single
+- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Four things are
+exempt because none can be broken without changing what it says: a Markdown table row; an inline
+code span longer than the width; a line the check half reads as one whole string, which is a
+manifest record line or a generated report item line; and a shell command line or a guard message,
+which the run reads as one line. Each stays whole on its own line. Code lines are single
 expressions and are not split to meet the width. A commit that only rewraps does not change
 behavior, so it does not reopen a review that already approved the words.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,

@@ -6,8 +6,9 @@ shell guards, the daemon for the reference side and a Postgres server the refere
 its `go.mod` has no SQLite driver. What it writes is the pair document `parity_check.py` reads: per
 side, the run it ran, the digest of each input the manifest names, the rows it stored, the counts it
 reports, and the requests it answered. It was run here for the first time, and the login answers it
-recorded were the unauthorized answers, because the integration row the login read runs on was not
-there for either side.
+recorded were the unauthorized answers, because neither side had the values the read compares: the
+integration row the read runs on was never written on the reference side, and on this side the
+credential pair sits on the account row, which the run had not set either.
 
 Seven things a live run has to arrange, and the shapes below are what the rules read them as.
 

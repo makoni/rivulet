@@ -185,9 +185,9 @@ def rule_request_sequence_is_the_same_on_both_sides(pair):
 
 
 def rule_recorded_classes_are_exercised_by_the_corpus(pair):
-    """Each recorded row names an input that reaches it. The other half is not read here:
-    a class the manifest reaches but no row names is a difference nothing covers, so the
-    and the probe that drops a row shows that half through them."""
+    """Each recorded row names an input that reaches it. The other half is not read here: a class
+    the manifest reaches but no row names is a difference nothing covers, so the difference rules
+    read it, and the probe that drops a row shows that half through them."""
     found = []
     for row in pair["recorded"]:
         key = row["exercised_by"]

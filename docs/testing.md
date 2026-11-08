@@ -1128,10 +1128,11 @@ What the run hands over, and what the first live run here showed: the flags are 
 reference one name at a time with its own `-e`, because a flag name handed bare is read as the image
 the run pulls; the reference runs on the host network, because a container in a namespace of its own
 has its own loopback and the corpus is served on this machine's; its connection string has to name
-the SSL mode, because the reference's own default is `require`; `CREATE_ADMIN` is a boolean for its
-parser, with the account as two names beside it, so a value written as `name:password` is an invalid
-boolean; the schema is applied by a run of its own through its own flag, with the migrations gated
-off as the guard says; the name `DATABASE_URL` is not one value for the two sides, so each side is
+the SSL mode, because the driver it reads that string through defaults to `require` when the string
+names no mode; `CREATE_ADMIN` is a boolean for its parser, with the account as two names beside it,
+so a value written as `name:password` is an invalid boolean; the schema is applied by a run of its
+own through its own flag, with the migrations gated off as the guard says; the name
+`DATABASE_URL` is not one value for the two sides, so each side is
 handed its own; the port's own side is served before the collector reads it; the secure console read
 takes its value from a terminal rather than from a pipe, so the run gives that command one; and the
 due rule is strict, so the batch read cannot see a feed written at the same instant it reads.
@@ -1176,9 +1177,10 @@ the daemon and a Postgres server, which the reference needs because its `go.mod`
 driver. Here it executed end to end through the collector for the first time, and what it reported
 was the login half, so the committed report is the one written from the table by hand rather than
 one a run wrote;
-- what the width rule does not reach: the manifest's record lines, which are one record, and the
-shell's command lines and guard messages, which cannot be broken at a word without changing what the
-run reads.
+- what the width rule does not reach: the manifest's record lines, which are one record, the
+report's item lines, which are one item each and read as whole strings by the rule that reads the
+report, and the shell's command lines and guard messages, which cannot be broken at a word without
+changing what the run reads.
 
 ## Running
 
