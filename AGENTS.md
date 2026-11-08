@@ -321,7 +321,7 @@ What that header names as unpinnable: the page size, because this port's read fo
 no `LIMIT` clause at all, as the reference's `fetchEntries` has none; the media proxy, which this
 port does not have and which `docs/parity.md` records; the inner join on categories, which this
 port's schema cannot leave unfulfilled; and the order of the two statements that build the
-attachments. The subscription slice, opens as PR #59, pins the three endpoints over the same socket:
+attachments. The subscription slice, merged (PR #59), pins the three endpoints over the same socket:
 the listing answers the order the sort read builds rather than the id order, the six fields of the
 subscription document carry the values this handler writes with the label being the category title
 and not the feed title, the `omitempty` half of the category document is read on a category whose
