@@ -91,7 +91,8 @@ its web form, while this port has no integration table at all — the credential
 account row, which the run had not set either, and it has no web form; and the four classes
 the corpus cannot reach, which are named in the table rather than asserted. The client matrix, the
 replay of captured client request sequences, the performance notes, and the live parity run with an
-authenticated pair, which needs a path that sets the integration row on both sides, follow.
+authenticated pair, which needs a path that sets the flag the login read requires on the reference
+side and the credential pair on this side, follow.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

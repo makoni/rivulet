@@ -198,11 +198,11 @@ export PGPASSWORD="$PARITY_PGPASSWORD" PGDATABASE="$PARITY_PGDATABASE"
 export PARITY_BASE="http://127.0.0.1:$PARITY_BASE_PORT"
 export PARITY_REFERENCE_BASE="http://127.0.0.1:$PARITY_REFERENCE_PORT"
 export "${FLAGS[@]}"
-# The reference's url names the server and names no SSL mode, so the driver it reads the string
-# through defaults to `require` when the string names no mode, and a server that does not offer SSL
-# answers an error before anything is read; the run says the mode it means, which is what the first
-# live execution here showed. The reference's own config default is `disable`, but that is what it
-# uses only when no connection string is given, and the read on this side is libpq, which prefers.
+# The reference's url names the mode, because a string that names none takes the driver's default,
+# which is `require`, and a server that does not offer SSL answers an error before anything is read;
+# that is what the first live execution here showed. The reference's own config default is
+# `disable`, but that is what it uses only when no connection string is given at all, and the read
+# on this side is libpq, which prefers rather than requires.
 REF_DATABASE_URL="postgres://$PARITY_PGUSER:$PARITY_PGPASSWORD@$PARITY_PGHOST:$PARITY_PGPORT/$PARITY_PGDATABASE?sslmode=disable"
 
 # The name `DATABASE_URL` is not one value for the two sides: for the reference it is the server its
