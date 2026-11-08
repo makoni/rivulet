@@ -1289,3 +1289,12 @@ is what is falsifiable here — `Tools/parity/probes.py` crafts one input per ru
 and
 asserts that the rule reports it alone — and the run half is checked by `bash -n` and by its guards,
 each of which was seen to fail on a value the run declares below what it requires.
+
+
+Order is compared only through the collation row, and that row is quoted from the CLI feed commands,
+which the run half never runs: the run reaches the same order through the `tag/list` labels, which
+are built on the same categories read the row names. The clock fields are never compared: only the
+parse results are, which is what the row that reads them says. No rule compares the three names the
+response builder writes, so the pair document carries them only on the answers a handler produced:
+the reference's two answers written before its auth middleware carry only what the mux writes, and
+the port's 404 answer is written by the router rather than by the port's handler.

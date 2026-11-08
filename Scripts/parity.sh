@@ -162,8 +162,10 @@ fi
 PORT=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
 python3 "$STUB" "$PORT" >>"$WORK/server.log" 2>&1 &
 stub_pid=$!
-trap 'kill "$stub_pid" 2>/dev/null || true' EXIT
-
+# One trap for both halves, set before either exists: the stub process and the reference
+# container are the two things a run leaves behind, and a second run cannot start while
+# either is still held.
+trap 'kill "$stub_pid" 2>/dev/null || true; docker stop parity-reference >/dev/null 2>&1 || true' EXIT
 swift build >/dev/null
 RIVULET=${RIVULET:-$(swift build --show-bin-path)/rivulet}
 export PARITY_CORPUS="$CORPUS" PARITY_MANIFEST="$MANIFEST" PARITY_PAIR="$WORK/pair.json"
@@ -179,11 +181,10 @@ export PARITY_BASE="http://127.0.0.1:$PARITY_BASE_PORT"
 export PARITY_REFERENCE_BASE="http://127.0.0.1:$PARITY_REFERENCE_PORT"
 DATABASE_URL="postgres://$PARITY_PGUSER:$PARITY_PGPASSWORD@$PARITY_PGHOST:$PARITY_PGPORT/$PARITY_PGDATABASE"
 
-container=$(docker run -d --name parity-reference -p "$PARITY_REFERENCE_PORT:8080" \
+docker run -d --name parity-reference -p "$PARITY_REFERENCE_PORT:8080" \
     -e LISTEN_ADDR=":8080" -e DATABASE_URL="$DATABASE_URL" -e BASE_URL="$PARITY_REFERENCE_BASE" \
     -e CREATE_ADMIN="$PARITY_USER:$PARITY_PASSWORD" "${FLAGS[@]}" \
-    "miniflux/miniflux:$MINIFLUX_TAG")
-trap 'docker stop parity-reference >/dev/null 2>&1 || true' EXIT
+    "miniflux/miniflux:$MINIFLUX_TAG" >/dev/null
 
 # The port's side is read through its own commands, with the migrations gated off as the guard
 # says, so the rows the pair document carries are the rows this port's read path answers. The

@@ -322,14 +322,8 @@
      "error": "Method Not Allowed"
     },
     "headers": {
-     "Referrer-Policy": [
-      "no-referrer"
-     ],
-     "X-Content-Type-Options": [
-      "nosniff"
-     ],
-     "X-Frame-Options": [
-      "DENY"
+     "Content-Type": [
+      "text/plain; charset=utf-8"
      ]
     },
     "key": "request/method_mismatch",
@@ -676,14 +670,8 @@
      "error": "Method Not Allowed"
     },
     "headers": {
-     "Referrer-Policy": [
-      "no-referrer"
-     ],
-     "X-Content-Type-Options": [
-      "nosniff"
-     ],
-     "X-Frame-Options": [
-      "DENY"
+     "Content-Type": [
+      "text/plain; charset=utf-8"
      ]
     },
     "key": "request/method_mismatch",
@@ -698,14 +686,11 @@
      "body": "html"
     },
     "headers": {
-     "Referrer-Policy": [
-      "no-referrer"
+     "Content-Type": [
+      "text/html; charset=utf-8"
      ],
-     "X-Content-Type-Options": [
-      "nosniff"
-     ],
-     "X-Frame-Options": [
-      "DENY"
+     "Location": [
+      "/reader/api/0/"
      ]
     },
     "key": "request/no_trailing_slash",
