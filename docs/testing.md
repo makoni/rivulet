@@ -1154,9 +1154,10 @@ source: the input digests, the flags, the names the run asked with, and the resp
 the value that response answered, which are one read on a run. They can only be shown on crafted
 data, where the two sides are written apart, and the probes for them are crafted, not run;
 - the login half as one rule on both sides: the reference reads the integration row the login read
-runs on, and the only path that writes it is its web form, which this port has no equivalent of —
-its own path is the console command, and it stores no enabled flag — so the two sides cannot be set
-up through one path, and the pair document here carries the unauthorized answer on both sides;
+runs on, where the enabled flag that read requires is set only by its web form, which this port has
+no equivalent of — it has no integration table and no flag, and its own path for the pair is the
+console command — so the two sides cannot be set up through one path, and the pair document here
+carries the unauthorized answer on both sides;
 - the pinned version on the port side, which the rule that reads it does not read: the probe that
 changes the version shows which half the rule reads by failing on the reference side alone;
 - the nineteen checks the shell makes. Twelve name a value the run declares or a count the run

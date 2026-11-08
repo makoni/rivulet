@@ -25,8 +25,10 @@ request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
       names, and the manifest names the classes each input can reach; what the corpus cannot reach
       is named there rather than asserted. The run half executed here for the first time, with
       Postgres as a container, and what it reported was the login half: the reference reads the
-      integration row the login read runs on, and the only path that writes it is its web form,
-      which this port has no equivalent of, so no single path sets that row for both sides. The
+      integration row the login read runs on, where the enabled flag that read requires is set only
+      by its web form, which this port has no equivalent of — it has no integration table and no
+      flag, and its own path for the pair is the console command — so no single path sets the values
+      for both sides. The
       report committed under `docs/` is therefore the one the harness writes from the table, not one
       a run wrote, and the guards in the shell are the half that can be checked without a run.
 - [ ] Replay of captured real-client request sequences (redacted) as contract tests where

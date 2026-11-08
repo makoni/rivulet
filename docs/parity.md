@@ -1210,9 +1210,9 @@ digests, the request sequence, the counts, the report — report whatever the da
 table says.
 
 The width rule does not reach the manifest's record lines, the report's item lines, or the shell's
-command lines: a record and an item are each one thing the check half reads as data, and a command
-or a guard message cannot be broken at a word without changing what the run reads, so all three stay
-whole on their own line.
+command lines and guard messages: a record and an item are each one thing the check half reads as
+data, and a command or a guard message cannot be broken at a word without changing what the run
+reads, so all four stay whole on their own line.
 
 **The classes the harness reads.**
 
@@ -1302,9 +1302,10 @@ storage read answers for rows sharing one value, which SQL does not fix; the clo
 each side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the
 run re-reads rather than pins. On this machine the run half executed for the first time, with
 Postgres as a container, and what it reported was the login half: the reference's login read runs on
-the integration row, and the only path that writes that row is its web form, which this port does
-not have at all — its own path is the console command — so the two sides cannot be set up through
-one path, and the pair document here carries the unauthorized answer on both sides. The report is
+the integration row, where the enabled flag that read requires is set only by its web form, which
+this port does not have at all — it has no integration table and no flag, and its own path for the
+pair is the console command — so the two sides cannot be set up through one path, and the pair
+document here carries the unauthorized answer on both sides. The report is
 written by the run only when the guards pass, so the committed report is the one written from the
 table by hand. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one
 input per rule that violates it and asserts that the rule reports it alone — and the run half is

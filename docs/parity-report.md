@@ -41,7 +41,7 @@ What the run cannot show:
 - the clock fields, which each side wrote at its own write instant
 - the rules the stage-3 corpora already pin, which the run re-reads rather than pins
 - the rules that are tautologies on run data because the collector writes both sides from one source, so they can only be shown on crafted data: the input digests, the flags, the names the run asked with, and the response name read with the value that response answered, which are one read on a run
-- the login half as one rule on both sides, because the reference reads the integration row, which only its web form writes, and this port has no web form, so the run has no path that sets that row for both sides
+- the login half as one rule on both sides, because the reference reads the integration row where the enabled flag that read requires is set only by its web form, while this port has no integration table and no flag, so the run has no path that sets the values for both sides
 - the pinned version on the port side, because the rule that reads it reads only the reference side, where the run names the pinned version and the port names the build it ran
 - the guards, which are shown only by declaring a value below what they require, and the seven that read data rather than a declared value, which fail only on a run
 - the four classes no corpus input can reach, which are named in the table rather than asserted

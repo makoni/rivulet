@@ -86,8 +86,9 @@ each side wrote at its own write instant; the response name read with the value 
 answered, which is one read on run data; the other half of the table rule, which cannot be probed
 alone because removing a row also makes the difference itself a finding, so it is documented rather
 than probed; the login half, which the run reaches here and cannot pass, because the reference reads
-the integration row the login read runs on and only its web form writes it, while this port stores
-the credentials on the account row with no enabled flag and has no web form; and the four classes
+the integration row the login read runs on, where the enabled flag that read requires is set only by
+its web form, while this port has no integration table at all — the credential pair sits on the
+account row, which the run had not set either, and it has no web form; and the four classes
 the corpus cannot reach, which are named in the table rather than asserted. The client matrix, the
 replay of captured client request sequences, the performance notes, and the live parity run with an
 authenticated pair, which needs a path that sets the integration row on both sides, follow.
@@ -370,7 +371,8 @@ We work test-first: **red → green → refactor**.
 - Write a failing test before writing production code.
 - Bug fixes start with a regression test that reproduces the bug.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
-test, not just a unit test. - Ported Miniflux behavior must bring the corresponding ported tests.
+test, not just a unit test.
+- Ported Miniflux behavior must bring the corresponding ported tests.
 - Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
 XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
@@ -465,7 +467,8 @@ commit that completes a stage.
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
-support conditional GET with ETag`. - Behavior + its tests + doc updates land in the same commit.
+support conditional GET with ETag`.
+- Behavior + its tests + doc updates land in the same commit.
 - Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
 `.gitignore`.
 

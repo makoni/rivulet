@@ -129,10 +129,11 @@ if (( exercised < PARITY_MIN_EXERCISED_ROWS )); then
     fail "the harness table names $exercised rows read from a corpus input, below the $PARITY_MIN_EXERCISED_ROWS"
 fi
 
-# Guard 4: the three values the check half reads but cannot set. The proxy must be `none` on the
-# reference side, otherwise its content values are its rewrite rather than the stored bytes; the
-# corpus is served on loopback, so the address policy must be the one that allows it on both
-# sides; and the account name must be ASCII, because `LOWER` on SQLite folds ASCII only.
+# Guard 4: the three values the check half reads but cannot set, and the report it reads but cannot
+# write. The proxy must be `none` on the reference side, otherwise its content values are its
+# rewrite rather than the stored bytes; the corpus is served on loopback, so the address policy must
+# be the one that allows it on both sides; and the account name must be ASCII, because `LOWER` on
+# SQLite folds ASCII only.
 if [ "$PARITY_PROXY_MODE" != "none" ]; then
     fail "the run declared the proxy mode as $PARITY_PROXY_MODE, so the content values are the rewrite"
 fi
@@ -197,10 +198,11 @@ export PGPASSWORD="$PARITY_PGPASSWORD" PGDATABASE="$PARITY_PGDATABASE"
 export PARITY_BASE="http://127.0.0.1:$PARITY_BASE_PORT"
 export PARITY_REFERENCE_BASE="http://127.0.0.1:$PARITY_REFERENCE_PORT"
 export "${FLAGS[@]}"
-# The reference's url names the server, and its own default for the SSL mode is `require`, which a
-# local server that does not offer SSL answers as an error before anything is read; the run says the
-# mode it means, which is what the first live execution here showed. The read on this side is libpq,
-# whose own default does not require it, so the guard's host is the name both sides reach.
+# The reference's url names the server and names no SSL mode, so the driver it reads the string
+# through defaults to `require` when the string names no mode, and a server that does not offer SSL
+# answers an error before anything is read; the run says the mode it means, which is what the first
+# live execution here showed. The reference's own config default is `disable`, but that is what it
+# uses only when no connection string is given, and the read on this side is libpq, which prefers.
 REF_DATABASE_URL="postgres://$PARITY_PGUSER:$PARITY_PGPASSWORD@$PARITY_PGHOST:$PARITY_PGPORT/$PARITY_PGDATABASE?sslmode=disable"
 
 # The name `DATABASE_URL` is not one value for the two sides: for the reference it is the server its
@@ -297,10 +299,10 @@ python3 "$COLLECT"
 # requests after the login are answered through the token that answer carries, so a run that
 # recorded the unauthorized answer never authenticated, and every answer after it is the answer an
 # unauthenticated read gives. On this machine that is what the run reports: the reference reads the
-# integration row for this, and the only path that writes that row is its web form, while this port
-# has no web form at all and its own path is the console command. The two sides cannot be set up
-# through one path, so the run gets to the login and not past it here, and this guard is what says
-# so.
+# integration row for this, and the only path that sets the enabled flag that read requires is its
+# web form, while this port has no integration table and no flag at all, and its own path for the
+# pair is the console command. The two sides cannot be set up through one path, so the run gets to
+# the login and not past it here, and this guard is what says so.
 for side in reference port; do
     login=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["requests"][0]["status"])' "$WORK/pair.json" "$side")
     if [ "$login" != "200" ]; then

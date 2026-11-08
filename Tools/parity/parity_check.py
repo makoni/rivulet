@@ -53,9 +53,9 @@ CANNOT_SHOW = [
     "source, so they can only be shown on crafted data: the input digests, the flags, the names "
     "the run asked with, and the response name read with the value that response answered, which "
     "are one read on a run",
-    "the login half as one rule on both sides, because the reference reads the integration row, "
-    "which only its web form writes, and this port has no web form, so the run has no path that "
-    "sets that row for both sides",
+    "the login half as one rule on both sides, because the reference reads the integration row "
+    "where the enabled flag that read requires is set only by its web form, while this port has "
+    "no integration table and no flag, so the run has no path that sets the values for both sides",
     "the pinned version on the port side, because the rule that reads it reads only the reference "
     "side, where the run names the pinned version and the port names the build it ran",
     "the guards, which are shown only by declaring a value below what they require, and the seven "
@@ -140,10 +140,10 @@ def feed_row(side, row):
 def item_hex(value):
     """The hex field the reference's item read takes, read as `fmt.Sscanf` with `%016x` reads it.
 
-    The prefix decides which form it is: with the prefix the field is the value after it, and without
-    the prefix the whole value is the field, which is the form the clients that do not follow the
-    reference's own write send. Nothing here normalises the padding, because the scan keeps what it
-    read rather than the whole value.
+    The prefix decides which form it is: with the prefix the field is the value after it, and
+    without the prefix the whole value is the field, which is the form the clients that do not
+    follow the reference's own write send. Nothing here normalises the padding, because the scan
+    keeps what it read rather than the whole value.
     """
     return value.split("reader/item/")[-1]
 
