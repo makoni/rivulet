@@ -399,45 +399,46 @@ its key set can show, the title inside the request, because the rule that reads 
 coverage; the two scan classes are recorded as classes the corpus cannot reach. What follows: the
 Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance journey.
 
-Stage 4 — Ingestion & scheduling is pinned end to end (the per-feed refresh pipeline, the tick's
-due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the weekly
-count the entry-frequency mode divides the week by, the two halves of the entry loop that write
-nothing — an entry the document no longer declares and a tombstoned `(feed_id, hash)` pair — and the
-icon finder. The selector half is the four `link` branches with the `data:` URL rules, and the
-download half is the order the search tries, the response read as the icon bytes, the join for the
-default icon, and the storage dedupe, link and orphan pass, and the checker half is the guard with
-what it reads, the store and the link as two decisions that run on either branch, the path the guard
-does not cover, and the user agent the checker hands to the builder. All three halves are pinned end
-to end against the reference except the pool cap, which no test can assert without a timed wait, and
-the rules the icon suite headers name as unpinnable — the checksum function, the size cap, the basis
-the empty-body rule measures, the join escaping, the `external_id` randomness, the transaction
-boundary, the join table this port does not have, and the reference logging that a swallowed checker
-failure leaves no record for. The call the refresh path makes for that checker — the branch it runs
-on, the fork the forced flag selects, the icon URL the parse produced, and the site URL and user
-agent read from the row — is pinned by `RefreshIconTests`, and the manual pass the CLI makes over
-the batch is pinned by `RefreshCommandTests`: each job of the batch runs once, the values reach it
-from the environment, a failure is reported without stopping the rest, and the flag gates the
-migrations the command runs, and the minimal `status --json` contract the soak reads is pinned by
-`StatusSnapshotTests` and `StatusCommandTests`: each field is the value the row holds, an absent
-stamp stays `null`, the rows are listed in id order, the counts read every row whatever its state,
-`due` is the batch's pick, the environment values reach the totals through the command, and the flag
-gates the migrations. The soak artifact landed with PR #35: the shell is its cadence, its checks
-read the data each round leaves behind rather than the process that produced them, and each check is
-shown to fail on the rule it names; the in-process cadence loop landed with stage 6 as PR #50, read
-as the calls the loop makes through its seam, and retention is pinned by `RetentionTests`). Stage 4
-keeps one open thing: the icon image resizing, which opens as PR #62 — the header read for the four
-formats, each magic compared at the length of its own magic, the three WebP chunk shapes answering
-their own dimensions, the decode for the two formats the approved dependencies give this port, the
-scale, and the PNG write, 17 pins and 25 probes by `IconResizeTests`, plus 1 new pin and 1 probe in
-`IconFinderTests` for the same skipped step. What that header names as unpinnable: the SVG branch,
-the content type the document writes, the pixel-count term, the guard that a dimension read as zero
-ends the resize, the values the scale produces, the encode failure, and the pixel decode for GIF and
-WebP. Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit
-criterion met: the two sanitizer HTML fixtures are read end to end against the reference's own
-output, which took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode
-the open stack gives back to the element around a nested table when it closes — and both are pinned
-case by case by `SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to
-the refresh path is met by the pipeline. Keep this line and the plan's status table in sync.
+Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
+tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the
+weekly count the entry-frequency mode divides the week by, the two halves of the entry loop that
+write nothing — an entry the document no longer declares and a tombstoned `(feed_id, hash)` pair —
+and the icon finder. The selector half is the four `link` branches with the `data:` URL rules, and
+the download half is the order the search tries, the response read as the icon bytes, the join for
+the default icon, and the storage dedupe, link and orphan pass, and the checker half is the guard
+with what it reads, the store and the link as two decisions that run on either branch, the path the
+guard does not cover, and the user agent the checker hands to the builder. All three halves are
+pinned end to end against the reference except the pool cap, which no test can assert without a
+timed wait, and the rules the icon suite headers name as unpinnable — the checksum function, the
+size cap, the basis the empty-body rule measures, the join escaping, the `external_id` randomness,
+the transaction boundary, the join table this port does not have, and the reference logging that a
+swallowed checker failure leaves no record for. The call the refresh path makes for that checker —
+the branch it runs on, the fork the forced flag selects, the icon URL the parse produced, and the
+site URL and user agent read from the row — is pinned by `RefreshIconTests`, and the manual pass the
+CLI makes over the batch is pinned by `RefreshCommandTests`: each job of the batch runs once, the
+values reach it from the environment, a failure is reported without stopping the rest, and the flag
+gates the migrations the command runs, and the minimal `status --json` contract the soak reads is
+pinned by `StatusSnapshotTests` and `StatusCommandTests`: each field is the value the row holds, an
+absent stamp stays `null`, the rows are listed in id order, the counts read every row whatever its
+state, `due` is the batch's pick, the environment values reach the totals through the command, and
+the flag gates the migrations. The soak artifact landed with PR #35: the shell is its cadence, its
+checks read the data each round leaves behind rather than the process that produced them, and each
+check is shown to fail on the rule it names; the in-process cadence loop landed with stage 6 as PR
+#50, read as the calls the loop makes through its seam, and retention is pinned by
+`RetentionTests`). Stage 4's last open thing, the icon image resizing, landed as PR #62 — the header
+read for the four formats, each magic compared at the length of its own magic, the three WebP chunk
+shapes answering their own dimensions, the decode for the two formats the approved dependencies give
+this port, the scale, and the PNG write, 17 pins and 25 probes by `IconResizeTests`, plus 1 new pin
+and 1 probe in `IconFinderTests` for the same skipped step. What that header names as unpinnable:
+the SVG branch, the content type the document writes, the pixel-count term, the guard that a
+dimension read as zero ends the resize, the values the scale produces, the encode failure, and the
+pixel decode for GIF and WebP. Stage 3 is merged, with its remaining findings in its stage-file
+backlog and every exit criterion met: the two sanitizer HTML fixtures are read end to end against
+the reference's own output, which took two insertion-mode rules the port had not modelled —
+`inCaptionIM`, and the mode the open stack gives back to the element around a nested table when it
+closes — and both are pinned case by case by `SanitizerTableModeTests`. Stage 2 is merged, and the
+exit criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's
+status table in sync.
 
 ## Toolchain
 

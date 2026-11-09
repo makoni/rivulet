@@ -1,14 +1,15 @@
 # Stage 4 — Ingestion & scheduling
 
 **Goal:** unattended refresh loop; parsed entries land in the database correctly.
-**Status:** in progress — ten slices merged (PR #25–#34): the pipeline, the tick's batch selection
+**Status:** merged — eleven slices (PR #25–#34 and PR #62): the pipeline, the tick's batch selection
 with the worker pool, the entry-frequency mode with the weekly count, what the entry loop does not
 write, the icon selector with the data-URL rules, the icon download half with the storage link and
 the orphan pass, the checker half with the guard and the storage decisions, the call that path makes
 for a feed from the pipeline, the manual pass the CLI makes over the batch — the values it reads,
 each job running once, a failure reported without stopping the rest, and the flag that gates the
-migrations this command runs — and the minimal `status --json` contract the soak reads. The soak
-itself landed as PR #35 over 24 local stub feeds.
+migrations this command runs — and the minimal `status --json` contract the soak reads, and the
+resize step. The soak itself landed as PR #35 over 24 local stub feeds, which is the stage's exit
+criterion.
 **Effort:** M. **Depends on:** Stage 3 and Stage 1.
 
 The first slice is the per-feed refresh pipeline and the round-robin half of `ScheduleNextCheck`:
@@ -41,7 +42,7 @@ failure reported without stopping the rest, the values read from the environment
 gating the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact landed
 as PR #35: the shell is its cadence, its checks read the data each round leaves behind rather than
 the process that produced them, and each check is shown to fail on the rule it names. Retention is
-already pinned by `RetentionTests`. The eleventh slice is the resize step, which opens as PR #62:
+already pinned by `RetentionTests`. The eleventh slice is the resize step, which landed as PR #62:
 the header read for the four formats, with each magic compared at the length of its own magic and
 the three WebP chunk shapes answering their own dimensions, the start-of-frame shapes `processSOF`
 accepts, the 13-byte GIF header read, the decode for the two formats the approved dependencies give
@@ -50,7 +51,7 @@ and 1 probe in `IconFinderTests` for the same skipped step. What that header nam
 the SVG branch, the content type the document writes, the pixel-count term, the guard that a
 dimension read as zero ends the resize, the values the scale produces, the encode failure, and the
 pixel decode for GIF and WebP. The in-process cadence loop landed with stage 6 as PR #50, and the
-resize is the last thing stage 4 has open.
+resize is what closes the stage: the exit criterion is met.
 
 ## Scope
 
