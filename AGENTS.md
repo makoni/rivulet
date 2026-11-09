@@ -51,48 +51,72 @@ compare; the NUL byte in a password, which the dependency measures with `strlen`
 `docs/parity.md` records; and the header value of a hop that is not the last one, which `fetch` does
 not return. The dependency audit found no advisory that affects a pin. The third slice is the parity
 harness, merged as PR #57: the comparator reads a comparison run as the pair document it leaves
-behind, so each of its 18 rules is a function over data rather than an assertion about a live
+behind, so each of its 19 rules is a function over data rather than an assertion about a live
 process. The halves are separated the way the soak's are — `Scripts/parity.sh` is the run half,
 `Tools/parity/parity_check.py` is the check half, `Tools/parity/collect.py` writes the pair document
 — and the tolerance table is read as data from `docs/parity.md` rather than restated in the
-comparator: 15 rows, 14 marked `accepted` and one `fixed`, and a difference whose class no row names
+comparator: 16 rows, 15 marked `accepted` and one `fixed`, and a difference whose class no row names
 is a finding. The corpus manifest names, for each input, the classes it can reach, which is what
 lets a difference be attributed to a class rather than accepted by the comparator's own preference,
 and requests are paired by key rather than by position, so a run that answered the same requests in
 a different order still matches. What the rules read: the flags, the pinned reference version, the
-input digests, the request sequence, the table read against the manifest, the entry set as the
-feed-and-hash pair, the counts against the rows, state and starred for matched entries, the parse
-results with the clock fields never read, the payload item id read through the row map as the hex
-field the reference's item read takes with its prefix, the shape rules as the reference writes them,
-`self` as each side's configured base URL, the statuses, the order compared only through the
-recorded collation row, the response header read with the first value winning over the list of its
-values, the proxy running as `none` on the reference side, the ASCII account name, and the report
-naming every rule and what the run cannot show. 20 crafted inputs plus the baseline, which is
-asserted to report nothing, so each probe is single-firing; the patch round showed each rule can
-fail on the rule it names and reverted the file byte-identically. The fourth slice, the run half
-executed here for the first time, is merged as PR #58: what the run hands over, the terminal the
-secure console read needs, and the login half the run reaches and cannot pass. What the harness
-cannot show: the run half is on demand and not in CI, so it is checked here by `bash -n` and by its
-nineteen checks, twelve of which name a value the run declares or a count it declares against the
-committed files, each seen to fail on such a value or by taking the file it names away, while the
-seven that read the machine or the run's own data fail only on a run — three of those seven were
-seen to fail here: a port something already holds, the base its own side answers on, by pointing the
-run at a binary that exits at once, and the login answer, by the run itself; the pinned version on
-the port side, because the rule that reads it reads only the reference side, where the run names the
-pinned version and the port names the build it ran; that the run ran at all, because it is on demand
-and not in CI; that the two sides read the same bytes over the network, because each fetch is its
-own hop; the row order for rows sharing one value, which SQL does not fix; the clock fields, which
-each side wrote at its own write instant; the response name read with the value that response
-answered, which is one read on run data; the other half of the table rule, which cannot be probed
-alone because removing a row also makes the difference itself a finding, so it is documented rather
-than probed; the login half, which the run reaches here and cannot pass, because the reference reads
-the integration row the login read runs on, where the enabled flag that read requires is set only by
-its web form, while this port has no integration table at all — the credential pair sits on the
-account row, which the run had not set either, and it has no web form; and the six classes
-the corpus cannot reach, which are named in the table rather than asserted. The client matrix, the
-replay of captured client request sequences, the performance notes, and the live parity run with an
-authenticated pair, which needs a path that sets the flag the login read requires on the reference
-side and the credential pair on this side, follow.
+input digests, the request sequence, the table read against the manifest, the entry set as the feed-
+and-hash pair, the counts against the rows, state and starred for matched entries, the parse results
+with the clock fields never read, the payload item id read through the row map as the hex field the
+reference's item read takes with its prefix, the shape rules as the reference writes them, `self` as
+each side's configured base URL, the statuses, the order compared only through the recorded
+collation row, with a tag written without `label` read as the empty value, the response header read
+with the first value winning over the list of its values, the proxy running as `none` on the
+reference side, the ASCII account name, the login answer read as the pair the two sides compare
+through the key the harness names for it rather than by position, and the report naming every rule
+and what the run cannot show. 21 crafted inputs plus the baseline, which is asserted to report
+nothing, so each probe is single-firing; the patch round showed each rule can fail on the rule it
+names and reverted the file byte-identically. The fourth slice, the run half executed here for the
+first time, is merged as PR #58: what the run hands over, the terminal the secure console read
+needs, and the login half the run reaches and cannot pass. The fifth slice closes that half as an
+accepted divergence and is the run half completing a green authenticated run, and opens as PR #60:
+the run writes the credential pair through two paths — by SQL on the reference side, where the
+enabled flag the login read requires is set only by its web form, and through its own console
+command on this side, which has no integration table and no flag at all — so what the rule can read
+is the answer, and the row names which path put the value there as not reachable here. The login-
+half probe was seen to report a run where the two sides held two different values, and the run that
+writes one value through both paths reports nothing. What the run half adds: the rows each side
+stores are put there through the paths that side has, and the two sides do not have the same paths —
+this port has a command for adding a feed, the reference has none, so its feed rows come from the
+quickadd POSTs the run sends through the reference's own login, and its fetch runs through the
+reference's batch flag rather than on the daemon's cadence, because the collector reads the rows in
+the same pass it sends the requests in, and the requests are what would create the reference's
+feeds. The answers the arrangement sends are not read as data, so the run does not treat one as a
+failure, and the corpus has an input the reference answers with an error, which is the difference
+the row for the name classes covers; the storage each side reads has to be the run's own, so it
+creates the Postgres database its name declares when the server already has one; and the prompt
+order the console read needs is named rather than asserted, because no pair document can say which
+prompt produced which value. The pair document now carries the url each feed row holds, read from
+the column each side names for it — `feeds.feed_url` on the reference and `feeds.url` on this port —
+the names the run asked with rather than the values they carried, so the token appears as `T` only
+on the shapes where the transport reads it as a form field, and the order rule reads a tag written
+without `label` as the empty value, which is the `omitempty` half the shape rule reads as a key set.
+The authenticated run here reports one finding, the key set the method-mismatch row names, and the
+committed report is the document the harness writes from the table before the rules read it. What
+the harness cannot show: the run half is on demand and not in CI, so it is checked here by `bash -n`
+and by its twenty checks, twelve of which name a value the run declares or a count it declares
+against the committed files, each seen to fail on such a value or by taking the file it names away,
+while the eight that read the machine or the run's own data fail only on a run — four of those eight
+were seen to fail here: a port something already holds, the base its own side answers on, by
+pointing the run at a binary that exits at once, the login answer, by the run itself, and the stored
+rows, by running the same declared database twice, which is the second run reading rows the first
+one wrote; the pinned version on the port side, because the rule that reads it reads only the
+reference side, where the run names the pinned version and the port names the build it ran; that the
+run ran at all, because it is on demand and not in CI; that the two sides read the same bytes over
+the network, because each fetch is its own hop; the row order for rows sharing one value, which SQL
+does not fix; the clock fields, which each side wrote at its own write instant; which path wrote the
+value the login read compares, and in what order the command read its prompts; the response name
+read with the value that response answered, which is one read on run data; the other half of the
+table rule, which cannot be probed alone because removing a row also makes the difference itself a
+finding, so it is documented rather than probed; and the seven classes the corpus cannot reach,
+which are named in the table rather than asserted. What follows: the Fever parameter set sized to
+what the acceptance client calls, the client matrix, the replay of captured client request
+sequences, and the performance notes.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

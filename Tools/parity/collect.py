@@ -37,11 +37,10 @@ as
 the text it is, because the redirect body is text.
 
 The name of an input: neither storage has a column that holds the manifest key, and the stored title
-is
-the parsed feed title, so `file` is the name the run added the feed under, resolved through the feed
-url
-the run gave. The row id is the run's own, so the two sides carry different ones and nothing here
-normalises them.
+is the parsed feed title, so `file` is the name the run added the feed under, resolved through the
+feed url the run gave. The url is recorded beside it, because the run half reads the rows against
+the port this run served, which is what says the pair document compares rows this run wrote. The row
+id is the run's own, so the two sides carry different ones and nothing here normalises them.
 
 The subscription shapes: the three endpoints this path implements are recorded as the answers
 they give, asked with the names each handler reads — `output` for the listing, `s` and `ac` for
@@ -80,9 +79,14 @@ ENGINES = {"reference": "postgres", "port": "sqlite"}
 BASES = {"reference": os.environ["PARITY_REFERENCE_BASE"], "port": os.environ["PARITY_BASE"]}
 PINS = {"reference": "v2.3.3 at " + os.environ["MINIFLUX_REF"], "port": "rivulet at " +
 os.environ["HEAD"]}
-SELECT = ("select feeds.url, entries.hash, entries.id, entries.title, entries.content, "
-          "entries.published_at, entries.status, entries.starred from entries "
-          "join feeds on feeds.id = entries.feed_id order by entries.id")
+# The two storages do not name the same column for the feed url: the reference's `feeds` row holds
+# `feed_url`, this port's holds `url`. The pair document records one name for the value, so the read
+# names each side's own column and nothing else differs.
+URL_COLUMN = {"reference": "feeds.feed_url", "port": "feeds.url"}
+ENTRY_SELECT = ("select {url}, entries.hash, entries.id, entries.title, entries.content, "
+                "entries.published_at, entries.status, entries.starred from entries "
+                "join feeds on feeds.id = entries.feed_id order by entries.id")
+FEED_SELECT = "select {url}, id, title from feeds order by id"
 REQUESTS = [
     ("request/repeated_header", "POST", "/accounts/ClientLogin", "login"),
     ("request/no_trailing_slash", "GET", "/reader/api/0", "unauthenticated"),
@@ -206,9 +210,10 @@ else None, form)
                             "title": parts[3], "content": parts[4], "published": parts[5],
                             "status": parts[6], "starred": parts[7] in ("1", "t"),
                             "clock": {"note": "written at the read instant, and never compared"}}
-                           for parts in read(name, SELECT)]
-        side["feeds"] = [{"file": key_for(parts[0]), "row": int(parts[1]), "title": parts[2]}
-                         for parts in read(name, "select url, id, title from feeds order by id")]
+                           for parts in read(name, ENTRY_SELECT.format(url=URL_COLUMN[name]))]
+        side["feeds"] = [{"file": key_for(parts[0]), "url": parts[0], "row": int(parts[1]),
+                          "title": parts[2]}
+                         for parts in read(name, FEED_SELECT.format(url=URL_COLUMN[name]))]
         pairs[name] = side
 
     for side in pairs.values():

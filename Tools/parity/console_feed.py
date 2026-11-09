@@ -14,6 +14,7 @@ reference's own shape for this command — `askCredentials` asks for an interact
 port's console seam has no check for one.
 
 Usage: run through `Scripts/parity.sh`, which sets the environment this reads. It asserts nothing.
+The values it writes are the ones the run declares, in the order the command reads its prompts.
 """
 
 import os
@@ -24,7 +25,14 @@ import time
 
 BINARY = os.environ["RIVULET_BINARY"]
 COMMAND = os.environ["RIVULET_COMMAND"].split()
-FEED = [os.environ["PARITY_USER"], os.environ["PARITY_PASSWORD"]]
+# The values, in the order the command reads its prompts. `create-admin` reads two, and the pair
+# command reads five — the account, then the two halves of each pair — so a run that feeds this
+# command a two-value list leaves three prompts unanswered. The order is what the run declares, and
+# a run that wrote the values in another order stored a hash built from the value the wrong prompt
+# got, which the login half then reports as unauthorized.
+DECLARED = os.environ.get("PARITY_FEED")
+FEED = DECLARED.split("\n") if DECLARED else [
+    os.environ["PARITY_USER"], os.environ["PARITY_PASSWORD"]]
 
 
 def drain(master, seconds):

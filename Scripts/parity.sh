@@ -11,12 +11,14 @@ set -euo pipefail
 # `Tools/parity/collect.py` writes the pair document the check half reads. The tolerance table is
 # read as data from `docs/parity.md` by the check half, so nothing here decides what may differ.
 #
-# What is guarded here is what a pair document cannot state: that the reference is the pinned
-# version rather than a newer image, that the corpus is the inputs the manifest names, that the
-# run reached both sides at all, that the reference ran with the media proxy off so its content
-# values are the stored bytes, that the account name is one rule on both sides, and that the
-# report was written from the table before the rules read it. Each guard fails on a value the run
-# declares below what it requires, and that is the half checkable on this machine.
+# What is guarded here is what a pair document cannot state on its own, or cannot state against the
+# values the run declares: that the reference is the pinned version rather than a newer image, that
+# the corpus is the inputs the manifest names, that the run reached both sides at all, that the
+# reference ran with the media proxy off so its content values are the stored bytes, that the
+# account name is one rule on both sides, that the rows the document carries name the port this
+# run served, and that the report was written from the table before the rules read it. Each guard
+# fails on a value the run declares below what it requires, and that is the half checkable on this
+# machine.
 #
 # What the run needs from the machine is two things the guards read: the Docker daemon for the
 # reference side, and a Postgres server, which the reference needs because its `go.mod` has no
@@ -35,6 +37,7 @@ set -euo pipefail
 #        PARITY_PRIVATE_NETWORKS=false PARITY_DRY_RUN=1 Scripts/parity.sh # the policy guard
 #        PARITY_USER=pärity PARITY_DRY_RUN=1 Scripts/parity.sh            # the ASCII guard
 #        PARITY_PGHOST=127.0.0.2 Scripts/parity.sh                        # the Postgres guard
+#        PARITY_PGDATABASE=parity Scripts/parity.sh   # the rows guard on an old database
 #        PARITY_BASE_PORT=<a port something already holds> Scripts/parity.sh  # the port guard
 #        PARITY_CONTAINER_NETWORK=bridge PARITY_DRY_RUN=1 Scripts/parity.sh # the network guard
 #        RIVULET=/bin/true Scripts/parity.sh                 # the guard that its own side answers
@@ -66,7 +69,10 @@ PARITY_PGHOST=${PARITY_PGHOST:-127.0.0.1}
 PARITY_PGPORT=${PARITY_PGPORT:-5432}
 PARITY_PGUSER=${PARITY_PGUSER:-parity}
 PARITY_PGPASSWORD=${PARITY_PGPASSWORD:-parity}
-PARITY_PGDATABASE=${PARITY_PGDATABASE:-parity}
+# The database the reference reads. The server is the machine's and keeps what an earlier run
+# stored, so the run names one it writes itself, and the guard that reads the stored rows against
+# the port this run served is what reports a run that compared rows it did not write.
+PARITY_PGDATABASE=${PARITY_PGDATABASE:-parity_run_$(basename "$WORK" | tr -c 'A-Za-z0-9_' '_')}
 # The network the reference runs in. It is declared, not chosen, because a container in its own
 # namespace has its own loopback, and the corpus is served on this machine's.
 PARITY_CONTAINER_NETWORK=${PARITY_CONTAINER_NETWORK:-host}
@@ -191,6 +197,17 @@ export PARITY_PROXY_MODE PARITY_PRIVATE_NETWORKS HEAD MINIFLUX_REF PARITY_FLAGS=
 export PGHOST="$PARITY_PGHOST" PGPORT="$PARITY_PGPORT" PGUSER="$PARITY_PGUSER"
 export PGPASSWORD="$PARITY_PGPASSWORD" PGDATABASE="$PARITY_PGDATABASE"
 
+# The storage each side reads has to be the run's own. This port's half is fresh because its rows
+# are written to a file in the work dir; the reference's half is a database on the machine's
+# server, which keeps what an earlier run stored, so the run creates the database its name
+# declares when the server already has one, and reads only that. Guard 11 reads the stored rows
+# against the port this run served, which is what reports a run that compared rows it did not
+# write.
+held=$(psql -q -At -d postgres -c "select 1 from pg_database where datname = '$PARITY_PGDATABASE'")
+if [ -z "$held" ]; then
+    psql -q -v ON_ERROR_STOP=1 -d postgres -c "CREATE DATABASE \"$PARITY_PGDATABASE\"" >/dev/null
+fi
+
 # The reference reads its own config names, so the bases and the flags are handed over as
 # environment, one name each. The reference runs on the host network, which is what makes the
 # loopback the corpus is served on the same server for both sides, so the Postgres host the guard
@@ -264,28 +281,28 @@ docker run -d --name parity-reference --network "$PARITY_CONTAINER_NETWORK" \
 
 # The port's side is read through its own commands, with the migrations gated off as the guard says,
 # so the rows the pair document carries are the rows this port's read path answers. The account is
-# created on both sides: on the reference through its config read, on the port through
+# created on both sides: on the reference through its config read, on this port through its own
 # `create-admin`, and the password half of that read is the secure path, which takes its value from
-# a terminal rather than from a pipe. So the run gives the command a terminal, and the two values it
-# feeds are the names the run already declares. A run that fed a pipe instead reported the
-# min-length rule before any row was written, which is what the first live execution here showed.
+# a terminal rather than from a pipe. So the run gives the command a terminal, and the values it
+# feeds are the names the run already declares. A run that fed a pipe instead reported the minimum
+# length rule before any row was written, which is what the first live execution here showed.
 "$RIVULET" migrate
 RIVULET_BINARY="$RIVULET" RIVULET_COMMAND="create-admin" python3 "$FEED"
-for key in $(grep -v '^#\|^$' "$MANIFEST" | cut -d'|' -f1 | tr -d ' '); do
-    case "$key" in
-        corpus/*) "$RIVULET" add "http://127.0.0.1:$PORT/$(basename "$key")" --user "$PARITY_USER" ;;
-    esac
-done
-# The due rule is strict, so the batch read cannot see a feed written at the same instant it reads.
-# The run lets the clock move past the instant the insert wrote; a run that read the batch at that
-# same instant reported no feeds at all, which is what the first live execution here showed.
-sleep 1
-"$RIVULET" refresh
+
+# The values are written in the order the command reads its prompts — the account, then the Fever
+# pair, then the Google Reader pair — so the two Fever values here are blank reads, which is the
+# rule that a blank read keeps what the row holds. Nothing on this run asks for the Fever half.
+# Which prompt produced which value is not something a pair document can state, so the order is
+# declared here and named rather than asserted; what the run can read is the answer the login half
+# compares, which is what guard 9 reports.
+PAIR_VALUES="$PARITY_USER"$(printf '\n\n\n%s\n%s' "$PARITY_USER" "$PARITY_PASSWORD")
+PARITY_FEED="$PAIR_VALUES" RIVULET_BINARY="$RIVULET" RIVULET_COMMAND="integration-credentials" python3 "$FEED"
 
 # Guard 8: the two bases the run declares, read as the answers they give. A pair document cannot
 # carry an answer that never happened, so a side the run cannot reach is reported before anything is
 # collected. The reference is a container, and it listens only after its own migrations answer, so
-# the wait is what the run has to make for it.
+# the wait is what the run has to make for it, and the wait is made before the rows are arranged,
+# because the only path the reference has for putting a feed in its storage is a request.
 "$RIVULET" serve >/dev/null &
 serve_pid=$!
 wait_for "$PARITY_REFERENCE_PORT" \
@@ -293,16 +310,62 @@ wait_for "$PARITY_REFERENCE_PORT" \
 wait_for "$PARITY_BASE_PORT" \
     || fail "the run declares $PARITY_BASE_PORT as the base its own side answers on, and nothing answers there, so the answers the pair document carries never happened"
 
+# The credential pair the login read compares, set through the two paths the two sides have. The
+# reference has no path for the enabled flag that read requires other than its web form, and this
+# port has no integration table and no flag at all — its only path for the pair is this command — so
+# the run cannot set the two sides through one path, which is the divergence the `login_half` row
+# records. What the run can make one value is the value itself: it reads what this side wrote
+# through its own command and writes that onto the reference's integration row, so the compare is
+# one value on both sides. The value is read from this side rather than built here, because the
+# reference's own path would have hashed the password itself, and an unset pair is what guard 9
+# reports.
+pair=$(python3 -c 'import os, sqlite3; row = sqlite3.connect(os.environ["PARITY_DATABASE_URL"]).execute("select google_reader_password_hash from users where username = ?", (os.environ["PARITY_USER"],)).fetchone(); print(row[0] or "")')
+psql -q -v ON_ERROR_STOP=1 -c "UPDATE integrations SET googlereader_enabled = 't', googlereader_username = '$PARITY_USER', googlereader_password = '$pair' WHERE user_id = (SELECT id FROM users WHERE username = '$PARITY_USER')"
+
+# The rows each side stores are put there through the paths each side has, and the two sides do not
+# have the same paths. This port has a command for adding a feed; the reference has none, so its
+# feed rows come from its quickadd endpoint, and its fetch runs on the daemon's own cadence, which
+# the run cannot wait for: the collector reads the rows in the same pass it sends the requests in,
+# and the requests are what would create the reference's feeds. So the run arranges the reference
+# rows through the two paths the reference does have — its login and its batch flag — and the
+# port's rows through its own two commands. The login answer the arrangement needs is read from
+# the reference's own path, so the run does not build a token, and the login the pair document
+# carries is still the collector's own request: this one is the arrangement, which no rule reads.
+# The answer these POSTs give is not read either, so the run does not treat one as a failure — the
+# corpus has an input the reference answers with an error, and that is the difference the row for
+# the name classes covers.
+ref_token=$(curl -s -X POST -d "Email=$PARITY_USER&Passwd=$PARITY_PASSWORD&output=json" "$PARITY_REFERENCE_BASE/accounts/ClientLogin" | python3 -c 'import json, sys; print(json.load(sys.stdin)["Auth"])')
+for key in $(grep -v '^#\|^$' "$MANIFEST" | cut -d'|' -f1 | tr -d ' '); do
+    case "$key" in
+        corpus/*) curl -s -o /dev/null -X POST -d "T=$ref_token&output=json&quickadd=http://127.0.0.1:$PORT/$(basename "$key")" "$PARITY_REFERENCE_BASE/reader/api/0/subscription/quickadd" ;;
+    esac
+done
+
+for key in $(grep -v '^#\|^$' "$MANIFEST" | cut -d'|' -f1 | tr -d ' '); do
+    case "$key" in
+        corpus/*) "$RIVULET" add "http://127.0.0.1:$PORT/$(basename "$key")" --user "$PARITY_USER" ;;
+    esac
+done
+# The due rule is strict, so the batch read cannot see a feed written at the same instant it reads.
+# The run lets the clock move past the instant the insert wrote; a run that read the batch at that
+# same instant reported no feeds at all, which is what the first live execution here showed. The
+# same wait serves both sides, because the batch read on each side is the same rule on the same
+# instant.
+sleep 1
+"$RIVULET" refresh
+docker exec parity-reference /usr/bin/miniflux -refresh-feeds >/dev/null
+
 python3 "$COLLECT"
 
 # Guard 9: the login half, which the pair document can state only as the answer it recorded. The
 # requests after the login are answered through the token that answer carries, so a run that
 # recorded the unauthorized answer never authenticated, and every answer after it is the answer an
-# unauthenticated read gives. On this machine that is what the run reports: the reference reads the
-# integration row for this, and the only path that sets the enabled flag that read requires is its
-# web form, while this port has no integration table and no flag at all, and its own path for the
-# pair is the console command. The two sides cannot be set up through one path, so the run gets to
-# the login and not past it here, and this guard is what says so.
+# unauthenticated read gives. The reference reads the integration row for this, and the only path
+# that sets the enabled flag that read requires is its web form, which this port has no equivalent
+# of, so the run has to set the pair through two paths, and this guard is what reports a run where
+# one of them wrote nothing. Which of the two paths wrote the value is not something the pair
+# document can state, so the check half reads only the answer, and the row that names the path is
+# the accepted divergence in `docs/parity.md`.
 for side in reference port; do
     login=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["requests"][0]["status"])' "$WORK/pair.json" "$side")
     if [ "$login" != "200" ]; then
@@ -318,6 +381,21 @@ for side in reference port; do
         fail "the run recorded nothing for the $side side, so the pair document is not a run"
     fi
 done
+
+# Guard 11: the rows the pair document carries are the rows this run wrote, read as the urls those
+# rows hold against the port this run served. A url is something a pair document can state, so
+# this is read as data: a run that compared rows an earlier run stored is not a comparison. The
+# reference's half is a database on the machine's server, which keeps them, while this port's half
+# is the file the run made in its own work dir.
+foreign=$(python3 -c 'import json, os, sys
+pair = json.load(open(sys.argv[1]))
+served = "http://127.0.0.1:" + os.environ["PARITY_PORT"] + "/"
+bad = [side["side"] for side in (pair["reference"], pair["port"])
+       if any(not feed["url"].startswith(served) for feed in side["feeds"])]
+print(", ".join(bad))' "$WORK/pair.json")
+if [ -n "$foreign" ]; then
+    fail "the run read rows on the $foreign side that name a port it did not serve, so the pair document compares rows an earlier run wrote"
+fi
 
 # The report is written from the table before the rules read it, which is what lets the rule that
 # reads the report read the same table the run read.

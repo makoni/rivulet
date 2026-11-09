@@ -8,29 +8,38 @@ suite documents. The second slice is the security checklist, merged (PR #56): th
 five suites, one finding closed in production code. The third slice is the parity harness, merged as
 PR #57: the comparator reads a comparison run as the pair document it leaves behind, the tolerance
 table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on the rule it
-names — 18 rules, 20 crafted inputs plus the baseline. The fourth slice is merged as PR #58: the run
+names — 19 rules, 21 crafted inputs plus the baseline. The fourth slice is merged as PR #58: the run
 half executed here for the first time, with Postgres as a container, and what it reported was the
-login half, which the run reaches and cannot pass. The client matrix and the replay of captured
-request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
+login half, which the run reaches and cannot pass. The fifth slice, which opens as PR #60, closes
+that half as an accepted-divergence row: the run writes the credential pair through the two paths
+the two sides have — SQL on the reference side, where the enabled flag the login read requires is
+set only by its web form, and its own console command on this side, which has no integration table
+and no flag — so what the rule can read is the answer, and the row names which path wrote the value
+as not reachable here; the run that writes one value through both paths reports nothing but the key
+set the method-mismatch row names. The client matrix and the replay of captured request sequences
+follow. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
       FeedFlow (iOS/Android), optionally Reeder Classic — setup instructions and a manual
       checklist (subscribe, add a feed from the client, sync read state, star, counts).
-- [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
-      read the same corpus, and the difference is read class by class against the tolerance table,
-      which is read as data from `docs/parity.md` rather than restated in the comparator. The corpus
-      is the five documents under `Tools/parity/corpus/` plus the three request shapes the table
-      names, and the manifest names the classes each input can reach; what the corpus cannot reach
-      is named there rather than asserted. The run half executed here for the first time, with
-      Postgres as a container, and what it reported was the login half: the reference reads the
-      integration row the login read runs on, where the enabled flag that read requires is set only
-      by its web form, which this port has no equivalent of — it has no integration table and no
-      flag, and its own path for the pair is the console command — so no single path sets the values
-      for both sides. The
-      report committed under `docs/` is therefore the one the harness writes from the table, not one
-      a run wrote, and the guards in the shell are the half that can be checked without a run.
+- [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and
+      Rivulet read the same corpus, and the difference is read class by class against the
+      tolerance table, which is read as data from `docs/parity.md` rather than restated in the
+      comparator. The corpus is the five documents under `Tools/parity/corpus/` plus the three
+      request shapes the table names, and the manifest names the classes each input can reach;
+      what the corpus cannot reach is named there rather than asserted. The run half executed
+      here end to end through the collector, and the login half the first run reported is
+      closed as an accepted-divergence row: the reference reads the integration row the login
+      read runs on, where the enabled flag that read requires is set only by its web form,
+      which this port has no equivalent of — it has no integration table and no flag, and its
+      own path for the pair is the console command — so no single path sets the values for
+      both sides, and the run writes the pair through two: SQL on the reference side and its
+      own command on this one. The report committed under `docs/` is the one the harness
+      writes from the table before the rules read it, which is the same document a run writes
+      from the same table, and the guards in the shell are the half that can be checked
+      without a run.
 - [ ] Replay of captured real-client request sequences (redacted) as contract tests where
       possible.
 - [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
@@ -79,26 +88,30 @@ request sequences follow. **Effort:** M. **Depends on:** Stages 5–6.
   table the sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1
   probe).
 - Client checklist executed manually and attached to the stage status.
-- `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 18 rules over the data one run
-  leaves behind, each shown to fail on the rule it names: 20 crafted inputs plus the baseline, which
-  is asserted to report nothing, so each probe is single-firing. The rules were written after the
-  probe set: with the rules stubbed all 18 fail, and the patch round changes what each rule reads,
-  shows the probe for that rule failing, and reverts the file byte-identically. `Scripts/parity.sh`
-  is the run half: twelve of its nineteen checks name a value the run declares or a count it
-  declares against the committed files, and each was seen to fail on such a value or by taking the
-  file it names away; the seven that read the machine or the run's own data fail only on a run, and
-  three of them were seen to fail here — a port something already holds, the base its own side
-  answers on, by pointing the run at a binary that exits at once, and the login answer, by the run
-  itself. The run half executed here for the first time, with Postgres as a container, and what it
-  reported was the login half, so the committed report is the one written from the table by hand.
+- `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one
+  run leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline,
+  which is asserted to report nothing, so each probe is single-firing. The rules were written
+  after the probe set: with the rules stubbed all 19 fail, and the patch round changes what each
+  rule reads, shows the probe for that rule failing, and reverts the file byte-identically; the
+  patch for the login-half rule reads the reference's own stored value instead of the one this
+  port wrote, and was seen to fire on run data. `Scripts/parity.sh` is the run half: twelve of its
+  twenty checks name a value the run declares or a count it declares against the committed files,
+  and each was seen to fail on such a value or by taking the file it names away; the eight that
+  read the machine or the run's own data fail only on a run, and four of them were seen to fail
+  here — a port something already holds, the base its own side answers on, by pointing the run at
+  a binary that exits at once, the login answer, by the run itself, and the stored rows, by
+  running the same declared database twice. The authenticated run here reports one finding, the
+  key set the method-mismatch row names, and the committed report is the document the harness
+  writes from the table.
 
 ## Exit criteria
 
-- [x] `docs/parity.md`: deviations listed, each either fixed or consciously accepted. The harness
-      section reads them as data, names the classes its corpus cannot reach, and the report it
-      writes (`docs/parity-report.md`) names every rule, every class and what the run cannot show.
-      The machine the run needs is here now, and the run executes end to end through the collector;
-      what is still open is the login half, which the run reaches and cannot pass here, and the
+- [x] `docs/parity.md`: deviations listed, each either fixed or consciously accepted. The
+      harness section reads them as data, names the classes its corpus cannot reach, and the
+      report it writes (`docs/parity-report.md`) names every rule, every class and what the
+      run cannot show. The machine the run needs is here now, and the run executes end to end
+      through the collector with an authenticated pair; the login half is closed as the
+      accepted-divergence row for the path that writes the pair, and what is still open is the
       classes no corpus input can reach.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes).
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
