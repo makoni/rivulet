@@ -504,15 +504,38 @@ the trailing slash survives only from the last element, and that the base's quer
 path. `IconFinderTests` pins the order end to end against a stub server: the feed's icon URL, then
 the website document, then the root document only when it differs from the website URL, then the
 default icon joined to the root; the first step that produces an icon stops the search, an earlier
-failure is skipped while the last step's failure is the answer, a `data:` href answers without a
-request, and the feed's icon URL is read as the icon bytes rather than scanned as a document. What
-these three cannot fail on is stated in their headers: the join does not escape what it joins, which
-is Go's documented expectation and is pinned only as that it does not escape, while a character the
-path mode escapes is written as its escape by the URL layer's own rule; the reference's error
-wording, which this port keeps as typed cases; the size cap, which the fetcher applies before this
-layer sees the bytes and which no icon case reads; and the basis the empty-body rule measures, which
-is `Content-Length` upstream and the bytes read here, so a chunked empty body differs — recorded
-rather than pinned.
+failure is skipped while the last step's failure is the answer, a step that answers nothing is
+skipped too, which is what the resize answers for an image it rejects, a `data:` href answers
+without a request and without the resize, and the feed's icon URL is read as the icon bytes rather
+than scanned as a document. What these three cannot fail on is stated in their headers: the join
+does not escape what it joins, which is Go's documented expectation and is pinned only as that it
+does not escape, while a character the path mode escapes is written as its escape by the URL layer's
+own rule; the reference's error wording, which this port keeps as typed cases; the size cap, which
+the fetcher applies before this layer sees the bytes and which no icon case reads; and the basis the
+empty-body rule measures, which is `Content-Length` upstream and the bytes read here, so a chunked
+empty body differs — recorded rather than pinned; and the search answering nothing when every step
+answers nothing, because a patch that changes that answer changes the resize rule, which is a
+different pin.
+
+`IconResizeTests` pins the resize step as pure logic: the content type is compared as the whole
+value it was read with, the type list runs before the header read and its rejection, the dimensions
+come from the file's own magic compared at the length of that magic, each WebP chunk shape answers
+its own dimensions, the start-of-frame segment is read only for the three markers the walk
+dispatches and only for the shapes `processSOF` accepts, the GIF read takes the 13 bytes of its own
+header before it answers the logical screen, the segment walk finds the frame segment instead of
+assuming it is the first one, a header the read cannot answer leaves the bytes as they were, a side
+strictly greater than 4096 is the rejection, a file at or under 32×32 is left as it is, with the pin
+holding a case in each direction so both sides of that guard can fail, and anything else becomes a
+32×32 PNG written with the content type as the literal `image/png`, with the checksum still the
+value the bytes as read produced. 17 pins and 25 probes, each seen to fail on the rule it names and
+to revert the file byte-identically. What that header names as unpinnable: the SVG branch, because
+this port has no minifier and no patch can part the branch from the type list before it; the content
+type the document writes, because the only bytes this port's decoder can read are bytes the name
+already calls `image/png`; the pixel-count term, which no patch can flip because a side above 4096
+answers first; the guard that a dimension read as zero ends the resize; which pixels the scale
+produces, which is the reference's `draw.BiLinear` against the port's own rounding; the encode
+failure, which no input can make the encoder answer; and the pixel decode for GIF and WebP, which
+this port has no decoder for, so those cases read only that the guard passes the bytes on.
 
 `IconRepositoryTests` adds the storage half: the dedupe is by hash, the content type is compared as
 the whole value so one carrying a parameter is not a known icon type, the link replaces what the
@@ -540,9 +563,10 @@ points only on the branch it inserted on, fail the pins that name those; the gua
 missing path only, which a patch that applies it to the other path fails. A failing search writes
 nothing, and the request carries the feed's user agent, which a patch that hands the builder nothing
 fails. What the pins cannot fail on is stated in the header: the reference logs each failure, so a
-swallowed failure reads only as the call completing with nothing written, and the reference can
-answer with no icon and no error through its resize step, which is not ported, so no case here can
-answer without an icon. The dedupe, the content-type normalization, the single transaction and the
+swallowed failure reads only as the call completing with nothing written, and the branch that reads
+the search answering nothing — which the resize can answer for an image it rejects, as the pin in
+`IconFinderTests` shows through the skip rule — reads only that nothing is written, because no patch
+can store a nil answer. The dedupe, the content-type normalization, the single transaction and the
 join table are the storage suite's rules, read here only as the values the checker passes on, and
 the guard read cannot show that a read which fails answers the same as a read that finds nothing:
 the pins name the decision, not the mechanism. The user agent is pinned only as the value the

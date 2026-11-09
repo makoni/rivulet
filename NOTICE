@@ -24,5 +24,11 @@ The WHATWG character-encoding label table in `Sources/RivuletCore/Reader/Charset
  `golang.org/x/net/html` (`entity` and `entity2`), and the HTML tokenizer subset and the insertion
  modes the sanitizer reads through follow the same package, also BSD 3-Clause. The layout engine,
  chunk scanner and reading primitives in `Sources/RivuletCore/Reader/Date/` follow the Go standard
- library (`time`, `time/format.go`), also BSD 3-Clause. https://cs.opensource.google/go/x/text
+ library (`time`, `time/format.go`), also BSD 3-Clause. The dimensions `IconImageHeader` reads
+ follow the Go standard library (`image/png`, `image/jpeg`, `image/gif`) and `golang.org/x/image`
+ (`vp8`, `vp8l`), also BSD 3-Clause, and the pixels are read through `tayloraswift/swift-png`
+ (4.5.2) and `tayloraswift/swift-jpeg` (2.1.0), both Apache-2.0, which are the image-decoding
+ dependencies approved for the icon resize step. https://cs.opensource.google/go/x/text
  https://cs.opensource.google/go/x/net https://cs.opensource.google/go/go
+ https://cs.opensource.google/go/x/image https://github.com/tayloraswift/swift-png
+ https://github.com/tayloraswift/swift-jpeg

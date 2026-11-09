@@ -22,8 +22,9 @@ import Testing
 ///
 /// What they cannot fail on: the reference logs each failure and this port has no logging
 /// layer, so a swallowed failure reads only as "the call completes and nothing was written";
-/// the reference can answer with no icon and no error through its resize step, which is not
-/// ported, so no case here can answer without an icon; the dedupe, the content-type
+/// the branch that reads the search answering nothing, because no patch can store a nil answer —
+/// a patch that makes the search answer for a rejected image changes the resize rule, which is a
+/// different pin; the dedupe, the content-type
 /// normalization, the single transaction and the join table are the storage suite's rules,
 /// which these pins read only as the values the checker passes on; the request headers are the
 /// fetch suite's rules, so the pin here names only that the checker hands the feed's value on,

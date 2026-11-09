@@ -5,12 +5,12 @@
 
 import Foundation
 
-/// An icon the search found, before the storage layer decides what to store. The reference
-/// writes the model directly, so this port keeps the value here and the repository applies the
-/// rules of its own: the normalized content type and the random `external_id`.
+/// An icon the search found, before the storage layer decides what to store. The reference writes
+/// the model directly, so this port keeps the value here and the repository applies the rules of
+/// its own: the normalized content type and the random `external_id`.
 ///
-/// The checksum covers the content bytes, which is the value the storage layer deduplicates by.
-/// It is the port's SHA-256, not the reference's `crypto.HashFromBytes` (FNV-128a), which
+/// The checksum covers the content bytes, which is the value the storage layer deduplicates by. It
+/// is the port's SHA-256, not the reference's `crypto.HashFromBytes` (FNV-128a), which
 /// `docs/parity.md` records.
 struct IconCandidate: Equatable, Sendable {
     /// Content type as it was read, before the storage layer normalizes it.
@@ -26,5 +26,18 @@ struct IconCandidate: Equatable, Sendable {
         self.mimeType = mimeType
         self.content = content
         hash = Hashes.sha256(content)
+    }
+
+    /// The same icon after the resize wrote a new document: the content and the content type are
+    /// the encoder's answer, but the checksum is still the value the bytes as read produced,
+    /// because `downloadIcon` hashes the body before it calls `resizeIcon`. For a resized icon the
+    /// hash and the content stop corresponding, and the storage layer deduplicates by the hash as
+    /// it was.
+    static func resized(from candidate: IconCandidate, content: Data, mimeType: String)
+        -> IconCandidate {
+        var resized = candidate
+        resized.content = content
+        resized.mimeType = mimeType
+        return resized
     }
 }
