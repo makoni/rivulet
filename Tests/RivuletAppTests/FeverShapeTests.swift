@@ -101,8 +101,9 @@ import Testing
         // those slices with `make` before it writes the document. For `groups` and `favicons` the
         // reference writes `null` for the nil slice its build path leaves, which is the divergence
         // the row in `docs/parity.md` records — Newsflash's deserializer refuses `null` for those
-        // two. A patch that wrote `null` for an empty document failed each of the four
-        // assertions here.
+        // two. The patch that wrote `null` for an empty document fired on the favicons
+        // assertion below; the other three read the lists the reference builds with `make`, so they
+        // answer the same on both sides and no patch can part them.
         #expect(FeverShape.itemsDocument(items: [], total: 0, lastRefreshed: 0).written() ==
             "{\"api_version\":3,\"auth\":1,\"last_refreshed_on_time\":0,\"items\":[],\"total_items\":0}",
             "the list the handler builds with make, and the count written as a number")

@@ -17,3 +17,6 @@ When an item is scheduled, split it into a proper stage plan with scope, tests a
   deviation from the reference).
 - **More Google Reader features**: shared entries (`share_code`), tags beyond star.
 - **Per-feed retention policies** (extension; the reference uses global settings only).
+- **Quoted-printable part decoding** in the multipart form read, which Go applies to a part that
+  declares `Content-Transfer-Encoding: quoted-printable` and this port does not; the rule is named
+  in `FeverMultipartRead.swift` and in `docs/parity.md`.
