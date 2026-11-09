@@ -905,11 +905,16 @@ Go's `sniff` compares each magic at the length of its own magic. The WebP match 
 to the chunk name, so all three chunk shapes reach the read, and each answers its own dimensions:
 the extended one as the stored canvas plus one, the packed one as two 14-bit values each plus one,
 and the lossy one as the 14-bit pair that follows its frame header's sync code, with a frame that is
-not a key frame answering zero. A side strictly greater than 4096 or a pixel count greater than
-4096×4096 is the rejection the search continues past, a file at or under 32×32 is left as it is, and
-anything else becomes a 32×32 PNG written with the content type as the literal `image/png`. The
-checksum is the value the bytes as read produced, because `downloadIcon` computes it before it calls
-the resize, so for a resized icon the hash and the content stop corresponding.
+not a key frame answering zero. The start-of-frame segment is read only for the three markers Go's
+walk dispatches to `processSOF`, and only for the shapes that rule accepts: the length naming the
+header plus one triple per component for the counts it accepts, the precision it accepts, and the
+count byte matching the length. The GIF read takes the 13 bytes of its own header before it answers
+the logical screen, so a file too short for the header its own format reads is the error the read
+reports. A side strictly greater than 4096 or a pixel count greater than 4096×4096 is the rejection
+the search continues past, a file at or under 32×32 is left as it is, and anything else becomes a
+32×32 PNG written with the content type as the literal `image/png`. The checksum is the value the
+bytes as read produced, because `downloadIcon` computes it before it calls the resize, so for a
+resized icon the hash and the content stop corresponding.
 - The checker half (`internal/reader/icon/checker.go`) is the guard and the two storage decisions:
 the guard reads the mapping for this feed rather than the icon table, and it belongs to the path the
 reference runs when the feed is not being forced, so the other path writes and points even for a
@@ -1002,6 +1007,10 @@ resized upstream and stored as it was read here, and those two formats are read 
 only. The dimension read itself follows the Go standard library (`image/png`, `image/jpeg`,
 `image/gif`) and `golang.org/x/image` (`vp8`, `vp8l`), also BSD 3-Clause, because the reference
 reaches them through `image.DecodeConfig` rather than through Miniflux code.
+- The WebP chunk-size field is not read here, which is the field Go reads before it reads a chunk:
+this port reads the file length instead, so a file whose declared chunk size is smaller than the
+data it holds is read here and refused upstream. No pin writes a chunk size that parts from its
+data, so that field is recorded here rather than pinned.
 - The pixel-count term is read but cannot be observed: a side above 4096 answers the rejection
 before the count is read, so no patch can flip the term alone, and the upstream case that names "too
 large pixel count" is kept as the case the dimension term answers.

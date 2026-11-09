@@ -43,13 +43,14 @@ as PR #35: the shell is its cadence, its checks read the data each round leaves 
 the process that produced them, and each check is shown to fail on the rule it names. Retention is
 already pinned by `RetentionTests`. The eleventh slice is the resize step, which opens as PR #62:
 the header read for the four formats, with each magic compared at the length of its own magic and
-the three WebP chunk shapes answering their own dimensions, the decode for the two formats the
-approved dependencies give this port, the scale, and the PNG write — 15 pins and 18 probes by
-`IconResizeTests`, plus 1 new pin and 1 probe in `IconFinderTests` for the same skipped step. What
-that header names as unpinnable: the SVG branch, the content type the document writes, the
-pixel-count term, the guard that a dimension read as zero ends the resize, the values the scale
-produces, the encode failure, and the pixel decode for GIF and WebP. The in-process cadence loop
-landed with stage 6 as PR #50, and the resize is the last thing stage 4 has open.
+the three WebP chunk shapes answering their own dimensions, the start-of-frame shapes `processSOF`
+accepts, the 13-byte GIF header read, the decode for the two formats the approved dependencies give
+this port, the scale, and the PNG write — 17 pins and 25 probes by `IconResizeTests`, plus 1 new pin
+and 1 probe in `IconFinderTests` for the same skipped step. What that header names as unpinnable:
+the SVG branch, the content type the document writes, the pixel-count term, the guard that a
+dimension read as zero ends the resize, the values the scale produces, the encode failure, and the
+pixel decode for GIF and WebP. The in-process cadence loop landed with stage 6 as PR #50, and the
+resize is the last thing stage 4 has open.
 
 ## Scope
 

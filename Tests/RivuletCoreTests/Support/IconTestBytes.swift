@@ -25,20 +25,40 @@ enum IconTestBytes {
                        chunk("IDAT", storedBlock(raw)), chunk("IEND", [])])
     }
 
-    /// GIF89a with these logical screen dimensions. This port has no pixel decoder for GIF, so the
-    /// header is all a pin can read.
-    static func gif(width: Int, height: Int) -> Data {
-        Data([0x47, 0x49, 0x46, 0x38, 0x39, 0x61,
-             UInt8(width & 0xFF), UInt8(width >> 8), UInt8(height & 0xFF), UInt8(height >> 8),
-             0, 0, 0])
+    /// GIF89a with these logical screen dimensions, 13 bytes, which is what `gif.DecodeConfig`
+    /// reads. The pin that names the guard for a file too short for its own header writes one byte
+    /// less.
+    static func gif(width: Int, height: Int, length: Int = 13) -> Data {
+        var bytes: [UInt8] = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61,
+                              UInt8(width & 0xFF), UInt8(width >> 8),
+                              UInt8(height & 0xFF), UInt8(height >> 8), 0, 0, 0]
+        if length < bytes.count { bytes = Array(bytes[0 ..< length]) }
+        return Data(bytes)
     }
 
-    /// JPEG with these frame dimensions and no scan data: the config read answers them, the pixel
-    /// decode has nothing to read. The frame segment is not the first one, which is what the pin
-    /// that names the segment walk needs.
-    static func jpeg(width: Int, height: Int) -> Data {
-        Data([0xFF, 0xD8, 0xFF, 0xC4, 0x00, 0x02, 0xFF, 0xC0, 0x00, 0x11, 8,
-              UInt8(height >> 8), UInt8(height & 0xFF), UInt8(width >> 8), UInt8(width & 0xFF), 1, 1, 0])
+    /// JPEG with these frame dimensions and no scan data, the frame segment written as `processSOF`
+    /// reads it, so the config read answers the dimensions and the pixel decode has nothing to
+    /// read. The marker, the precision, the count byte and the length are arguments because the pin
+    /// that names the shape rules writes one of them wrong, and the padding keeps the declared
+    /// length inside the file, so the rule a pin names is the answer rather than the bounds guard.
+    /// The table segment is an argument too: the pin that names the segment walk needs a segment
+    /// before the frame one, while the pins that name the shape rules read the frame as the first
+    /// segment, so a patch that changes the walk cannot change their answer and each probe fires
+    /// alone.
+    static func jpeg(marker: UInt8 = 0xC0, precision: UInt8 = 8, count: UInt8 = 1, length: Int? = nil,
+                     width: Int, height: Int, tableSegment: Bool = false) -> Data {
+        let data: [UInt8] = [precision, UInt8(height >> 8), UInt8(height & 0xFF),
+                             UInt8(width >> 8), UInt8(width & 0xFF), count]
+            + [UInt8](repeating: 1, count: 3 * Int(count))
+        // The length names the bytes after itself, which is what `processSOF` is given.
+        let declared = length ?? 8 + 3 * Int(count)
+        let frame: [UInt8] = [0xFF, marker, UInt8(declared >> 8), UInt8(declared & 0xFF)]
+            + data + [UInt8](repeating: 0, count: max(0, declared - 2 - data.count))
+        var bytes = [0xFF, 0xD8] + (tableSegment ? [0xFF, 0xC4, 0x00, 0x02] : []) + frame
+        // Kept past the length of the longest magic, so the probe that fixes that length reads only
+        // the rule it names and stops here. The end-of-image marker is what closes the file.
+        while bytes.count < 20 { bytes.append(0) }
+        return Data(bytes + [0xFF, 0xD9])
     }
 
     /// A WebP whose chunk is the lossy one: three frame-tag bytes, the sync code, then the two

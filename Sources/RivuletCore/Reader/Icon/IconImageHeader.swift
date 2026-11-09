@@ -14,7 +14,10 @@ import Foundation
 /// format reads is the error the read reports. The WebP magic names the bytes up to the chunk name,
 /// so all three chunk names reach the read, and each answers its own shape: the lossy one as a
 /// 14-bit pair after its frame header, the packed one as two 14-bit values, and the extended one as
-/// the stored canvas plus one.
+/// the stored canvas plus one. What this port reads is the file length where Go reads the chunk
+/// size field, so a file whose declared size is smaller than its data is read here and refused
+/// upstream, which `docs/parity.md` records; no pin here writes a chunk size that parts from its
+/// data.
 enum IconImageHeader {
     /// The dimensions as the read answers them, or nothing for a file it cannot match.
     static func dimensions(of bytes: [UInt8]) -> (width: Int, height: Int)? {
@@ -48,14 +51,18 @@ enum IconImageHeader {
         return (Int(big32(bytes, 16)), Int(big32(bytes, 20)))
     }
 
-    /// The logical screen size, which `gif.DecodeConfig` answers without reading the frames.
+    /// The logical screen size, which `gif.DecodeConfig` answers without reading the frames, after
+    /// reading the 13 bytes of its header.
     private static func gif(_ bytes: [UInt8]) -> (width: Int, height: Int)? {
-        guard bytes.count >= 10 else { return nil }
+        guard bytes.count >= 13 else { return nil }
         return (Int(little16(bytes, 6)), Int(little16(bytes, 8)))
     }
 
-    /// The segments are walked until one of them names a start-of-frame, which is precision and
-    /// then the two dimensions, each 16-bit and read as the segment length is read: big-endian.
+    /// The segments are walked until one of them names a start-of-frame. `processSOF` is called for
+    /// the three markers it registers, the length must name the header plus one triple per
+    /// component for the counts it accepts, the precision must be the one it accepts, and the count
+    /// byte must match the length; the segment data is precision and then the two dimensions,
+    /// height first, each 16-bit and read as the segment length is read: big-endian.
     private static func jpeg(_ bytes: [UInt8]) -> (width: Int, height: Int)? {
         var position = 2
         while position + 1 < bytes.count {
@@ -64,14 +71,18 @@ enum IconImageHeader {
             position += 2
             if marker >= 0xD0 && marker <= 0xD9 { continue }
             guard position + 1 < bytes.count else { return nil }
-            let length = Int(big16(bytes, position))
-            if (marker >= 0xC0 && marker <= 0xCF) && marker != 0xC4 && marker != 0xC8 && marker != 0xCC {
-                guard length >= 6, position + 7 <= bytes.count else { return nil }
-                // The segment data is precision and then the two dimensions, height first, which is
-                // the order `processSOF` reads them in.
+            // The length counts the bytes after itself, which is what `processSOF` is given.
+            let payload = Int(big16(bytes, position)) - 2
+            guard position + 2 + payload <= bytes.count else { return nil }
+            if marker == 0xC0 || marker == 0xC1 || marker == 0xC2 {
+                let components = (payload - 6) / 3
+                guard payload == 6 + 3 * components,
+                    components == 1 || components == 3 || components == 4,
+                    bytes[position + 2] == 8,
+                    Int(bytes[position + 7]) == components else { return nil }
                 return (Int(big16(bytes, position + 5)), Int(big16(bytes, position + 3)))
             }
-            position += length
+            position += 2 + payload
         }
         return nil
     }

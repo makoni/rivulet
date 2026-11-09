@@ -428,7 +428,7 @@ as the calls the loop makes through its seam, and retention is pinned by `Retent
 keeps one open thing: the icon image resizing, which opens as PR #62 — the header read for the four
 formats, each magic compared at the length of its own magic, the three WebP chunk shapes answering
 their own dimensions, the decode for the two formats the approved dependencies give this port, the
-scale, and the PNG write, 15 pins and 18 probes by `IconResizeTests`, plus 1 new pin and 1 probe in
+scale, and the PNG write, 17 pins and 25 probes by `IconResizeTests`, plus 1 new pin and 1 probe in
 `IconFinderTests` for the same skipped step. What that header names as unpinnable: the SVG branch,
 the content type the document writes, the pixel-count term, the guard that a dimension read as zero
 ends the resize, the values the scale produces, the encode failure, and the pixel decode for GIF and
