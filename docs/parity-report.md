@@ -38,6 +38,7 @@ Classes the run read:
 - relation_test: accepted
 - parsed_title: accepted
 - login_half: accepted
+- empty_lists: accepted
 
 What the run cannot show:
 - that the run ran at all, because it is on demand and not in CI
@@ -49,4 +50,4 @@ What the run cannot show:
 - the login half beyond the answer the run recorded: which path wrote the value the read compares, and which prompt the value came from. The reference reads the integration row the login runs on, where the enabled flag that read requires is set only by its web form, while this port has no integration table and no flag, so the run writes the value by SQL on that side and through its own console command on this one, and the pair document cannot state which of the two paths put it there, nor in what order the command read its prompts
 - the pinned version on the port side, because the rule that reads it reads only the reference side, where the run names the pinned version and the port names the build it ran
 - the guards, which are shown only by declaring a value below what they require, and the eight that read data rather than a declared value, which fail only on a run
-- the seven classes no coverage-reading rule can see, which are named in the table rather than asserted
+- the eight classes no coverage-reading rule can see, which are named in the table rather than asserted

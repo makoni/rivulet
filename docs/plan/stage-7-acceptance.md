@@ -16,8 +16,13 @@ the two sides have — SQL on the reference side, where the enabled flag the log
 set only by its web form, and its own console command on this side, which has no integration table
 and no flag — so what the rule can read is the answer, and the row names which path wrote the value
 as not reachable here; the run that writes one value through both paths reports nothing but the key
-set the method-mismatch row names. The client matrix and the replay of captured request sequences
-follow. **Effort:** M. **Depends on:** Stages 5–6.
+set the method-mismatch row names. The sixth slice is the Fever parameter set sized to what the
+acceptance client calls, which opens as PR #61: the base document, the five read documents, the
+three `mark` branches and the `HEAD` reachability check, pinned as 32 pins and 67 probes across the
+seven Fever suites and the icon read, each seen to fail on the rule it names and to revert the file
+byte-identically, with the accepted row for the empty list this client's deserializer refuses added
+to the tolerance table. The client matrix and the replay of captured request sequences follow.
+**Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
@@ -90,6 +95,18 @@ follow. **Effort:** M. **Depends on:** Stages 5–6.
   `strconv.Atoi` reads as part of a number (`SanitizerTests`, 1 pin and 1 probe); and the entity
   table the sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1
   probe).
+- The Fever parameter set the acceptance client calls, pinned as pure logic and over a real socket:
+  the base document, the five read documents, the three `mark` branches and the `HEAD` reachability
+  check. 32 pins and 67 probes across `FeverMultipartReadTests`, `FeverShapeTests`,
+  `FeverAuthTests`, `FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests` and
+  `FeverWriteTests`, plus the icon
+  read, each seen to fail on the rule it names and to revert the file byte-identically. Three part
+  rules and two value rules are read as the reference reads them rather than recorded as
+  divergences: the header line with no colon, the malformed parameter, the empty filename, the
+  publication time, and the negative value that answers the default. What no patch can show is
+  named in the headers rather than asserted: the port's own `HEAD` registration, because Vapor
+  forwards the method to the GET route, and the order the reference's icon join answers, which its
+  statement does not order.
 - Client checklist executed manually and attached to the stage status.
 - `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one
   run leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline,

@@ -1234,6 +1234,58 @@ enforces on the destination is shared. The pins are `MaintenanceCommandTests` fo
 | The rebuild | nothing to compare | the file shrunk and every row kept, then the truncating checkpoint the stage-1 wrapper ends with | No reference behavior to compare; the checkpoint is pinned as a storage rule and not as a command rule, because `RivuletApplication.shutdown()` runs one after every command |
 | The room the copy needs | nothing to compare: the reference has no free-space check, and its CLI has no backup command to check for | the estimate is the bytes the source holds as the filesystem reads them — the main file plus the `-wal` beside it as the filesystem reads it — times the factor 2 `docs/plan/stage-1-storage.md` documents for `VACUUM INTO`; the room is read at the directory the destination is in, which is the current directory for a destination named as a bare name, and the comparison is strictly less, so a destination with exactly the estimate holds the copy; a room the filesystem cannot read answers a refusal, and a size it cannot read counts as nothing | The port's own rule, read at the start of the `backup` run before anything is written, so a run that cannot hold the copy writes nothing; `vacuum` is not checked, because it rebuilds the file it already holds rather than writing a copy beside it |
 
+## Fever path (stage 7)
+
+The parameter set this port implements is the one the acceptance client calls: the base document,
+the five read documents, the three `mark` branches, and the reachability check that client sends
+as `HEAD`. `FeverAuthTests`, `FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests` and
+`FeverWriteTests` pin it over a real socket, and `FeverMultipartReadTests` and `FeverShapeTests` pin
+the form read and the document shapes as pure logic.
+
+**Matching the reference.**
+
+- The key is read through the merged form whatever the method is, and this read has no error half:
+  `FormValue` discards what `ParseMultipartForm` reports, so a body the read cannot finish adds
+  nothing to the form and the guard answers the empty value — the failure document at 200, not the
+  shape the sibling path answers for a form it cannot parse. `ParseForm` runs before the body read,
+  so the pairs it built survive: the pin that carries the key in the query answers the run that
+  passed, and only a name the failing body alone carries answers the failure document.
+- The order per name is the urlencoded body pairs, then the query pairs, then the value parts, which
+  is `copyValues` applied twice, and the method guard belongs to the urlencoded half only, because
+  `FormValue` reaches `ParseMultipartForm` for any method.
+- The media type is read as `mime.ParseMediaType` reads it: the type is lowercased before it is
+  compared and only `multipart/form-data` reaches the body read, and the boundary is one of its
+  parameters rather than the read's own. A pair with no `=`, or a value that is empty as written, is
+  `ErrInvalidMediaParameter`, while the type is still answered with that error, so `parsePostForm`
+  reads its body for a content type whose parameters are malformed; a trailing semicolon is nothing
+  to read and is not the error. A header line with no colon is textproto's ProtocolError, which
+  `ReadForm` returns, so the whole body read fails rather than that line being skipped. Only value
+  parts land in the form: `FileName()` answers the empty string for a filename parameter that is
+  empty, so a part with an empty filename is a value part, and a part with a malformed disposition
+  has no name. Quoted-printable decoding, which Go applies to a part that declares it, is not ported
+  and is named in the code comment as the stage-7 backlog.
+- The items read answers the default for a value the query integer read cannot read — one that is
+  empty, unparseable or negative — so `max_id=-2` is the zero half of the branch rather than a
+  bound; the write guards read `FormInt64Value`, which has no negative path, so the sign is part of
+  the value there. `created_on_time` carries the publication time, which is the reference's
+  `entry.Date`, read on data where the publication time and the created time differ.
+- The write guards read the value the integer read answers, so a value the read cannot read is the
+  zero, and the handler returns before the response builder runs: the answer is an empty body at 200
+  with no content type and none of the three headers the builder writes on every other answer.
+- `HEAD` reaches the same handler, because the reference's pattern is a subtree pattern that answers
+  any method, while Vapor matches per method, so the port registers the three methods the client
+  uses; the method mismatch is the row it already is. The transport writes no bytes for this method,
+  so the pin reads the status, the content type and the length the framing headers keep for the GET
+  half.
+- The default "All" category the create path writes with the account is one of the groups rows, so
+  every groups answer here carries it, which is what the reference's `CreateUser` does too.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| An empty list on the two documents | `groups` and `favicons` are nil slices when the build path has no row, so `json.Marshal` writes `null` for them, while `items`, `feeds` and the `feeds_groups` are built with `make` and write `[]` | `[]` on every document of this path, including those two | Newsflash's deserializer refuses `null` for these two fields, so the port writes the array. `items`, `feeds` and `feeds_groups` answer the same on both sides, so these two are where the two answers part; `FeverShapeTests` pins this port's side, and the class row in the harness table points at this row |
+
 ## Parity harness (stage 7)
 
 The harness is the stage-7 exit criterion that compares the port with the reference over the same
@@ -1279,14 +1331,18 @@ reads, so all four stay whole on their own line.
 | relation_test | Google Reader subscription path — The relation test | accepted | not reachable here |
 | parsed_title | Google Reader subscription path — The title inside the request | accepted | request/subscription_quickadd |
 | login_half | Google Reader auth path — The row the login read runs on | accepted | not reachable here |
+| empty_lists | Fever path — An empty list on the two documents | accepted | not reachable here |
 
-The seven rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
+The eight rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
 are read inside the sanitizer and never written out, the bracketed host answers a fetch decision
 rather than a stored value, the media proxy is run as `none` on the reference side so the stored
 bytes are comparable, the wording of a rule the port names is not compared at all, and the two scan
 classes are read only from an HTML document, which the corpus has none of: every corpus file is a
-feed document, answered by the format check before the scan reads a `link`; and the login row names
-which path wrote the value the login read compares, which no pair document states. They are named
+feed document, answered by the format check before the scan reads a `link`; the login row names
+which path wrote the value the login read compares, which no pair document states; and the
+empty-list
+class belongs to a path the run sends no request to, because its sequence is the shapes the manifest
+records. They are named
 here rather than asserted, and the run guard that declares the proxy mode is what makes the third
 half of that list hold. `none` is the value the reference's own validator accepts, alongside
 `http-only` and `all`; the harness runs `none`, which is not the reference's default.

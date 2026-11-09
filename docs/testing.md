@@ -58,6 +58,17 @@ the token as the `T` field of the merged form, which is what a POST request has 
 `seedIntegrationUser` creates the user the way `UserRepository.create` does — with the default "All"
 category — and sets the integration credentials the token read needs, so a pin that depends on which
 categories a user has reads the graph the command creates rather than a set the test made.
+- `FeverRequests.swift` — the requests and answer reads the five Fever suites over a real socket
+  share: `get`, `post` and `head` build the path the client calls, `postParts` and `multipart` send
+  the body as the bytes are given so a rule about what the form read sees is shown by the bytes
+  rather than by an encoding the client added, and `body`, `contentType` and `header` read the
+  answer as the transport left it, so the pin for a method that writes no bytes reads the framing
+  name. `seed` creates the account through `UserRepository.create`, so the default "All" category
+  the create path writes is one of the rows the pins read, and answers the token the guard reads;
+  `categoryID` reads the id the groups golden names.
+The rows are written through SQL on one connection and the request runs after that connection goes
+back to the pool, because the driver keeps a single pooled connection, so a pin cannot hold one
+while the handler checks out another.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
 with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
 set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
@@ -506,7 +517,13 @@ rather than pinned.
 `IconRepositoryTests` adds the storage half: the dedupe is by hash, the content type is compared as
 the whole value so one carrying a parameter is not a known icon type, the link replaces what the
 feed row had rather than adding a second mapping, and the orphan pass deletes only icons no feed
-points at. The count that pass returns can fail, and is read through `SELECT changes()` because this
+points at. The join for the per-user read answers one row per feed, so an icon two feeds point at
+appears twice — a read that went through the icon table alone cannot answer that — and the order
+that read answers is the icon row then the feed row, which is the order this port names; and the
+`data` field is the stored content type, a semicolon and the standard base64 with its padding, so
+neither the url-safe alphabet nor a patch that dropped the padding can be read here. 2 pins and
+4 probes cover those two rules, 2 for the join and 2 for the `data` field. The count that pass
+returns can fail, and is read through `SELECT changes()` because this
 SQLKit version gives no row count for a raw statement. The pins cannot fail on the randomness of
 `external_id`, which they read only as the shape, nor on the single transaction the reference wraps
 the dedupe and the link in — the same boundary the pipeline records. The request headers the icon
@@ -1001,6 +1018,64 @@ The same is true of the discovery steps this port does not have, of the title an
 reference's subscription value carries, and of the reference parsing the discovered feed inside the
 request, where its `streamName` is the parsed title while this port writes the row with the create
 defaults. These are recorded in `docs/parity.md`.
+
+### The Fever parameter set (`FeverMultipartReadTests`, `FeverShapeTests`, `FeverAuthTests`,
+`FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests`, `FeverWriteTests`, PR #61)
+
+The parameter set is the one the acceptance client calls: the base document, the five read
+documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
+32 pins and 67 probes across the seven Fever suites — two unit and five integration — and the
+icon read: 8 pins and 17 probes for the multipart read as pure logic, 5 and 8 for the document
+shapes, 3 and 5 for the transport over a real socket, 2 and 6 for the dispatch, 4 and 8 for the
+storage reads the documents are built from, 4 and 8 for the items read, 4 and 11 for the three
+write branches, and 2 and 4 for the icon read. Each probe patches one rule, is seen to fail on
+the rule it names, and reverts the file byte-identically.
+
+What the probes read, with the number of patches the suite header gives each rule: the multipart
+read's 17 — 2 for the media type compared lowercased and only `multipart/form-data` reaching the
+body read, 1 for the boundary being a parameter of the content type rather than the read's own,
+4 for the parameter rules (a pair with no `=`, an unquoted empty value being the error, a
+trailing semicolon not being the error, and the media type surviving the error on the urlencoded
+half), 1 for a part that cannot be read ending the whole body read, 4 for the three guards of
+the part loop — disposition, name, and the filename parameter being empty rather than present,
+which is what makes the part a value part — 1 for a header line with no colon ending the read,
+2 for the part value being the bytes as written, with no percent decoding, and a line ending that
+can be a bare `LF`, and 2 for the order per name and the method guard. The shapes' 8: the base
+document's three fields before the document's own, the reported version, and the two zeros of the
+failure document; the field order the value documents write, read on the group document's pair; the
+nine fields of the item document with `is_saved` before `is_read` and `total_items` as a number;
+`favicon_id` written as the zero for a row with no icon; and `[]` for an empty list on every
+document of this path. The transport's 5: the failure answer at 200 rather than the common-value
+document and rather than 401, the key read through the merged form rather than through the header
+the sibling path reads, the order for a name both halves carry, and the pairs the query half put in
+the form surviving a body read that failed. The `HEAD` pin in that suite has no patch: neither its
+registration nor the length it reads can fail — Vapor forwards a `HEAD` request to the `GET` route,
+and the failure document and the common-value document are the same length, so that pin reads only
+that the method reaches the handler. The dispatch's 6: 2 for the precedence, 2 for presence whatever
+the value is, 1 for the mark name coming from the merged form, and 1 for the default answer. The
+storage reads' 8: 3 for the groups document — the title order, the feed ids inside a group, the
+group order — 2 for the feeds document — the sort order and the icon row — and 3 for the id
+documents — the comma join and the two filters. The items read's 8: 1 for the page of 50 with the
+count read without the page, 1 for the precedence, 2 for a negative value — the sign guard and the
+half of the branch the default lands in, so a negative `max_id` is the zero half — 1 for the zero
+the list read answers for a value it cannot read, 1 for its trim, and 2 for the item document — the
+two flags and the publication time the reference's `entry.Date` holds, read on data where the two
+columns differ. The write branches' 11: 2 for the guards, 4 for the item switch, 2 for the feed
+branch not reading the state name and comparing strictly before, and 3 for the three branches of the
+group guard. The icon read's 4: 2 for the join answering one row per feed with the order this port
+names, and 2 for the standard alphabet and the padding of the `data` field; the join and the `data`
+field are pinned as a read there, so the favicons pin of this suite reads those rules through the
+document and no patch is run against it here.
+
+Two claims are named in the headers rather than asserted, because no patch can make them fail on
+the rule they name: that the port registers `HEAD` itself, since Vapor forwards a `HEAD` request to
+the GET route when no HEAD route is registered, so taking the registration away changes nothing the
+pin can read and that pin reads only that the method reaches the handler; and the order the
+reference's icon join answers, which its statement has no `ORDER BY` for, so the order the pins
+read is the order this port names.
+
+`MissingRow` moved from `Support/SubscriptionSocket.swift` to `Support/EntryFixtures.swift` as the
+setup error both helper files throw, because the nested type was not visible to the Fever helper.
 
 ## Robustness (stage 7)
 

@@ -140,6 +140,13 @@ private enum EntryFixtureError: Error {
     case entryNotCreated
 }
 
+/// A row a pin expected to be there and is not. The socket helpers throw this rather than failing
+/// on a value they could not name.
+struct MissingRow: Error, CustomStringConvertible {
+    let table: String
+    var description: String { "the pin wrote no row in \(table)" }
+}
+
 /// Builds an entry input with recognizable defaults.
 func entryInput(
     hash: String = "h1",

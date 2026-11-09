@@ -33,6 +33,14 @@ public final class Icon: Model, @unchecked Sendable {
     /// Unix seconds; creation time.
     @Field(key: "created_at") public var createdAt: Int
 
+    /// `DataURL`: the value the Fever `favicons` document writes for this row. The prefix is the
+    /// stored content type and a semicolon, with no `data:` before it, and the encoding is the
+    /// standard base64 with its padding — which is what `docs/reference-notes.md` records for this
+    /// path, and what `IconRepositoryTests` pins.
+    public func dataURL() -> String {
+        mimeType + ";base64," + content.base64EncodedString()
+    }
+
     /// Creates an unfilled icon; the repositories populate and persist it.
     ///
     /// Fields must be set before the instance is used with a query.
