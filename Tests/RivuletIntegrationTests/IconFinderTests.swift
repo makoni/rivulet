@@ -4,32 +4,36 @@ import Testing
 
 /// The order the icon search tries, read end to end through the fetcher against a stub server.
 /// Ported from `internal/reader/icon/finder.go` (`findIcon`, `downloadIcon`,
-/// `fetchIconsFromHTMLDocument`, `fetchDefaultIcon`); the upstream file has no test for the
-/// order, so these pins are the port's own.
+/// `fetchIconsFromHTMLDocument`, `fetchDefaultIcon`); the upstream file has no test for the order,
+/// so these pins are the port's own.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting: the order is
-/// the feed's own icon URL, then the website document, then the root document only when it
-/// differs from the website URL, then the default icon joined to the root; the first step that
-/// produces an icon stops the search, so a patch that continues past it fails the pin that reads
-/// which document's icon answers and counts the requests the later steps never make; a failing
-/// step is skipped rather than returned, except the default icon, whose failure is the answer, so
-/// a patch that returns an earlier failure fails the pin that names the asymmetry; the feed's icon
-/// URL is read as the icon bytes, not scanned as a document, which is pinned by a document-shaped
-/// body on that path; a `data:` href is answered without a request; and the default icon path is
-/// the joined one, not the root path itself.
+/// What these pins can fail on, each checked by patching the rule and reverting: the order is the
+/// feed's own icon URL, then the website document, then the root document only when it differs from
+/// the website URL, then the default icon joined to the root; the first step that produces an icon
+/// stops the search, so a patch that continues past it fails the pin that reads which document's
+/// icon answers and counts the requests the later steps never make; a failing step is skipped
+/// rather than returned, except the default icon, whose failure is the answer, so a patch that
+/// returns an earlier failure fails the pin that names the asymmetry; a download inside a document
+/// that answers nothing is skipped too, which a patch that stops the loop at the first href fails
+/// on; the feed's icon URL is read as the icon bytes, not scanned as a document, which is pinned by
+/// a document-shaped body on that path; a `data:` href is answered without a request, which the
+/// resize does not touch; and the default icon path is the joined one, not the root path itself.
 ///
-/// What they cannot fail on: the rules the finder reads through other suites — the charset
-/// layer, the tokenizer, the four selector branches, the `data:` shape, the URL resolution and
-/// the join cleaning are pinned by their own suites and appear here only as the values the loop
-/// passes on; the request headers, which are the fetcher's rules pinned by the fetch suite; the
-/// reference's logging, which this port has no layer for; and the reference's
-/// `fetchIconsFromHTMLDocument` returning a charset-reader failure, which this port answers
-/// with the charset layer returning bytes. Nothing here sleeps or polls.
+/// What they cannot fail on: the rules the finder reads through other suites — the charset layer,
+/// the tokenizer, the four selector branches, the `data:` shape, the URL resolution and the join
+/// cleaning are pinned by their own suites and appear here only as the values the loop passes on;
+/// the request headers, which are the fetcher's rules pinned by the fetch suite; the reference's
+/// logging, which this port has no layer for; and the reference's `fetchIconsFromHTMLDocument`
+/// returning a charset-reader failure, which this port answers with the charset layer returning
+/// bytes; the rules the resize states are pinned by `IconResizeTests` and appear here only as the
+/// values the loop passes on, so nothing here can show that the search answers nothing when every
+/// step answers nothing — a patch that changes that answer changes the resize rule, which is a
+/// different pin. Nothing here sleeps or polls.
 @Suite struct IconFinderTests {
     @Test func theFeedIconURLIsTriedFirstAndItsAnswerIsTheIcon() async throws {
-        // The body on that path is a document with a link, so this pins that the feed's
-        // icon URL is read as the icon bytes: a patch that scans it as a document would
-        // answer with the linked icon instead.
+        // The body on that path is a document with a link, so this pins that the feed's icon URL is
+        // read as the icon bytes: a patch that scans it as a document would answer with the linked
+        // icon instead.
         let document = Data("<html><link rel=\"icon\" href=\"/linked.png\"></html>".utf8)
         try await FetchTestSupport.withServer(behaviors: [
             "/feed-icon": behavior(contentType: "text/html", body: document),
@@ -39,7 +43,7 @@ import Testing
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/").absoluteString,
                     feedIconURL: server.url("/feed-icon").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == document)
                 #expect(icon.mimeType == "text/html")
@@ -62,7 +66,7 @@ import Testing
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/").absoluteString,
                     feedIconURL: server.url("/feed-icon").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == linked)
                 #expect(server.received(for: "/feed-icon").count == 1)
@@ -70,9 +74,34 @@ import Testing
         }
     }
 
+    @Test func aDownloadThatAnswersNothingIsSkippedAndTheSearchGoesToTheNextHref() async throws {
+        // The first href is a GIF whose logical screen is 4097×7, which is the file the resize
+        // rejects, so the download answers nothing and the loop goes on: a patch that stops the
+        // loop at the first href answers with the nothing instead of with the second href's bytes.
+        let rejected = Data([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x10, 0x07, 0x00, 0, 0, 0])
+        let kept = Data([1, 2, 3])
+        let document = "<html><link rel=\"icon\" href=\"/rejected.gif\">"
+            + "<link rel=\"icon\" href=\"/kept.png\"></html>"
+        try await FetchTestSupport.withServer(behaviors: [
+            "/": behavior(contentType: "text/html", body: Data(document.utf8)),
+            "/rejected.gif": behavior(contentType: "image/gif", body: rejected),
+            "/kept.png": behavior(contentType: "image/png", body: kept),
+        ]) { server in
+            try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
+                let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
+                    websiteURL: server.url("/").absoluteString)
+                let icon = try #require(await finder.find())
+
+                #expect(icon.content == kept,
+                    "the step that answers nothing does not answer the search")
+                #expect(server.received(for: "/rejected.gif").count == 1)
+            }
+        }
+    }
+
     @Test func theRootDocumentIsTriedWhenTheWebsiteURLHasAPath() async throws {
-        // The website URL is the subdirectory, which has no link, so the second document
-        // is the root.
+        // The website URL is the subdirectory, which has no link, so the second document is the
+        // root.
         let linked = Data([1, 2, 3])
         try await FetchTestSupport.withServer(behaviors: [
             "/subfolder/": behavior(contentType: "text/html", body: Data("<html></html>".utf8)),
@@ -83,7 +112,7 @@ import Testing
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/subfolder/").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == linked)
                 #expect(server.received(for: "/subfolder/").count == 1)
@@ -93,8 +122,8 @@ import Testing
     }
 
     @Test func theFirstDocumentThatProducesAnIconStopsTheSearch() async throws {
-        // Both documents offer a link, so this is the case that reads the rule "the first step
-        // that produces an icon answers": the answer is the first document's icon, and the second
+        // Both documents offer a link, so this is the case that reads the rule "the first step that
+        // produces an icon answers": the answer is the first document's icon, and the second
         // document is never requested at all.
         let first = Data([1, 2, 3])
         let second = Data([4, 5, 6])
@@ -109,7 +138,7 @@ import Testing
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/subfolder/").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == first)
                 #expect(icon.hash ==
@@ -121,8 +150,8 @@ import Testing
     }
 
     @Test func theRootDocumentIsNotTriedWhenTheWebsiteURLIsAlreadyTheRoot() async throws {
-        // One document request, then the joined default icon. A patch that reads the
-        // website URL twice fails the count.
+        // One document request, then the joined default icon. A patch that reads the website URL
+        // twice fails the count.
         let favicon = Data([0x00, 0x00, 0x03, 0x00])
         try await FetchTestSupport.withServer(behaviors: [
             "/": behavior(contentType: "text/html", body: Data("<html></html>".utf8)),
@@ -131,7 +160,7 @@ import Testing
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == favicon)
                 #expect(icon.hash ==
@@ -142,8 +171,8 @@ import Testing
     }
 
     @Test func theDefaultIconIsJoinedToTheRootURLRatherThanReadAtTheRootPath() async throws {
-        // The website URL carries a path, so the joined URL is the root plus
-        // `favicon.ico`, and the root document itself answers without a link.
+        // The website URL carries a path, so the joined URL is the root plus `favicon.ico`, and the
+        // root document itself answers without a link.
         let favicon = Data([0x00, 0x00, 0x03, 0x00])
         try await FetchTestSupport.withServer(behaviors: [
             "/subfolder/": behavior(contentType: "text/html", body: Data("<html></html>".utf8)),
@@ -153,7 +182,7 @@ import Testing
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/subfolder/").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.content == favicon)
                 #expect(server.received(for: "/subfolder/").count == 1)
@@ -164,9 +193,9 @@ import Testing
     }
 
     @Test func aDataHrefIsAnsweredWithoutARequest() async throws {
-        // The data URL is the whole answer: no fetch reaches the server for it. The
-        // shape and its three encodings are `IconDataURLTests`; this pins that the loop
-        // answers with it instead of fetching.
+        // The data URL is the whole answer: no fetch reaches the server for it. The shape and its
+        // three encodings are `IconDataURLTests`; this pins that the loop answers with it instead
+        // of fetching.
         let svg = "<svg xmlns='http://www.w3.org/2000/svg'></svg>"
         let doc = "<html><link rel=\"icon\" href=\"data:image/svg+xml;utf8,\(svg)\"></html>"
         try await FetchTestSupport.withServer(behaviors: [
@@ -177,7 +206,7 @@ import Testing
             try await FetchTestSupport.withFetcher(options: FetchTestSupport.options()) { fetcher in
                 let finder = IconFinder(fetcher: fetcher, options: FetchTestSupport.options(),
                     websiteURL: server.url("/").absoluteString)
-                let icon = try await finder.find()
+                let icon = try #require(await finder.find())
 
                 #expect(icon.mimeType == "image/svg+xml")
                 #expect(icon.content == Data(svg.utf8))
@@ -187,8 +216,8 @@ import Testing
     }
 
     @Test func theDefaultIconFailureIsTheAnswerWhileAnEarlierFailureIsSkipped() async throws {
-        // The reference logs a failing document and keeps going, but returns the failure
-        // of the last step.
+        // The reference logs a failing document and keeps going, but returns the failure of the
+        // last step.
         try await FetchTestSupport.withServer(behaviors: [
             "/": behavior(status: 404, contentType: "text/html", body: Data()),
             "/favicon.ico": behavior(status: 500, contentType: "text/html", body: Data()),

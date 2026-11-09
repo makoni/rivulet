@@ -425,13 +425,19 @@ gates the migrations. The soak artifact landed with PR #35: the shell is its cad
 read the data each round leaves behind rather than the process that produced them, and each check is
 shown to fail on the rule it names; the in-process cadence loop landed with stage 6 as PR #50, read
 as the calls the loop makes through its seam, and retention is pinned by `RetentionTests`). Stage 4
-keeps one open thing: the icon image resizing, which needs a dependency that has not been approved.
-Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit criterion
-met: the two sanitizer HTML fixtures are read end to end against the reference's own output, which
-took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode the open stack
-gives back to the element around a nested table when it closes — and both are pinned case by case by
-`SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to the refresh path
-is met by the pipeline. Keep this line and the plan's status table in sync.
+keeps one open thing: the icon image resizing, which opens as PR #62 — the header read for the four
+formats, each magic compared at the length of its own magic, the three WebP chunk shapes answering
+their own dimensions, the decode for the two formats the approved dependencies give this port, the
+scale, and the PNG write, 15 pins and 18 probes by `IconResizeTests`, plus 1 new pin and 1 probe in
+`IconFinderTests` for the same skipped step. What that header names as unpinnable: the SVG branch,
+the content type the document writes, the pixel-count term, the guard that a dimension read as zero
+ends the resize, the values the scale produces, the encode failure, and the pixel decode for GIF and
+WebP. Stage 3 is merged, with its remaining findings in its stage-file backlog and every exit
+criterion met: the two sanitizer HTML fixtures are read end to end against the reference's own
+output, which took two insertion-mode rules the port had not modelled — `inCaptionIM`, and the mode
+the open stack gives back to the element around a nested table when it closes — and both are pinned
+case by case by `SanitizerTableModeTests`. Stage 2 is merged, and the exit criterion it deferred to
+the refresh path is met by the pipeline. Keep this line and the plan's status table in sync.
 
 ## Toolchain
 
@@ -488,7 +494,11 @@ behavior, so it does not reopen a review that already approved the words.
 they make data structures, algorithms or hashing clearer or more efficient — add them as direct
 dependencies of the module that uses them when first used (they are already in the dependency graph
 via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new dependency needs explicit
-approval — Linux-first, keep the surface small.
+approval — Linux-first, keep the surface small. `tayloraswift/swift-png` (from 4.5.2) and
+`tayloraswift/swift-jpeg` (from 2.1.0), both Apache-2.0, are approved for the icon image resizing as
+direct dependencies of `RivuletCore`; `fwcd/swift-gif` was refused because it brings eight
+transitive dependencies, and a libwebp binding because it is a C dependency, so GIF and WebP are
+read for their dimensions only.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
 ## Review

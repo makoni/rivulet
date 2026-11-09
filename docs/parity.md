@@ -898,6 +898,18 @@ document, the root document only when it differs from the website URL, then the 
 to the root, with the first success answering, an earlier failure skipped and the last step's
 failure returned. A failing download inside a document moves to the next href, and a `data:` href is
 answered without a request, which is the reference's own branch.
+- The resize step (`resizeIcon`) is ported: the content type is compared as the whole value it was
+read with, the four types of the switch are the only ones that reach the header read, and the
+dimensions come from the file's own magic rather than from the name the response carried, because
+Go's `sniff` compares each magic at the length of its own magic. The WebP match names the bytes up
+to the chunk name, so all three chunk shapes reach the read, and each answers its own dimensions:
+the extended one as the stored canvas plus one, the packed one as two 14-bit values each plus one,
+and the lossy one as the 14-bit pair that follows its frame header's sync code, with a frame that is
+not a key frame answering zero. A side strictly greater than 4096 or a pixel count greater than
+4096×4096 is the rejection the search continues past, a file at or under 32×32 is left as it is, and
+anything else becomes a 32×32 PNG written with the content type as the literal `image/png`. The
+checksum is the value the bytes as read produced, because `downloadIcon` computes it before it calls
+the resize, so for a resized icon the hash and the content stop corresponding.
 - The checker half (`internal/reader/icon/checker.go`) is the guard and the two storage decisions:
 the guard reads the mapping for this feed rather than the icon table, and it belongs to the path the
 reference runs when the feed is not being forced, so the other path writes and points even for a
@@ -977,13 +989,25 @@ nothing was written.
 `WithUserAgent` precedence the port's builder already implements. The reference reads the value from
 the feed model and the port takes it as an argument, so the pin can fail only on the checker handing
 it on, not on which value wins when it is empty.
-- Image resizing is not ported, because decoding an image needs a dependency that has not been
-approved. The reference decodes the icon, rejects one whose side exceeds 4096 or whose pixel count
-exceeds 4096×4096, and leaves an icon at or under 32×32 as it is; this port stores the bytes the
-encoding branch produced. The SVG minifier upstream is not ported either, so the stored content is
-the value as read. The reference's checker has a branch for an answer with no icon and no error,
-which is that rejection; this port has no case that answers without an icon, so the branch has
-nothing to pin.
+- The pixels the scale produces are the port's own: `draw.BiLinear` answers its own values for the
+pixels between the samples, and this port samples the same four neighbours and rounds its own way,
+so the bytes of a resized document differ from the reference's. The pins read the dimensions and the
+content type of the document rather than its pixels. The encoder is `tayloraswift/swift-png`, so the
+chunk set and the compression are its own, and it writes every pixel with alpha 255, where the
+reference keeps the color model its decoder answered with, so a resized icon with transparency
+differs.
+- The pixel decode covers PNG and JPEG, because those are the decoders the approved dependencies
+give this port; the reference decodes all four types, so an icon above 32×32 named as GIF or WebP is
+resized upstream and stored as it was read here, and those two formats are read for their dimensions
+only. The dimension read itself follows the Go standard library (`image/png`, `image/jpeg`,
+`image/gif`) and `golang.org/x/image` (`vp8`, `vp8l`), also BSD 3-Clause, because the reference
+reaches them through `image.DecodeConfig` rather than through Miniflux code.
+- The pixel-count term is read but cannot be observed: a side above 4096 answers the rejection
+before the count is read, so no patch can flip the term alone, and the upstream case that names "too
+large pixel count" is kept as the case the dimension term answers.
+- The SVG minifier upstream is not ported, so the stored content for an SVG is the value as read.
+The checker's branch for an answer with no icon and no error, which the resize rejection now
+produces, reads only that nothing is written for it, because no patch can store a nil answer.
 
 ## User rules and password hashing (stage 5)
 

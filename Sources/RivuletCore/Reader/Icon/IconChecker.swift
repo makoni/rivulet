@@ -30,7 +30,16 @@ struct IconChecker {
     /// The path upstream runs for a forced refresh: no guard, so a feed that already has an icon is
     /// pointed at whatever the search answers with.
     func updateOrCreate() async {
-        guard let candidate = try? await finder.find() else { return }
+        let candidate: IconCandidate?
+        do {
+            candidate = try await finder.find()
+        } catch {
+            return
+        }
+
+        // The branch `else if icon == nil` reads: the search answered without a failure, which the
+        // resize can do for an image it rejects, and nothing is written for it.
+        guard let candidate else { return }
         await store(candidate)
     }
 

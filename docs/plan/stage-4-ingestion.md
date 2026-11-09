@@ -20,32 +20,36 @@ that was deferred to the refresh path: the pipeline is the caller that stores th
 error state. The second slice is the tick's due-batch selection and the bounded worker pool: the
 builder's rules pinned through the repository, the pool running each selected job once, one failing
 job not stopping the rest, and the non-forced path the worker takes, pinned by `SchedulerBatchTests`
-and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop —
-and landed with stage 6 as PR #50, read as the calls the loop makes through its seam; tests here
-drive the scheduler with explicit `tick()` calls. The entry-frequency
-mode and the weekly count it divides the week by landed as PR #27, pinned by `WeeklyEntryCountTests`
-and read through the pipeline by `EntryFrequencyPipelineTests`. The fourth slice is what the entry
-loop does not write: an entry the parsed document no longer declares stays in place with the state
-it had, and a tombstoned `(feed_id, hash)` pair is refused by the insert guard on the forced path,
-pinned by `PipelineMergeAndTombstoneTests`. The fifth slice is the half of the icon finder that
-reads no network: which `link` elements a document offers, and how a `data:` URL is read, pinned by
+and `SchedulerTickTests`. The cadence loop is not here — nothing can pin a sleeping loop — and
+landed with stage 6 as PR #50, read as the calls the loop makes through its seam; tests here drive
+the scheduler with explicit `tick()` calls. The entry-frequency mode and the weekly count it divides
+the week by landed as PR #27, pinned by `WeeklyEntryCountTests` and read through the pipeline by
+`EntryFrequencyPipelineTests`. The fourth slice is what the entry loop does not write: an entry the
+parsed document no longer declares stays in place with the state it had, and a tombstoned `(feed_id,
+hash)` pair is refused by the insert guard on the forced path, pinned by
+`PipelineMergeAndTombstoneTests`. The fifth slice is the half of the icon finder that reads no
+network: which `link` elements a document offers, and how a `data:` URL is read, pinned by
 `IconDocumentLinksTests` and `IconDataURLTests`. The seventh slice is the checker, the wiring that
 runs the search for one stored feed: the guard, which reads the mapping for this feed rather than
-the
-icon table, the store and the link as two decisions that run on either branch, the path the guard
-does
-not cover, and the user agent the checker hands to the builder, pinned by `IconCheckerTests`. The
-eighth slice is the call that path makes for a feed from the pipeline: the branch it runs on, the
-fork the forced flag selects, the icon URL the parse produced, and the site URL and the user agent
-read from the row, pinned by `RefreshIconTests`. The ninth slice is the manual pass the CLI
-makes over the batch: one read, each job run once through the worker's path, the failure
-reported without stopping the rest, the values read from the environment, and the flag gating
-the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact landed as PR
-#35: the shell is its cadence, its checks read the data each round leaves behind rather than the
-process that produced them, and each check is shown to fail on the rule it names. Retention is
-already pinned by `RetentionTests`. What keeps stage 4 open is the icon image resizing, which needs
-a dependency that has not been approved; the in-process cadence loop landed with stage 6 as
-PR #50.
+the icon table, the store and the link as two decisions that run on either branch, the path the
+guard does not cover, and the user agent the checker hands to the builder, pinned by
+`IconCheckerTests`. The eighth slice is the call that path makes for a feed from the pipeline: the
+branch it runs on, the fork the forced flag selects, the icon URL the parse produced, and the site
+URL and the user agent read from the row, pinned by `RefreshIconTests`. The ninth slice is the
+manual pass the CLI makes over the batch: one read, each job run once through the worker's path, the
+failure reported without stopping the rest, the values read from the environment, and the flag
+gating the migrations this command runs, pinned by `RefreshCommandTests`. The soak artifact landed
+as PR #35: the shell is its cadence, its checks read the data each round leaves behind rather than
+the process that produced them, and each check is shown to fail on the rule it names. Retention is
+already pinned by `RetentionTests`. The eleventh slice is the resize step, which opens as PR #62:
+the header read for the four formats, with each magic compared at the length of its own magic and
+the three WebP chunk shapes answering their own dimensions, the decode for the two formats the
+approved dependencies give this port, the scale, and the PNG write — 15 pins and 18 probes by
+`IconResizeTests`, plus 1 new pin and 1 probe in `IconFinderTests` for the same skipped step. What
+that header names as unpinnable: the SVG branch, the content type the document writes, the
+pixel-count term, the guard that a dimension read as zero ends the resize, the values the scale
+produces, the encode failure, and the pixel decode for GIF and WebP. The in-process cadence loop
+landed with stage 6 as PR #50, and the resize is the last thing stage 4 has open.
 
 ## Scope
 
@@ -61,7 +65,7 @@ PR #50.
       patch that deletes the feed's rows not in the parsed document fails that pin. The
       status read there is the one the case seeded, so the pin shows the row survived, not
       that an update left user state alone.
-- [ ] Icon finder: the selector half is pinned by PR #29 — the four `link` branches, which of them
+- [x] Icon finder: the selector half is pinned by PR #29 — the four `link` branches, which of them
       fold case, the href rules, document order, and the `data:` URL shape with its three encodings.
       The download half is pinned by PR #30: the order the search tries, the first success stopping
       it, the skipped failures against the last step's failure, the response read as bytes with the
@@ -71,14 +75,15 @@ PR #50.
       feed rather than the icon table, the store and the link as two decisions that run on either
       branch, the path the guard does not cover, and the user agent the checker hands to the
       builder. The call the checker makes for a feed from the pipeline is pinned by
-      `RefreshIconTests`: the branch that runs it, the fork the forced flag selects, the icon
-      URL the parse produced, and the site URL and user agent read from the row. The cadence
-      loop that calls the pipeline per feed is not pinnable — nothing can pin a sleeping loop —
-      and the manual `rivulet refresh` path is pinned by `RefreshCommandTests`: each job of the
-      batch runs once, the values are read from the environment, a failure is reported without
-      stopping the rest, and the flag gates the migrations this command runs. Image resizing is not
-      ported, because it needs an image-decoding dependency that has not been approved, so the
-      deviation is recorded in `docs/parity.md`, as is the SVG minifier.
+      `RefreshIconTests`: the branch that runs it, the fork the forced flag selects, the icon URL
+      the parse produced, and the site URL and user agent read from the row. The cadence loop that
+      calls the pipeline per feed is not pinnable — nothing can pin a sleeping loop — and the manual
+      `rivulet refresh` path is pinned by `RefreshCommandTests`: each job of the batch runs once,
+      the values are read from the environment, a failure is reported without stopping the rest, and
+      the flag gates the migrations this command runs. The resize step is pinned by
+      `IconResizeTests` as pure logic and by one pin in `IconFinderTests` for the step that answers
+      nothing being skipped; the pixel decode covers PNG and JPEG only, and the values the scale
+      produces are the port's own, which `docs/parity.md` records, as does the SVG minifier.
 
 ## Implementation notes
 
@@ -265,9 +270,12 @@ Findings from review run 1 on PR #29 that do not change behavior:
 Findings from review run 1 on PR #30 that do not change behavior:
 - The size cap is pinned only by the fetch suite: no icon case reads a body past the cap, as the
   fetcher applies it before this layer sees the bytes.
-- The reference's `findIcon` can continue when a step answers with no icon and no error, which
-  is its resize path for an oversized image; this port has no case that answers without an
-  icon, which follows from resizing not being ported.
+- The reference's `findIcon` can continue when a step answers with no icon and no error, which is
+  its resize path for an oversized image; the pin in `IconFinderTests` uses a GIF with a logical
+  screen of 4097×7, which is the file the resize rejects, so the download answers nothing and the
+  search goes to the next href. What still cannot be read is that the search answers nothing when
+  every step answers nothing, because a patch that changes that answer changes the resize rule,
+  which is a different pin.
 - The icon reads the reference has for the checker — `HasFeedIcon`, `IconByExternalID`, `Icons`
   — were not ported with PR #30, because the checker that calls them was not. `HasFeedIcon` landed
   with PR #31 as the guard's read; `IconByExternalID` was already there from stage 1 as

@@ -23,6 +23,8 @@ let package = Package(
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.36.2"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.104.0"),
         .package(url: "https://github.com/apple/swift-crypto.git", from: "4.5.2"),
+        .package(url: "https://github.com/tayloraswift/swift-png.git", from: "4.5.2"),
+        .package(url: "https://github.com/tayloraswift/swift-jpeg.git", from: "2.1.0"),
     ],
     targets: [
         .target(
@@ -46,6 +48,12 @@ let package = Package(
                 // Pre-approved for hashing. Adding it as a direct dependency of the module that uses it
                 // keeps RivuletCore free of Vapor, which already carries swift-crypto.
                 .product(name: "Crypto", package: "swift-crypto"),
+                // Approved for the icon resize path: both are pure Swift and build on Linux, which is
+                // the platform this project targets, and the resize step needs a pixel decoder for the
+                // formats the reference's `resizeIcon` switch has and a PNG encoder, because that switch
+                // always writes the resized icon as PNG.
+                .product(name: "PNG", package: "swift-png"),
+                .product(name: "JPEG", package: "swift-jpeg"),
             ]
         ),
         .target(
