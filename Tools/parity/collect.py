@@ -11,7 +11,7 @@ integration row is there for every user on the reference side, but its enabled f
 its web form, and on this side the credential pair sits on the account row, which the run had not
 set either.
 
-Nine things a live run has to arrange, and the shapes below are what the rules read them as.
+What a live run has to arrange, and the shapes below are what the rules read them as.
 
 The login: `POST /accounts/ClientLogin`, read with the form names the reference reads, and recorded
 as the first request, because a pair document carrying requests before the login answer is a run
@@ -20,9 +20,9 @@ the auth read takes a form field for on both sides, and as the `Authorization` n
 auth=<token>`, split as `strings.Fields` splits it — on the others, so the names the run asked with
 carry `T` only on the POST shapes.
 
-The unauthenticated half: the no-slash path is asked before the login, because the reference writes
-its redirect before the auth middleware, so an answer after the login is a different request than
-the one the row names.
+The unauthenticated half: the no-slash path is the shape asked with no token, because the reference
+writes its redirect before the auth middleware, so an answer asked with the token is a different
+request than the one the row names.
 
 The header case: the stub writes one name twice, so a name is kept as the list in the order the
 values arrive, which is what `Header.Get` reads through. `acted_on` is the value that response
@@ -216,8 +216,11 @@ BASES[name],
                 form = {"output": "json",
                         "quickadd": "http://127.0.0.1:" + PORT + "/" + os.path.basename(SCAN_INPUT)}
             elif key in STREAM_SHAPES:
-                # The stream read takes `s`, so this shape is asked with it. What the name carried
-                # is not compared, so the shape reaches no class the table names.
+                # The stream read takes `s`. On the GET half the name goes in the url, which is
+                # where this read takes it, so the answer carries the rows the value names; on the
+                # POST half it goes in the body, which this read does not look at, so the answer is
+                # the empty set on both sides. What the name carried is not compared, so neither
+                # shape reaches a class the table names.
                 form = {"output": "json", "s": STREAM}
             elif key == "request/method_mismatch":
                 # The names the edit-tag handler reads, asked with the method its pattern does not

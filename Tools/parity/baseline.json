@@ -187,7 +187,7 @@
     },
     "key": "request/repeated_header",
     "method": "POST",
-    "path": "/reader/api/0/login",
+    "path": "/accounts/ClientLogin",
     "status": 200
    },
    {
@@ -640,7 +640,7 @@
     },
     "key": "request/repeated_header",
     "method": "POST",
-    "path": "/reader/api/0/login",
+    "path": "/accounts/ClientLogin",
     "status": 200
    },
    {
