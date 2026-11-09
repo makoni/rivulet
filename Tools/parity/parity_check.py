@@ -41,6 +41,11 @@ DEFAULTS = {"pair": os.path.join(HERE, "baseline.json"),
             "report": os.path.join(HERE, "..", "..", "docs", "parity-report.md")}
 SECTION = "## Parity harness (stage 7)"
 ITEM_PREFIX = "tag:google.com,2005:reader/item/"
+# The key the login is recorded under is the shape the manifest names for the repeated response
+# name, which is the input the header rule reaches. The rule that reads the login half reads the
+# login through this key rather than by position, so the probe that puts the requests in another
+# order still fires only the rule it names.
+LOGIN = "request/repeated_header"
 
 PINNED_REFERENCE = "v2.3.3 at c4d54f87"
 CANNOT_SHOW = [
@@ -53,14 +58,17 @@ CANNOT_SHOW = [
     "source, so they can only be shown on crafted data: the input digests, the flags, the names "
     "the run asked with, and the response name read with the value that response answered, which "
     "are one read on a run",
-    "the login half as one rule on both sides, because the reference reads the integration row "
-    "where the enabled flag that read requires is set only by its web form, while this port has "
-    "no integration table and no flag, so the run has no path that sets the values for both sides",
+    "the login half beyond the answer the run recorded: which path wrote the value the read "
+    "compares, and which prompt the value came from. The reference reads the integration row the "
+    "login runs on, where the enabled flag that read requires is set only by its web form, while "
+    "this port has no integration table and no flag, so the run writes the value by SQL on that "
+    "side and through its own console command on this one, and the pair document cannot state "
+    "which of the two paths put it there, nor in what order the command read its prompts",
     "the pinned version on the port side, because the rule that reads it reads only the reference "
     "side, where the run names the pinned version and the port names the build it ran",
-    "the guards, which are shown only by declaring a value below what they require, and the seven "
+    "the guards, which are shown only by declaring a value below what they require, and the eight "
     "that read data rather than a declared value, which fail only on a run",
-    "the six classes no coverage-reading rule can see, which are named in the table rather "
+    "the seven classes no coverage-reading rule can see, which are named in the table rather "
     "than asserted",
 ]
 RULES = [
@@ -81,6 +89,7 @@ RULES = [
     "response_headers_read_with_the_first_value_winning",
     "media_proxy_is_none_on_the_reference_side",
     "names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides",
+    "login_half_answers_the_same_token_on_both_sides",
     "report_names_every_rule_and_what_the_run_cannot_show",
 ]
 
@@ -303,10 +312,14 @@ def rule_statuses_match_except_where_a_recorded_row_covers_them(pair):
 
 
 def rule_order_compared_only_through_the_recorded_collation_row(pair):
+    """A tag written without `label` is the `omitempty` half, which the shape rule reads as a key
+    set; here it is read as the empty value, so the order is compared over the positions the answer
+    has.
+    """
     found = []
     for left, right in request_pairs(pair):
-        order = [tag["label"] for tag in left["document"].get("tags", [])]
-        other = [tag["label"] for tag in right["document"].get("tags", [])]
+        order = [tag.get("label", "") for tag in left["document"].get("tags", [])]
+        other = [tag.get("label", "") for tag in right["document"].get("tags", [])]
         if order != other and not covered(pair, left["key"]):
             found.append(f"{left['key']}: {order} against {other}")
     return found
@@ -338,6 +351,25 @@ def rule_names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides(pair):
     return [f"{side['side']}: the name {side['run']['user']!r} is not ASCII, and this port's LOWER "
             f"folds ASCII only" for side in sides(pair)
             if any(char > "\u007f" for char in side["run"]["user"])]
+
+
+def rule_login_half_answers_the_same_token_on_both_sides(pair):
+    """The login answer as the value both sides built from the pair the run wrote. It reads no
+    coverage: the row this class names is which row the login read ran on, which no rule compares.
+    What is comparable as data is the answer, and the two sides give the same answer only when the
+    run wrote one value through both paths — the reference through SQL, this port through its own
+    console command.
+    """
+    found = []
+    for left, right in request_pairs(pair):
+        if left["key"] != LOGIN:
+            continue
+        first, other = left["document"].get("Auth"), right["document"].get("Auth")
+        if first != other:
+            found.append(f"{left['key']}: the login answers {first!r} against {other!r}, so the "
+                         f"pair the two sides compare is not one value, which is what the run has "
+                         f"to make")
+    return found
 
 
 def rule_report_names_every_rule_and_what_the_run_cannot_show(pair):

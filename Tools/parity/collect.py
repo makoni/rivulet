@@ -11,53 +11,48 @@ integration row is there for every user on the reference side, but its enabled f
 its web form, and on this side the credential pair sits on the account row, which the run had not
 set either.
 
-Eight things a live run has to arrange, and the shapes below are what the rules read them as.
+What a live run has to arrange, and the shapes below are what the rules read them as.
 
 The login: `POST /accounts/ClientLogin`, read with the form names the reference reads, and recorded
-as
-the first request, because a pair document carrying requests before the login answer is a run that
-never authenticated. The token is then sent as the `Authorization` name the auth read reads —
-`GoogleLogin auth=<token>`, split as `strings.Fields` splits it — not as a name of its own.
+as the first request, because a pair document carrying requests before the login answer is a run
+that never authenticated. The token is then asked with as `T` on the POST shapes, which is the half
+the auth read takes a form field for on both sides, and as the `Authorization` name — `GoogleLogin
+auth=<token>`, split as `strings.Fields` splits it — on the others, so the names the run asked with
+carry `T` only on the POST shapes.
 
-The unauthenticated half: the no-slash path is asked before the login, because the reference writes
-its
-redirect before the auth middleware, so an answer after the login is a different request than the
-one
-the row names.
+The unauthenticated half: the no-slash path is the shape asked with no token, because the reference
+writes its redirect before the auth middleware, so an answer asked with the token is a different
+request than the one the row names.
 
 The header case: the stub writes one name twice, so a name is kept as the list in the order the
-values
-arrive, which is what `Header.Get` reads through. `acted_on` is the value that response answered,
-not
-what the stub wrote.
+values arrive, which is what `Header.Get` reads through. `acted_on` is the value that response
+answered, not what the stub wrote.
 
 The status: it is taken from the failed response, which is the only way the statuses the status rule
 compares can be the reference's 404 and 405 rather than an exception. A non-JSON answer is recorded
-as
-the text it is, because the redirect body is text.
+as the text it is, because the redirect body is text, and so is a JSON answer that is not an object,
+because the rules that read documents read the key set an answer carries, which an array has none
+of.
 
 The name of an input: neither storage has a column that holds the manifest key, and the stored title
-is
-the parsed feed title, so `file` is the name the run added the feed under, resolved through the feed
-url
-the run gave. The row id is the run's own, so the two sides carry different ones and nothing here
-normalises them.
+is the parsed feed title, so `file` is the name the run added the feed under, resolved through the
+feed url the run gave. The url is recorded beside it, because the run half reads the rows against
+the port this run served, which is what says the pair document compares rows this run wrote. The row
+id is the run's own, so the two sides carry different ones and nothing here normalises them.
 
-The subscription shapes: the three endpoints this path implements are recorded as the answers
-they give, asked with the names each handler reads — `output` for the listing, `s` and `ac` for
-the edit, `output` and `quickadd` for the discovery. Nothing here compares what those names
-carried, so the two shapes that answer the same document reach no class the table names, and the
-discovery shape can only show its difference as the key set its answer carries.
+The subscription shapes: the three endpoints this path implements are recorded as the answers they
+give, asked with the names each handler reads — `output` for the listing, `s` and `ac` for the edit,
+`output` and `quickadd` for the discovery. Nothing here compares what those names carried, so the
+two shapes that answer the same document reach no class the table names, and the discovery shape can
+only show its difference as the key set its answer carries.
 
 What is normalised is the dialect, not the value: Postgres answers `t` for a boolean where SQLite
 answers `1`, so the boolean is read as the same value on both sides. The date is not normalised: the
 reference keeps the sub-second part on its date column and this port's column holds whole seconds,
-which
-is the difference the row names, so the value is read as each side answers it.
+which is the difference the row names, so the value is read as each side answers it.
 
 The connection: libpq reads its own environment names, not the url the reference's config reads, so
-the
-reference side's read is given `PGDATABASE` and its companions by the shell.
+the reference side's read is given `PGDATABASE` and its companions by the shell.
 
 Usage: run through `Scripts/parity.sh`, which sets the environment this reads.
 """
@@ -80,20 +75,29 @@ ENGINES = {"reference": "postgres", "port": "sqlite"}
 BASES = {"reference": os.environ["PARITY_REFERENCE_BASE"], "port": os.environ["PARITY_BASE"]}
 PINS = {"reference": "v2.3.3 at " + os.environ["MINIFLUX_REF"], "port": "rivulet at " +
 os.environ["HEAD"]}
-SELECT = ("select feeds.url, entries.hash, entries.id, entries.title, entries.content, "
-          "entries.published_at, entries.status, entries.starred from entries "
-          "join feeds on feeds.id = entries.feed_id order by entries.id")
+# The two storages do not name the same column for the feed url: the reference's `feeds` row holds
+# `feed_url`, this port's holds `url`. The pair document records one name for the value, so the read
+# names each side's own column and nothing else differs.
+URL_COLUMN = {"reference": "feeds.feed_url", "port": "feeds.url"}
+ENTRY_SELECT = ("select {url}, entries.hash, entries.id, entries.title, entries.content, "
+                "entries.published_at, entries.status, entries.starred from entries "
+                "join feeds on feeds.id = entries.feed_id order by entries.id")
+FEED_SELECT = "select {url}, id, title from feeds order by id"
 REQUESTS = [
     ("request/repeated_header", "POST", "/accounts/ClientLogin", "login"),
     ("request/no_trailing_slash", "GET", "/reader/api/0", "unauthenticated"),
     ("corpus/tag_order.xml", "GET", "/reader/api/0/tag/list", "token"),
     ("request/stream_items_ids", "GET", "/reader/api/0/stream/items/ids", "token"),
     ("request/stream_items_contents", "POST", "/reader/api/0/stream/items/contents", "token"),
-    ("request/method_mismatch", "POST", "/reader/api/0/edit-tag", "token"),
+    ("request/method_mismatch", "PUT", "/reader/api/0/edit-tag", "token"),
     ("request/subscription_list", "GET", "/reader/api/0/subscription/list", "token"),
     ("request/subscription_edit", "POST", "/reader/api/0/subscription/edit", "token"),
     ("request/subscription_quickadd", "POST", "/reader/api/0/subscription/quickadd", "token"),
 ]
+# The two shapes the stream read answers for. The method the edit-tag pattern registers is not the
+# one the method-mismatch shape sends, because that shape is the one the table row names, and the
+# reference answers 405 for a method its pattern does not register.
+STREAM_SHAPES = ("request/stream_items_ids", "request/stream_items_contents")
 STREAM = "user/-/state/com.google/reading-list"
 
 
@@ -106,21 +110,49 @@ SCAN_INPUT = next(key for key in keys() if key.startswith("corpus/"))
 
 
 def call(base, method, path, token, form=None):
-    """One request, answered as the side answers it: the failed response's status is included."""
-    body = urllib.parse.urlencode(form).encode() if form else None
-    headers = {"Authorization": "GoogleLogin auth=" + token} if token else {}
-    request = urllib.request.Request(base + path, data=body, headers=headers)
+    """One request, answered as the side answers it: the failed response's status is included.
+
+    The names are put where the reads take them for the method: the body for POST, which is the
+    half the auth read takes a form field for on both sides, and the url for the other methods,
+    because the stream rule reads the url alone and a body would make those shapes POST. So the
+    token is asked with as `T` only on the POST shapes, and as the `Authorization` name on the
+    others, and `asked` records the names rather than what they carried.
+    """
+    asked = dict(form or {})
+    sent = {}
+    if token:
+        if method == "POST":
+            asked["T"] = token
+        else:
+            sent = {"Authorization": "GoogleLogin auth=" + token}
+    url = base + path
+    body = None
+    if asked:
+        # A body makes the transport POST, so the shapes that are not the POST half have to be
+        # asked with the names in the url, which is also where the stream rule takes them.
+        if method == "POST":
+            body = urllib.parse.urlencode(asked).encode()
+        else:
+            url += "?" + urllib.parse.urlencode(asked)
+    # The method is named on the request, because the transport chooses POST for a request that
+    # carries a body and GET for one that does not, and the method the shape records is the one the
+    # row names.
+    request = urllib.request.Request(url, data=body, headers=sent, method=method)
     try:
         with urllib.request.urlopen(request) as response:
             status, text, answer = response.status, response.read().decode(), response.headers
     except urllib.error.HTTPError as error:
         status, text, answer = error.code, error.read().decode(), error.headers
     is_json = answer.get("Content-Type", "").startswith("application/json")
-    document = json.loads(text) if is_json else {"body": text}
+    parsed = json.loads(text) if is_json else None
+    # An answer that is not an object is recorded as the text it is: the rules that read documents
+    # read the key set an answer carries, which an array has none of, so the text is the half that
+    # can still part.
+    document = parsed if isinstance(parsed, dict) else {"body": text}
     values = {}
     for name in answer.keys():
         values[name] = list(answer.get_all(name) or [])
-    return status, document, values
+    return status, document, values, sorted(asked)
 
 
 def read(name, query):
@@ -183,18 +215,28 @@ BASES[name],
                 # discovery differs, which is the half the table cannot cover.
                 form = {"output": "json",
                         "quickadd": "http://127.0.0.1:" + PORT + "/" + os.path.basename(SCAN_INPUT)}
-            elif method == "POST":
+            elif key in STREAM_SHAPES:
+                # The stream read takes `s`. On the GET half the name goes in the url, which is
+                # where this read takes it, so the answer carries the rows the value names; on the
+                # POST half it goes in the body, which this read does not look at, so the answer is
+                # the empty set on both sides. What the name carried is not compared, so neither
+                # shape reaches a class the table names.
+                form = {"output": "json", "s": STREAM}
+            elif key == "request/method_mismatch":
+                # The names the edit-tag handler reads, asked with the method its pattern does not
+                # register: the answer is the one the read gives before the handler runs, so the
+                # shape shows which side answers a method the pattern has no case for.
                 form = {"output": "json", "s": STREAM, "a": STREAM}
             else:
                 form = {"output": "json"}
-            status, document, headers = call(BASES[name], method, path, token if when == "token"
-else None, form)
+            status, document, answer, names = call(BASES[name], method, path,
+                                                   token if when == "token" else None, form)
             if when == "login":
                 token = document.get("Auth", "")
-            acted = {name: values[0] for name, values in headers.items() if len(values) > 1}
+            acted = {name: values[0] for name, values in answer.items() if len(values) > 1}
             side["requests"].append({"key": key, "method": method, "path": path, "status": status,
-                                     "document": document, "headers": headers, "acted_on": acted,
-                                     "asked": sorted(form)})
+                                     "document": document, "headers": answer, "acted_on": acted,
+                                     "asked": names})
 
         for key in keys():
             if key.startswith("corpus/"):
@@ -206,9 +248,10 @@ else None, form)
                             "title": parts[3], "content": parts[4], "published": parts[5],
                             "status": parts[6], "starred": parts[7] in ("1", "t"),
                             "clock": {"note": "written at the read instant, and never compared"}}
-                           for parts in read(name, SELECT)]
-        side["feeds"] = [{"file": key_for(parts[0]), "row": int(parts[1]), "title": parts[2]}
-                         for parts in read(name, "select url, id, title from feeds order by id")]
+                           for parts in read(name, ENTRY_SELECT.format(url=URL_COLUMN[name]))]
+        side["feeds"] = [{"file": key_for(parts[0]), "url": parts[0], "row": int(parts[1]),
+                          "title": parts[2]}
+                         for parts in read(name, FEED_SELECT.format(url=URL_COLUMN[name]))]
         pairs[name] = side
 
     for side in pairs.values():

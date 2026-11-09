@@ -1278,16 +1278,18 @@ reads, so all four stay whole on their own line.
 | minimal_scan | Google Reader subscription path — Minimal discovery scan | accepted | not reachable here |
 | relation_test | Google Reader subscription path — The relation test | accepted | not reachable here |
 | parsed_title | Google Reader subscription path — The title inside the request | accepted | request/subscription_quickadd |
+| login_half | Google Reader auth path — The row the login read runs on | accepted | not reachable here |
 
-The six rows marked `not reachable here` name classes no coverage-reading rule can see: the
-counts are read inside the sanitizer and never written out, the bracketed host answers a fetch
-decision rather than a stored value, the media proxy is run as `none` on the reference side so
-the stored bytes are comparable, the wording of a rule the port names is not compared at all,
-and the two scan classes are read only from an HTML document, which the corpus has none of: every
-corpus file is a feed document, answered by the format check before the scan reads a `link`.
-They are named here rather than asserted, and the run guard that declares the proxy mode is what
-makes the third half of that list hold. `none` is the value the reference's own validator accepts,
-alongside `http-only` and `all`; the harness runs `none`, which is not the reference's default.
+The seven rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
+are read inside the sanitizer and never written out, the bracketed host answers a fetch decision
+rather than a stored value, the media proxy is run as `none` on the reference side so the stored
+bytes are comparable, the wording of a rule the port names is not compared at all, and the two scan
+classes are read only from an HTML document, which the corpus has none of: every corpus file is a
+feed document, answered by the format check before the scan reads a `link`; and the login row names
+which path wrote the value the login read compares, which no pair document states. They are named
+here rather than asserted, and the run guard that declares the proxy mode is what makes the third
+half of that list hold. `none` is the value the reference's own validator accepts, alongside
+`http-only` and `all`; the harness runs `none`, which is not the reference's default.
 
 The one row this path adds that a shape can reach is the title inside the request, and it is
 reached as the key set the quickadd answer carries: the reference writes `streamName` with the
@@ -1297,15 +1299,16 @@ difference is reported as a finding even though a row names its class. The other
 path adds name classes the corpus cannot reach for the reason above, so they are recorded as not
 reachable here rather than pointed at a shape the run sends.
 
-**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served
-from `Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for
-both sides and the account name is ASCII, which is the one place where `LOWER` is the same rule
-on both sides. Both sides run with the same flags — the batch size, the two limits, the
-migrations gated off — and the reference runs with `MEDIA_PROXY_MODE=none`, so its content
-values are the stored bytes. The request sequence is the login plus the six shapes the manifest
-names, four of which a table row reads — the three it already named and the shape this path adds
-— while the other two reach no class the table names, so a difference on them is a finding by
-itself.
+**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from
+`Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides
+and the account name is ASCII, which is the one place where `LOWER` is the same rule on both sides.
+Both sides run with the same flags — the batch size, the two limits, the migrations gated off — and
+the reference runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The
+request sequence is nine requests: the six shape records the manifest names — the login is one of
+them —, the corpus input the run asks through the tag-list endpoint, and the two stream shapes the
+manifest carries no record for. Four of the six shapes a table row reads — the three it already
+named and the shape this path adds — while the other two reach no class the table names, so a
+difference on them is a finding by itself.
 
 **What the run hands over.** The flags are handed to the reference one name at a time with its own
 `-e`, because a flag name handed bare is not a flag: the first name after the last option is the
@@ -1327,45 +1330,71 @@ written through the console seam, whose secure read takes its value from a termi
 a pipe, so the run gives that command a terminal. The due rule is strict, so the batch read cannot
 see a feed written at the same instant it reads, and the run lets the clock move past that instant.
 
-Eight shapes the run has to arrange, because the rules read them as data rather than as dialects. A
-response name is kept as the list of its values in the order they arrive, which is what `Header.Get`
+What the run has to arrange, and what the rules read each of those things as, because the rules read
+them as data rather than as dialects. A response name is kept as the list of its values in the order
+they arrive, which is what `Header.Get`
 reads through: the stub writes one name twice, on the hop the corpus is served on, and the read
 takes each name once, in the order it first appears; but the pair document carries the response each
 side answered the collector with, and the fetch hop is not in it, so on run data the value the rule
 compares is written from the same read as the list it reads, and only crafted data can fire it. The
 login is recorded as the first request, on the route the reference registers for it with the form
 names it reads, so a pair document carrying requests before the login answer is a run that never
-authenticated, and the token is then sent as the `Authorization` name the auth read reads. A
-non-JSON answer is recorded as the text it is, because the redirect body is text, and the status is
-taken from a failed response, which is the only way the status rule can see the 404 or the 405 it
-compares. The manifest key is carried as the name the run added the feed under, resolved through the
-feed url, because neither side has a column that holds it and the stored title is the parsed feed
-title. The version is named on the reference side only: the port side names the build it ran, which
-is the half the rule that reads the pinned version does not read. The storage read keeps the fields
-as the storage answers them, so the reference side is read as CSV over the whole text rather than
-line by line — a field holding the delimiter or a newline is one field, not two rows — and this
-port's driver answers rows as fields and needs no delimiter at all. A value the storage cannot read
-is nothing on both sides, so the field is the empty string rather than the name of nothing. The
-three subscription shapes are the answers the handlers give, asked with the names each handler
-reads, so the only thing they can part on is the key set an answer carries.
+authenticated, and the token is then asked with as `T` on the POST shapes, which is the half the
+auth read takes a form field for on both sides, and as the `Authorization` name on the others. The
+names are put where the reads take them for the method — the body for the POST half and the url for
+the others — because a body makes the transport POST, so the method the pair record carries is the
+method the shape names. A non-JSON answer is recorded as the text it is, because the redirect body
+is text, and so is a JSON answer that is not an object, because the key-set rule reads no key set
+from an array, and the status is taken from a failed response, which is the only way the status rule
+can see the 404 or the 405 it compares. The manifest key is carried as the name the run added the
+feed under, resolved through the feed url, because neither side has a column that holds it and the
+stored title is the parsed feed title. The version is named on the reference side only: the port
+side names the build it ran, which is the half the rule that reads the pinned version does not read.
+The storage read keeps the fields as the storage answers them, so the reference side is read as CSV
+over the whole text rather than line by line — a field holding the delimiter or a newline is one
+field, not two rows — and this port's driver answers rows as fields and needs no delimiter at all. A
+value the storage cannot read is nothing on both sides, so the field is the empty string rather than
+the name of nothing. The url is recorded beside the name, because the run half reads the stored rows
+against the port this run served. The three subscription shapes are the answers the handlers give,
+asked with the names each handler reads, so the only thing they can part on is the key set an answer
+carries. and for a run that arranges its rows before the collector reads them the quickadd answer is
+the one both sides write for a name the read already has. A tag written without `label` is read as
+the empty value by the order rule, because the key set is the shape rule's reading, and the
+reference does not write `label` for a name the read answered as nothing.
 
 **What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
 two sides read the same bytes over the network, because each fetch is its own hop; the row order a
 storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
-each side wrote at its own write instant; and the rules the stage-3 corpora already pin, which the
-run re-reads rather than pins. On this machine the run half executed for the first time, with
-Postgres as a container, and what it reported was the login half: the reference's login read runs on
-the integration row, where the enabled flag that read requires is set only by its web form, which
-this port does not have at all — it has no integration table and no flag, and its own path for the
-pair is the console command — so the two sides cannot be set up through one path, and the pair
-document here carries the unauthorized answer on both sides. The report is
-written by the run only when the guards pass, so the committed report is the one written from the
-table by hand. So the check half is what is falsifiable here — `Tools/parity/probes.py` crafts one
-input per rule that violates it and asserts that the rule reports it alone — and the run half is
-checked by `bash -n` and by its nineteen checks, twelve of which name a value the run declares or a
-count it declares against the committed files, each seen to fail on such a value or by taking the
-file it names away, while the seven that read the machine or the run's own data fail only on a run:
-the two ports the run declares, the Postgres server answering, the daemon reachable, the two bases
-answering, the login answer, and the rows each side recorded. Three of those seven were seen to fail
-here on the run's own data: a port something already holds, the base its own side answers on, by
-pointing the run at a binary that exits at once, and the login answer, by the run itself.
+each side wrote at its own write instant; which path wrote the value the login read compares, and in
+what order the command read its prompts; and the rules the stage-3 corpora already pin, which the
+run re-reads rather than pins. On this machine the run half executed end to end through the
+collector twice: once before the run wrote the credential pair, where what it reported was the login
+half, and once after, where the login answer is one value on both sides and the only thing the rules
+reported was the key set the method-mismatch row names — the reference answers a method its mux has
+no pattern for with a text body, this port with the shape its router writes — because the rule that
+reads key sets reads no coverage.
+
+The rows the pair document carries have to be the rows this run wrote, which is what the guard that
+reads the stored rows against the port this run served says. The reference's storage is a database
+on the machine's server, which keeps what an earlier run stored, so the run names one it creates for
+itself, and running the same declared name twice was seen to report it. The path each side writes
+its rows through is not one path either: this port has a command for adding a feed, the reference
+has none, so its feed rows come from the quickadd POSTs the run sends through the reference's own
+path, and its fetch runs through the reference's batch flag rather than on the daemon's cadence,
+because the collector reads the rows in the same pass it sends the requests in, and the requests are
+what would create the reference's feeds. The answers the arrangement sends are not read as data, so
+the run does not treat one as a failure: the corpus has an input the reference answers with an
+error, which is the difference the row for the name classes covers.
+
+The report is written from the table before the rules read it, so the committed report is the
+document the harness generates, and a run writes the same document from the same table. So the check
+half is what is falsifiable here — `Tools/parity/probes.py` crafts one input per rule that violates
+it and asserts that the rule reports it alone — and the run half is checked by `bash -n` and by its
+twenty checks, twelve of which name a value the run declares or a count it declares against the
+committed files, each seen to fail on such a value or by taking the file it names away, while the
+eight that read the machine or the run's own data fail only on a run: the check over the two ports
+the run declares, the Postgres server answering, the daemon reachable, the two bases answering, the
+login answer, the rows each side recorded, and the stored rows read against the port this run
+served. Four of those eight were seen to fail here on the run's own data: a port something already
+holds, the base its own side answers on, by pointing the run at a binary that exits at once, the
+login answer, by the run itself, and the stored rows, by running the same declared database twice.

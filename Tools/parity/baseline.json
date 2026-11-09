@@ -114,27 +114,32 @@
    {
     "file": "corpus/tag_order.xml",
     "row": 41,
-    "title": "tag_order.xml"
+    "title": "tag_order.xml",
+    "url": "http://127.0.0.1:9010/tag_order.xml"
    },
    {
     "file": "corpus/table_content.xml",
     "row": 42,
-    "title": "table_content.xml"
+    "title": "table_content.xml",
+    "url": "http://127.0.0.1:9010/table_content.xml"
    },
    {
     "file": "corpus/name_class.xml",
     "row": 43,
-    "title": "name_class.xml"
+    "title": "name_class.xml",
+    "url": "http://127.0.0.1:9010/name_class.xml"
    },
    {
     "file": "corpus/zone_pst.xml",
     "row": 44,
-    "title": "zone_pst.xml"
+    "title": "zone_pst.xml",
+    "url": "http://127.0.0.1:9010/zone_pst.xml"
    },
    {
     "file": "corpus/sub_second_date.xml",
     "row": 45,
-    "title": "sub_second_date.xml"
+    "title": "sub_second_date.xml",
+    "url": "http://127.0.0.1:9010/sub_second_date.xml"
    }
   ],
   "inputs": {
@@ -156,7 +161,9 @@
      "X-Trace": "one"
     },
     "asked": [
-     "output=json"
+     "Email",
+     "Passwd",
+     "output"
     ],
     "document": {
      "Auth": "sid",
@@ -180,13 +187,13 @@
     },
     "key": "request/repeated_header",
     "method": "POST",
-    "path": "/reader/api/0/login",
+    "path": "/accounts/ClientLogin",
     "status": 200
    },
    {
     "acted_on": {},
     "asked": [
-     "output=json"
+     "output"
     ],
     "document": {
      "tags": [
@@ -219,8 +226,8 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "stream=user/-/state/com.google/reading-list"
+     "output",
+     "s"
     ],
     "document": {
      "itemRefs": []
@@ -244,8 +251,9 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "stream=user/-/state/com.google/reading-list"
+     "T",
+     "output",
+     "s"
     ],
     "document": {
      "items": [
@@ -323,7 +331,11 @@
    },
    {
     "acted_on": {},
-    "asked": [],
+    "asked": [
+     "a",
+     "output",
+     "s"
+    ],
     "document": {
      "error": "Method Not Allowed"
     },
@@ -333,13 +345,15 @@
      ]
     },
     "key": "request/method_mismatch",
-    "method": "GET",
+    "method": "PUT",
     "path": "/reader/api/0/edit-tag",
     "status": 404
    },
    {
     "acted_on": {},
-    "asked": [],
+    "asked": [
+     "output"
+    ],
     "document": {
      "body": "html"
     },
@@ -362,7 +376,7 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json"
+     "output"
     ],
     "document": {
      "subscriptions": []
@@ -386,9 +400,10 @@
    {
     "acted_on": {},
     "asked": [
-     "ac=edit",
-     "output=json",
-     "s=user/-/state/com.google/reading-list"
+     "T",
+     "ac",
+     "output",
+     "s"
     ],
     "document": {
      "body": "OK"
@@ -412,8 +427,9 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "quickadd=http://127.0.0.1:9010/tag_order.xml"
+     "T",
+     "output",
+     "quickadd"
     ],
     "document": {
      "numResults": 0
@@ -551,27 +567,32 @@
    {
     "file": "corpus/tag_order.xml",
     "row": 31,
-    "title": "tag_order.xml"
+    "title": "tag_order.xml",
+    "url": "http://127.0.0.1:9010/tag_order.xml"
    },
    {
     "file": "corpus/table_content.xml",
     "row": 32,
-    "title": "table_content.xml"
+    "title": "table_content.xml",
+    "url": "http://127.0.0.1:9010/table_content.xml"
    },
    {
     "file": "corpus/name_class.xml",
     "row": 33,
-    "title": "name_class.xml"
+    "title": "name_class.xml",
+    "url": "http://127.0.0.1:9010/name_class.xml"
    },
    {
     "file": "corpus/zone_pst.xml",
     "row": 34,
-    "title": "zone_pst.xml"
+    "title": "zone_pst.xml",
+    "url": "http://127.0.0.1:9010/zone_pst.xml"
    },
    {
     "file": "corpus/sub_second_date.xml",
     "row": 35,
-    "title": "sub_second_date.xml"
+    "title": "sub_second_date.xml",
+    "url": "http://127.0.0.1:9010/sub_second_date.xml"
    }
   ],
   "inputs": {
@@ -593,7 +614,9 @@
      "X-Trace": "one"
     },
     "asked": [
-     "output=json"
+     "Email",
+     "Passwd",
+     "output"
     ],
     "document": {
      "Auth": "sid",
@@ -617,13 +640,13 @@
     },
     "key": "request/repeated_header",
     "method": "POST",
-    "path": "/reader/api/0/login",
+    "path": "/accounts/ClientLogin",
     "status": 200
    },
    {
     "acted_on": {},
     "asked": [
-     "output=json"
+     "output"
     ],
     "document": {
      "tags": [
@@ -656,8 +679,8 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "stream=user/-/state/com.google/reading-list"
+     "output",
+     "s"
     ],
     "document": {
      "itemRefs": []
@@ -681,8 +704,9 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "stream=user/-/state/com.google/reading-list"
+     "T",
+     "output",
+     "s"
     ],
     "document": {
      "items": [
@@ -752,7 +776,11 @@
    },
    {
     "acted_on": {},
-    "asked": [],
+    "asked": [
+     "a",
+     "output",
+     "s"
+    ],
     "document": {
      "error": "Method Not Allowed"
     },
@@ -762,13 +790,15 @@
      ]
     },
     "key": "request/method_mismatch",
-    "method": "GET",
+    "method": "PUT",
     "path": "/reader/api/0/edit-tag",
     "status": 405
    },
    {
     "acted_on": {},
-    "asked": [],
+    "asked": [
+     "output"
+    ],
     "document": {
      "body": "html"
     },
@@ -788,7 +818,7 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json"
+     "output"
     ],
     "document": {
      "subscriptions": []
@@ -812,9 +842,10 @@
    {
     "acted_on": {},
     "asked": [
-     "ac=edit",
-     "output=json",
-     "s=user/-/state/com.google/reading-list"
+     "T",
+     "ac",
+     "output",
+     "s"
     ],
     "document": {
      "body": "OK"
@@ -838,8 +869,9 @@
    {
     "acted_on": {},
     "asked": [
-     "output=json",
-     "quickadd=http://127.0.0.1:9010/tag_order.xml"
+     "T",
+     "output",
+     "quickadd"
     ],
     "document": {
      "numResults": 0

@@ -120,6 +120,11 @@ def non_ascii_name(data):
     data["port"]["run"]["user"] = "p\u00e2rity"
 
 
+def token_from_the_other_pair(data):
+    one = request(data["port"], check.LOGIN)
+    one["document"] = dict(one["document"], Auth="sid-from-the-other-pair")
+
+
 def report_missing_a_rule(data):
     data["report"] = data["report"].replace("payload_ids_read_through_the_map", "")
 
@@ -144,6 +149,7 @@ CRAFTS = [
     ("response_headers_read_with_the_first_value_winning", header_kept_the_second_value),
     ("media_proxy_is_none_on_the_reference_side", proxy_on),
     ("names_are_ascii_so_the_auth_read_is_one_rule_on_both_sides", non_ascii_name),
+    ("login_half_answers_the_same_token_on_both_sides", token_from_the_other_pair),
     ("report_names_every_rule_and_what_the_run_cannot_show", report_missing_a_rule),
 ]
 
