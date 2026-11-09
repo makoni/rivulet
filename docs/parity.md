@@ -1263,7 +1263,7 @@ the form read and the document shapes as pure logic.
   parts land in the form: `FileName()` answers the empty string for a filename parameter that is
   empty, so a part with an empty filename is a value part, and a part with a malformed disposition
   has no name. Quoted-printable decoding, which Go applies to a part that declares it, is not ported
-  and is named in the code comment as the stage-7 backlog.
+  and is named in the code comment as the stage-9 backlog.
 - The items read answers the default for a value the query integer read cannot read — one that is
   empty, unparseable or negative — so `max_id=-2` is the zero half of the branch rather than a
   bound; the write guards read `FormInt64Value`, which has no negative path, so the sign is part of

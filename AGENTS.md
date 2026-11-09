@@ -119,7 +119,7 @@ to what the acceptance client calls, which merged as PR #61: the base document, 
 documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
 32 pins and 67 probes across seven Fever suites and the icon read: 8 and 17 pin the multipart read
 as pure logic, 5 and 8 the document shapes, 3 and 5 the transport over a real socket, 2 and 6 the
-dispatch, 4 and 8 the four storage reads the documents are built from, 4 and 8 the items read,
+dispatch, 4 and 8 the five storage reads the documents are built from, 4 and 8 the items read,
 4 and 11 the three write branches, and 2 and 4 the icon read, each probe seen to fail on the rule
 it names and to revert the file byte-identically. Three part rules landed as the reference reads
 them rather than as divergences: a header line with no colon ends the whole read, an unquoted empty

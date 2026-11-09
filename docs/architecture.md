@@ -46,9 +46,10 @@ Sources/
 │   │                       # integration-credentials + stubs
 │   ├── Hashing/            # bcrypt through Vapor's digest, at the reference's cost
 │   ├── Logging/            # text/JSON swift-log bootstrap
-│   └── Routes/             # /healthz and the Google Reader path: the login, the handlers the
+│   └── Routes/             # /healthz, the Google Reader path: the login, the handlers the
 │   │                       # contract rules read, the write handlers, the content handler,
-│   │                       # the three subscription routes
+│   │                       # the three subscription routes; and the Fever path: the form read,
+│   │                       # the dispatch switch, the document shapes, the write branches
 └── rivulet/                # executable: entry point only
 ```
 

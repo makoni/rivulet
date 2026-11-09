@@ -27,7 +27,8 @@ to the tolerance table. The client matrix and the replay of captured request seq
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
-      FeedFlow (iOS/Android), optionally Reeder Classic — setup instructions and a manual
+      FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client
+      whose calling set the sixth slice was sized to — setup instructions and a manual
       checklist (subscribe, add a feed from the client, sync read state, star, counts).
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and
       Rivulet read the same corpus, and the difference is read class by class against the
