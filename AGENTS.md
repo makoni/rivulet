@@ -115,7 +115,7 @@ read with the value that response answered, which is one read on run data; the o
 table rule, which cannot be probed alone because removing a row also makes the difference itself a
 finding, so it is documented rather than probed; and the eight classes the corpus cannot reach,
 which are named in the table rather than asserted. The sixth slice is the Fever parameter set sized
-to what the acceptance client calls, which opens as PR #61: the base document, the five read
+to what the acceptance client calls, which merged as PR #61: the base document, the five read
 documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
 32 pins and 67 probes across seven Fever suites and the icon read: 8 and 17 pin the multipart read
 as pure logic, 5 and 8 the document shapes, 3 and 5 the transport over a real socket, 2 and 6 the

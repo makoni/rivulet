@@ -17,7 +17,7 @@ set only by its web form, and its own console command on this side, which has no
 and no flag — so what the rule can read is the answer, and the row names which path wrote the value
 as not reachable here; the run that writes one value through both paths reports nothing but the key
 set the method-mismatch row names. The sixth slice is the Fever parameter set sized to what the
-acceptance client calls, which opens as PR #61: the base document, the five read documents, the
+acceptance client calls, which merged as PR #61: the base document, the five read documents, the
 three `mark` branches and the `HEAD` reachability check, pinned as 32 pins and 67 probes across the
 seven Fever suites and the icon read, each seen to fail on the rule it names and to revert the file
 byte-identically, with the accepted row for the empty list this client's deserializer refuses added

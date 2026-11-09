@@ -1020,7 +1020,7 @@ request, where its `streamName` is the parsed title while this port writes the r
 defaults. These are recorded in `docs/parity.md`.
 
 ### The Fever parameter set (`FeverMultipartReadTests`, `FeverShapeTests`, `FeverAuthTests`,
-`FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests`, `FeverWriteTests`, PR #61)
+`FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests`, `FeverWriteTests`, merged as PR #61)
 
 The parameter set is the one the acceptance client calls: the base document, the five read
 documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
