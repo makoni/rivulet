@@ -227,7 +227,7 @@
     "acted_on": {},
     "asked": [
      "output",
-     "stream"
+     "s"
     ],
     "document": {
      "itemRefs": []
@@ -253,7 +253,7 @@
     "asked": [
      "T",
      "output",
-     "stream"
+     "s"
     ],
     "document": {
      "items": [
@@ -680,7 +680,7 @@
     "acted_on": {},
     "asked": [
      "output",
-     "stream"
+     "s"
     ],
     "document": {
      "itemRefs": []
@@ -706,7 +706,7 @@
     "asked": [
      "T",
      "output",
-     "stream"
+     "s"
     ],
     "document": {
      "items": [

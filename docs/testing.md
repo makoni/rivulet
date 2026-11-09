@@ -1147,17 +1147,20 @@ answered the collector with, and the fetch hop is not in it, so on run data the 
 compares is written from the same read as the list it reads, and only crafted data can fire it; the
 login recorded as the first request, on the route the reference registers for it with the form names
 it reads, because a pair document carrying requests before the login answer is a run that never
-authenticated; the token sent as the `Authorization` name the auth read reads, `GoogleLogin auth=`,
-split as `strings.Fields` splits it; the status taken from a failed response, because the status
-rule can otherwise never see the 404 or the 405 it compares, and a non-JSON answer recorded as the
-text it is; the manifest key carried as the name the run added the feed under, resolved through the
-feed url, because neither side has a column that holds it and the stored title is the parsed feed
-title; the storage read keeping the fields as the storage answers them, with the reference side
-parsed as CSV over the whole text rather than line by line — a field holding the delimiter or a
-newline is one field, not two rows — and this port's driver answering rows as fields, which needs no
-delimiter at all, and a value the storage cannot read being the empty string on both sides rather
-than the name of nothing; and the version named on the reference side only, because the port side
-names the build it ran.
+authenticated; the token asked with as `T` on the POST shapes, which is the half the auth read takes
+a form field for on both sides, and as the `Authorization` name — `GoogleLogin auth=`, split as
+`strings.Fields` splits it — on the others, and the names put where the reads take them for the
+method, because a body makes the transport POST, so the method the record carries is the method the
+shape names; the status taken from a failed response, because the status rule can otherwise never
+see the 404 or the 405 it compares, and a non-JSON answer recorded as the text it is, as is a JSON
+answer that is not an object, because the key-set rule reads no key set from an array; the manifest
+key carried as the name the run added the feed under, resolved through the feed url, because neither
+side has a column that holds it and the stored title is the parsed feed title; the storage read
+keeping the fields as the storage answers them, with the reference side parsed as CSV over the whole
+text rather than line by line — a field holding the delimiter or a newline is one field, not two
+rows — and this port's driver answering rows as fields, which needs no delimiter at all, and a value
+the storage cannot read being the empty string on both sides rather than the name of nothing; and
+the version named on the reference side only, because the port side names the build it ran.
 
 What the run hands over, and what the first live run here showed: the flags are handed to the
 reference one name at a time with its own `-e`, because a flag name handed bare is read as the image

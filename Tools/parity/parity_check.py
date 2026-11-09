@@ -41,9 +41,10 @@ DEFAULTS = {"pair": os.path.join(HERE, "baseline.json"),
             "report": os.path.join(HERE, "..", "..", "docs", "parity-report.md")}
 SECTION = "## Parity harness (stage 7)"
 ITEM_PREFIX = "tag:google.com,2005:reader/item/"
-# The shape the login is recorded under, which is also the response name the header rule reads. The
-# rule that reads the login half reads it by this key, not by position, so the probe that puts the
-# requests in another order still fires only the rule it names.
+# The key the login is recorded under is the shape the manifest names for the repeated response
+# name, which is the input the header rule reaches. The rule that reads the login half reads the
+# login through this key rather than by position, so the probe that puts the requests in another
+# order still fires only the rule it names.
 LOGIN = "request/repeated_header"
 
 PINNED_REFERENCE = "v2.3.3 at c4d54f87"

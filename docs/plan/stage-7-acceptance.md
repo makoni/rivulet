@@ -27,8 +27,11 @@ follow. **Effort:** M. **Depends on:** Stages 5–6.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and
       Rivulet read the same corpus, and the difference is read class by class against the
       tolerance table, which is read as data from `docs/parity.md` rather than restated in the
-      comparator. The corpus is the five documents under `Tools/parity/corpus/` plus the three
-      request shapes the table names, and the manifest names the classes each input can reach;
+      comparator. The corpus is the five documents under `Tools/parity/corpus/` plus the six request
+      shapes the manifest records, four of which the table names and two of which reach no class it
+      names, which is what lets a difference be attributed to a class rather than accepted by the
+      comparator's own preference; the manifest also names the classes each input can reach, and the
+      two shapes that reach none are the ones a difference on can only be a finding by itself.
       what the corpus cannot reach is named there rather than asserted. The run half executed
       here end to end through the collector, and the login half the first run reported is
       closed as an accepted-divergence row: the reference reads the integration row the login
