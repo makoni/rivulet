@@ -55,7 +55,7 @@ behind, so each of its 19 rules is a function over data rather than an assertion
 process. The halves are separated the way the soak's are — `Scripts/parity.sh` is the run half,
 `Tools/parity/parity_check.py` is the check half, `Tools/parity/collect.py` writes the pair document
 — and the tolerance table is read as data from `docs/parity.md` rather than restated in the
-comparator: 16 rows, 15 marked `accepted` and one `fixed`, and a difference whose class no row names
+comparator: 17 rows, 16 marked `accepted` and one `fixed`, and a difference whose class no row names
 is a finding. The corpus manifest names, for each input, the classes it can reach, which is what
 lets a difference be attributed to a class rather than accepted by the comparator's own preference,
 and requests are paired by key rather than by position, so a run that answered the same requests in
@@ -113,10 +113,31 @@ does not fix; the clock fields, which each side wrote at its own write instant; 
 value the login read compares, and in what order the command read its prompts; the response name
 read with the value that response answered, which is one read on run data; the other half of the
 table rule, which cannot be probed alone because removing a row also makes the difference itself a
-finding, so it is documented rather than probed; and the seven classes the corpus cannot reach,
-which are named in the table rather than asserted. What follows: the Fever parameter set sized to
-what the acceptance client calls, the client matrix, the replay of captured client request
-sequences, and the performance notes.
+finding, so it is documented rather than probed; and the eight classes the corpus cannot reach,
+which are named in the table rather than asserted. The sixth slice is the Fever parameter set sized
+to what the acceptance client calls, which opens as PR #61: the base document, the five read
+documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
+32 pins and 67 probes across seven Fever suites and the icon read: 8 and 17 pin the multipart read
+as pure logic, 5 and 8 the document shapes, 3 and 5 the transport over a real socket, 2 and 6 the
+dispatch, 4 and 8 the four storage reads the documents are built from, 4 and 8 the items read,
+4 and 11 the three write branches, and 2 and 4 the icon read, each probe seen to fail on the rule
+it names and to revert the file byte-identically. Three part rules landed as the reference reads
+them rather than as divergences: a header line with no colon ends the whole read, an unquoted empty
+parameter value is the error `ParseMediaType` reports while the media type survives it, and an
+empty filename parameter makes the part a value part; `created_on_time` reads the publication time
+as the reference's `entry.Date` does, and the query integer read answers the default for a negative
+value, so a negative `max_id` is the zero half of the branch. What those headers name as
+unpinnable: the port's own `HEAD` registration, because Vapor forwards a `HEAD` request to the
+`GET` route when no `HEAD` route is registered, so no patch can show the registration itself — that
+pin reads only that the method reaches the handler; the order the reference's icon join answers,
+which its statement has no `ORDER BY` for; the clock field, which the shape pins read as its
+position rather than as the instant; the single-row limit of the token lookup; the `SetLastLogin`
+write, which has no column here, so there is nothing to pin; and the wordings of the storage
+failures this suite cannot trigger. The accepted row for the empty list this client's deserializer
+refuses — the reference writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on
+both sides because the reference builds it with `make` — is the seventeenth row of the tolerance
+table and is named there as a class the corpus cannot reach. What follows: the client matrix, the
+replay of captured client request sequences, and the performance notes.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

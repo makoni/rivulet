@@ -16,8 +16,9 @@ import RivuletCore
 /// What this read cannot show: that a name the query does not carry and a name whose value is empty
 /// answer the same, which is why the guards read the answer rather than the presence.
 struct GoogleReaderQuery {
-    /// The pairs that were read, in the order they came in.
-    private let pairs: [(name: String, value: String)]
+    /// The pairs that were read, in the order they came in. Internal because ``FeverForm`` builds
+    /// the merged form from this read: `r.Form` is this map plus the body and the multipart parts.
+    let pairs: [(name: String, value: String)]
 
     init(query: String) {
         var pairs: [(name: String, value: String)] = []
@@ -45,6 +46,12 @@ struct GoogleReaderQuery {
     /// `Values[name]`, in the order the pairs came in.
     func values(named name: String) -> [String] {
         pairs.filter { $0.name == name }.map(\.value)
+    }
+
+    /// `Values.Has`, which is what `request.HasQueryParam` reads: the name is present whatever its
+    /// value is, including the empty one.
+    func has(named name: String) -> Bool {
+        pairs.contains { $0.name == name }
     }
 
     /// `request.QueryStringParam`: the default when the answer is empty.

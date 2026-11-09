@@ -760,6 +760,28 @@ Semantics:
   Failure → HTTP 200 with `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`.
 - `internal/fever` has no tests upstream — the code is the spec, so our contract tests are written
   from the handler.
+- The icons read (`Icons(userID)`) has no `ORDER BY` at all, so the order it answers is not fixed;
+  this port names its own — `icons.id ASC, feeds.id ASC` — and `IconRepositoryTests` pins that order
+  on data where it is not the order the feeds are read in.
+- `buildFeedGroups` iterates a Go map, so the group rows have no fixed order upstream. This port
+  writes them in the order the feeds listing answers the rows, with the groups in the order their
+  first feed appears in that listing, which `FeverReadsTests` pins as the port's own order.
+- The entry builder writes `ORDER BY` only when a sort was set, so for the two id documents, and for
+  the `since_id` branch when the value answers the default, the order upstream is the engine's. This
+  port always carries a sort — `published_at ASC, id ASC` — so the pins read the port's order there.
+- `QueryInt64Param` answers the default for a value that is empty, unparseable or negative, so
+  `max_id=-2` is the zero half of the branch. Its three paths are the ones `QueryIntParam` has too,
+  so there is no sign rule that parts this read from the shared one. `FormInt64Value`, which the
+  write guards read, has no negative path, so the sign is part of the value there.
+- `ParseForm` runs before `ParseMultipartForm` and copies `PostForm` before the query pairs, so a
+  body read that fails keeps the pairs `ParseForm` had already built: `ParseMultipartForm` returns
+  before its own values are merged into `r.Form`.
+- `CreateUser` inserts the default "All" category with the account, so the groups document carries
+  that row for every account, which `UserRepository.create` mirrors.
+- The reference's pattern is a subtree pattern, so any method under `/fever/` reaches this handler;
+  Vapor matches per method, so the port registers `GET`, `POST` and `HEAD` — the last one is what
+  the
+  acceptance client's reachability check sends.
 
 ## Fetching
 

@@ -60,13 +60,6 @@ struct SubscriptionSocket: Sendable {
     private var header: String { "GoogleLogin auth=\(token)" }
 
     // MARK: - The rows the pins write and the values they read back
-    /// A row a pin wrote. When the seed produced no row the pin fails on this rather than on a
-    /// value it could not name.
-    struct MissingRow: Error, CustomStringConvertible {
-        let table: String
-        var description: String { "the pin wrote no row in \(table)" }
-    }
-
     @discardableResult
     func seedFeed(_ categoryID: Int, _ url: String, _ title: String, _ siteURL: String, _ errors: Int,
         icon: Int? = nil) async throws -> Int {

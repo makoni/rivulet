@@ -58,6 +58,32 @@ public struct IconRepository {
         try await Icon.query(on: database).filter(\Icon.$externalID == externalID).first()
     }
 
+    /// `Icons(userID)`: the icons this user's feeds point at, read through the join between the
+    /// icon row and the feed row, so one row per feed — an icon shared by two feeds answers twice,
+    /// which a read that went through the icon table alone could not answer, and a feed with no
+    /// icon row contributes nothing, which is the reference's inner join.
+    ///
+    /// The reference's statement has no `ORDER BY`, so the order it answers is not fixed. This port
+    /// names its own order — the icon row, then the feed row — which is what `IconRepositoryTests`
+    /// pins on data where that order is not the order the feeds are read in.
+    public func listForUser(userID: Int) async throws -> [Icon] {
+        let rows = try await RawSQL.sql(on: database).raw("""
+            SELECT icons.id FROM icons
+            INNER JOIN feeds ON feeds.icon_id = icons.id
+            WHERE feeds.user_id = \(bind: userID)
+            ORDER BY icons.id ASC, feeds.id ASC
+            """).all()
+
+        // The join can answer the same icon id more than once, so the rows are read in the order
+        // the join answered them rather than as a set.
+        var icons: [Icon] = []
+        for row in rows {
+            let iconID = try row.decode(column: "id", as: Int.self)
+            if let icon = try await fetch(id: iconID) { icons.append(icon) }
+        }
+        return icons
+    }
+
     /// Points the feed row at `iconID`, replacing the icon it had.
     ///
     /// The reference's `StoreFeedIcon` (`internal/storage/icon.go`) deletes the feed's row
