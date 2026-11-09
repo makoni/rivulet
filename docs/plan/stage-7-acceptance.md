@@ -10,7 +10,7 @@ PR #57: the comparator reads a comparison run as the pair document it leaves beh
 table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on the rule it
 names — 19 rules, 21 crafted inputs plus the baseline. The fourth slice is merged as PR #58: the run
 half executed here for the first time, with Postgres as a container, and what it reported was the
-login half, which the run reaches and cannot pass. The fifth slice, which opens as PR #60, closes
+login half, which the run reaches and cannot pass. The fifth slice, which merged as PR #60, closes
 that half as an accepted-divergence row: the run writes the credential pair through the two paths
 the two sides have — SQL on the reference side, where the enabled flag the login read requires is
 set only by its web form, and its own console command on this side, which has no integration table

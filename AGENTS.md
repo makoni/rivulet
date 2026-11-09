@@ -74,7 +74,7 @@ nothing, so each probe is single-firing; the patch round showed each rule can fa
 names and reverted the file byte-identically. The fourth slice, the run half executed here for the
 first time, is merged as PR #58: what the run hands over, the terminal the secure console read
 needs, and the login half the run reaches and cannot pass. The fifth slice closes that half as an
-accepted divergence and is the run half completing a green authenticated run, and opens as PR #60:
+accepted divergence and is the run half completing a green authenticated run, and merged as PR #60:
 the run writes the credential pair through two paths — by SQL on the reference side, where the
 enabled flag the login read requires is set only by its web form, and through its own console
 command on this side, which has no integration table and no flag at all — so what the rule can read
