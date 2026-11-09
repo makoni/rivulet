@@ -36,16 +36,19 @@ Sources/
 │   ├── Config/             # environment → Config, validation
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher (+ address resolver seam and address policy), parser, dates,
-│   │                       # charset, sanitizer, OPML
+│   │                       # charset, sanitizer, OPML, the icon finder, the subscription scan
 │   ├── Scheduler/          # refresh loop; retention runs as a storage-layer job
-│   ├── Integration/        # the Fever api_key derivation
+│   ├── Integration/        # the Fever api_key derivation and the Google Reader contract rules —
+│   │                       # the item-id forms, the stream branches, the tag read, the `ts` rule
 │   └── Validation/         # user-name, password and duplicate-name rules, in the reference's order
 ├── RivuletApp/             # application layer — the only target that knows Vapor
 │   ├── Commands/           # serve, migrate, version, refresh, status, create-admin,
 │   │                       # integration-credentials + stubs
 │   ├── Hashing/            # bcrypt through Vapor's digest, at the reference's cost
 │   ├── Logging/            # text/JSON swift-log bootstrap
-│   └── Routes/             # /healthz now; client APIs arrive in stage 5
+│   └── Routes/             # /healthz and the Google Reader path: the login, the handlers the
+│   │                       # contract rules read, the write handlers, the content handler,
+│   │                       # the three subscription routes
 └── rivulet/                # executable: entry point only
 ```
 

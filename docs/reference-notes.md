@@ -616,7 +616,8 @@ the status mapping itself pinned by `GoogleReaderResponseStatusTests`.
   supplied , with the reference's typo, and runs before the item read, so an input that fails both
   answers the tag error. The storage writes follow the order read, unread, unstarred, starred.
 - Which handlers apply the output check is the handler's rule: `tag/list` and `stream/items/ids` do,
-  `edit-tag` and `user-info` do not.
+  `edit-tag` and `user-info` do not, and of the three subscription routes only `subscription/list`
+  applies it — `subscription/edit` and `subscription/quickadd` never read `output`.
 - Which status an error answers with is the response builder's: 400 for the output check and for the
   item read, 500 for the form, stream, tag and storage reads, and 404 for a row a storage read does
   not find. `edit-tag` answers 500 for a form the read cannot parse, but the auth path reports that
@@ -681,6 +682,29 @@ check, which is what makes the handler's choice read as the answer rather than a
   reads, and the delete statement is per user. The reference runs its three statements in a
   transaction; this port's boundary is the caller's, so the pins name the statements and not the
   boundary.
+
+### The three subscription handlers (`handler.go`, commit `c4d54f87`)
+
+Pinned over a real socket by the four `GoogleReaderSubscription*Tests` suites, with the scan read as
+pure logic by `SubscriptionDocumentLinksTests` and its two steps by `SubscriptionFinderTests`.
+
+- `subscription/edit` reads `s` as the whole merged list and `a` as the single value the same read
+  answers, and opens the write branch on `r.Form.Has`, the only guard on this path that reads the
+  presence of a name rather than its value. The stream count guard runs before the `a` read, the
+  title test before the type check, and the type check before the move; `unsubscribe` runs the
+  delete without reading the row.
+- `getOrCreateCategory` reads the title twice: `CategoryTitleExists` with `lower(title)=lower($2)`,
+  then `CategoryByTitle` with the title as given, so a label stored in another case answers no row,
+  which is where the move branch answers the category rule and the subscribe branch has no row to
+  read. The category the form does not name is `FirstCategory`, `ORDER BY title ASC LIMIT 1`. This
+  port reads the title once, which `docs/parity.md` records as the divergence.
+- `quickadd` answers `StreamName` with the title the create path wrote, and upstream that is the
+  parsed feed title, because `subscribe` fetches and parses the url. The base the HTML scan resolves
+  against is `getBaseURL`: the trimmed `<base href>` value only when it is absolute, otherwise the
+  url the call was given, and the canonical step feeds only the YouTube, GitHub and RSS-Bridge
+  steps. Both are recorded in `docs/parity.md`.
+- `UpdateFeed` names no `updated_at` in its SET list, so the stamp this port writes on the write the
+  rename and the move use is the port's own, recorded as a divergence row.
 
 ### The content handler (`handler.go`, commit `c4d54f87`)
 
