@@ -16,6 +16,9 @@ xcuserdata/
 .vscode/
 .idea/
 
+# CodeGraph index (local to each machine)
+.codegraph/
+
 # Runtime data (SQLite databases and their sidecars)
 .env
 data/

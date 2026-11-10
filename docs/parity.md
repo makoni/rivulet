@@ -1222,6 +1222,36 @@ steps by `SubscriptionFinderTests`.
 | The category the create read has no row for | `subscribe` reads the value the category pair answered, which for a title no write produced is nothing | answers `googlereader: category not found` under 500 | Reachable only where the write this port runs cannot produce a row, which no input here does |
 | The stamp the write leaves | `UpdateFeed` names no `updated_at` in its SET list: it writes `checked_at` with the value the request read carried | the write stamps `updated_at` with the time it runs at | The row carries a stamp the reference does not write for this path; the clock fields are never compared, and no pin reads the stamp |
 
+## OPML import and export (stage 5)
+
+The read, the write and the handler are traced to `internal/reader/opml` at commit `c4d54f87`, and
+the pins are `OPMLReadTests` for the shape and the value rules, `OPMLSerializeTests` for the bytes
+the reference's encoder answers, and `OPMLImportTests` for the steps the handler applies per record,
+with the two commands pinned as runs by `OPMLCommandTests` over the in-process console. The
+reference has no CLI import: its import reaches the rows through the API handler, so the command
+surface below is the port's own, and only the rules the commands apply are traced.
+
+**Matching the reference.**
+
+- The order the import applies per record is the reference's: the duplicate answer, the category
+  resolution, the rules, the row — so a record that is already there resolves no category and fails
+  no rule, and the record that fails stops the run with the earlier rows standing.
+- The category resolution is the reference's three halves: the empty name reads the smallest title,
+  the named title is compared as given, and a name the account has no row for is created. The two
+  reads are pinned as reads by `CategoryRepositoryTests`.
+- The export is the listing order the reference's query builder answers — the error count, then the
+  title — with the category title read through the join, and the bytes the serializer writes.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The command shape | `export-feeds` takes the account as its flag argument and prints the document; there is no import command, and no CLI write path for the rows | `rivulet export` prints the document the same way and writes a file only when `--file` names one; `rivulet import <file>` is the port's own command | Nothing upstream is contradicted. The path is an option rather than an argument because `@Argument` has no default, so a run cannot name an optional path; the pins read the stdout half and the file half separately |
+| The rules past the fourth | `ValidateFeedCreation` reads the regex, filter, scraper and proxy settings after the four ported ones | not ported: this port's schema has no column for them, so no input reaches those rules here | A record whose rule this port does not read is refused upstream and written here; the pins read the four rules the port has, and the rules are named in the suite header rather than asserted |
+| Settings the schema has no field for | `applySubscriptionSettings` writes every setting the record carries to the row | only the fields the port schema has reach the row — the user agent, the cache flag, the proxy flag and the disabled flag, with the title, the site url and the description | A record carrying `miniflux:crawler="true"` writes nothing for it here; the settings are read into the record as data, which the pins read as the record's fields |
+| The empty category name with no rows | `FirstCategory` answers `nil` with no guard, and the handler reads the field of that value | answers 0, which is the half the mandatory guard fails on | The reference reaches the guard with a value no write produced, which is a crash there; here the run reports the rule it names. This is the port's own rule, pinned as the answer for an account with no category row |
+| The date field's zone | the layout answers the zone name the time is read in, which for the reference is the zone its process has | answers `UTC`, named as part of the pin | The golden bytes for the date pin carry `UTC`; the same instant read in another zone answers another name, which no test here can show for the reference |
+
 ## CLI feed commands (stage 6)
 
 The reference's CLI dispatches by flags on the executable (`-create-admin`, `-refresh-feeds`,

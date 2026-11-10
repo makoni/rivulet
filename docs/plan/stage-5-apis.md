@@ -11,7 +11,8 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
 — merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
 endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
-The rest of the handlers are not started. **Effort:** XL.
+The rest of the handlers are not started, and the OPML slice opens as PR #64.
+**Effort:** XL.
 **Depends on:** Stage 4.
 
 ## Scope
@@ -134,7 +135,16 @@ The rest of the handlers are not started. **Effort:** XL.
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
 - [ ] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
       `Cache-Control`; Fever `favicons` returns `mime;base64,…`.
-- [ ] OPML: import (nested categories) and export; shared by the CLI and used in tests.
+- [x] OPML: import (nested categories) and export; shared by the CLI and used in tests. Opens
+      as PR #64: the shape rules the model tags and the value rules the switch carries are read
+      as the reference reads them over the tree the tolerant reader builds, and the bytes the
+      encoder answers are reproduced rule by rule; the handler applies the duplicate answer, the
+      category resolution, the rules and the row per record. 54 pins and 72 probes across
+      `OPMLReadTests`, `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests`. `import`
+      is the port's own command and `--file` is the port's own half of `export`; the settings the
+      port schema has no field for are read as data and not persisted, and the validation rules
+      past the four ported ones are not ported. Both are recorded in `docs/parity.md`. The icon
+      route above is still open, and so is the exit criterion for the journey.
 - [ ] Deviations are recorded in `docs/parity.md` as soon as they are observed.
 
 ## Implementation notes
@@ -240,3 +250,15 @@ Findings from review run 1 on this slice (PR #39) that do not change behavior:
   `IntegrationValidation.validate`. The reference has it once, in the handler before its read, so
   the second is the rule function's own guard, and the pins can fail only on that one, which is what
   the header now says.
+
+Findings from the runs on PR #64 that do not change behavior:
+
+- The probe round for this slice runs `swift test` filtered to the four OPML suites, one run per
+  probe, so a pin outside them is not read. On the first round the probe for the root-name rule
+  reported `ServeProcessTests`' `theBuiltBinaryAnswersOnTheProbedPort` next to the pin it names;
+  that pin reads the built binary over a socket, and no patch to the OPML read can reach it, so that
+  report was a flake of that suite rather than a double-firing.
+- The upstream `parser_test.go` cases are read as rules rather than ported as cases, because each of
+  them asserts on the value layer this port does not have. The two upstream names the serialize
+  suite cites are the cases that survive as round-trip pins, and the read suite's pins name the rule
+  each case can fail on instead of the case.

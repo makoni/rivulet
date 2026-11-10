@@ -1101,6 +1101,80 @@ read is the order this port names.
 `MissingRow` moved from `Support/SubscriptionSocket.swift` to `Support/EntryFixtures.swift` as the
 setup error both helper files throw, because the nested type was not visible to the Fever helper.
 
+### The OPML read, write and commands (`OPMLReadTests`, `OPMLSerializeTests`, `OPMLImportTests`,
+`OPMLCommandTests`, PR #64) The read is over the tokens the tolerant tokenizer already builds: the
+reference's value layer (`UnmarshalXML`) has no port counterpart, so the shape rules are read as the
+reference reads them and the record is assembled from the tree, and the write reproduces the bytes
+the reference's encoder answers for this model. 54 pins and 72 probes across the four suites — 16
+pins and 16 probes for the read as pure logic, 23 and 32 for the write, 11 and 18 for the handler's
+steps over a temp database, and 4 and 6 for the two commands as runs over the in-process console.
+Each probe patches one rule, is seen to fail on the pin it names and no other pin of these four
+suites, and reverts the file byte-identically; the round runs the four suites as one run per probe.
+It runs in copies of the tree, so the probes never touch the files being committed, and it builds
+only the two test targets the four suites are in; the results are cached by the file hash, so a
+delta round re-runs only the probes whose patch region or pin changed. Several probes share a pin,
+because one rule answers several bytes: the escape set has 9 probes on one pin, the settings that
+reach the row 7, the field order 3, the date rule 3, and the two command runs 2 each.
+
+What the read's probes read: the root name the model tags, which the reference checks even with
+`Strict = false`; the read failure reaching as the read's own failure; the outline level the field
+path names; the subscription test as the url value alone, with no `type` test, and the whitespace
+class it trims with; the url reaching the record as the attribute holds it; the title chain in the
+order the model's method defines; the site-url fallback; the branch running before the recursion;
+the category being the parent's title through the same chain; the miniflux names read against the
+resolved namespace, so an undefined prefix answers empty; the name set, with a name outside it read
+as nothing; the set `ParseBool` accepts; the error naming the attribute it was reading; a string
+name not being read through the bool rule; and the read walking every outline rather than only the
+records.
+
+What the write's probes read: the header line as the constant the pinned toolchain carries; the root
+at column 0; the four-space indent; the document ending at the root close with no trailing newline;
+the layout rule that keeps a close tag on the open line only when the element wrote nothing; the
+version written whatever the record holds; the `omitempty` halves of the namespace and of the three
+head fields; the three constants the build sets; the date layout, the time the build reads its date
+from, and the zone the port answers; `text` written always against `title` written only when
+carried; the field order read three ways — the format fields, the miniflux names, and `type` last; a
+false bool not being written; `type` written only for a subscription; the nine branches of the
+escape set; the categories sorted as bytes; and the order inside a category being the order the
+records arrived in.
+
+What the handler's probes read: the duplicate answer running before the resolution and the rules on
+the input that fails all three at once; the duplicate answer being the row of the account the run
+works for; the empty name reaching the smallest title rather than the row the position-ordered
+listing answers; the named title compared as given, and a name the account has no row for being
+created; the first record the rules fail stopping the run after the earlier write; the url reaching
+the row from the record; the export listing order the query builder answers; the export join reading
+the title from the row; and the fields the port schema has on both sides of the mapping.
+
+What the command probes read: that the import run reads the bytes of the file the argument names and
+hands them to the handler for the account the run resolves; that a path the run cannot read is
+reported and reaches no write; that the export run prints the document to stdout, which is where the
+reference prints it; and that it writes the file when the option names one and prints only the line
+that names the path it wrote.
+
+The pins are shaped so a probe cannot reach more than the rule it names: the namespace pin reads a
+value the bool rule accepts as well, the round-trip pins read through the writer and the read with
+the site url equal to the feed url, the grouping pin reads two titles that are not in byte order,
+the import pins read a row by its title or its category wherever another pin names the url, the
+export pins read fragments without the `>` the layout rule writes, the CLI import pin carries the
+title as the url, and the CLI file pin reads a path the run cannot read at all. Every parsed input
+carries `type="rss"`, which the read rule ignores, so a patch that read the branch through `type`
+answers the same records here.
+
+What these headers name as unpinnable: the flags the reference's decoder is configured with, which
+are the tokenizer's rules pinned by its own suites; `EscapeText` as the encoder exports it on its
+own, which this path does not read; the zone name the reference answers for the date, which this
+port answers as `UTC` and which `docs/parity.md` records; the validation rules past the four ported
+ones, which read settings this port's schema has no column for, so no input reaches them; the
+duplicate answer and the category answer inside those rules, which always answer true for a record
+that reaches them; the single-row limit of the storage reads the handler calls; and the wordings of
+the reported failures and of the lines the commands print.
+
+Two pins were removed with `Planned.swift`, whose `Planned.all` loop `RivuletCLI.swift` no longer
+has: the two `CommandLineTests` pins that read that list. `OPMLCommandTests` is the pin for the
+import and export runs, and `helpListsEveryCommandWithoutConfiguration` remains the surface pin for
+the command set.
+
 ## Robustness (stage 7)
 
 `FetcherHostileInputTests` is the hostile body corpus for the fetcher: a stream that inflates far

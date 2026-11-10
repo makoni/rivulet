@@ -432,8 +432,17 @@ and that file now takes the finder `RivuletApplication` owns and closes in `shut
 stub server it answers on. Two of the
 three shapes the run sends for these endpoints carry no class, and the quickadd shape names the one
 its key set can show, the title inside the request, because the rule that reads key sets reads no
-coverage; the two scan classes are recorded as classes the corpus cannot reach. What follows: the
-Fever parameter set, `quickadd` discovery, the icon route, OPML and the acceptance journey.
+coverage; the two scan classes are recorded as classes the corpus cannot reach. The OPML slice opens
+as PR #64: the shape rules the model tags and the value rules the switch carries are read as the
+reference reads them over the tree the tolerant reader builds, and the bytes the encoder answers are
+reproduced rule by rule, so 54 pins and 72 probes across `OPMLReadTests`, `OPMLSerializeTests`,
+`OPMLImportTests` and `OPMLCommandTests` name the root, the namespace, the name set, the escape set,
+the layout, and the four rules the handler applies per record; `import` is the port's own command,
+`--file` is the port's own half of `export`, the settings the port schema has no field for are read
+as data and not persisted, and the validation rules past the four ported ones are not ported, both
+recorded in `docs/parity.md`, with the date zone answered as `UTC` rather than as the reference's
+local name. What follows: the icon route and the acceptance journey, the Fever parameter set having
+merged as PR #61 and the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the
@@ -475,6 +484,28 @@ the reference's own output, which took two insertion-mode rules the port had not
 closes — and both are pinned case by case by `SanitizerTableModeTests`. Stage 2 is merged, and the
 exit criterion it deferred to the refresh path is met by the pipeline. Keep this line and the plan's
 status table in sync.
+
+## Explore with codegraph before reading files
+
+This repo is indexed by the **codegraph** MCP server: the index lives in `.codegraph/` (git-ignored,
+local to each machine) and trails writes by about a second, so it reflects an edit just made.
+`codegraph_explore` is Read-equivalent — a question or a bag of symbol names answers the verbatim,
+line-numbered source of the relevant symbols, the call path among them, and the blast radius: which
+tests cover a symbol, and which have none within a few hops. Pass the project as `projectPath` when
+the session has no index of its own.
+
+Reach for it when the answer spans more than one place: a subsystem not read yet, or before editing
+a rule, where the blast radius names the pins that can fail on it — the same list a review run
+checks. Read and Grep stay right for the opposite case: the file and the symbol are already known,
+one value or one line is needed, or the file is outside the index (`docs/`, `Scripts/`, `Tools/`,
+`Package.swift`).
+
+Two rules once it has been called:
+
+- Do **not** follow it with a grep or Read sweep over the same files: the source it printed is
+  current on-disk content, so treat it as already read.
+- Use the normal file tools for editing. Codegraph is for finding and understanding, and it cannot
+  show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
 
 ## Toolchain
 
