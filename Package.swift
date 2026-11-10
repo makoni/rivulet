@@ -104,7 +104,12 @@ let package = Package(
                 .product(name: "NIOPosix", package: "swift-nio"),
                 // The error-mapping test compares against the client's own error, so it names it.
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
-            ]
+            ],
+            // The calling sets are read as data by both halves: the pins read them through the
+            // bundle and `Tools/clients/replay.py` reads the same files from disk, so the two cannot
+            // disagree by restating the same order twice. That is why the sets live inside this
+            // target.
+            resources: [.copy("CallingSets")]
         ),
     ]
 )

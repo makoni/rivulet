@@ -1,0 +1,152 @@
+{
+  "client": "FeedFlow",
+  "api": "google-reader",
+  "source": {
+    "kind": "source",
+    "project": "prof18/feed-flow",
+    "file": "feedSync/greader/src/commonMain/kotlin/com/prof18/feedflow/feedsync/greader/data/GReaderClient.kt",
+    "commit": "75d1c0eea22aac271948b66e8c543287ea1bd4aa",
+    "read_on": "2026-11-10"
+  },
+  "redaction": {
+    "token": "T",
+    "account": "<account>",
+    "password": "<password>",
+    "feed_list": "not recorded",
+    "note": "no value here is a captured response: the records name the field names the client's own source sends"
+  },
+  "halves": [
+    {
+      "api": "google-reader",
+      "prefix": "/reader/api/0",
+      "calls_read": "read here",
+      "answered_here": "served here"
+    }
+  ],
+  "sequence_kind": "the order its own call graph reaches them in, because the token is fetched lazily on the first write",
+  "source_order": [
+    "accounts/ClientLogin",
+    "reader/api/0/subscription/list",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/stream/contents",
+    "reader/api/0/token",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/edit-tag",
+    "reader/api/0/rename-tag",
+    "reader/api/0/edit-tag#disable-tag",
+    "reader/api/0/subscription/edit",
+    "reader/api/0/subscription/quickadd"
+  ],
+  "declared_order": [
+    "accounts/ClientLogin",
+    "reader/api/0/subscription/list",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/edit-tag",
+    "reader/api/0/rename-tag",
+    "reader/api/0/edit-tag#disable-tag",
+    "reader/api/0/subscription/edit",
+    "reader/api/0/subscription/quickadd",
+    "reader/api/0/stream/contents",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/token"
+  ],
+  "calls": [
+    {
+      "key": "accounts/ClientLogin",
+      "method": "POST",
+      "auth": "none",
+      "names": ["Email", "Passwd"],
+      "reads": "the plain-text shape, because no output name is sent",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/list",
+      "method": "GET",
+      "auth": "header",
+      "names": ["output"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/items/ids",
+      "method": "GET",
+      "auth": "header",
+      "names": ["s", "ot", "c", "n", "xt", "output"],
+      "streams": ["user/-/state/com.google/reading-list", "user/-/state/com.google/starred"],
+      "page_size": "15000",
+      "note": "the stream value is the id the subscription answer carries, which the reference writes as feed/<feed id>",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/contents",
+      "method": "GET",
+      "auth": "header",
+      "names": ["xt", "n", "ot", "c", "output"],
+      "streams": ["user/-/state/com.google/reading-list", "user/-/state/com.google/starred"],
+      "page_size": "the value the app passes, not a fixed one",
+      "note": "the reference has no route for this path, so the subpath answer is what both sides give",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/token",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "reads": "the token is fetched before the first write and re-fetched when the answer carries the bad-token name",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/items/contents",
+      "method": "POST",
+      "auth": "form",
+      "names": ["i", "T"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/edit-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["i", "T", "a", "r", "output"],
+      "note": "the output pair reaches the read through the URL query, because the body has no output part",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/rename-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "dest", "T"],
+      "streams": ["user/-/label/<name>", "user/-/label/<new name>"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/edit-tag#disable-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "T"],
+      "path": "reader/api/0/edit-tag",
+      "note": "the client's folder delete sends this to edit-tag with no add and no remove pair, which is the guard's answer; the path its own resource table declares for it is not the path its own call uses, which is what `path` names here",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/edit",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "ac", "r", "t", "a", "T"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/quickadd",
+      "method": "POST",
+      "auth": "form",
+      "names": ["quickadd", "T"],
+      "note": "the whole pair is the body, so quickadd reaches the merged form through the body rather than the query",
+      "id_form": "none"
+    }
+  ],
+  "not_reached": ["reader/api/0/user-info", "reader/api/0/mark-all-as-read"],
+  "runtime_shape": {
+    "login_first": true,
+    "token_before_T": true,
+    "acts_on_header": "X-Reader-Google-Bad-Token",
+    "sends_the_stored_value_as_the_token": true
+  }
+}

@@ -1,0 +1,47 @@
+# The client matrix's manifest: one record line per call the calling sets record, the class the
+# comparator reads it against, and what that call cannot pin on its own. A record line is not
+# wrapped because it is one record, so it is exempt from the width rule. The calling sets are the
+# files beside this one; the classes are the ones the matrix names in `docs/clients.md`, and a class
+# that is also a parity class is read against the tolerance table in `docs/parity.md`. Two clients
+# record no call, because their source cannot be read here: their line names the class that says so.
+netnewswire/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
+netnewswire/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
+netnewswire/reader/api/0/tag/list | output_check | which endpoints apply the check, which the handler suite pins
+netnewswire/reader/api/0/rename-tag | error_wording | the guard no input reaches
+netnewswire/reader/api/0/disable-tag | merged_form_read | the localized strings the reference writes
+netnewswire/reader/api/0/subscription/list | none | the values the six fields carry, which no rule compares
+netnewswire/reader/api/0/subscription/edit | stream_forms | the two forms of one identifier, which the reference reads differently per endpoint
+netnewswire/reader/api/0/subscription/quickadd | minimal_scan | the discovery half this port does not have
+netnewswire/reader/api/0/stream/items/contents | item_id_forms | the padding, which the read keeps as it read it
+netnewswire/reader/api/0/stream/items/ids | page_size | the clamp, which a value below it cannot show
+netnewswire/reader/api/0/edit-tag | item_id_forms | the two forms one client sends in two different calls, which no single input shows both ways
+feedflow/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
+feedflow/reader/api/0/subscription/list | none | the values the six fields carry, which no rule compares
+feedflow/reader/api/0/stream/items/ids | page_size | the clamp, which a value below it cannot show
+feedflow/reader/api/0/edit-tag | output_check | the pair the client sends in the query rather than in the body
+feedflow/reader/api/0/rename-tag | error_wording | the guard no input reaches
+feedflow/reader/api/0/edit-tag#disable-tag | guard_wording | the path this client's own resource table declares for the call, which its own call does not use
+feedflow/reader/api/0/subscription/edit | merged_form_read | the order the two reads answer in
+feedflow/reader/api/0/subscription/quickadd | minimal_scan | the discovery half this port does not have
+feedflow/reader/api/0/stream/contents | subpath_answer | the shape this client's own decoder expects, which the catch-all does not write
+feedflow/reader/api/0/stream/items/contents | none | the same document read as either form, which this client's decoder takes both ways
+feedflow/reader/api/0/token | token_transport | the stored value this client sends as the token, which the read compares as the token
+newsflash/fever/?api | unauthenticated_shape | the clock field, which no rule reads
+newsflash/fever/groups | empty_lists | the order the group rows answer in, which the reference builds from a Go map
+newsflash/fever/feeds | none | the values the fields carry, which no rule compares
+newsflash/fever/favicons | none | the encoded image value, which the read returns as the stored bytes
+newsflash/fever/items | page_size | the page size, which is fixed here so a value the client sends cannot show it
+newsflash/fever/items/since_id | dispatch_names | the precedence between the three names, which one input cannot show all three ways
+newsflash/fever/items/max_id | dispatch_names | the negative value, which answers the default
+newsflash/fever/items/with_ids | client_guard | the guard this client applies before the request is sent, which no input reaches
+newsflash/fever/links | dispatch_names | the case the switch does not have, which only the default branch can answer
+newsflash/fever/unread_item_ids | none | the order the id list answers in, which the statement does not order
+newsflash/fever/saved_item_ids | none | the order the id list answers in, which the statement does not order
+newsflash/fever/mark/item | merged_form_read | the guard that a value at or below zero answers before the response builder
+newsflash/fever/mark/feed | merged_form_read | the time the read uses
+newsflash/fever/mark/group | merged_form_read | the user-wide half of the branch, which ignores the time it is given
+lire/no-call-recorded | no_route_here | the calling set of a closed-source client, and the half of its two that reaches no route on this port
+reeder-classic/no-call-recorded | closed_source | the calling set of a closed-source client, which this matrix cannot read
+# The name FeedFlow acts on for the token half is the response name the port writes for an
+# unauthenticated request on this path; it is not a call, so it has no record line, and the rule
+# that reads it is the one that names this line in its own wording.

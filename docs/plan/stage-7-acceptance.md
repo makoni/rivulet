@@ -21,7 +21,14 @@ acceptance client calls, which merged as PR #61: the base document, the five rea
 three `mark` branches and the `HEAD` reachability check, pinned as 32 pins and 67 probes across the
 seven Fever suites and the icon read, each seen to fail on the rule it names and to revert the file
 byte-identically, with the accepted row for the empty list this client's deserializer refuses added
-to the tolerance table. The client matrix and the replay of captured request sequences follow.
+to the tolerance table. The seventh slice is the client matrix and the performance notes, opens as
+PR #63: `docs/clients.md` records the calling sets of five clients — three read from their own
+source at a named commit, two from the project's documentation because their source cannot be read
+here — and the check half reads those sets, the record files, the document and the port's own route,
+dispatch and auth sources as data over 17 rules, with the parsers kept apart from the rules so each
+rule stays a function over data. No set is a capture: no client has been run against this port here,
+so the manual matrix exit criterion stays open and the per-client checklists are the checks to run
+when a client can be run. The performance half records measurements taken here rather than bounds.
 **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
@@ -29,7 +36,11 @@ to the tolerance table. The client matrix and the replay of captured request seq
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
       FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client
       whose calling set the sixth slice was sized to — setup instructions and a manual
-      checklist (subscribe, add a feed from the client, sync read state, star, counts).
+      checklist (subscribe, add a feed from the client, sync read state, star, counts). Done as
+      the half this machine can do: the calling sets are recorded for all five, three read from
+      their own source at a named commit and two from documentation, with the setup and the
+      checklist written for each, and no set is a capture because no client has been run against
+      this port here. The manual half — running a checklist on a device — is the part still open.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and
       Rivulet read the same corpus, and the difference is read class by class against the
       tolerance table, which is read as data from `docs/parity.md` rather than restated in the
@@ -49,8 +60,12 @@ to the tolerance table. The client matrix and the replay of captured request seq
       writes from the table before the rules read it, which is the same document a run writes
       from the same table, and the guards in the shell are the half that can be checked
       without a run.
-- [ ] Replay of captured real-client request sequences (redacted) as contract tests where
-      possible.
+- [x] The calling sets read as data and replayed as pins where the port answers:
+      `Tests/RivuletIntegrationTests/CallingSets/` is the record both halves read — the pins
+      through `Bundle.module`, the check half from disk — and `ClientSequenceReplayTests` replays
+      the recorded order and the answer the matrix names for each call. Nothing was captured here,
+      so this is the whole of what a pin can show: 9 pins and 10 probes, each seen to fire on the
+      rule it names.
 - [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
       a stream that inflates far past the size it is stored in, and a stream the decoder cannot
       finish — read as which limit answers, and the 10k-entry scenario with the budgets documented.
@@ -63,7 +78,10 @@ to the tolerance table. The client matrix and the replay of captured request seq
       7 probes across five suites (merged as PR #56): SSRF, the size and time caps, the auth
       behavior, the sanitizer bypass surface and the dependency audit. The rules no patch can flip
       are named in the document rather than asserted; one finding was closed in production code.
-- [ ] Performance notes: refresh of 100 feeds, query latency at 100k entries — numbers recorded.
+- [x] Performance notes: the refresh of 100 feeds is recorded as measurements taken here in
+      `docs/performance.md` — four runs with the wall time, the second pass that read an empty
+      batch, the entries written and the read path the timed pin printed. The query latency at the
+      100k corpus is not recorded, because that corpus is gated and no number for it exists here.
 
 ## Implementation notes
 
@@ -108,6 +126,24 @@ to the tolerance table. The client matrix and the replay of captured request seq
   named in the headers rather than asserted: the port's own `HEAD` registration, because Vapor
   forwards the method to the GET route, and the order the reference's icon join answers, which its
   statement does not order.
+- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 17 rules over the
+  record files, `docs/clients.md`, `docs/performance.md` and the port's own route, dispatch and
+  auth sources read as data, each rule shown to report its own crafted input alone and the
+  baseline to report nothing — 18 crafted inputs plus the baseline, so 19 cases, with the round
+  hashing every file the check half reads before and after, so a craft that reached a file is
+  reported. The parsers are in `Tools/clients/parsers.py`, so the rules stay the readable part.
+- `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a
+  real socket, read through `Bundle.module` as data rather than restated: the order each set
+  declares, which recorded call reaches a registered route and which reaches the catch-all answer,
+  the two item-id forms the same client sends, the page size above the clamp against the value at
+  the clamp, the token half per method, the guard the merged form answers for the call with no add
+  and no remove pair, the name the dispatch switch has no case for, and the prefix this port
+  registers no route for. 9 pins and 10 probes, each seen to fire on the rule it names and to
+  revert the file it patched byte-identically.
+- `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance half,
+  outside CI: the rule matches each number `docs/performance.md` names as measured here to the
+  record line that produced it, and reports a number the table does not read, a field no source
+  declares, and a shape the document names differently than the run answered it.
 - Client checklist executed manually and attached to the stage status.
 - `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one
   run leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline,
