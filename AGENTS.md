@@ -116,28 +116,64 @@ table rule, which cannot be probed alone because removing a row also makes the d
 finding, so it is documented rather than probed; and the eight classes the corpus cannot reach,
 which are named in the table rather than asserted. The sixth slice is the Fever parameter set sized
 to what the acceptance client calls, which merged as PR #61: the base document, the five read
-documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
-32 pins and 67 probes across seven Fever suites and the icon read: 8 and 17 pin the multipart read
-as pure logic, 5 and 8 the document shapes, 3 and 5 the transport over a real socket, 2 and 6 the
-dispatch, 4 and 8 the five storage reads the documents are built from, 4 and 8 the items read,
-4 and 11 the three write branches, and 2 and 4 the icon read, each probe seen to fail on the rule
-it names and to revert the file byte-identically. Three part rules landed as the reference reads
-them rather than as divergences: a header line with no colon ends the whole read, an unquoted empty
-parameter value is the error `ParseMediaType` reports while the media type survives it, and an
-empty filename parameter makes the part a value part; `created_on_time` reads the publication time
-as the reference's `entry.Date` does, and the query integer read answers the default for a negative
-value, so a negative `max_id` is the zero half of the branch. What those headers name as
-unpinnable: the port's own `HEAD` registration, because Vapor forwards a `HEAD` request to the
-`GET` route when no `HEAD` route is registered, so no patch can show the registration itself — that
-pin reads only that the method reaches the handler; the order the reference's icon join answers,
-which its statement has no `ORDER BY` for; the clock field, which the shape pins read as its
-position rather than as the instant; the single-row limit of the token lookup; the `SetLastLogin`
-write, which has no column here, so there is nothing to pin; and the wordings of the storage
-failures this suite cannot trigger. The accepted row for the empty list this client's deserializer
-refuses — the reference writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on
-both sides because the reference builds it with `make` — is the seventeenth row of the tolerance
-table and is named there as a class the corpus cannot reach. What follows: the client matrix, the
-replay of captured client request sequences, and the performance notes.
+documents, the three `mark` branches, and the reachability check that client sends as `HEAD`. 32
+pins and 67 probes across seven Fever suites and the icon read: 8 and 17 pin the multipart read as
+pure logic, 5 and 8 the document shapes, 3 and 5 the transport over a real socket, 2 and 6 the
+dispatch, 4 and 8 the five storage reads the documents are built from, 4 and 8 the items read, 4 and
+11 the three write branches, and 2 and 4 the icon read, each probe seen to fail on the rule it names
+and to revert the file byte-identically. Three part rules landed as the reference reads them rather
+than as divergences: a header line with no colon ends the whole read, an unquoted empty parameter
+value is the error `ParseMediaType` reports while the media type survives it, and an empty filename
+parameter makes the part a value part; `created_on_time` reads the publication time as the
+reference's `entry.Date` does, and the query integer read answers the default for a negative value,
+so a negative `max_id` is the zero half of the branch. What those headers name as unpinnable: the
+port's own `HEAD` registration, because Vapor forwards a `HEAD` request to the `GET` route when no
+`HEAD` route is registered, so no patch can show the registration itself — that pin reads only that
+the method reaches the handler; the order the reference's icon join answers, which its statement has
+no `ORDER BY` for; the clock field, which the shape pins read as its position rather than as the
+instant; the single-row limit of the token lookup; the `SetLastLogin` write, which has no column
+here, so there is nothing to pin; and the wordings of the storage failures this suite cannot
+trigger. The accepted row for the empty list this client's deserializer refuses — the reference
+writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both sides because the
+reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
+as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
+notes, which opens as PR #63: `docs/clients.md` records the calling sets of five clients — three
+read from their own source at a named commit, two from the project's documentation because their
+source cannot be read here — and the check half reads those sets, the record files, the document and
+the port's own route, dispatch and auth sources as data over 18 rules. No set is a capture, because
+no client has been run against this port here, so the manual matrix exit criterion stays open and
+the checklists are the checks to run when a client can be run. What the 18 rules read: the source
+each set names and its commit, the redaction as the placeholders the half reads, the matrix rows
+against the manifest lines, the classes against the parity table and the output-check class against
+the endpoints the reference applies the check on, the routes the port registers against the answer
+each row names, with the catch-all read as the registration line the file writes, the reference's
+route and dispatch sets, the two halves of a client that reaches one half only, the order the source
+declares, the login being first and the token coming before every call that carries it, the token
+half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
+against the records it counts, the replay records against the matrix's own column, the performance
+table against the run that answered it and the shape the document names, the rule list and the
+report items against what the check half has, and the response name a client acts on against the
+name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
+it — 23 crafted inputs plus the baseline over 18 rules, which is asserted to report nothing, so each
+probe is single-firing, the performance rule having one for each of the five kinds it reads and the
+route rule one for each of its two halves — and the round hashes every file the check half reads
+before and after, so a craft that reached a file is reported; the parsers are in
+`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can
+show is named in the document rather than asserted: no client run here, a closed-source set, the
+order a client reaches its calls at on a device, the values the calls carry, which are redacted, the
+app-level choice of a library-based client, the guard a client applies before it sends, the token
+half of a client that sends the stored value as the token, the numbers of another machine, and the
+query latency at the gated 100k corpus. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
+probes, reading the same files through `Bundle.module` as data: the recorded order, which call
+reaches a registered route and which reaches the catch-all answer, the two item-id forms the same
+client sends, the page size above the clamp against the value at the clamp, the token half per
+method, the guard the merged form answers for the call with no add and no remove pair, the name the
+dispatch switch has no case for, and the prefix this port registers no route for; each probe was
+seen to fire on the rule it names, and the transport read every other pin runs through is pinned by
+`GoogleReaderAuthTests`, so no patch can show it alone. The performance half records measurements
+taken here rather than bounds: `Scripts/perf.sh` is the run half, `Tools/clients/perf-run.txt` is
+the recorded run, and the rule matches each claim in `docs/performance.md` to the line that produced
+it. What follows: OPML and the acceptance journey.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed

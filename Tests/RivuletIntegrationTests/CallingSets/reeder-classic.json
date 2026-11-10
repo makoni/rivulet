@@ -1,0 +1,32 @@
+{
+  "client": "Reeder Classic",
+  "api": "fever",
+  "source": {
+    "kind": "docs",
+    "project": "miniflux docs",
+    "file": "docs/apps.html",
+    "read_on": "2026-11-10",
+    "note": "closed source: the documentation names this client as Fever-compatible, which is the whole fact the matrix can state for it"
+  },
+  "redaction": {
+    "token": "api_key",
+    "account": "<account>",
+    "password": "<password>",
+    "feed_list": "not recorded",
+    "note": "nothing is recorded for this client beyond what the documentation states, so there is no value to redact and no claim of a run against this port"
+  },
+  "halves": [
+    {
+      "api": "fever",
+      "prefix": "/fever",
+      "calls_read": "not read here",
+      "answered_here": "served here"
+    }
+  ],
+  "sequence_kind": "not read here: the order a closed-source client reaches its calls at cannot be read",
+  "declared_order": [],
+  "source_order": [],
+  "calls": [],
+  "not_reached": [],
+  "runtime_shape": {"login_first": false, "token_before_T": false, "uses_two_halves": false}
+}

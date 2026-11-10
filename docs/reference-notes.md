@@ -615,9 +615,10 @@ the status mapping itself pinned by `GoogleReaderResponseStatusTests`.
   guard that an empty add and an empty remove answers googlreader: add or/and remove tags should be
   supplied , with the reference's typo, and runs before the item read, so an input that fails both
   answers the tag error. The storage writes follow the order read, unread, unstarred, starred.
-- Which handlers apply the output check is the handler's rule: `tag/list` and `stream/items/ids` do,
-  `edit-tag` and `user-info` do not, and of the three subscription routes only `subscription/list`
-  applies it — `subscription/edit` and `subscription/quickadd` never read `output`.
+- Which handlers apply the output check is the handler's rule, read here as the two sets the check
+  has: the endpoints that apply it are `tag/list`, `stream/items/ids` and `subscription/list`; the
+  endpoints that do not apply it are `edit-tag`, `user-info`, `subscription/edit` and
+  `subscription/quickadd`. `subscription/edit` and `subscription/quickadd` never read `output`.
 - Which status an error answers with is the response builder's: 400 for the output check and for the
   item read, 500 for the form, stream, tag and storage reads, and 404 for a row a storage read does
   not find. `edit-tag` answers 500 for a form the read cannot parse, but the auth path reports that

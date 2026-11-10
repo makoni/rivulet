@@ -1,0 +1,153 @@
+{
+  "client": "NetNewsWire",
+  "api": "google-reader",
+  "source": {
+    "kind": "source",
+    "project": "Ranchero-Software/NetNewsWire",
+    "file": "Account/Sources/Account/ReaderAPI/ReaderAPICaller.swift",
+    "commit": "ab5421f533a60b9d2f8efe6254cafda46016d41a",
+    "read_on": "2026-11-10"
+  },
+  "redaction": {
+    "token": "T",
+    "account": "<account>",
+    "password": "<password>",
+    "feed_list": "not recorded",
+    "note": "no value here is a captured response: the records name the field names the client's own source sends"
+  },
+  "halves": [
+    {
+      "api": "google-reader",
+      "prefix": "/reader/api/0",
+      "calls_read": "read here",
+      "answered_here": "served here"
+    }
+  ],
+  "sequence_kind": "the order the source declares them in",
+  "declared_order": [
+    "accounts/ClientLogin",
+    "reader/api/0/token",
+    "reader/api/0/tag/list",
+    "reader/api/0/rename-tag",
+    "reader/api/0/disable-tag",
+    "reader/api/0/subscription/list",
+    "reader/api/0/subscription/edit",
+    "reader/api/0/subscription/quickadd",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/edit-tag"
+  ],
+  "source_order": [
+    "accounts/ClientLogin",
+    "reader/api/0/token",
+    "reader/api/0/tag/list",
+    "reader/api/0/rename-tag",
+    "reader/api/0/disable-tag",
+    "reader/api/0/subscription/list",
+    "reader/api/0/subscription/edit",
+    "reader/api/0/subscription/quickadd",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/edit-tag"
+  ],
+  "calls": [
+    {
+      "key": "accounts/ClientLogin",
+      "method": "POST",
+      "auth": "none",
+      "names": ["Email", "Passwd"],
+      "reads": "the plain-text shape, because no output name is sent",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/token",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "reads": "the token as the cached value every later write uses",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/tag/list",
+      "method": "GET",
+      "auth": "header",
+      "names": ["output"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/rename-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "s", "dest"],
+      "streams": ["user/-/label/<name>", "user/-/label/<new name>"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/disable-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "s"],
+      "streams": ["user/<account>/label/<name>"],
+      "note": "the stream value is the id the subscription list answer carries for a folder, which the reference writes in the account form of the label",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/list",
+      "method": "GET",
+      "auth": "header",
+      "names": ["output"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/edit",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "ac", "s", "t", "a", "r"],
+      "streams": ["user/-/label/<folder>", "feed/<feed id>"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/quickadd",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "quickadd"],
+      "note": "quickadd reaches the merged form through the URL query, because the body carries only T",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/items/contents",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "output", "i"],
+      "id_form": "unpadded"
+    },
+    {
+      "key": "reader/api/0/stream/items/ids",
+      "method": "GET",
+      "auth": "header",
+      "names": ["n", "output", "ot", "s", "xt", "c"],
+      "streams": [
+        "user/-/state/com.google/reading-list",
+        "user/-/state/com.google/starred",
+        "user/-/state/com.google/read",
+        "feed/<feed id>"
+      ],
+      "page_size": "1000",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/edit-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["T", "i", "a", "r"],
+      "streams": ["user/-/state/com.google/read", "user/-/state/com.google/starred"],
+      "id_form": "padded"
+    }
+  ],
+  "not_reached": ["reader/api/0/user-info", "reader/api/0/mark-all-as-read"],
+  "runtime_shape": {
+    "login_first": true,
+    "token_before_T": true,
+    "token_cached": "the token is read once and kept, so a write does not fetch it again"
+  }
+}

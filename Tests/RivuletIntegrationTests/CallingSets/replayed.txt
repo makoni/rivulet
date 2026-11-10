@@ -1,0 +1,42 @@
+# One record line per recorded call: the pin `ClientSequenceReplayTests` reads it with, or the
+# reason it cannot be replayed here. A record line is exempt from the width rule because it is one
+# record. The pins read the calling sets as data, so a pin reads the recorded order and the route the
+# matrix names for each call rather than restating either; the matrix's own column has to agree with
+# this file, which is what the rule that reads both checks. Two clients record no call, so they have
+# no line here: the rule reads them through the matrix instead.
+netnewswire/accounts/ClientLogin | the login half is the one route that carries no auth wrapper
+netnewswire/reader/api/0/token | the header half, on the call that names no body pair
+netnewswire/reader/api/0/tag/list | the order the set records, and the output check on the read half
+netnewswire/reader/api/0/rename-tag | the order the set records
+netnewswire/reader/api/0/disable-tag | the order the set records
+netnewswire/reader/api/0/subscription/list | the order the set records
+netnewswire/reader/api/0/subscription/edit | the order the set records, and the two forms of the stream value it sends
+netnewswire/reader/api/0/subscription/quickadd | the pair that reaches the merged form through the query
+netnewswire/reader/api/0/stream/items/contents | the item id read as this client writes it, unpadded
+netnewswire/reader/api/0/stream/items/ids | the page size this client sends, which is below the clamp
+netnewswire/reader/api/0/edit-tag | the item id read as the same client writes it padded, on the other call
+feedflow/accounts/ClientLogin | the order the set records
+feedflow/reader/api/0/subscription/list | the order the set records
+feedflow/reader/api/0/stream/items/ids | the page size this client sends, which is above the clamp
+feedflow/reader/api/0/edit-tag | the output pair read from the query half on a POST
+feedflow/reader/api/0/rename-tag | the order the set records
+feedflow/reader/api/0/edit-tag#disable-tag | the guard the merged form answers for a call with no add and no remove pair
+feedflow/reader/api/0/subscription/edit | the order the set records
+feedflow/reader/api/0/subscription/quickadd | the whole pair sent in the body
+feedflow/reader/api/0/stream/contents | the path no route registers, which reaches the catch-all answer
+feedflow/reader/api/0/stream/items/contents | the order the set records
+feedflow/reader/api/0/token | the token half this client refetches when the answer carries the bad-token name
+newsflash/fever/?api | the default branch, read on the base document
+newsflash/fever/groups | the order the set records
+newsflash/fever/feeds | the order the set records
+newsflash/fever/favicons | the order the set records
+newsflash/fever/items | the order the set records, and the page the read is given
+newsflash/fever/items/since_id | the name the switch answers
+newsflash/fever/items/max_id | the name the switch answers
+newsflash/fever/items/with_ids | not replayed here: the guard is this client's own, applied before the request is sent
+newsflash/fever/links | the name the switch has no case for
+newsflash/fever/unread_item_ids | the order the set records
+newsflash/fever/saved_item_ids | the order the set records
+newsflash/fever/mark/item | the order the set records, and the guard at or below zero
+newsflash/fever/mark/feed | the order the set records
+newsflash/fever/mark/group | the order the set records, and the user-wide half of the branch

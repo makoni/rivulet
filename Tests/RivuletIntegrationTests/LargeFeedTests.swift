@@ -131,6 +131,10 @@ import Testing
                 _ = try await repository.listIDs(EntryQuery(userID: corpus.userID, statuses: [.unread],
                     search: "sparrow", sort: newestFirst, limit: 20))
                 let elapsed = ContinuousClock.now - started
+                // The bound is what the pin asserts; the number it measured is reported so
+                // `docs/performance.md` records a measurement taken here rather than the bound. The
+                // field the print names is the field the performance document and its run log read.
+                print("read path at the reduced corpus: read_path=\(elapsed)")
                 #expect(elapsed < .milliseconds(250), "the read path took \(elapsed)")
             }
         }

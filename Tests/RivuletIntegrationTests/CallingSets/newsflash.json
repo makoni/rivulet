@@ -1,0 +1,185 @@
+{
+  "client": "NewsFlash",
+  "api": "fever",
+  "source": {
+    "kind": "source",
+    "project": "news-flash/fever_api",
+    "file": "src/lib.rs",
+    "commit": "0.6.0",
+    "read_on": "2026-11-10",
+    "boundary": "the client library the app depends on; the app's own choice of which of these calls it makes is not read here, so the set is the library's own"
+  },
+  "redaction": {
+    "token": "api_key",
+    "account": "<account>",
+    "password": "<password>",
+    "feed_list": "not recorded",
+    "note": "the key is the digest the library builds from the name and the password; no value here is a captured response"
+  },
+  "halves": [
+    {
+      "api": "fever",
+      "prefix": "/fever",
+      "calls_read": "read here",
+      "answered_here": "served here"
+    }
+  ],
+  "sequence_kind": "the order the library declares them in",
+  "declared_order": [
+    "fever/?api",
+    "fever/groups",
+    "fever/feeds",
+    "fever/favicons",
+    "fever/items",
+    "fever/items/since_id",
+    "fever/items/max_id",
+    "fever/items/with_ids",
+    "fever/links",
+    "fever/unread_item_ids",
+    "fever/saved_item_ids",
+    "fever/mark/item",
+    "fever/mark/feed",
+    "fever/mark/group"
+  ],
+  "source_order": [
+    "fever/?api",
+    "fever/groups",
+    "fever/feeds",
+    "fever/favicons",
+    "fever/items",
+    "fever/items/since_id",
+    "fever/items/max_id",
+    "fever/items/with_ids",
+    "fever/links",
+    "fever/unread_item_ids",
+    "fever/saved_item_ids",
+    "fever/mark/item",
+    "fever/mark/feed",
+    "fever/mark/group"
+  ],
+  "calls": [
+    {
+      "key": "fever/?api",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "reads": "the base document, which is also the answer for a name the switch has no case for",
+      "dispatch": "default",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/groups",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/feeds",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/favicons",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/items",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "50"
+    },
+    {
+      "key": "fever/items/since_id",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "since_id"],
+      "dispatch": "case",
+      "page_size": "50",
+      "note": "the library repeats this call until the item list comes back empty, which is the read at the page size the handler gives"
+    },
+    {
+      "key": "fever/items/max_id",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "max_id"],
+      "dispatch": "case",
+      "page_size": "50"
+    },
+    {
+      "key": "fever/items/with_ids",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "with_ids"],
+      "dispatch": "case",
+      "page_size": "50",
+      "client_guard": "the library refuses a list above 50 before the request is sent, so nothing reaches the read here"
+    },
+    {
+      "key": "fever/links",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "default",
+      "page_size": "none",
+      "note": "the library can send this name, and the switch has no case for it, so the answer is the base document on both sides"
+    },
+    {
+      "key": "fever/unread_item_ids",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/saved_item_ids",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/mark/item",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "mark", "as", "id"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/mark/feed",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "mark", "as", "id", "before"],
+      "dispatch": "case",
+      "page_size": "none"
+    },
+    {
+      "key": "fever/mark/group",
+      "method": "POST",
+      "auth": "form",
+      "names": ["api_key", "mark", "as", "id", "before"],
+      "dispatch": "case",
+      "page_size": "none",
+      "note": "the library sends a value for before, which is what the read uses; the reference ignores it for the user-wide half of this branch"
+    }
+  ],
+  "not_reached": [],
+  "runtime_shape": {
+    "login_first": false,
+    "token_before_T": false,
+    "head_reachability": "not read here: the library's own source sends POST only, so the reachability check PR #61 sized to is not attributed to this client by this matrix"
+  }
+}
