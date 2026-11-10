@@ -25,9 +25,10 @@ to the tolerance table. The seventh slice is the client matrix and the performan
 PR #63: `docs/clients.md` records the calling sets of five clients — three read from their own
 source at a named commit, two from the project's documentation because their source cannot be read
 here — and the check half reads those sets, the record files, the document and the port's own route,
-dispatch and auth sources as data over 17 rules, with the parsers kept apart from the rules so each
-rule stays a function over data. No set is a capture: no client has been run against this port here,
-so the manual matrix exit criterion stays open and the per-client checklists are the checks to run
+dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from
+the rules so each rule stays a function over data. No set is a capture: no client has been run
+against this port here, so the manual matrix exit criterion stays open and the per-client checklists
+are the checks to run
 when a client can be run. The performance half records measurements taken here rather than bounds.
 **Effort:** M. **Depends on:** Stages 5–6.
 
@@ -126,12 +127,13 @@ when a client can be run. The performance half records measurements taken here r
   named in the headers rather than asserted: the port's own `HEAD` registration, because Vapor
   forwards the method to the GET route, and the order the reference's icon join answers, which its
   statement does not order.
-- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 17 rules over the
-  record files, `docs/clients.md`, `docs/performance.md` and the port's own route, dispatch and
-  auth sources read as data, each rule shown to report its own crafted input alone and the
-  baseline to report nothing — 18 crafted inputs plus the baseline, so 19 cases, with the round
-  hashing every file the check half reads before and after, so a craft that reached a file is
-  reported. The parsers are in `Tools/clients/parsers.py`, so the rules stay the readable part.
+- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 18 rules over the
+  record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
+  writes for the output-check sets, and the port's own route, dispatch, auth and response sources
+  read as data, each rule shown to report its own crafted input alone and the baseline to report
+  nothing — 23 crafted inputs plus the baseline, so 24 cases, with the round hashing every file the
+  check half reads before and after, so a craft that reached a file is reported. The parsers are in
+  `Tools/clients/parsers.py`, so the rules stay the readable part.
 - `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a
   real socket, read through `Bundle.module` as data rather than restated: the order each set
   declares, which recorded call reaches a registered route and which reaches the catch-all answer,
@@ -142,8 +144,10 @@ when a client can be run. The performance half records measurements taken here r
   revert the file it patched byte-identically.
 - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance half,
   outside CI: the rule matches each number `docs/performance.md` names as measured here to the
-  record line that produced it, and reports a number the table does not read, a field no source
-  declares, and a shape the document names differently than the run answered it.
+  record line that produced it, and reports the five kinds of finding it reads: a claim the log does
+  not carry, a field no source declares, a record line the document does not name, a shape the
+  document names differently than the run answered it, and the value the table reports against the
+  value the log carries.
 - Client checklist executed manually and attached to the stage status.
 - `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one
   run leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline,

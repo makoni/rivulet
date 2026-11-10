@@ -13,10 +13,15 @@ below are the checks to run when a client can be run.
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own source
 and the field the timed pin's print writes as data, with the parsers it reads them with in
-`Tools/clients/parsers.py` so the rules stay the readable part of the file. `Tools/clients/probes.py` is the probe half: it crafts one input per
-rule that violates it and asserts that the rule reports it alone; the baseline reports nothing, so
-each probe is single-firing — 17 rules, 18 crafted inputs and the baseline, so 19 cases, the
-performance rule having one for each of the two branches it reads.
+`Tools/clients/parsers.py` so the rules stay the readable part of the file. What it reads as data
+includes two sentences written for the sets they name: the shape the performance paragraph declares,
+and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
+against.
+`Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it and
+asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-firing
+— 18 rules, 23 crafted inputs and the baseline, so 24 cases: the performance rule has one for each
+of the five kinds of finding it reads, and the route rule has one for each of its two halves,
+because an input that violates one of them still satisfies the other.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -27,6 +32,7 @@ each read as one whole string. The record lines and the item lines here are exem
 - `sets_are_redacted`
 - `matrix_names_every_call_and_the_classes_agree_with_the_manifest`
 - `matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row`
+- `the_output_check_class_names_an_endpoint_the_reference_applies_the_check_on`
 - `a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all`
 - `the_reference_answer_names_a_route_the_reference_registers`
 - `the_fever_names_are_read_from_the_dispatch_switch`
@@ -39,7 +45,7 @@ each read as one whole string. The record lines and the item lines here are exem
 - `every_recorded_call_is_named_as_replayed_or_with_a_reason`
 - `performance_names_which_numbers_were_measured_here`
 - `the_matrix_names_every_rule_and_what_it_cannot_show`
-- `the_name_a_client_acts_on_is_the_name_the_port_writes`
+- `the_name_a_client_acts_on_is_the_name_the_builder_writes`
 
 The record files are read as data, not as prose: each line is a record with the parts `replay.py`
 splits at `|`. For the rule that reads the replay records as its input, a file with no record lines
@@ -49,9 +55,10 @@ hashes every file the check half reads before and after, so a craft that reached
 
 ## The classes this matrix reads
 
-A class is a rule the comparator reads. A class marked `docs/parity.md` is read against the
-tolerance table, so a difference in it is covered by a row that already exists; a class marked
-`client matrix` is read only here, and the rule that reads it reports whatever the data says.
+A class is the rule the comparator reads for a row, and the `Read by` column names which half reads
+it: a class marked `docs/parity.md` is read against the tolerance table there, so a difference in it
+is covered by a row that already exists; a class marked `client matrix` is read only by the rule this
+document names, and that rule reports what the data says rather than what the table expects.
 
 | Class | Read by | State |
 | --- | --- | --- |
@@ -94,7 +101,7 @@ tolerance table, so a difference in it is covered by a row that already exists; 
 | FeedFlow | reader/api/0/stream/contents | GET | catch-all | catch-all | yes | subpath_answer |
 | FeedFlow | reader/api/0/token | GET | GET /reader/api/0/token | GET /reader/api/0/token | yes | token_transport |
 | FeedFlow | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | POST /reader/api/0/stream/items/contents | yes | none |
-| FeedFlow | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag | POST /reader/api/0/edit-tag | yes | output_check |
+| FeedFlow | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag | POST /reader/api/0/edit-tag | yes | merged_form_read |
 | FeedFlow | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag | POST /reader/api/0/rename-tag | yes | error_wording |
 | FeedFlow | reader/api/0/edit-tag#disable-tag | POST | POST /reader/api/0/edit-tag | POST /reader/api/0/edit-tag | yes | guard_wording |
 | FeedFlow | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit | POST /reader/api/0/subscription/edit | yes | merged_form_read |
@@ -151,8 +158,9 @@ Read from `Account/Sources/Account/ReaderAPI/ReaderAPICaller.swift` at
 this client's source does not send are `user-info` and `mark-all-as-read`. It sends the login
 without `output`, so the answer it parses is the plain-text one; the write half carries `T` in the
 body and the read half carries the token in the header. The item ids it sends are two different
-forms: the contents call writes the hex without padding and the state call writes it padded, and the
-read keeps what it read.
+forms: the contents call writes the hex without padding and the state call writes it padded. The
+`%016x` scan is what the read for `stream/items/contents` runs, so the unpadded form is reported
+there and the padded form reaches the write on `edit-tag` as the field-width rule reads it.
 
 Setup: Settings → Accounts → add an account of type "Reader API compatible", with the Google Reader
 integration credentials, not the account password. The value this client puts in the header is the

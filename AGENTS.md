@@ -140,22 +140,25 @@ as a class the corpus cannot reach. The seventh slice is the client matrix and t
 notes, which opens as PR #63: `docs/clients.md` records the calling sets of five clients — three
 read from their own source at a named commit, two from the project's documentation because their
 source cannot be read here — and the check half reads those sets, the record files, the document and
-the port's own route, dispatch and auth sources as data over 17 rules. No set is a capture, because
+the port's own route, dispatch and auth sources as data over 18 rules. No set is a capture, because
 no client has been run against this port here, so the manual matrix exit criterion stays open and
-the checklists are the checks to run when a client can be run. What the 17 rules read: the source
+the checklists are the checks to run when a client can be run. What the 18 rules read: the source
 each set names and its commit, the redaction as the placeholders the half reads, the matrix rows
-against the manifest lines, the classes against the parity table, the routes the port registers
-against the answer each row names, the reference's route and dispatch sets, the two halves of a
-client that reaches one half only, the order the source declares, the login being first and the
-token coming before every call that carries it, the token half per method, the stream forms as the
-prefix and suffix sets the branch reads, the counts table against the records it counts, the replay
-records against the matrix's own column, the performance table against the run that answered it, the
-rule list and the report items against what the check half has, and the response name a client acts
-on against the name the port writes. `Tools/clients/probes.py` crafts one input per rule that
-violates it — 18 crafted inputs plus the baseline, which is asserted to report nothing, so each
-probe is single-firing, the performance rule having one for each of its two branches — and the round
-hashes every file the check half reads before and after, so a craft that reached a file is reported;
-the parsers are in `Tools/clients/parsers.py` so the rules stay the readable part. What no craft can
+against the manifest lines, the classes against the parity table and the output-check class against
+the endpoints the reference applies the check on, the routes the port registers against the answer
+each row names, with the catch-all read as the registration line the file writes, the reference's
+route and dispatch sets, the two halves of a client that reaches one half only, the order the source
+declares, the login being first and the token coming before every call that carries it, the token
+half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
+against the records it counts, the replay records against the matrix's own column, the performance
+table against the run that answered it and the shape the document names, the rule list and the
+report items against what the check half has, and the response name a client acts on against the
+name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
+it — 23 crafted inputs plus the baseline over 18 rules, which is asserted to report nothing, so each
+probe is single-firing, the performance rule having one for each of the five kinds it reads and the
+route rule one for each of its two halves — and the round hashes every file the check half reads
+before and after, so a craft that reached a file is reported; the parsers are in
+`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can
 show is named in the document rather than asserted: no client run here, a closed-source set, the
 order a client reaches its calls at on a device, the values the calls carry, which are redacted, the
 app-level choice of a library-based client, the guard a client applies before it sends, the token

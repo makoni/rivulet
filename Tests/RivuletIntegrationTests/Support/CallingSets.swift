@@ -130,6 +130,10 @@ enum CallingSets {
             let parts = line.split(separator: "|", omittingEmptySubsequences: false).map {
                 $0.trimmingCharacters(in: .whitespaces)
             }
+            // A record line is one record: the key and the part the check half reads it against. A
+            // line with fewer parts is not a record, so it reads as nothing rather than as an index
+            // that cannot be answered.
+            guard parts.count >= 2 else { return }
             found[parts[0]] = parts[1]
         }
     }
@@ -141,13 +145,10 @@ enum CallingSets {
     }
 
     private static func url(_ name: String) -> URL {
-        guard let url = Bundle.module.resourceURL?.appendingPathComponent("CallingSets/\(name)") else {
+        guard let url = Bundle.module.resourceURL?.appendingPathComponent(
+            "CallingSets/\(name)") else {
             preconditionFailure("calling set not found: \(name)")
         }
         return url
     }
-}
-
-struct MissingCallingSet: Error {
-    let client: String
 }

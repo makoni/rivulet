@@ -5,11 +5,11 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 17 rules, 18 crafted inputs and the baseline, so 19 cases — the performance rule
-has two, because a value the table reports differently still matches a field a source
-declares, so its two branches cannot be shown by one input. The crafts change the data
-in memory, never the files. The round hashes every file the check half reads before and after, so a
-craft that reached a file is reported.
+single-firing: 18 rules, 23 crafted inputs and the baseline, so 24 cases — the performance rule has
+one craft for each of the five kinds of finding it reads, and the route rule has one for each of its
+two halves, because an input that violates one half of a rule still satisfies the other. The crafts
+change the data in memory, never the files. The round hashes every file the check half reads before
+and after, so a craft that reached a file is reported.
 
 The crafts that would have to change a client's own source — the guard that fires before the request
 is sent, and the values the records carry, which are placeholders — are what this half cannot show,
@@ -75,10 +75,20 @@ CASES = {
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row":
         lambda data: data["classes"][0].__setitem__("Read by", "docs/parity.md"),
 
-    # A row names an answer the port registers no route for.
-    "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all":
+    # A row names an answer the port registers no route for. The second craft takes away the
+    # registration line the catch-all half reads, which is the other half of the same rule.
+    "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": [
         lambda data: row_of(data, "NetNewsWire", "reader/api/0/token").__setitem__(
             "This port answers", "GET /reader/api/0/token-read"),
+        lambda data: data.__setitem__("port_routes", data["port_routes"].replace(
+            'on(.GET, "**"', 'on(.GET, "**-not-registered"')),
+    ],
+
+    # A row reads as the output check for an endpoint the reference applies the check on nowhere:
+    # the craft moves one endpoint from the applied set to the refused set in the reference's note.
+    "the_output_check_class_names_an_endpoint_the_reference_applies_the_check_on":
+        lambda data: data.__setitem__("reference", data["reference"].replace(
+            "that apply it are `tag/list`", "that apply it are `stream/items/ids`")),
 
     # A row names a route the reference records nothing for. It has to be a row the counts rule
     # counts as reaching nothing, otherwise the same change is a finding for the counts rule too.
@@ -125,32 +135,42 @@ CASES = {
         lambda data: data["replayed"][0]["rest"].__setitem__(
             0, "not replayed here: the login half has no pin for it"),
 
-    # A number the performance table claims was measured here, which the run did not answer.
+    # The five kinds the performance rule reads, each with its own craft: a claim the log does not
+    # carry, a field no source declares, a record line the document does not name, a shape the
+    # document names differently than the run answered it, and the value the table reports against
+    # the value the log carries.
     "performance_names_which_numbers_were_measured_here": [
-        lambda data: data["perf_table"][0].__setitem__("Value", "2147"),
+        lambda data: data["perf_table"].append({"Run": "run 5", "Source": "Scripts/perf.sh",
+                                               "Field": "pass_wall_ms", "Value": "2200",
+                                               "Named as": "measured here"}),
         # A field the table reads as measured here, which no source declares: the timed pin's own
         # print names a different field, so the run log line for it has no declared field.
         lambda data: data.__setitem__("perf_pin", data["perf_pin"].replace(
             "read_path=", "read_path_is_named_here=")),
+        lambda data: data["perf_table"].pop(0),
+        lambda data: data["shape"].__setitem__("feeds", "90"),
+        lambda data: data["perf_table"][0].__setitem__("Value", "2147"),
     ],
 
     # A fact the check half has no item for, named by the document as not shown.
     "the_matrix_names_every_rule_and_what_it_cannot_show":
         lambda data: data["not_shown"].append("the number of the run that answered it"),
 
-    # The name a client acts on, which the port does not write.
-    "the_name_a_client_acts_on_is_the_name_the_port_writes":
-        lambda data: set_of(data, "FeedFlow")["runtime_shape"].__setitem__(
-            "acts_on_header", "X-Reader-Google-Wrong-Token"),
+    # The name a client acts on, which the response builder does not write: the craft renames the
+    # name in the file that writes it, which is the input this rule reads.
+    "the_name_a_client_acts_on_is_the_name_the_builder_writes":
+        lambda data: data.__setitem__("port_response", data["port_response"].replace(
+            'name: "X-Reader-Google-Bad-Token"', 'name: "X-Reader-Local-Bad-Token"')),
 }
 
 def cases():
-    """The committed data as the baseline, and one crafted input per rule, in the order the rules
-    are named in `docs/clients.md`, which is the order the round reads them in. The performance rule
-    has two: its claim branch and its declared-field branch cannot both be shown by one input,
-    because a value the table reports differently still matches a field the source declares."""
+    """The committed data as the baseline, and one crafted input per rule, in the order the document
+    names the rules, which is the order the round reads them in. Two rules have more than one craft,
+    because their branches cannot be shown by one input: the performance rule reports five kinds of
+    finding and the route rule reads two halves, and an input that violates one of them still
+    satisfies the other."""
     out = [("baseline", None)]
-    for name in sorted(check.RULES):
+    for name in read.build_matrix(read.DEFAULTS)["rule_names"]:
         craft = CASES[name]
         for change in (craft if isinstance(craft, list) else [craft]):
             out.append((name, change))
@@ -178,8 +198,9 @@ def assert_each():
         print(f"PROBE FAIL: {line}")
     if failed:
         return 1
-    print(f"{len(cases())} probes: each rule reports its own input, and the baseline reports "
-          f"nothing; every file the round read is byte-identical to what it started with")
+    print(f"{len(cases())} cases over {len(check.RULES)} rules — {len(cases()) - 1} crafted "
+          f"inputs plus the baseline: each rule reports its own input alone, and the baseline "
+          f"reports nothing; every file the round read is byte-identical to what it started with")
     return 0
 
 

@@ -1342,27 +1342,29 @@ changing what the run reads.
 
 The client matrix is the half that records the calling sets of the acceptance clients, and
 `Tools/clients/replay.py` is its check half. It reads the sets, the record files, `docs/clients.md`,
-`docs/performance.md`, the port's own route, dispatch and auth sources, and the field the timed
-pin's print writes as data, so every rule is a function over data rather than an assertion about a
-client that was never run here. `Tools/clients/parsers.py` holds only the read: the sections,
-tables, record lines and the routes the port registers, so the rules stay the readable part of the
-check half. `Tools/clients/probes.py` crafts one input per rule that violates it and asserts that
-the rule reports it alone; the baseline — the committed data — reports nothing, so each probe is
-single-firing: 17 rules, 18 crafted inputs and the baseline, so 19 cases, the performance rule
-having two because its branches — a claim the run log does not carry, and a record line whose field
-no source declares — cannot both be shown by one input. Every craft changes the parsed data in
-memory and never a file, and the round hashes every file the check half reads before and after, so a
-craft that reached a file is reported.
-What the 17 rules read: the source each set names and its commit, the redaction as the placeholders
+`docs/performance.md`, `docs/reference-notes.md`, the port's own route, dispatch, auth and response
+sources, and the field the timed pin's print writes as data, so every rule is a function over data
+rather than an assertion about a client that was never run here. `Tools/clients/parsers.py` holds
+only the read: the sections, tables, record lines, the two sentences the rules parse as sets, and
+the routes the port registers, so the rules stay the readable part of the check half.
+`Tools/clients/probes.py` crafts one input per rule that violates it and asserts that the rule
+reports it alone; the baseline — the committed data — reports nothing, so each probe is
+single-firing: 18 rules, 23 crafted inputs and the baseline, so 24 cases, the performance rule
+having one for each of the five kinds of finding it reads and the route rule one for each of its two
+halves, because an input that violates one half of a rule still satisfies the other. Every craft
+changes the parsed data in memory and never a file, and the round hashes every file the check half
+reads before and after, so a craft that reached a file is reported.
+What the 18 rules read: the source each set names and its commit, the redaction as the placeholders
 the half reads rather than as values, the matrix rows against the manifest lines, the classes
-against the parity table, the routes the port registers against the answer each row names, the
-reference's route and dispatch sets, the two halves of a client that reaches one half only, the
-order the source declares, the login being first and the token coming before every call that carries
-it, the token half per method, the stream forms as the prefix and suffix sets the branch reads, the
-counts table against the records it counts, the replay records against the matrix's own column, the
-performance table against the run that answered it and the fields its sources declare, the rule list
-and the report items against what the check half has, and the response name a client acts on against
-the name the port writes.
+against the parity table and the output-check class against the endpoints the reference applies the
+check on, the routes the port registers against the answer each row names with the catch-all read as
+the registration line the file writes, the reference's route and dispatch sets, the two halves of a
+client that reaches one half only, the order the source declares, the login being first and the
+token coming before every call that carries it, the token half per method, the stream forms as the
+prefix and suffix sets the branch reads, the counts table against the records it counts, the replay
+records against the matrix's own column, the performance table against the run that answered it and
+the shape the document names, the rule list and the report items against what the check half has,
+and the response name a client acts on against the name the response builder writes.
 What this half cannot show, and is named in `docs/clients.md` rather than asserted: that no client
 has been run against this port here, the calling set of a client whose source cannot be read, the
 order a client reaches its calls at on a device, the values the calls carry, which are redacted, the
@@ -1381,9 +1383,10 @@ half are pinned as the answer they write, not as the order they happen in, which
 read.
 The performance half records measurements taken here rather than bounds: `Scripts/perf.sh` is the
 run, `Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
-`docs/performance.md` against the numbers the run answered and the fields its sources declare, the
-timed pin's own file being read as data for that. It is not in CI, so `python3
-Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as bounds.
+`docs/performance.md` against the numbers the run answered, the fields its sources declare and the
+shape the document names, the timed pin's own file being read as data for that. It is not in CI, so
+`python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as
+bounds.
 
 ## Running
 
@@ -1396,7 +1399,7 @@ each of its rules can fail on the rule it names.
   `python3 Tools/parity/probes.py` checks that each of its rules can fail on the rule it names, and
   `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the guards alone.
 - `python3 Tools/clients/replay.py` — the client matrix check half, outside CI.
-  `python3 Tools/clients/probes.py` checks that each of its 17 rules can fail on the rule it names
+  `python3 Tools/clients/probes.py` checks that each of its 18 rules can fail on the rule it names
   and that the baseline reports nothing. `Scripts/perf.sh` is its run half, outside CI too.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test

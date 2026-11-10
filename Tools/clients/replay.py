@@ -52,9 +52,6 @@ PREFIXES = ["user/-/state/com.google/", "user/<account>/state/com.google/",
 SUFFIXES = ["read", "starred", "reading-list", "kept-unread", "broadcast",
             "broadcast-friends", "like"]
 
-# The shape every run had, read from the performance document's own paragraph.
-SHAPE = {"feeds": "100", "items": "3", "build": "debug", "allow_private_networks": "true"}
-
 
 def rule_source(data):
     found = []
@@ -77,9 +74,12 @@ def rule_redacted(data):
     found = []
     for name, set_data in data["sets"].items():
         redaction = set_data["redaction"]
-        for field in ("token", "account", "password", "feed_list", "note"):
-            if not redaction.get(field):
-                found.append(f"{name}: a set with no {field} in its redaction")
+        missing = [field for field in ("token", "account", "password", "feed_list", "note")
+                   if not redaction.get(field)]
+        for field in missing:
+            found.append(f"{name}: a set with no {field} in its redaction")
+        if missing:
+            continue
         if not re.match(r"^(T|api_key)$", redaction["token"]):
             found.append(f"{name}: the redaction names the token as a value, not as the placeholder "
                          f"the half reads")
@@ -130,6 +130,10 @@ def rule_classes_read(data):
 
 
 def rule_gr_reaches_a_route(data):
+    """The answer each row names has to be a route the file registers, or the catch-all the same
+    file registers as `on(.GET, "**")`. Both halves are read as data, so a patch that removes
+    either can be reported: one craft names a route the file does not register, the other removes
+    the registration line for the catch-all the row answers on."""
     found = []
     registered = read.port_routes(data["port_routes"])
     for row in data["matrix"]:
@@ -137,8 +141,9 @@ def rule_gr_reaches_a_route(data):
         if row["Class"] in {"no_route_here", "closed_source"} or answer.startswith("dispatch:"):
             continue
         if answer == "catch-all":
-            if "catch-all" not in data["port_routes"]:
-                found.append(f"{row['Client']}/{row['Call']}: the port has no catch-all branch")
+            if f"catch-all {row['Method']}" not in registered:
+                found.append(f"{row['Client']}/{row['Call']}: the port registers no catch-all for a "
+                             f"{row['Method']} call")
             continue
         if answer not in registered:
             found.append(f"{row['Client']}/{row['Call']}: the port registers no route for the path "
@@ -319,49 +324,59 @@ def rule_replayed(data):
     return found
 
 
-def rule_performance(data):
-    """The table is read against the run log, and the run log against the fields its sources
-    declare: the names the shell's echo lines write, and the name the timed pin's print writes.
-    A field no source declares is a finding, which is why the pin is read as data here rather than
-    assumed."""
+def fields_declared(data):
+    """The field names the two sources write: the names the shell's echo lines print, and the name
+    the timed pin's print writes."""
+    return {match.group(1) for source in (data["perf_script"], data["perf_pin"])
+            for match in re.finditer(r"(\w+)=", source)}
+
+
+def shape_findings(data, run):
+    """The shape the performance document names, read as data, against the shape the run answered.
+    One finding per shape field, because the log carries the same shape on each of the four runs."""
     found = []
-    run = {}
-    for line in data["run"].splitlines():
-        if not line or line.startswith("#"):
-            continue
-        parts = [part.strip() for part in line.split("|")]
-        run.setdefault((parts[0], parts[1], parts[2]), []).append(parts[3])
-    declared = set(re.findall(r"(\w+)=", data["perf_script"])) | \
-            set(re.findall(r"(\w+)=", data["perf_pin"]))
-    used, undeclared = [], set()
+    for field, named in data["shape"].items():
+        values = [values[0] for key, values in run.items() if key[2] == field]
+        if values and values[0] != named:
+            found.append(f"the shape line {field} answers {values[0]}, the document names {named}")
+    return found
+
+
+def rule_performance(data):
+    """The table is read against the recorded run, the run against the fields its sources declare,
+    and the shape the document names against the shape the run answered. Five kinds of finding, each
+    with its own craft: a claim the log does not carry, a field no source declares, a record line the
+    document does not name, a shape the document names differently than the run answered it, and the
+    value the table reports against the value the log carries. A shape or a field written as a
+    constant in this file could never be reported, so both are read as data."""
+    found, run, undeclared, named = [], data["run_records"], set(), {}
+    declared = fields_declared(data)
     for row in data["perf_table"]:
         if row["Named as"] != "measured here":
             continue
         key = (row["Run"], row["Source"], row["Field"])
-        if row["Field"] not in declared and row["Field"] not in undeclared:
-            undeclared.add(row["Field"])
-            found.append(f"{row['Field']}: a field no source declares")
+        if row["Field"] not in declared:
+            if row["Field"] not in undeclared:
+                undeclared.add(row["Field"])
+                found.append(f"{row['Field']}: a field no source declares")
+            continue
         if key not in run:
             found.append(f"{row['Run']} {row['Field']}: the table reports it as measured here, the "
                          f"run answered nothing")
             continue
-        if row["Value"] not in run[key]:
-            found.append(f"{row['Run']} {row['Field']}: the table reports {row['Value']}, the run "
-                         f"answered {' or '.join(run[key])}")
-            continue
-        used.append((key, row["Value"]))
+        named.setdefault(key, set()).add(row["Value"])
+    found.extend(shape_findings(data, run))
     for key, values in run.items():
-        if key[2] in undeclared:
+        if key[2] in undeclared or key[2] in data["shape"]:
             continue
-        if key[2] in SHAPE:
-            if values[0] != SHAPE[key[2]]:
-                found.append(f"the shape line {key[2]} answers {values[0]}, the document names "
-                             f"{SHAPE[key[2]]}")
+        if key not in named:
+            found.append(f"{key[0]} {key[2]}: the run answered {' or '.join(values)}, the table "
+                         f"does not read that number")
             continue
-        for value in values:
-            if (key, value) not in used:
-                found.append(f"{key[0]} {key[2]}: the run answered {value}, the table does not read "
-                             f"that number")
+        for value in named[key]:
+            if value not in values:
+                found.append(f"{key[0]} {key[2]}: the table reports {value}, the run answered "
+                             f"{' or '.join(values)}")
     return found
 
 
@@ -386,11 +401,30 @@ def rule_names_every_rule(data):
 
 
 def rule_acts_on_name(data):
+    """The name a client acts on, read as the name the response builder writes, not as the name the
+    auth path's comment mentions: a patch that renames the name in the code has to be reported, so
+    the file that writes it is the input for this rule."""
     found = []
     for name, set_data in data["sets"].items():
         header = set_data["runtime_shape"].get("acts_on_header")
-        if header and header not in data["port_auth"] and header not in data["port_fever"]:
-            found.append(f"{name}: the set names a response name the port does not write")
+        if header and f'name: "{header}"' not in data["port_response"]:
+            found.append(f"{name}: the set names a response name the builder does not write")
+    return found
+
+
+def rule_output_check_applied(data):
+    """A row read as the output check has to name an endpoint the reference applies the check on, as
+    `docs/reference-notes.md` records it, so the class is falsifiable rather than a label. The craft
+    for this rule moves one endpoint from the applied set to the refused set in the note."""
+    found = []
+    applied, _ = read.output_check_endpoints(data["reference"])
+    for row in data["matrix"]:
+        if row["Class"] != "output_check":
+            continue
+        endpoint = row["Call"].split("reader/api/0/", 1)[-1]
+        if endpoint not in applied:
+            found.append(f"{row['Client']}/{row['Call']}: the reference records no output check for "
+                         f"the endpoint the row names as {row['Class']}")
     return found
 
 
@@ -399,6 +433,8 @@ RULES = {
     "sets_are_redacted": rule_redacted,
     "matrix_names_every_call_and_the_classes_agree_with_the_manifest": rule_matrix_and_manifest,
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row": rule_classes_read,
+    "the_output_check_class_names_an_endpoint_the_reference_applies_the_check_on":
+        rule_output_check_applied,
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": rule_gr_reaches_a_route,
     "the_reference_answer_names_a_route_the_reference_registers": rule_reference_answer,
     "the_fever_names_are_read_from_the_dispatch_switch": rule_fever_names_from_switch,
@@ -411,7 +447,7 @@ RULES = {
     "every_recorded_call_is_named_as_replayed_or_with_a_reason": rule_replayed,
     "performance_names_which_numbers_were_measured_here": rule_performance,
     "the_matrix_names_every_rule_and_what_it_cannot_show": rule_names_every_rule,
-    "the_name_a_client_acts_on_is_the_name_the_port_writes": rule_acts_on_name,
+    "the_name_a_client_acts_on_is_the_name_the_builder_writes": rule_acts_on_name,
 }
 
 

@@ -71,6 +71,9 @@ the bound that pin asserts (250 ms) is the check half, not a measurement.
 The performance half of the matrix is the rule `performance_names_which_numbers_were_measured_here`:
 it reads this document's table against the recorded run log, and the run log against the fields the
 sources declare: the names `Scripts/perf.sh` writes, and the name the timed pin's print writes, so
-the pin is read as data here rather than assumed. It reports a claim the log does not carry, a
-record line this document does not name, and a record line whose field no source declares — which is
-what makes the rule falsifiable rather than a restatement of the numbers.
+the pin is read as data here rather than assumed. It reports five kinds of finding, each with its
+own craft: a claim the log does not carry, a field no source declares, a record line this document
+does not name, a shape this document names differently than the run answered it, and the value the
+table reports against the value the log carries — which is what makes the rule falsifiable rather
+than a restatement of the numbers, and what makes the shape read as data rather than as a constant
+in the check half.

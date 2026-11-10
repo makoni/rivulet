@@ -31,7 +31,9 @@ import Vapor
 ///its calls at, which the record names as not read here; the app-level choice of which calls a
 ///library-based client makes, which is read at the library boundary; the page size as a row count,
 ///because the difference between a value above the clamp and a value at it is only visible above
-///the clamp, which the gated corpus holds; and the page size for `stream/items/contents`, which
+///the clamp, which the gated corpus holds; the half of the page pin that reads the value at the
+///clamp, because both readings of the clamp answer the same number there, so only the above-clamp
+///half can fail on a patch; and the page size for `stream/items/contents`, which
 ///this port reads no limit for at all.
 @Suite struct ClientSequenceReplayTests {
     init() {
@@ -68,10 +70,11 @@ import Vapor
 
     ///The login half, as the record names it: the one route on this path that carries no transport
     ///read, and the answer it carries is the value the later requests read as the token. A pair
-    ///with no `=` is the form the read reports, so the two 401 shapes say which piece ran — the
-    ///login guard's own shape is the JSON one, and the wrapper's is the text one. 2 probes: the
-    ///first patches the write so the three lines carry the stored value instead of the value the
-    ///row derives, the second patches the route so the wrapper covers the login too.
+    ///with no `=` is a name with an empty value, so the 401 here is the guard's answer rather than
+    ///the read's, and the two 401 shapes say which piece ran: the login guard's own shape is the
+    ///JSON one, and the wrapper's is the text one. 2 probes: the first patches the write so the
+    ///three lines carry the stored value instead of the value the row derives, the second patches
+    ///the route so the wrapper covers the login too.
     @Test func theLoginHalfCarriesNoWrapperAndCarriesTheValueTheLaterReadsCompare() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
@@ -81,8 +84,9 @@ import Vapor
             #expect(login?.names == ["Email", "Passwd"], "the record names the fields the login reads")
             #expect(login?.auth == "none", "the record names the login half as carrying no token")
 
-            // A pair with no `=` is the form the read cannot parse: the answer is the guard's own
-            // shape, which is what this route gives because the wrapper is not on it.
+            // A pair with no `=` is a name with an empty value, which the guard answers before
+            // any value is read: the shape is the guard's own, which is what this route gives
+            // because the wrapper is not on it.
             let reported = try await requests.post("/accounts/ClientLogin", raw: "Email")
             #expect(reported.status == .unauthorized, "the guard ends the login before the read")
             #expect(requests.contentType(of: reported) == "application/json",
@@ -184,8 +188,9 @@ import Vapor
     }
 
     ///The two page sizes the records name: the one above the clamp reaches the clamp, and the one
-    ///at the clamp is the value the read answers. Read as the read answers it, because the
-    ///difference between the two is only visible above the clamp.
+    ///at the clamp is the value the read answers. Only the first half can fail on a patch: at the
+    ///clamp both readings answer the same number, so the second half is what the pin reads and not
+    ///what it can show, which the suite header names.
     @Test func thePageSizeAboveTheClampAgainstTheValueAtTheClamp() throws {
         let above = try CallingSets.set("FeedFlow").call("reader/api/0/stream/items/ids")?.pageSize
         let at = try CallingSets.set("NetNewsWire").call("reader/api/0/stream/items/ids")?.pageSize

@@ -18,7 +18,7 @@ netnewswire/reader/api/0/edit-tag | item_id_forms | the two forms one client sen
 feedflow/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
 feedflow/reader/api/0/subscription/list | none | the values the six fields carry, which no rule compares
 feedflow/reader/api/0/stream/items/ids | page_size | the clamp, which a value below it cannot show
-feedflow/reader/api/0/edit-tag | output_check | the pair the client sends in the query rather than in the body
+feedflow/reader/api/0/edit-tag | merged_form_read | the pair the client sends in the query rather than in the body
 feedflow/reader/api/0/rename-tag | error_wording | the guard no input reaches
 feedflow/reader/api/0/edit-tag#disable-tag | guard_wording | the path this client's own resource table declares for the call, which its own call does not use
 feedflow/reader/api/0/subscription/edit | merged_form_read | the order the two reads answer in
