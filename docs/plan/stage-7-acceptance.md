@@ -21,15 +21,15 @@ acceptance client calls, which merged as PR #61: the base document, the five rea
 three `mark` branches and the `HEAD` reachability check, pinned as 32 pins and 67 probes across the
 seven Fever suites and the icon read, each seen to fail on the rule it names and to revert the file
 byte-identically, with the accepted row for the empty list this client's deserializer refuses added
-to the tolerance table. The seventh slice is the client matrix and the performance notes, opens as
+to the tolerance table. The seventh slice is the client matrix and the performance notes, merged as
 PR #63: `docs/clients.md` records the calling sets of five clients — three read from their own
 source at a named commit, two from the project's documentation because their source cannot be read
 here — and the check half reads those sets, the record files, the document and the port's own route,
-dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from
-the rules so each rule stays a function over data. No set is a capture: no client has been run
-against this port here, so the manual matrix exit criterion stays open and the per-client checklists
-are the checks to run
-when a client can be run. The performance half records measurements taken here rather than bounds.
+dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from the
+rules so each rule stays a function over data. No set is a capture: no client has been run against
+this port here, so the manual matrix exit criterion stays open and the per-client checklists are the
+checks to run when a client can be run. The performance half records measurements taken here rather
+than bounds.
 **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope

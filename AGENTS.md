@@ -137,7 +137,7 @@ trigger. The accepted row for the empty list this client's deserializer refuses 
 writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both sides because the
 reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
-notes, which opens as PR #63: `docs/clients.md` records the calling sets of five clients — three
+notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three
 read from their own source at a named commit, two from the project's documentation because their
 source cannot be read here — and the check half reads those sets, the record files, the document and
 the port's own route, dispatch and auth sources as data over 18 rules. No set is a capture, because
