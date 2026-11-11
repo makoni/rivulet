@@ -4,10 +4,11 @@ import RivuletCore
 
 /// The Rivulet command-line interface.
 ///
-/// The command set mirrors the final CLI surface: `serve`, `migrate`, `version`, `refresh`,
+/// The command set is the whole final CLI surface now: `serve`, `migrate`, `version`, `refresh`,
 /// `status`, `create-admin`, `integration-credentials`, the feed commands `add`, `remove` and
-/// `list`, and the maintenance commands `backup` and `vacuum` work; the remaining commands are
-/// registered placeholders that report the stage implementing them (see `docs/plan/`).
+/// `list`, the maintenance commands `backup` and `vacuum`, and the OPML commands `import` and
+/// `export` all work, so no registered placeholder is left. The last two planned entries were
+/// `import` and `export`; what those runs do is pinned by `OPMLCommandTests`.
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///
@@ -60,9 +61,8 @@ public enum RivuletCLI {
         commands.use(List(environment: environment), as: "list")
         commands.use(Backup(environment: environment, space: space, verifier: verifier), as: "backup")
         commands.use(Vacuum(environment: environment, space: space), as: "vacuum")
-        for planned in Planned.all {
-            commands.use(planned, as: planned.name)
-        }
+        commands.use(Import(environment: environment), as: "import")
+        commands.use(Export(environment: environment), as: "export")
         return commands.group(help: "A lightweight, self-hosted feed reader.")
     }
 }

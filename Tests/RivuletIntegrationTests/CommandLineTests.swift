@@ -6,6 +6,11 @@ import Testing
 import RivuletApp
 import RivuletCore
 
+/// The command surface as runs. The set is complete now, so nothing here reads a placeholder: the two
+/// pins that read the placeholder surface were removed when the last two planned entries, `import` and
+/// `export`, landed, because a pin that read "not implemented yet" cannot fail once no placeholder is
+/// registered. What those runs do is pinned by `OPMLCommandTests`, and the surface itself is the pin
+/// that reads the names `--help` lists.
 @Suite struct CommandLineTests {
     init() {
         TestLogging.bootstrapOnce()
@@ -72,32 +77,6 @@ import RivuletCore
         }
     }
 
-    @Test func plannedCommandsReportTheStageThatImplementsThem() async throws {
-        // `create-admin` and `integration-credentials` are no longer in this list: they are stage
-        // 5's commands that landed, and their pins are `CreateAdminTests` and
-        // `IntegrationCredentialsTests`. `add`, `remove` and `list` are no longer here either:
-        // stage 6's first slice landed them, and `FeedCommandTests` pins what they do instead.
-        // `backup` and `vacuum` are no longer here either: stage 6's second slice landed them, and
-        // `MaintenanceCommandTests` pins what they do instead.
-        let planned: [(name: String, stage: Int)] = [
-            ("import", 5),
-            ("export", 5),
-        ]
-
-        for (name, stage) in planned {
-            let console = TestConsole()
-            do {
-                try await RivuletCLI.run(console: console, environment: [:], arguments: ["rivulet", name])
-                Issue.record("`\(name)` must not succeed before stage \(stage)")
-            } catch let error as CLIError {
-                #expect(error.message.contains("not implemented yet"), "\(error.message)")
-                #expect(error.message.contains("stage \(stage)"), "\(error.message)")
-            } catch {
-                Issue.record("unexpected error for `\(name)`: \(error)")
-            }
-        }
-    }
-
     @Test func migrateCreatesTheSchema() async throws {
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
@@ -131,32 +110,6 @@ import RivuletCore
             throw error
         }
         try await rivulet.shutdown()
-    }
-
-    @Test func plannedCommandsReportTheStageEvenWithArguments() async throws {
-        // `add` is no longer in this list: stage 6's first slice landed it, and `FeedCommandTests`
-        // pins what it does instead.
-        let invocations: [(arguments: [String], stage: Int)] = [
-            (["import", "feeds.opml"], 5),
-            (["export", "feeds.opml"], 5),
-        ]
-
-        for (arguments, stage) in invocations {
-            let console = TestConsole()
-            do {
-                try await RivuletCLI.run(
-                    console: console,
-                    environment: [:],
-                    arguments: ["rivulet"] + arguments
-                )
-                Issue.record("`\(arguments.joined(separator: " "))` must not succeed before stage \(stage)")
-            } catch let error as CLIError {
-                #expect(error.message.contains("not implemented yet"), "\(error.message)")
-                #expect(error.message.contains("stage \(stage)"), "\(error.message)")
-            } catch {
-                Issue.record("unexpected error for `\(arguments.joined(separator: " "))`: \(error)")
-            }
-        }
     }
 
     @Test func serveRejectsUnsupportedArgumentsBeforeCreatingTheDatabase() async throws {

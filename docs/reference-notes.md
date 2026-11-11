@@ -784,6 +784,52 @@ Semantics:
   the
   acceptance client's reachability check sends.
 
+## OPML (`internal/reader/opml`, commit `c4d54f87`)
+
+- The value layer the reference reads into (`opmlDocument`, `opmlOutline` and its `UnmarshalXML`)
+  has no port counterpart: the port reads the tokens the tolerant tokenizer already builds and
+  applies the same rules over the tree. The two shape rules that belong to `encoding/xml` itself
+  — the root name the model tags, which is checked even with `Strict = false`, and the field path
+  `body>outline` — are read as the reference reads them, so a document whose root is not `opml` is
+  the root-shape error rather than an empty answer. This was checked by running the reference over
+  these inputs in a scratch package, as the corpus section describes.
+- Miniflux attributes are read only against the resolved namespace: the switch runs when the
+  attribute's space is the namespace string, so an undefined prefix is not read at all — nothing is
+  compared for it and the record answers empty. A declaration on the root resolves the prefix,
+  and `xmlns` alone (the default namespace) does not.
+- The name set is the switch's entries; a name outside it is read as nothing, not as an error.
+  The bool names go through `strconv.ParseBool`'s accepted set — `1 t T true TRUE True` and
+  `0 f F false FALSE False` — and the error names the attribute the rule was reading. The bool rule
+  runs for every outline the walk reaches, not only the subscriptions, because the attribute loop
+  runs before the walk decides the branch.
+- The subscription test is the url value alone, read against the whitespace class the reference's
+  `strings.TrimSpace` trims with, with no `type` test. The title chain is the order the model's own
+  method defines (title, text, site url, feed url), and the site url falls back to the feed url. The
+  record carries the url as the attribute holds it, untrimmed, because the test trims a copy.
+- The write: `xml.Header` is the constant the pinned toolchain carries, the encoder is configured
+  with a four-space indent, the root is written at column 0, and the document ends at the root close
+  with no trailing newline. An element keeps its close tag on the same line as its open tag only
+  when it wrote nothing, which is the layout rule the head writer and the outline writer share.
+  - The escape set is the encoder's table for attribute values and for string-field character data,
+  read as one rule: `"` → `&#34;`, `'` → `&#39;`, `&` → `&#amp;`, `<` → `&lt;`, `>` → `&gt;`, tab →
+  `&#x9;`, newline → `&#xA;`, CR → `&#xD;`, and a scalar outside the character range → U+FFFD. The
+  range is `0x09`, `0x0A`, `0x0D`, `0x20–0xD7FF`, `0xE000–0xFFFD` and `0x10000–0x10FFFF`, so a
+  control character other than those three is U+FFFD. Newlines are escaped on both sides, so the
+  rule has no attribute flag; and the path read here is the printer path the encoder marshals string
+  fields through, which is what the rule reproduces; the exported `EscapeText` and the `EncodeToken`
+  chardata call are not read here, the second of them taking the flag as false and leaving the
+  newline as written.
+  - The date field is the layout `Mon, 02 Jan 2006 15:04:05 MST`, which answers the zone
+name the time is read in. The reference runs with the zone its process has; the port answers `UTC`
+and names the zone as part of the pin, so the golden bytes are read at the instant `1136214245` with
+the zone named as `UTC`. This is the port's divergence, recorded in `docs/parity.md`. - Categories
+are sorted as bytes over the group names, and the records inside a category keep the order they
+arrived in, because the group map's slice is built by appending. - The storage side the import
+reads: the duplicate answer per record, `FirstCategory` for an empty name (`ORDER BY title ASC LIMIT
+1`, with `sql.ErrNoRows` answering `nil`), `CategoryByTitle` compared as the name is given, and the
+create for a name no row answers. The export reads the feed list with the sort the query builder
+builds — `parsing_error_count DESC, title` — and the category title through the join.
+
 ## Fetching
 
 - `Accept-Encoding: br,gzip` (or `identity` when compression is disabled); conditional GET with
