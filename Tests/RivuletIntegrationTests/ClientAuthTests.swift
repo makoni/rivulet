@@ -136,7 +136,9 @@ import Testing
                 let sql = try sqlDatabase(connection)
                 let grRowID = try await insertReturningID(sql, username: "alice",
                     googleReaderUsername: "GrName", googleReaderPasswordHash: "stored-hash")
-                let lowerRowID = try await insertReturningID(sql, username: "grname",
+                // The id of this row is not read: the pin reads only that the lowercased form
+                // reaches neither row, so the insert is here as the control row, not as a value.
+                _ = try await insertReturningID(sql, username: "grname",
                     googleReaderUsername: "GRNAME", googleReaderPasswordHash: "other-hash")
 
                 // The read compares the name as given, so the mixed-case row wins over the

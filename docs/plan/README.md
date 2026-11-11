@@ -57,8 +57,8 @@ API).
 - [ ] `swift test` is green locally and in CI.
 - [ ] Docs updated (`README.md`, stage status, `docs/` as needed); public APIs carry DocC comments.
 - [ ] Ported code/fixtures carry provenance comments and `NOTICE` stays accurate.
-- [ ] No new compiler warnings; no skipped or disabled tests (except the documented heavy/on-demand
-suites).
+- [ ] No compiler warnings, from the project or the test targets; no skipped or disabled tests
+(except the documented heavy/on-demand suites).
 
 ## Non-goals (MVP)
 

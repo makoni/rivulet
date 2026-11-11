@@ -70,7 +70,10 @@ public struct UserRepository {
     /// themselves are what the caller derived — the rules that choose them are pinned by
     /// `IntegrationValidationTests` and `IntegrationCredentialsTests`. `updated_at` is the port's
     /// own column, so it is stamped here; the reference's `integrations` table has no such column,
-    /// and no pin can read a clock value, so the stamp is stated rather than pinned.
+    /// and no pin can read a clock value, so the stamp is stated rather than pinned. The row the
+    /// write answers is the model the caller handed in, so a caller that reads the stored row back
+    /// through a fetch does not read this result, which is why it is discardable.
+    @discardableResult
     public func updateIntegration(_ user: User, feverUsername: String?, feverToken: String?,
         googleReaderUsername: String?, googleReaderPasswordHash: String?) async throws -> User {
         user.feverUsername = feverUsername

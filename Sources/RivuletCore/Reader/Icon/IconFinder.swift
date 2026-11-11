@@ -85,7 +85,7 @@ struct IconFinder {
     /// parse cannot read is skipped, which is what the scan already does, and so is a download that
     /// answers nothing or fails.
     private func iconsFromDocument(_ documentURL: String) async throws -> IconCandidate? {
-        let documentRequest = try await builder.build(url: documentURL, userAgent: userAgent)
+        let documentRequest = try builder.build(url: documentURL, userAgent: userAgent)
         let response = try await fetcher.fetch(documentRequest)
         if let error = response.error() { throw error }
 

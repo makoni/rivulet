@@ -37,7 +37,7 @@ struct SubscriptionSocket: Sendable {
     }
 
     func answer(_ path: String, pairs: [String] = []) async throws -> String {
-        try await requests.body(of: try await post(path, pairs))
+        try requests.body(of: await post(path, pairs))
     }
 
     func status(_ path: String, pairs: [String] = []) async throws -> HTTPStatus {
@@ -46,7 +46,7 @@ struct SubscriptionSocket: Sendable {
 
     /// The GET half, which is the method the listing route is registered on.
     func get(_ pathAndQuery: String) async throws -> String {
-        try await requests.body(of: try await requests.get(routes + pathAndQuery, header: header))
+        try requests.body(of: await requests.get(routes + pathAndQuery, header: header))
     }
 
     private func post(_ path: String, _ pairs: [String]) async throws -> ClientResponse {

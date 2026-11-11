@@ -557,6 +557,11 @@ manifest record line or a generated report item line; and a shell command line o
 which the run reads as one line. Each stays whole on its own line. Code lines are single
 expressions and are not split to meet the width. A commit that only rewraps does not change
 behavior, so it does not reopen a review that already approved the words.
+- Zero warnings: the project and the test targets build clean — `swift build` and
+`swift build --build-tests` answer with no warning on a clean build. Each warning is fixed at the
+site it names, not silenced with a flag: the `await` on a call that is not async is dropped, a
+binding or a result nothing reads is removed or assigned to `_`, and `@discardableResult` is put on
+a function only when no caller reads its result.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
 `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved when
 they make data structures, algorithms or hashing clearer or more efficient — add them as direct
@@ -597,7 +602,8 @@ are counted on that head.
 
 ```sh swift build                            # debug build
 swift test                             # all tests (unit + integration); must be green
-swift test --filter RivuletCoreTests   # fast unit loop swift run rivulet --help ```
+swift test --filter RivuletCoreTests   # fast unit loop swift run rivulet --help
+swift build --build-tests              # must be warning-free, for the project and the tests ```
 
 ## Conventions
 

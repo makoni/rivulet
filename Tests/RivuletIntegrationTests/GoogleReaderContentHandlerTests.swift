@@ -305,7 +305,7 @@ import RivuletApp
     @Test func theOutputCheckAndTheStreamReadRunBeforeTheItemIdsGuard() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
-            let userID = try await requests.seedIntegrationUser(storage, name: "alice",
+            _ = try await requests.seedIntegrationUser(storage, name: "alice",
                 storedHash: storedHash)
             let token = GoogleReaderToken.derive(username: "alice", storedHash: storedHash)
             let header = "GoogleLogin auth=\(token)"
