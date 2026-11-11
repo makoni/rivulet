@@ -1111,7 +1111,9 @@ steps over a temp database, and 4 and 6 for the two commands as runs over the in
 Each probe patches one rule, is seen to fail on the pin it names and no other pin of these four
 suites, and reverts the file byte-identically; the round runs the four suites as one run per probe.
 It runs in copies of the tree on the real disk, so the probes never touch the files being committed,
-and three copies run at once. The results are cached by the hash of the six probed files and the
+and four copies run at once, which is where this machine saturates: one probe is the one patched file
+plus the relinks, so it uses about two cores, and past four copies the memory the builds need makes
+the round slower rather than faster. The results are cached by the hash of the six probed files and the
 four suites, so a delta round re-runs only the probes whose patch region or pin changed. Several
 probes share a pin, because one rule answers several bytes: the escape set has 9 probes on one pin,
 the settings that reach the row 7, the field order 3, the date rule 3, and the two command runs 2
