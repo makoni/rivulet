@@ -14,9 +14,11 @@ import Vapor
 ///
 /// What the reference has and this port does not: `WithoutCompression` for a body that is not SVG,
 /// because there is no compression middleware here, and the HTML shapes for a missing row and for a
-/// storage failure, which are not this port's — it answers the shape its client APIs answer with,
-/// and `docs/parity.md` records that. The `Vary` header the builder writes only above its
-/// compression threshold cannot appear on an answer of this path.
+/// storage failure, which are not this port's — it answers the JSON shape its client paths answer
+/// with for a missing row. This path has no error branch, so a storage failure reaches Vapor's own
+/// error answer rather than the document the Fever handlers write; `docs/parity.md` records both.
+/// The `Vary` header the builder writes only above its compression threshold cannot appear on an
+/// answer of this path.
 enum IconRoutes {
     /// The bound `showFeedIcon` gives the builder: 72h, as the reference counts it.
     static let iconBound: TimeInterval = 72 * 3_600

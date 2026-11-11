@@ -7,9 +7,11 @@ import Vapor
 /// The public icon route, ported from Miniflux `internal/ui/feed_icon.go` at `c4d54f87`: the answer
 /// one icon row gets, read over a real socket. The rules the answer is built from — the ETag shape,
 /// the `If-None-Match` read, the `Cache-Control` value and the `Expires` shape — are pinned as pure
-/// logic by `CachingRulesTests`, so these pins read only what the route adds: which read it runs,
-/// which values it takes from the row, which headers it writes on which branch, and the status the
-/// two branches answer.
+/// logic by `CachingRulesTests`, so these pins read only what the route adds: which values it takes
+/// from the row, which headers it writes on which branch, and the status the two branches answer.
+/// The read itself is pinned as a read by `IconRepositoryTests`; a patch that changed which value
+/// the route looks up by answers nothing for the row, which reaches the six pins that read the row
+/// at once, so no probe here shows the lookup on its own.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: that the route
 /// answers for a request that carries no token, which is the reference's public route; that the
@@ -20,15 +22,19 @@ import Vapor
 /// this path; that the match branch answers 304 with no body and without the headers the body
 /// callback writes; and that a row the read does not find answers 404.
 ///
-/// Each pin is read by one patch: the pins that read a value take it from one rule, and the pin for
-/// the match branch reads only that the caching headers are on the answer, not the values the rules
-/// build, so the patches for those rules reach the pins that name them and not this one. Two
-/// reaches the round records. The match branch is chosen by the read, so a patch that changes what
-/// that read answers for a request carrying no `If-None-Match` reaches every pin that reads the
-/// callback branch: the pin for the empty side is read together with the three pins that read that
-/// branch. And the pin for the match branch reads the header value the route builds from the row,
-/// so the patch that names which value that header is built from reaches it as well as the pin that
-/// names that rule.
+/// Five pins here are read by more than one patch, which is what the round expects for those rows.
+/// Two pins name two rules and so have one patch per rule: the pin for the route answering without
+/// a token (the token read not being run, and the answer carrying the bytes of the row) and the pin
+/// for the caching headers (the bound the route is given, and `Expires` being written on this
+/// path). The patch for the empty side of the guard reaches three pins at once — the token pin, the
+/// content-type pin and the policy pin — because the branch the answer takes is chosen by that
+/// read, which is the row the round records with four pins. The caching-headers pin is not reached,
+/// because the headers it reads are written before that read runs. The match pin is read by its own
+/// patch and by the patch that names which value the `ETag` is built from, because it reads the
+/// header value the route builds from the row. Every other patch fires one pin, and the socket pins
+/// read presence or which row value a header is built from rather than the output of a rule pinned
+/// in the pure suite, so the patches for the pure rules reach only the pins that name them — the
+/// guard patch is the exception, because it changes which branch the answer takes.
 ///
 /// What these pins cannot fail on: the instant `Expires` is built from, which is the clock the run
 /// reads and no test can name — the shape and the zone are pinned by `CachingRulesTests`, which

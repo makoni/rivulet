@@ -9,7 +9,7 @@ import Foundation
 enum CachingRules {
     /// `normalizeETag`: the quoted shape is added only when the value does not carry it already.
     static func etag(_ value: String) -> String {
-        let etag = value.trimmingCharacters(in: .whitespaces)
+        let etag = trim(value)
         if etag.isEmpty {
             return ""
         }
@@ -26,7 +26,7 @@ enum CachingRules {
         if headerValue.isEmpty || etag.isEmpty {
             return false
         }
-        if headerValue.trimmingCharacters(in: .whitespaces) == "*" {
+        if trim(headerValue) == "*" {
             return true
         }
         let tag = etag.hasPrefix("W/") ? String(etag.dropFirst(2)) : etag
@@ -39,14 +39,30 @@ enum CachingRules {
         "public, max-age=\(wholeSeconds(duration)), immutable"
     }
 
-    /// `Expires`: the instant plus the bound, written in the `http.TimeFormat` shape, in UTC.
+    /// `Expires`: the instant plus the whole bound — the reference does not count the seconds
+    /// before adding them, it truncates only when it writes the value — written in the
+    /// `http.TimeFormat` shape, in UTC.
     static func expires(now: Date, duration: TimeInterval) -> String {
-        formatter.string(from: now.addingTimeInterval(TimeInterval(wholeSeconds(duration))))
+        formatter.string(from: now.addingTimeInterval(duration))
     }
 
-    /// The whole seconds of the bound, as the reference counts them.
+    /// The whole seconds of the bound, as the reference counts them for `Cache-Control`.
     private static func wholeSeconds(_ duration: TimeInterval) -> Int64 {
         Int64(duration)
+    }
+
+    /// `strings.TrimSpace`: the class Go reads with is Unicode `White_Space`, which is wider than
+    /// Swift's `.whitespaces` — a newline, a vertical tab or a NEL on either side of the value is
+    /// trimmed by the reference and not by `.whitespaces`. Both reads use this one class.
+    private static func isSpace(_ character: Character) -> Bool {
+        character.isWhitespace
+    }
+
+    private static func trim(_ value: String) -> String {
+        var part = Substring(value)
+        while part.first.map(isSpace) == true { part = part.dropFirst() }
+        while part.last.map(isSpace) == true { part = part.dropLast() }
+        return String(part)
     }
 
     /// `http.TimeFormat`, which is RFC 1123 with the zone written as `GMT` rather than as an

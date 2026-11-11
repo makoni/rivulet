@@ -1191,21 +1191,34 @@ the command set.
 
 The four rules the reference's response builder applies for a cached asset are pinned as pure
 logic, and the route that answers an icon row is pinned over a real socket on top of them. 17 pins
-and 25 probes, 24 of them seen to fail on the rule they name: 10 pins and 15 probes for the rules,
-7 pins and 10 probes for the answer, the last being the row recorded below as not biting. Each
+and 28 probes, 27 of them seen to fail on the rule they name: 10 pins and 18 probes for the rules,
+7 pins and 10 probes for the answer, one of which is the row recorded below as not biting. Each
 probe patches one rule, is seen to fail on the pin it names and reverts the file byte-identically;
 the round runs the two suites as one run per probe, in copies of the tree, and caches by the hash
 of the two probed files and the two suites.
 
-Three reaches the round records, which is why it reports them as expected sets rather than as
-failures. The pin for the trim reads an already quoted value with spaces, so the patch that names
-the quoted half reaches it as well; the pin for the match branch reads the header value the route
-builds from the row, so the patch that names which value the `ETag` is built from reaches it as
-well; and the match branch is chosen by the read, so the patch for the empty side of the guard
-reaches the three pins that read the callback branch. Every other probe fires one pin. The socket
-pins read presence or which row value a header is built from rather than the output of a rule
-pinned in the pure suite, which is what keeps the two halves apart: a patch to a pure rule reaches
-only the pins that name it.
+Ten pins are read by more than one patch, one patch per rule they name, and three rows reach more
+than one pin, which is why the round reports those rows as a set rather than as a failure. In the
+rules: the trim pin reads the order and the class — the class is Unicode `White_Space`, read per
+scalar, which is the form the repo's other trim reads use, and the pin's input carries a newline,
+so a patch that narrowed the class fired it — and the quoted-half patch reaches it as well,
+because its input is already quoted; the star pin reads the star and the trim of the same read;
+the match pin reads the prefix drop, the contains read and the whole-tag read; the `Cache-Control`
+pin reads the whole seconds and the directive order; and the `Expires` pin reads the bound, the
+zone, the weekday field and the day field. On the socket: the token pin reads that the token read
+is not run and that the answer carries the bytes of the row, and the caching-headers pin reads the
+bound and that `Expires` is written on this path, each with one patch per rule; the patch for the
+empty side of the guard reaches the token pin, the content-type pin and the policy pin together,
+because the branch the answer takes is chosen by that read, while the caching-headers pin is not
+reached, because the headers it reads are written before the read runs; and the match pin is read
+by its own patch and by the patch naming which value the `ETag` is built from, because it reads
+the header value the route builds from the row.
+
+The three rows the round records as reaching more than one pin are those reaches: the quoted-half
+patch, which fires its own pin and the trim pin; the patch for the empty side of the guard, which
+fires the guard pin and the three pins that read the callback branch; and the patch naming which
+value the `ETag` is built from, which fires its own pin and the match pin. Every other patch fires
+one pin.
 
 One row is recorded as not biting: the body half of the match pin, because the framework writes no
 body for a `304` answer, so a patch that writes the bytes on that branch still answers an empty
@@ -1219,14 +1232,14 @@ same here. That probe flips the answer the guard gives instead, and the differen
 
 The socket pins that read a response shape carry the token as the transport reads it for a GET, so
 the probe for the unauthenticated rule fires only the pin that names it. The token read itself is
-pinned by `GoogleReaderAuthTests`, and a patch to it reaches these pins too, so nothing here
-claims single-firing for it. The three headers the response builder writes are the same rule this
-path reads and are pinned on the other path by `GoogleReaderAuthTests`, so a patch to them fires
-that suite as well. Routing is the framework's rule, not this file's, so no pin here claims it.
-The instant `Expires` is built from is the clock the run reads, so the pins hand the rule an
-instant; the zone rule fires only on a machine whose local zone is not UTC, which is where the
-round ran, and the fixed locale cannot be shown on a machine already reading English month and
-weekday names.
+pinned by `GoogleReaderAuthTests`, and the read the route runs is pinned as a read by
+`IconRepositoryTests`, so no patch here shows either alone. The three headers the response builder
+writes are the same rule this path reads and are pinned on the other path by
+`GoogleReaderAuthTests`, so a patch to them fires that suite as well. Routing is the framework's
+rule, not this file's, so no pin here claims it. The instant `Expires` is built from is the clock
+the run reads, so the pins hand the rule an instant; the zone rule fires only on a machine whose
+local zone is not UTC, which is where the round ran, and the fixed locale cannot be shown on a
+machine already reading English month and weekday names.
 
 ## Robustness (stage 7)
 
@@ -1546,4 +1559,3 @@ Swift Testing everywhere (`import Testing`, `@Suite`/ `@Test`, `#expect`/ `#requ
 framework, no mixing; XCTest and `XCTVapor` are not in the tree. Tests run in parallel by default
 and every test owns its resources (temp directories, kernel-assigned ports), so no suite depends on
 execution order. Use the `.serialized` trait only where a suite must share process-wide state.
-

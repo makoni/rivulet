@@ -134,16 +134,18 @@ route is merged as PR #65.
       carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`. Auth:
       `api_key` (MD5 token); failure is HTTP 200 with
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
-- [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
+- [x] - [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
       `Cache-Control`; Fever `favicons` returns `mime;base64,…`. Landed as PR #65: the four rules
-      the response builder applies for a cached asset — the `ETag` shape, the `If-None-Match` read,
-      the `Cache-Control` value and the `Expires` value — are pinned as pure logic, and the answer
-      the route gives a row is pinned over a real socket: the read it runs, which values it takes
-      from the row, which headers it writes on which branch, and the status the two branches answer.
-      The builder's three headers are read as one rule shared by both paths. 10 pins and 15 probes
-      by `CachingRulesTests`, 7 pins and 10 probes by `IconRouteTests`; the three reaches the round
-      records, the one probe that cannot bite, and what no pin here can show are named in the suite
-      headers.
+      the response builder applies for a cached asset — the `ETag` shape, the `If-None-Match`
+      read, the `Cache-Control` value and the `Expires` value — are pinned as pure logic, and the
+      answer the route gives a row is pinned over a real socket: the read it runs, which values it
+      takes from the row, which headers it writes on which branch, and the status the two branches
+      answer. The builder's three headers are read as one rule shared by both paths. 10 pins and
+      18 probes by `CachingRulesTests`, 7 pins and 10 probes by `IconRouteTests`, 27 seen to fail
+      on the rule they name and one recorded as not biting; the ten pins read by more than one
+      patch, the three rows that reach more than one pin, and what no pin here can show are named in
+      the suite headers.
+
 - [x] OPML: import (nested categories) and export; shared by the CLI and used in tests, merged as
       PR #64: the shape rules the model tags and the value rules the switch carries are read as the
       reference reads them over the tree the tolerant reader builds, and the bytes the encoder

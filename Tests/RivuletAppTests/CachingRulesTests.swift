@@ -12,25 +12,26 @@ import Testing
 /// shape is added for a value that carries no quotes, which a patch that wrote the value as it was
 /// given fails on; that a value already carrying the quoted form is written as it was read, which a
 /// patch that quoted it a second time fails on; that the weak form keeps its `W/` prefix rather
-/// than being written as the strong form; that the value is trimmed before the shape is decided, so
-/// the spaces are not part of the quoted form; that an empty value answers the empty string, which
-/// is what the reference's early return gives and not a quoted empty tag; that the match read
-/// answers false when either side is empty; that the star answers true for any tag; that the
-/// comparison is weak — the prefix is not part of the tag compared, so the weak form on either side
-/// reaches the strong one; that a header listing several tags is read as containing the tag rather
-/// than as being equal to it; that `Cache-Control` is built from the whole seconds of the bound,
-/// truncated and not rounded, which a patch that rounded the value fails on; that the directives
-/// are written in the order the builder writes them, with `max-age` before `immutable`; and that
-/// `Expires` is the instant the rule is given, written in the shape and in the zone the reference
-/// writes it in.
+/// than being written as the strong form; that the value is trimmed before the shape is decided,
+/// with the class the reference trims with — Unicode `White_Space`, which is wider than Swift's
+/// `.whitespaces` — so the pin's input carries a newline; that an empty value answers the empty
+/// string, which is what the reference's early return gives and not a quoted empty tag; that the
+/// match read answers false when either side is empty; that the star answers true for any tag and
+/// that the value it is compared with is the trimmed one; that the comparison is weak — the prefix
+/// is not part of the tag compared, so the weak form on either side reaches the strong one — and
+/// that a header listing several tags is read as containing the tag rather than as being equal to
+/// it; that `Cache-Control` is built from the whole seconds of the bound, truncated and not
+/// rounded, which a patch that rounded the value fails on; that the directives are written in the
+/// order the builder writes them, with `max-age` before `immutable`; and that `Expires` is the
+/// instant the rule is given with the whole bound added, written in the shape and in the zone the
+/// reference writes it in.
 ///
-/// Each rule is read by one patch, with two arrangements the round records. Two pins name two rules
-/// of one read each — the match read's prefix drop with its contains read, and `Cache-Control`'s
-/// whole seconds with its directive order — so each of those pins is read by one patch per rule
-/// rather than by one patch in total. And the pin that names the trim reads an already quoted value
-/// with spaces, which the patch for the quoted half reaches as well: the pin that names the quoted
-/// half is read only by its own patch, because its value has no spaces, and the trim patch reaches
-/// only the pin whose value has them.
+/// Five pins here are read by more than one patch, one patch per rule they name, which is what the
+/// round expects for those rows: the trim pin (its patch for the order, its patch for the class,
+/// and the reach from the quoted-half patch, whose input is already quoted), the star pin (the star
+/// patch and the trim patch), the match pin (the prefix drop, the contains read, the whole-tag
+/// read), the `Cache-Control` pin (whole seconds, directive order) and the `Expires` pin (the
+/// bound, the zone, the weekday, the day field). The other five pins are read by one patch each.
 ///
 /// What these pins cannot fail on: the instant the run is at, which is a clock read the route makes
 /// and no test can name, so the pins read the rule with the instant handed to it; the zone rule,
@@ -65,14 +66,15 @@ import Testing
         #expect(CachingRules.etag("W/\"abc\"") == "W/\"abc\"", "the prefix is part of the value")
     }
 
-    @Test func theValueIsTrimmedBeforeItsShapeIsDecided() throws {
-        // The input carries spaces on both sides of an already quoted value, so the shape is
-        // decided on the trimmed value and the spaces are not part of it. The pin reads the trim
-        // alone: a patch that decided on the value as it was read answered `""abc""` here, and a
-        // patch that trimmed after the shape answered `"  "abc"  "`. It is not read by the patch
-        // that names the quoted half, which answers `""abc""` and reaches the pin that names that
-        // half as well.
-        #expect(CachingRules.etag("  \"abc\"  ") == "\"abc\"", "the trim runs before the shape")
+    @Test func theValueIsTrimmedWithTheReferenceClassBeforeItsShapeIsDecided() throws {
+        // Two halves of one rule, read by two patches. The order: the shape is decided on the
+        // trimmed value, so a patch that took the trim away answered the value as it was read. The
+        // class: Unicode `White_Space`, which is wider than Swift's `.whitespaces`, so the input
+        // carries a newline — a patch that used the narrower class kept it inside the quoted form.
+        // This pin is also read by the patch that names the quoted half, because its value is
+        // already quoted: that patch answers `""abc""` here, which is the pair the round records.
+        #expect(CachingRules.etag("\n  \"abc\"  ") == "\"abc\"",
+            "the class the trim reads and the order it runs in")
     }
 
     @Test func anEmptyETagAnswersTheEmptyStringAndNotAQuotedEmptyTag() throws {
@@ -94,18 +96,21 @@ import Testing
     }
 
     @Test func theStarInIfNoneMatchMatchesAnyTag() throws {
-        // `*` is read as the wildcard, not as a tag: it is compared as the value the trim gives.
+        // Two rules of the same read, each read by its own patch: the star is read as the wildcard,
+        // and the value it is compared with is the trimmed one — the input carries spaces, so a
+        // patch that compared the header as it was read answered false here, and a patch that took
+        // the trim away from this branch answered false for the same input.
         #expect(CachingRules.matchesNoneMatch(headerValue: " * ", etag: "\"abc\""),
             "the star matches any tag")
     }
 
     @Test func theMatchReadDropsThePrefixAndReadsTheHeaderAsContainingTheTag() throws {
         // Two rules the same read applies, pinned as one pin because a patch to either reaches it
-        // and no other pin reads either: the weak prefix is dropped from the tag before the
-        // comparison, so the weak form reaches the strong one, and the header is read as containing
-        // the tag rather than as being equal to it. A patch that compared the whole etag answered
-        // false for the first input; a patch that compared the header as one value answered false
-        // for the second, and a patch that read any part of the tag answered true for the third.
+        // and no other pin reads either. A patch that stopped dropping the prefix answered false
+        // for the first input, which is what lets the weak form reach the strong one; a patch that
+        // compared the header as one value answered false for the second; a patch that read any
+        // part of the tag answered true for the third. Each of the three patches fires this pin
+        // alone.
         #expect(CachingRules.matchesNoneMatch(headerValue: "\"abc\"", etag: "W/\"abc\""),
             "the weak etag reaches the strong header")
         #expect(CachingRules.matchesNoneMatch(headerValue: "\"xyz\", \"abc\"", etag: "\"abc\""),
@@ -129,10 +134,12 @@ import Testing
     }
 
     @Test func expiresIsTheInstantTheRuleIsGivenInTheShapeAndTheZoneTheReferenceWrites() throws {
-        // The shape is `http.TimeFormat` and the zone is UTC. The two inputs read three rules: the
+        // The shape is `http.TimeFormat` and the zone is UTC, and the bound is added whole — the
+        // reference truncates only when it writes the value, so this pin reads the whole-second
+        // counting where `Cache-Control` is built, not here. The two inputs read three rules: the
         // bound added to the instant, the three-letter weekday, and the padded day field — a day of
         // 4 answers `04`, which is why the field is not the number. A patch that wrote the value
-        // with the machine's local zone answered `Sun, 04 Jan 2026 21:20:03 GMT` for the second
+        // with the machine's local zone answered `Wed, 07 Jan 2026 21:20:03 GMT` for the first
         // input: this machine is `+07:00`, which is where the probe for that rule fires, while on a
         // UTC machine the two answers are the same, so that half is named in the header rather than
         // pinned here. The instant itself is what the run reads from the clock, so no pin can name
