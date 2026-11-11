@@ -32,7 +32,10 @@ import Testing
 /// goes through: the exported `EscapeText`, which takes the newline flag as true and reads the same
 /// set, and the `EncodeToken` chardata call, which takes it as false and leaves the newline as
 /// written, with the CDATA branch that call opens for a value starting with `<![CDATA[`. What this
-/// write reproduces is the printer path the encoder marshals string fields through.
+/// write reproduces is the printer path the encoder marshals string fields through. The two
+/// round-trip pins at the end have no probe of their own: they read the writer and the read
+/// together, so any patch that breaks one of them also breaks the pin that names the side it reads,
+/// and no patch can fire them alone.
 @Suite struct OPMLSerializeTests {
     private static let epoch = Date(timeIntervalSince1970: 0)
 

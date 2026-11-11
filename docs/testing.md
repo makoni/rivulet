@@ -1105,19 +1105,23 @@ setup error both helper files throw, because the nested type was not visible to 
 `OPMLCommandTests`, PR #64) The read is over the tokens the tolerant tokenizer already builds: the
 reference's value layer (`UnmarshalXML`) has no port counterpart, so the shape rules are read as the
 reference reads them and the record is assembled from the tree, and the write reproduces the bytes
-the reference's encoder answers for this model. 57 pins and 75 probes across the four suites — 17
-pins and 17 probes for the read as pure logic, 24 and 34 for the write, 12 and 18 for the handler's
+the reference's encoder answers for this model. 57 pins and 76 probes across the four suites — 17
+pins and 17 probes for the read as pure logic, 24 and 34 for the write, 12 and 19 for the handler's
 steps over a temp database, and 4 and 6 for the two commands as runs over the in-process console.
 Each probe patches one rule, is seen to fail on the pin it names and no other pin of these four
 suites, and reverts the file byte-identically; the round runs the four suites as one run per probe.
 It runs in copies of the tree on the real disk, so the probes never touch the files being committed,
-and four copies run at once, which is where this machine saturates: one probe is the one patched file
-plus the relinks, so it uses about two cores, and past four copies the memory the builds need makes
-the round slower rather than faster. The results are cached by the hash of the six probed files and the
-four suites, so a delta round re-runs only the probes whose patch region or pin changed. Several
-probes share a pin, because one rule answers several bytes: the escape set has 9 probes on one pin,
-the settings that reach the row 7, the field order 3, the date rule 3, and the two command runs 2
-each.
+and four copies run at once, which is where this machine saturates: one probe is the one patched
+file plus the relinks, so it uses about two cores, and past four copies the memory the builds need
+makes the round slower rather than faster. The results are cached by the hash of the seven probed
+files and the four suites, so a delta round re-runs only the probes whose patch region or pin
+changed. Several probes share a pin, because one rule answers several bytes: the escape set has 9
+probes on one pin, the settings that reach the row 7, the field order 3, the date rule 3, and the
+two command runs 2 each. Two pins have no probe of their own: the two round-trip pins of the write
+read the writer and the read together, so any patch that breaks one also breaks the pin naming the
+side it reads. One probe patches outside the OPML files: the handler pin that reads the duplicate
+answer as the row of the account is probed by taking the account out of the storage read, and it
+fires alone among these four suites.
 
 What the read's probes read: the root name the model tags, which the reference checks even with
 `Strict = false`; the read failure reaching as the read's own failure; the outline level the field

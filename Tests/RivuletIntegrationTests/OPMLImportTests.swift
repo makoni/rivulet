@@ -23,12 +23,15 @@ import Testing
 /// the record the read answers; that the export lists in the order the reference query builder
 /// answers; that the export joins the category title from the row; and that the settings the export
 /// writes are the fields the port schema has. These pins read the handler's own choices, so the
-/// patches they name are handler patches, and their inputs are shaped so a patch to a rule pinned
-/// elsewhere cannot reach them: the values two orders of a rule would answer differently are not
-/// read here — the title and the text of a record are the same value, and the site url is read from
-/// a record whose two halves are the same value except on the pin that names the url the duplicate
-/// read takes — the pins read a row through its title or its category wherever another pin names
-/// the url, and the export pins read fragments without the indent, so the serializer's indent,
+/// patches they name are handler patches, except the one that reads the duplicate answer's account
+/// half, which is a patch on the storage read itself and is the only probe of this round that
+/// reaches a rule pinned outside these four suites, and its inputs are shaped so a patch to a rule
+/// pinned elsewhere cannot reach them: the values two orders of a rule would answer differently are
+/// not read here — the title and the text of a record are the same value, and the site url is read
+/// from a record whose two halves are the same value except on the pin that names the url the
+/// duplicate read takes — the pins read a row through its title or its category wherever another
+/// pin names the url, and the export pins read fragments without the indent, so the serializer's
+/// indent,
 /// layout, field order and escape rules cannot reach them. The parsed inputs carry `type="rss"` on
 /// every record with a url, so a patch that reads the branch through `type` instead of the url
 /// still answers the same records here. What these pins cannot fail on: the rules the reference

@@ -434,7 +434,7 @@ and the quickadd shape names the one its key set can show, the title inside the 
 rule that reads key sets reads no coverage; the two scan classes are recorded as classes the corpus
 cannot reach. The OPML slice is merged as PR #64: the shape rules the model tags and the value rules
 the switch carries are read as the reference reads them over the tree the tolerant reader builds,
-and the bytes the encoder answers are reproduced rule by rule, so 57 pins and 75 probes across
+and the bytes the encoder answers are reproduced rule by rule, so 57 pins and 76 probes across
 `OPMLReadTests`, `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests` name the root, the
 namespace, the name set, the element name the field path matches, the escape set, the layout, the
 group name read as bytes, and the four rules the handler applies per record; `import` is the port's
