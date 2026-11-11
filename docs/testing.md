@@ -1105,46 +1105,53 @@ setup error both helper files throw, because the nested type was not visible to 
 `OPMLCommandTests`, PR #64) The read is over the tokens the tolerant tokenizer already builds: the
 reference's value layer (`UnmarshalXML`) has no port counterpart, so the shape rules are read as the
 reference reads them and the record is assembled from the tree, and the write reproduces the bytes
-the reference's encoder answers for this model. 54 pins and 72 probes across the four suites — 16
-pins and 16 probes for the read as pure logic, 23 and 32 for the write, 11 and 18 for the handler's
+the reference's encoder answers for this model. 56 pins and 75 probes across the four suites — 17
+pins and 17 probes for the read as pure logic, 24 and 34 for the write, 11 and 18 for the handler's
 steps over a temp database, and 4 and 6 for the two commands as runs over the in-process console.
 Each probe patches one rule, is seen to fail on the pin it names and no other pin of these four
 suites, and reverts the file byte-identically; the round runs the four suites as one run per probe.
-It runs in copies of the tree, so the probes never touch the files being committed, and it builds
-only the two test targets the four suites are in; the results are cached by the file hash, so a
-delta round re-runs only the probes whose patch region or pin changed. Several probes share a pin,
-because one rule answers several bytes: the escape set has 9 probes on one pin, the settings that
-reach the row 7, the field order 3, the date rule 3, and the two command runs 2 each.
+It runs in copies of the tree on the real disk, so the probes never touch the files being committed,
+and three copies run at once. The results are cached by the hash of the six probed files and the
+four suites, so a delta round re-runs only the probes whose patch region or pin changed. Several
+probes share a pin, because one rule answers several bytes: the escape set has 9 probes on one pin,
+the settings that reach the row 7, the field order 3, the date rule 3, and the two command runs 2
+each.
 
 What the read's probes read: the root name the model tags, which the reference checks even with
 `Strict = false`; the read failure reaching as the read's own failure; the outline level the field
-path names; the subscription test as the url value alone, with no `type` test, and the whitespace
-class it trims with; the url reaching the record as the attribute holds it; the title chain in the
-order the model's method defines; the site-url fallback; the branch running before the recursion;
-the category being the parent's title through the same chain; the miniflux names read against the
-resolved namespace, so an undefined prefix answers empty; the name set, with a name outside it read
-as nothing; the set `ParseBool` accepts; the error naming the attribute it was reading; a string
-name not being read through the bool rule; and the read walking every outline rather than only the
-records.
+path names, and the element name the path matches, which is `outline`; the subscription test as the
+url value alone, with no `type` test, and the whitespace class it trims with; the url reaching the
+record as the attribute holds it; the title chain in the order the model's method defines; the
+site-url fallback; the branch running before the recursion; the category being the parent's title
+through the same chain; the miniflux names read against the resolved namespace, so an undefined
+prefix answers empty; the name set as the gate, since a patch that added `proxyUrl` to it fails the
+pin while the switch has no case for a name outside it and the value half cannot be observed; the
+set `ParseBool` accepts; the error naming the attribute it was reading; a string name not being read
+through the bool rule; and the read walking every outline rather than only the records.
 
 What the write's probes read: the header line as the constant the pinned toolchain carries; the root
 at column 0; the four-space indent; the document ending at the root close with no trailing newline;
-the layout rule that keeps a close tag on the open line only when the element wrote nothing; the
-version written whatever the record holds; the `omitempty` halves of the namespace and of the three
-head fields; the three constants the build sets; the date layout, the time the build reads its date
-from, and the zone the port answers; `text` written always against `title` written only when
-carried; the field order read three ways — the format fields, the miniflux names, and `type` last; a
-false bool not being written; `type` written only for a subscription; the nine branches of the
-escape set; the categories sorted as bytes; and the order inside a category being the order the
+the layout rule that keeps a close tag on the open line only when the element wrote nothing, read as
+a line with the open tag and not the close; the version written whatever the record holds; the
+`omitempty` halves of the namespace and of the three head fields; the three constants the build
+sets; the date layout, the time the build reads its date from, and the zone the port answers; `text`
+written always against `title` written only when carried; the field order read three ways — the
+format fields, the miniflux names, and `type` last; a false bool not being written; `type` written
+only for a subscription; the nine branches of the escape set; the categories sorted as bytes, on a
+name where byte order and Swift's canonical order differ; the group key being the name as bytes, so
+a decomposed name is its own group; and the order inside a category being the order the records
+arrived in.
 records arrived in.
 
 What the handler's probes read: the duplicate answer running before the resolution and the rules on
 the input that fails all three at once; the duplicate answer being the row of the account the run
-works for; the empty name reaching the smallest title rather than the row the position-ordered
-listing answers; the named title compared as given, and a name the account has no row for being
-created; the first record the rules fail stopping the run after the earlier write; the url reaching
-the row from the record; the export listing order the query builder answers; the export join reading
-the title from the row; and the fields the port schema has on both sides of the mapping.
+works for; the duplicate answer taking the url the record carries as the feed half rather than the
+site half, on the record whose two halves are different values; the empty name reaching the smallest
+title rather than the row the position-ordered listing answers; the named title compared as given,
+and a name the account has no row for being created; the first record the rules fail stopping the
+run after the earlier write; the url reaching the row from the record; the export listing order the
+query builder answers; the export join reading the title from the row; and the fields the port
+schema has on both sides of the mapping.
 
 What the command probes read: that the import run reads the bytes of the file the argument names and
 hands them to the handler for the account the run resolves; that a path the run cannot read is

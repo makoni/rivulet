@@ -1,17 +1,15 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
-// SPDX-License-Identifier: Apache-2.0
-// Ported from Miniflux internal/reader/opml/parser.go (`parse`, `getSubscriptionsFromOutlines`)
-// (Apache-2.0); adapted for Swift/SQLite: the read walks the tree the tolerant reader builds rather
-// than a value layer, so the shape rules are the field matches the model names and the value rules
-// are ``OPMLReadRules``.
+// SPDX-License-Identifier: Apache-2.0 Ported from Miniflux internal/reader/opml/parser.go (`parse`,
+// `getSubscriptionsFromOutlines`) (Apache-2.0); adapted for Swift/SQLite: the read walks the tree
+// the tolerant reader builds rather than a value layer, so the shape rules are the field matches
+// the model names and the value rules are ``OPMLReadRules``.
 
 import Foundation
 
 /// Reads an OPML document into the records the format defines.
 enum OPMLParser {
-    /// Reads the document and answers the records, in document order.
-    ///
-    /// - Throws: ``OPMLError`` for the shape, the attribute set and the read failure.
+    /// Reads the document and answers the records, in document order. - Throws: ``OPMLError`` for
+    /// the shape, the attribute set and the read failure.
     static func parse(_ data: Data) throws -> [OPMLSubscription] {
         let root: XMLElement
         do {
@@ -23,7 +21,9 @@ enum OPMLParser {
         // The model names `opml` as its root, which `encoding/xml` checks even in non-strict mode.
         guard root.name.local == "opml" else { throw OPMLError.rootShape(rootLocal: root.name.local) }
 
-        // The field reads `body>outline`: an outline at any other level is not read.
+        // The field reads `body>outline`: an outline at any other level is not read, and an element
+        // at the right level whose name is not `outline` is not read either, because `encoding/xml`
+        // matches a path by the path and by the element name.
         guard let body = root.child(local: "body") else { return [] }
         return try collect(outlines: body.children, category: "")
     }
@@ -40,6 +40,10 @@ enum OPMLParser {
         -> [OPMLSubscription] {
         var subscriptions: [OPMLSubscription] = []
         for outline in outlines {
+            // The path is matched by the name too, so an element at the right level named otherwise
+            // answers nothing and its subtree is not walked at all.
+            guard outline.name.local == "outline" else { continue }
+
             // The reference reads the miniflux attributes as it decodes every outline, not only the
             // ones the branch answers as a record, so the parse rule runs for every outline that
             // carries one, and an outline that is not a record can still report it.

@@ -429,20 +429,20 @@ the port names by name; and the wordings of the storage failures this suite cann
 `invalidData(named:)` moved to `GoogleReaderHandlers`, which both handler files of this path use,
 and that file now takes the finder `RivuletApplication` owns and closes in `shutdown()`;
 `withServedApp` gained an optional environment so a quickadd pin can name the target rule for the
-stub server it answers on. Two of the
-three shapes the run sends for these endpoints carry no class, and the quickadd shape names the one
-its key set can show, the title inside the request, because the rule that reads key sets reads no
-coverage; the two scan classes are recorded as classes the corpus cannot reach. The OPML slice opens
-as PR #64: the shape rules the model tags and the value rules the switch carries are read as the
-reference reads them over the tree the tolerant reader builds, and the bytes the encoder answers are
-reproduced rule by rule, so 54 pins and 72 probes across `OPMLReadTests`, `OPMLSerializeTests`,
-`OPMLImportTests` and `OPMLCommandTests` name the root, the namespace, the name set, the escape set,
-the layout, and the four rules the handler applies per record; `import` is the port's own command,
-`--file` is the port's own half of `export`, the settings the port schema has no field for are read
-as data and not persisted, and the validation rules past the four ported ones are not ported, both
-recorded in `docs/parity.md`, with the date zone answered as `UTC` rather than as the reference's
-local name. What follows: the icon route and the acceptance journey, the Fever parameter set having
-merged as PR #61 and the minimal scan as part of PR #59.
+stub server it answers on. Two of the three shapes the run sends for these endpoints carry no class,
+and the quickadd shape names the one its key set can show, the title inside the request, because the
+rule that reads key sets reads no coverage; the two scan classes are recorded as classes the corpus
+cannot reach. The OPML slice opens as PR #64: the shape rules the model tags and the value rules the
+switch carries are read as the reference reads them over the tree the tolerant reader builds, and
+the bytes the encoder answers are reproduced rule by rule, so 57 pins and 75 probes across
+`OPMLReadTests`, `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests` name the root, the
+namespace, the name set, the element name the field path matches, the escape set, the layout, the
+group name read as bytes, and the four rules the handler applies per record; `import` is the port's
+own command, `--file` is the port's own half of `export`, the settings the port schema has no field
+for are read as data and not persisted, and the validation rules past the four ported ones are not
+ported, both recorded in `docs/parity.md`, with the date zone answered as `UTC` rather than as the
+reference's local name. What follows: the icon route and the acceptance journey, the Fever parameter
+set having merged as PR #61 and the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the

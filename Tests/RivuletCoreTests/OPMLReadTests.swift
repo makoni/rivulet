@@ -16,22 +16,24 @@ import Testing
 /// checked by patching the rule and reverting: the root name the model tags, which the reference
 /// checks even with `Strict = false`; the read failure reaching as a failure rather than an empty
 /// document; that outlines are read only as direct children of `body`, which a patch that read the
-/// whole tree fails on; that the branch is the url value alone, which a patch that read the `type`
-/// attribute fails on; the trim that test reads; that the record carries the url as the attribute
-/// holds it; the title chain and the site-url fallback as orders, on inputs that fail two levels at
-/// once; that the subscription branch runs before the recursion, on the outline that is both; that
-/// the category name is the parent's title read through the same chain; that miniflux attributes
-/// are read against the resolved namespace, which a patch that accepted any namespace fails on, and
-/// by the set of names, which a patch that added `proxyUrl` to the set fails on; the set
-/// `ParseBool` accepts; the error naming the attribute it was reading; that a string name is not
-/// read through the bool rule; and that the read walks every outline, not only the ones the branch
-/// answers as a record. What these pins cannot fail on: the tokenizer's own rules, which its suites
-/// pin, including the entity table and the tolerant reading of a malformed entity — the pins here
-/// only show that the value reaches the record as read; the `head` fields, which the reference
-/// reads but the parse result does not carry, so no pin can reach them; the error wording the
-/// reference wraps around the parse failure, which is the handler's wording, not a rule; and the
-/// `language` and `version` attributes the corpora carry, which the model has no field for and
-/// which are not read.
+/// whole tree fails on, and that the element name the path matches is `outline`, which a patch that
+/// read any element child at the right level fails on; that the branch is the url value alone,
+/// which a patch that read the `type` attribute fails on; the trim that test reads; that the record
+/// carries the url as the attribute holds it; the title chain and the site-url fallback as orders,
+/// on inputs that fail two levels at once; that the subscription branch runs before the recursion,
+/// on the outline that is both; that the category name is the parent's title read through the same
+/// chain; that miniflux attributes are read against the resolved namespace, which a patch that
+/// accepted any namespace fails on, and by the set of names, which a patch that added `proxyUrl` to
+/// the set fails on; the set `ParseBool` accepts; the error naming the attribute it was reading;
+/// that a string name is not read through the bool rule; and that the read walks every outline, not
+/// only the ones the branch answers as a record. What these pins cannot fail on: the tokenizer's
+/// own rules, which its suites pin, including the entity table and the tolerant reading of a
+/// malformed entity — the pins here only show that the value reaches the record as read; the
+/// switch's default branch for a name outside the set, which no patch can observe because the
+/// switch has no case for a name outside it; the `head` fields, which the reference reads but the
+/// parse result does not carry, so no pin can reach them; the error wording the reference wraps
+/// around the parse failure, which is the handler's wording, not a rule; and the `language` and
+/// `version` attributes the corpora carry, which the model has no field for and which are not read.
 @Suite struct OPMLReadTests {
     @Test func theRootNameIsTheOneTheModelTags() throws {
         // `Strict = false` does not relax the match: the root the model names is read, a root it
@@ -61,7 +63,9 @@ import Testing
         // The document field names `body>outline`, so an outline anywhere else is not read: the one
         // directly under the root is not, and the one inside `head` is not — `head` has no field
         // for outlines. The outline under `body` is read, and the recursion descends through the
-        // children field, which matches direct children of the outline it reads.
+        // children field, which matches direct children of the outline it reads. The names used
+        // here are all `outline`, so this pin reads the path half alone; the name half is the pin
+        // below.
         let document = Data("""
             <opml version="1.0">
             <outline xmlUrl="http://e/direct-under-root"/>
@@ -80,6 +84,23 @@ import Testing
         let direct = try OPMLParser.parse(Data(
             "<opml><body><outline xmlUrl=\"http://e/direct\"/></body></opml>".utf8))
         #expect(direct.map(\.feedURL) == ["http://e/direct"], "\(direct)")
+    }
+
+    @Test func theElementNameThePathMatchesIsOutline() throws {
+        // The path is matched by the element name as well, so a container under `body` answers
+        // nothing and its subtree is not walked, and a child named `item` inside an outline answers
+        // nothing. The level pin names the path half and uses only elements named `outline`, so a
+        // patch to the name half fails this pin alone.
+        let document = Data("""
+            <opml version="1.0"><body>
+            <container><outline text="cat" xmlUrl="http://e/inside-a-container"/></container>
+            <outline text="cat"><item text="kid" xmlUrl="http://e/an-item-child"/>
+            <outline text="kid" xmlUrl="http://e/read"/></outline>
+            </body></opml>
+            """.utf8)
+        let subscriptions = try OPMLParser.parse(document)
+        #expect(subscriptions.map(\.feedURL) == ["http://e/read"],
+            "the name the path matches: \(subscriptions)")
     }
 
     @Test func theBranchIsTheUrlValueAlone() throws {
@@ -198,17 +219,12 @@ import Testing
     }
 
     @Test func namesOutsideTheMinifluxSetAreNotRead() throws {
-        // `proxyUrl` is a name the format carries and the switch set does not.
+        // `proxyUrl` is a name the format carries and the switch set does not. The value half is
+        // not read here: the switch has no case for a name outside the set, so admitting the name
+        // writes nothing either way, and only the gate can fail on the rule it names.
         #expect(OPMLReadRules.isMinifluxName("userAgent"), "a name in the set")
         #expect(!OPMLReadRules.isMinifluxName("proxyUrl"),
             "a name the format carries but the switch set does not")
-
-        let onlyUnknown = try OPMLParser.parse(Data("""
-            <opml xmlns:miniflux="https://miniflux.app/opml"><body>
-            <outline xmlUrl="http://e/3" miniflux:proxyUrl="p"/>
-            </body></opml>
-            """.utf8))
-        #expect(onlyUnknown.first?.userAgent == "", "a name outside the set answers nothing: \(onlyUnknown)")
     }
 
     @Test func theBoolValueIsTheSetParseBoolAccepts() throws {

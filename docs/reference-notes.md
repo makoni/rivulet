@@ -810,23 +810,25 @@ Semantics:
   with a four-space indent, the root is written at column 0, and the document ends at the root close
   with no trailing newline. An element keeps its close tag on the same line as its open tag only
   when it wrote nothing, which is the layout rule the head writer and the outline writer share.
-- The escape set is the encoder's table for attribute values and for string-field character data,
+  - The escape set is the encoder's table for attribute values and for string-field character data,
   read as one rule: `"` → `&#34;`, `'` → `&#39;`, `&` → `&#amp;`, `<` → `&lt;`, `>` → `&gt;`, tab →
   `&#x9;`, newline → `&#xA;`, CR → `&#xD;`, and a scalar outside the character range → U+FFFD. The
   range is `0x09`, `0x0A`, `0x0D`, `0x20–0xD7FF`, `0xE000–0xFFFD` and `0x10000–0x10FFFF`, so a
   control character other than those three is U+FFFD. Newlines are escaped on both sides, so the
-  rule has no attribute flag; what `EscapeText` exports on its own is not read by this path.
-- The date field is the layout `Mon, 02 Jan 2006 15:04:05 MST`, which answers the zone name the time
-  is read in. The reference runs with the zone its process has; the port answers `UTC` and names the
-  zone as part of the pin, so the golden bytes are read at the instant `1136214245` with the zone
-  named as `UTC`. This is the port's divergence, recorded in `docs/parity.md`.
-- Categories are sorted as bytes over the group names, and the records inside a category keep the
-  order they arrived in, because the group map's slice is built by appending.
-- The storage side the import reads: the duplicate answer per record, `FirstCategory` for an empty
-  name (`ORDER BY title ASC LIMIT 1`, with `sql.ErrNoRows` answering `nil`), `CategoryByTitle`
-  compared as the name is given, and the create for a name no row answers. The export reads the feed
-  list with the sort the query builder builds — `parsing_error_count DESC, title` — and the category
-  title through the join.
+  rule has no attribute flag; and the path read here is the printer path the encoder marshals string
+  fields through, which is what the rule reproduces; the exported `EscapeText` and the `EncodeToken`
+  chardata call are not read here, the second of them taking the flag as false and leaving the
+  newline as written.
+  - The date field is the layout `Mon, 02 Jan 2006 15:04:05 MST`, which answers the zone
+name the time is read in. The reference runs with the zone its process has; the port answers `UTC`
+and names the zone as part of the pin, so the golden bytes are read at the instant `1136214245` with
+the zone named as `UTC`. This is the port's divergence, recorded in `docs/parity.md`. - Categories
+are sorted as bytes over the group names, and the records inside a category keep the order they
+arrived in, because the group map's slice is built by appending. - The storage side the import
+reads: the duplicate answer per record, `FirstCategory` for an empty name (`ORDER BY title ASC LIMIT
+1`, with `sql.ErrNoRows` answering `nil`), `CategoryByTitle` compared as the name is given, and the
+create for a name no row answers. The export reads the feed list with the sort the query builder
+builds — `parsing_error_count DESC, title` — and the category title through the join.
 
 ## Fetching
 

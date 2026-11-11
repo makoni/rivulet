@@ -28,8 +28,11 @@ import Testing
 /// told apart from writer-side hardcoding by any input, so the pins read them as values handed to
 /// the build and the writer reads them as data; the control characters outside the nine the escape
 /// pin reads; the newline before the root line, read as part of the element-layout rule rather than
-/// as the header rule's constant; and the reference's other escape path, `EscapeText`, which reads
-/// the same set with the newline left as written and which this write never goes through.
+/// as the header rule's constant; and the reference's other escape paths, which this write never
+/// goes through: the exported `EscapeText`, which takes the newline flag as true and reads the same
+/// set, and the `EncodeToken` chardata call, which takes it as false and leaves the newline as
+/// written, with the CDATA branch that call opens for a value starting with `<![CDATA[`. What this
+/// write reproduces is the printer path the encoder marshals string fields through.
 @Suite struct OPMLSerializeTests {
     private static let epoch = Date(timeIntervalSince1970: 0)
 
@@ -79,9 +82,8 @@ import Testing
         #expect(empty.contains { $0.contains("<body></body>") },
             "the element that writes nothing: \(empty)")
         let withChild = lines(document([group("C", [oneUrl])]))
-        #expect(withChild.contains { $0.contains("<body>") } &&
-            withChild.contains { $0.contains("</body>") },
-            "the element that writes something closes on its own line: \(withChild)")
+        #expect(withChild.contains { $0.contains("<body>") && !$0.contains("</body>") },
+            "the element that writes something closes on its own line, not on the open one: \(withChild)")
     }
 
     @Test func theVersionIsWrittenWhateverTheRecordHolds() {
@@ -231,14 +233,36 @@ import Testing
     }
 
     @Test func categoriesAreSortedAsBytes() {
-        // The names are sorted as bytes. The groups are handed in the order that is not the byte
-        // order, so the pin reads which category line comes first.
-        let first = OPMLSubscription(title: "F1", feedURL: "http://e/1", categoryName: "Category 2")
-        let second = OPMLSubscription(title: "F2", feedURL: "http://e/2", categoryName: "Category 1")
-        let out = lines(document([group("Category 2", [first]), group("Category 1", [second])]))
-        #expect(out.firstIndex(where: { $0.contains("text=\"Category 1\"") })!
-            < out.firstIndex(where: { $0.contains("text=\"Category 2\"") })!,
-            "the byte order puts the second-given group first: \(out)")
+        // The names are sorted as bytes, which is what `sort.Strings` does, not as Swift compares a
+        // String. `a` with a combining acute is canonically `á`, which Swift puts after `b` and the
+        // bytes put before it. The groups are handed in the order that is neither the byte order
+        // nor the insertion order, so a patch that stopped sorting fails this pin, and so does a
+        // patch that sorted the way Swift compares.
+        let first = OPMLSubscription(title: "F1", feedURL: "http://e/1", categoryName: "b")
+        let second = OPMLSubscription(title: "F2", feedURL: "http://e/2", categoryName: "a\u{0301}")
+        let out = lines(document([group("b", [first]), group("a\u{0301}", [second])]))
+        #expect(out.firstIndex(where: { $0.contains("text=\"a\u{0301}\"") })!
+            < out.firstIndex(where: { $0.contains("text=\"b\"") })!,
+            "the byte order puts the combining name first, where Swift compares it after `b`: \(out)")
+    }
+
+    @Test func theGroupKeyIsTheNameAsBytesSoADecomposedNameIsItsOwnGroup() {
+        // Read through the build, like the order pin: the group key is the build's own rule, so a
+        // pin that hands the groups directly never runs it. `Café` and `Cafe` with a combining
+        // acute are one name for Swift's `==` and two names as bytes, so a patch that compared the
+        // key with `==` answered one group and failed this pin. The pin reads only that both groups
+        // are written, so a patch to the order rule cannot reach it, and one record per name keeps
+        // the order inside a category out of it.
+        let out = lines(OPMLSerializer.serialize([
+            OPMLSubscription(title: "F1", feedURL: "http://e/1", categoryName: "Café"),
+            OPMLSubscription(title: "F2", feedURL: "http://e/1a", categoryName: "Cafe\u{0301}"),
+        ], now: OPMLSerializeTests.epoch))
+        // The names are read as bytes, not through `String.contains`, which compares canonically
+        // and would answer the same line for both forms. The category lines are the ones without
+        // `xmlUrl`.
+        let categories = out.filter { $0.contains("Caf") && !$0.contains("xmlUrl=") }
+        #expect(Set(categories.map { Array($0.utf8) }).count == 2,
+            "the two names are not one name as bytes: \(out)")
     }
 
     @Test func groupingKeepsInsertionOrderInsideACategory() {

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright The Miniflux Authors. All rights reserved.
-// SPDX-License-Identifier: Apache-2.0
-// Ported from Miniflux internal/reader/opml/serializer.go (Apache-2.0); adapted for Swift/SQLite.
-// The reference writes through `encoding/xml`'s encoder; this file reproduces the bytes that
-// encoder answers for this model, rule by rule, as read from the reference at commit `c4d54f87`.
+// SPDX-License-Identifier: Apache-2.0 Ported from Miniflux internal/reader/opml/serializer.go
+// (Apache-2.0); adapted for Swift/SQLite. The reference writes through `encoding/xml`'s encoder;
+// this file reproduces the bytes that encoder answers for this model, rule by rule, as read from
+// the reference at commit `c4d54f87`.
 
 import Foundation
 
@@ -149,7 +149,7 @@ enum OPMLSerializer {
     private static func groups(from records: [OPMLSubscription]) -> [OPMLGroup] {
         var groups: [OPMLGroup] = []
         for record in records {
-            if let index = groups.firstIndex(where: { $0.name == record.categoryName }) {
+            if let index = groups.firstIndex(where: { isSameName($0.name, record.categoryName) }) {
                 groups[index].subscriptions.append(record)
             } else {
                 groups.append(OPMLGroup(name: record.categoryName, subscriptions: [record]))
@@ -159,7 +159,19 @@ enum OPMLSerializer {
     }
 
     private static func sortedGroups(_ groups: [OPMLGroup]) -> [OPMLGroup] {
-        groups.sorted { first, second in first.name < second.name }
+        groups.sorted { first, second in isBefore(first.name, second.name) }
+    }
+
+    /// The group name is compared as bytes, which is what the reference's map key and
+    /// `sort.Strings` do. Swift compares a String by canonical equivalence, so a name and its
+    /// decomposed form are one name here and two upstream, and the order of a name carrying a
+    /// combining mark and a plain ASCII name is the other way round.
+    private static func isSameName(_ stored: String, _ given: String) -> Bool {
+        Array(stored.utf8) == Array(given.utf8)
+    }
+
+    private static func isBefore(_ first: String, _ second: String) -> Bool {
+        Array(first.utf8) < Array(second.utf8)
     }
 
     private static func headField(_ name: String, _ value: String, depth: Int) -> String {

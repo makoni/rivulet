@@ -13,33 +13,36 @@ import Testing
 /// What these pins can fail on, each checked by patching the rule and reverting: that the duplicate
 /// answer runs before the category resolution and the validation, on the input that fails all three
 /// at once; that the duplicate answer is the row of the account the run works for, on the url
-/// another account has; that the empty category name reaches the smallest title in byte order, not
-/// the row the position-ordered listing answers; that the named title is compared as given, with no
-/// lowering, and that a name the account has no row for is created; that the first subscription the
-/// rules fail stops the run after the earlier write, so the write is per subscription rather than
-/// all at the end; that each setting reaches the row through the field the port schema has; that
-/// the url reaches the row from the record the read answers; that the export lists in the order the
-/// reference query builder answers; that the export joins the category title from the row; and that
-/// the settings the export writes are the fields the port schema has. These pins read the handler's
-/// own choices, so the patches they name are handler patches, and their inputs are shaped so a
-/// patch to a rule pinned elsewhere cannot reach them: the values two orders of a rule would answer
-/// differently are not read here — the title and the text of a record are the same value, and the
-/// site url is read from a record whose two halves are the same value — the pins read a row through
-/// its title or its category wherever another pin names the url, and the export pins read fragments
-/// without the indent, so the serializer's indent, layout, field order and escape rules cannot
-/// reach them. The parsed inputs carry `type="rss"` on every record with a url, so a patch that
-/// reads the branch through `type` instead of the url still answers the same records here. What
-/// these pins cannot fail on: the rules the reference validation applies after the four ported
-/// ones, which read the filter, scraper and proxy settings this port's schema does not carry, so no
-/// input reaches them here; the rules the import path cannot reach at all — the duplicate answer
-/// and the category answer inside the validation run, because the handler skips a duplicate before
-/// validating and the category the resolution answers always exists by the time the validation
-/// reads it, and the guard's url half, because a subscription by definition carries a url; the
-/// storage failure the reference wraps as `opml: unable to create this feed`, which has no input
-/// this suite can make it report; the reference's answer for an empty category name with no rows at
-/// all, which is the nil it returns with no guard, so no rule of the reference can be read there —
-/// the port answers through the guard's category half, which is the port's own rule; and the
-/// wording the handler wraps around each rule, which is the handler's own.
+/// another account has; that the duplicate answer takes the url the record carries as the feed half
+/// rather than the site half, on the record whose two halves are different values; that the empty
+/// category name reaches the smallest title in byte order, not the row the position-ordered listing
+/// answers; that the named title is compared as given, with no lowering, and that a name the
+/// account has no row for is created; that the first subscription the rules fail stops the run
+/// after the earlier write, so the write is per subscription rather than all at the end; that each
+/// setting reaches the row through the field the port schema has; that the url reaches the row from
+/// the record the read answers; that the export lists in the order the reference query builder
+/// answers; that the export joins the category title from the row; and that the settings the export
+/// writes are the fields the port schema has. These pins read the handler's own choices, so the
+/// patches they name are handler patches, and their inputs are shaped so a patch to a rule pinned
+/// elsewhere cannot reach them: the values two orders of a rule would answer differently are not
+/// read here — the title and the text of a record are the same value, and the site url is read from
+/// a record whose two halves are the same value except on the pin that names the url the duplicate
+/// read takes — the pins read a row through its title or its category wherever another pin names
+/// the url, and the export pins read fragments without the indent, so the serializer's indent,
+/// layout, field order and escape rules cannot reach them. The parsed inputs carry `type="rss"` on
+/// every record with a url, so a patch that reads the branch through `type` instead of the url
+/// still answers the same records here. What these pins cannot fail on: the rules the reference
+/// validation applies after the four ported ones, which read the filter, scraper and proxy settings
+/// this port's schema does not carry, so no input reaches them here; the rules the import path
+/// cannot reach at all — the duplicate answer and the category answer inside the validation run,
+/// because the handler skips a duplicate before validating and the category the resolution answers
+/// always exists by the time the validation reads it, and the guard's url half, because a
+/// subscription by definition carries a url; the storage failure the reference wraps as `opml:
+/// unable to create this feed`, which has no input this suite can make it report; the reference's
+/// answer for an empty category name with no rows at all, which is the nil it returns with no
+/// guard, so no rule of the reference can be read there — the port answers through the guard's
+/// category half, which is the port's own rule; and the wording the handler wraps around each rule,
+/// which is the handler's own.
 @Suite struct OPMLImportTests {
     private struct FeedRow: Sendable {
         let categoryTitle: String
@@ -138,6 +141,38 @@ import Testing
                     "the url is not this account's row, so the run reaches the write: \(written)")
                 #expect(written.contains { $0.userID == bob },
                     "the row written is the one for the account the run works for: \(written)")
+            }
+        }
+    }
+
+    @Test func theDuplicateAnswerReadsTheFeedUrlNotTheSiteUrl() async throws {
+        try await withMigratedStorage { _, storage in
+            let userID = try await storage.withConnection { connection in
+                let id = try await seedUser(connection, username: "alice")
+                let tech = try await seedCategory(connection, userID: id, title: "Tech")
+                _ = try await seedFeed(connection, userID: id, categoryID: tech,
+                    url: "https://half.example/feed")
+                return id
+            }
+
+            // The record carries two different url halves, and the row the account has is the feed
+            // half, so this is the one input where the two rules the duplicate read could answer
+            // differ. The read answers the record's feed url, so the record is skipped and nothing
+            // is written; a patch that read the site url found no row here and wrote the record.
+            // The category name is one the account has no row for, which the resolution would
+            // create, but the duplicate answer runs before it, so the pin reads only the rows.
+            try await OPMLHandler(storage).importFeeds(userID: userID, data: Data("""
+                <opml version="2.0"><head></head><body>
+                <outline text="Cat" title="Half" xmlUrl="https://half.example/feed" \
+                htmlUrl="https://half.example/site" type="rss"/>
+                </body></opml>
+                """.utf8))
+
+            try await storage.withConnection { connection in
+                let written = try await rows(connection)
+                #expect(written.count == 1, "the duplicate answer reads the feed url: \(written)")
+                #expect(written.first?.url == "https://half.example/feed",
+                    "the row that stands is the seeded one: \(written)")
             }
         }
     }
