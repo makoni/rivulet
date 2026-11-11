@@ -171,7 +171,8 @@ enum OPMLSerializer {
     }
 
     private static func isBefore(_ first: String, _ second: String) -> Bool {
-        Array(first.utf8) < Array(second.utf8)
+        for pair in zip(first.utf8, second.utf8) where pair.0 != pair.1 { return pair.0 < pair.1 }
+        return first.utf8.count < second.utf8.count
     }
 
     private static func headField(_ name: String, _ value: String, depth: Int) -> String {

@@ -1105,8 +1105,8 @@ setup error both helper files throw, because the nested type was not visible to 
 `OPMLCommandTests`, PR #64) The read is over the tokens the tolerant tokenizer already builds: the
 reference's value layer (`UnmarshalXML`) has no port counterpart, so the shape rules are read as the
 reference reads them and the record is assembled from the tree, and the write reproduces the bytes
-the reference's encoder answers for this model. 56 pins and 75 probes across the four suites — 17
-pins and 17 probes for the read as pure logic, 24 and 34 for the write, 11 and 18 for the handler's
+the reference's encoder answers for this model. 57 pins and 75 probes across the four suites — 17
+pins and 17 probes for the read as pure logic, 24 and 34 for the write, 12 and 18 for the handler's
 steps over a temp database, and 4 and 6 for the two commands as runs over the in-process console.
 Each probe patches one rule, is seen to fail on the pin it names and no other pin of these four
 suites, and reverts the file byte-identically; the round runs the four suites as one run per probe.
@@ -1141,7 +1141,6 @@ only for a subscription; the nine branches of the escape set; the categories sor
 name where byte order and Swift's canonical order differ; the group key being the name as bytes, so
 a decomposed name is its own group; and the order inside a category being the order the records
 arrived in.
-records arrived in.
 
 What the handler's probes read: the duplicate answer running before the resolution and the rules on
 the input that fails all three at once; the duplicate answer being the row of the account the run

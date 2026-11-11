@@ -187,6 +187,21 @@ The rest of the handlers are not started, and the OPML slice opens as PR #64.
       instance (manual check; repeated with the full client matrix in stage 7).
 
 ## Backlog
+Findings from review runs 1 and 2 on PR #64 that do not change behavior:
+
+- `OPMLImportTests.swift` is 469 lines, close to the ≤500 aim for a test file. The import and export
+halves are one handler, so the file splits only when the next slice adds tests to it.
+
+- The reference's own OPML tests are not ported as tests. `parser_test.go` reads a malformed
+character entity, which here is the tokenizer's rule and is named as unpinnable in the read header;
+`serializer_test.go` asserts the round trip, which the port pins as one pin rather than as one per
+field.
+
+- The byte comparison for the group order is written element by element rather than as a comparison
+of two `[UInt8]` values, because the standard library has no `<` for an array: the shorter form
+type-checked only inside the module, where another file's import brought an operator in.
+
+
 
 Findings from the work on PR #46 that do not change behavior:
 
