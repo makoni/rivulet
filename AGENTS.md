@@ -441,8 +441,27 @@ group name read as bytes, and the four rules the handler applies per record; `im
 own command, `--file` is the port's own half of `export`, the settings the port schema has no field
 for are read as data and not persisted, and the validation rules past the four ported ones are not
 ported, both recorded in `docs/parity.md`, with the date zone answered as `UTC` rather than as the
-reference's local name. What follows: the icon route and the acceptance journey, the Fever parameter
-set having merged as PR #61 and the minimal scan as part of PR #59.
+reference's local name. The icon route is merged as PR #65: the four rules the reference's
+response builder applies for a cached asset — the `ETag` shape, the `If-None-Match` read, the
+`Cache-Control` value and the `Expires` value — are pinned as pure logic, and the answer the route
+gives one row is pinned over a real socket for what the route adds on top: which read it runs,
+which values it takes from the row, which headers it writes on which branch, and the status the
+two branches answer. 10 pins and 15 probes by `CachingRulesTests`, 7 pins and 10 probes by
+`IconRouteTests`, each probe seen to fail on the rule it names and to revert the file byte-
+identically. Three probes reach more than one pin, which the headers name: the quoted-half patch
+also fires the trim pin, whose input is a quoted value with spaces; the patch naming which value
+the `ETag` is built from also fires the match-branch pin; and the patch for the empty side of the
+match guard also fires the three pins that read the callback branch, because the branch is chosen
+by that read. One probe cannot bite, because the framework writes no body for a `304` answer. What
+those headers name as unpinnable: the instant `Expires` is built from, which is the clock the run
+reads; the zone rule, which fires only on a machine whose local zone is not UTC; the fixed locale
+the shape is written with; the compression the reference skips for a body that is not SVG, which
+this port has no middleware for; the `Vary` name the builder writes only above its compression
+threshold; the HTML shapes the reference answers for a missing row; and the empty side of the
+guard, which cannot be shown by taking the guard away because Swift's read answers false for an
+empty value where Go's answers true, recorded as a row in `docs/parity.md`. Routing is the
+framework's rule, so nothing in this suite claims it. What follows: the acceptance journey, the
+Fever parameter set having merged as PR #61 and the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the
@@ -638,4 +657,3 @@ support conditional GET with ETag`.
 doubt, port Miniflux behavior.
 - Respect size and time limits in the fetcher; never disable SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
-

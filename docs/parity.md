@@ -1252,6 +1252,44 @@ surface below is the port's own, and only the rules the commands apply are trace
 | The empty category name with no rows | `FirstCategory` answers `nil` with no guard, and the handler reads the field of that value | answers 0, which is the half the mandatory guard fails on | The reference reaches the guard with a value no write produced, which is a crash there; here the run reports the rule it names. This is the port's own rule, pinned as the answer for an account with no category row |
 | The date field's zone | the layout answers the zone name the time is read in, which for the reference is the zone its process has | answers `UTC`, named as part of the pin | The golden bytes for the date pin carry `UTC`; the same instant read in another zone answers another name, which no test here can show for the reference |
 
+## Icon route (stage 5)
+The route is `internal/ui/feed_icon.go` at commit `c4d54f87`, read through the response builder
+the reference applies to every answer (`internal/http/response/builder.go`). The port's rules for
+the same answer are `CachingRules`, and `IconRoutes` is the route that runs them; the pins are
+`CachingRulesTests` for the rules and `IconRouteTests` for the answer over a real socket.
+
+**Matching the reference.**
+- The path answers for a request that carries no token, which is the reference's public-route set:
+  the path is not put behind the read `GoogleReaderAuth` puts on the Google Reader routes.
+- `ETag` is the hash the row carries, put through `normalizeETag`: the value is trimmed, an empty
+  value answers the empty string rather than a quoted empty tag, a value that already carries the
+  quoted form or the `W/` prefix is written as it was read, and the quoted shape is added for the
+  rest.
+- `Cache-Control` is built from the whole seconds of the bound the route is given — 72h, as the
+  reference counts it — with the directives in the order the builder writes them, and `Expires` is
+  the instant plus the bound in the `http.TimeFormat` shape, in UTC.
+- `If-None-Match` is read as the reference reads it: an empty side answers false, the star answers
+  true for any tag, and the comparison is weak — the `W/` prefix is not part of the tag compared,
+  and the header is read as containing the tag rather than as being equal to it.
+- The caching headers are written before the match read runs, which is what lets the match branch
+  answer 304 with no body and without the content type and the policy the body callback writes.
+- The content type is the value the row holds, the policy line is the reference's constant for
+  untrusted content, and the three headers the builder writes on every answer are the same rule
+  this path reads.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| A row the read does not find | `HTMLNotFound`, the HTML shape the web layer writes | the JSON error document this port answers on its client paths, since it has no web layer | The status is the same; the body is not. The pins read the status, which is the part both sides share |
+| A storage failure | `HTMLServerError`, with the localized wording the error carries | the same JSON document with 500 | Nothing in this slice reads the storage failure, so the shape is recorded rather than pinned |
+| Compression | `WithoutCompression` for a body that is not `image/svg+xml` | this port has no compression middleware, so no answer of this path is compressed | Nothing to pin; the difference is the port's own |
+| `Vary: Accept-Encoding` | written above the builder's compression threshold | never written here | No answer of this path reaches the threshold, so no pin can read the name |
+| `Expires` | `time.Now()` at the instant the answer is built | the clock the run reads at the same point | No test can name the instant; the pins read the shape and the zone with an instant handed to the rule, and the zone rule can be shown only on a machine whose local zone is not UTC |
+| The value the ETag is built from | the icon hash, which is `hash/fnv` FNV-128a | the icon hash, which is SHA-256 | Already recorded under the icon finder; the pins read that the header carries the stored hash, not which checksum produced it |
+| The empty side of the match read | `strings.Contains` answers true for an empty value, so the guard is what answers false for an empty header or an empty tag | Swift's read answers false for an empty value, so the guard and its absence answer the same here | The pin reads the answer the guard gives and is shown to fail by a patch that flips that answer; the other half of the rule cannot be shown on this side |
+| The route shape | a `GET` pattern on the reference's mux | one registration with the id segment required, which Vapor's router answers as the most specific match | The reference's exact pattern beats its subtree pattern; here the router's rule is the framework's, so no pin claims it |
+
 ## CLI feed commands (stage 6)
 
 The reference's CLI dispatches by flags on the executable (`-create-admin`, `-refresh-feeds`,

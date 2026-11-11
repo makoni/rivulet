@@ -1187,6 +1187,47 @@ has: the two `CommandLineTests` pins that read that list. `OPMLCommandTests` is 
 import and export runs, and `helpListsEveryCommandWithoutConfiguration` remains the surface pin for
 the command set.
 
+### The icon route (`CachingRulesTests`, `IconRouteTests`, PR #65)
+
+The four rules the reference's response builder applies for a cached asset are pinned as pure
+logic, and the route that answers an icon row is pinned over a real socket on top of them. 17 pins
+and 25 probes, 24 of them seen to fail on the rule they name: 10 pins and 15 probes for the rules,
+7 pins and 10 probes for the answer, the last being the row recorded below as not biting. Each
+probe patches one rule, is seen to fail on the pin it names and reverts the file byte-identically;
+the round runs the two suites as one run per probe, in copies of the tree, and caches by the hash
+of the two probed files and the two suites.
+
+Three reaches the round records, which is why it reports them as expected sets rather than as
+failures. The pin for the trim reads an already quoted value with spaces, so the patch that names
+the quoted half reaches it as well; the pin for the match branch reads the header value the route
+builds from the row, so the patch that names which value the `ETag` is built from reaches it as
+well; and the match branch is chosen by the read, so the patch for the empty side of the guard
+reaches the three pins that read the callback branch. Every other probe fires one pin. The socket
+pins read presence or which row value a header is built from rather than the output of a rule
+pinned in the pure suite, which is what keeps the two halves apart: a patch to a pure rule reaches
+only the pins that name it.
+
+One row is recorded as not biting: the body half of the match pin, because the framework writes no
+body for a `304` answer, so a patch that writes the bytes on that branch still answers an empty
+body. The pin stays, because it reads what the reference's builder answers on that branch.
+
+The pin for the empty side of the match read cannot be falsified by taking the guard away: an
+empty value is inside every value for Go's `strings.Contains`, which is the other half of the
+rule, while Swift's read answers false for an empty value, so the guard and its absence answer the
+same here. That probe flips the answer the guard gives instead, and the difference is the row
+`docs/parity.md` records.
+
+The socket pins that read a response shape carry the token as the transport reads it for a GET, so
+the probe for the unauthenticated rule fires only the pin that names it. The token read itself is
+pinned by `GoogleReaderAuthTests`, and a patch to it reaches these pins too, so nothing here
+claims single-firing for it. The three headers the response builder writes are the same rule this
+path reads and are pinned on the other path by `GoogleReaderAuthTests`, so a patch to them fires
+that suite as well. Routing is the framework's rule, not this file's, so no pin here claims it.
+The instant `Expires` is built from is the clock the run reads, so the pins hand the rule an
+instant; the zone rule fires only on a machine whose local zone is not UTC, which is where the
+round ran, and the fixed locale cannot be shown on a machine already reading English month and
+weekday names.
+
 ## Robustness (stage 7)
 
 `FetcherHostileInputTests` is the hostile body corpus for the fetcher: a stream that inflates far

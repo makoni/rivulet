@@ -27,6 +27,7 @@ public enum ApplicationFactory {
         // The fetcher belongs to the application, so the routes that read a document through it and
         // the refresh path that runs through it are the same one, and the teardown closes it once.
         let fetcher = Fetcher(options: config.fetcher)
+        IconRoutes.register(on: application, storage: storage)
         FeverRoutes.register(on: application, storage: storage)
         GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher(),
             baseURL: config.baseURL,
