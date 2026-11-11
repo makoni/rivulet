@@ -12,6 +12,12 @@ jobs:
     timeout-minutes: 15
     container: swift:latest
     steps:
+      # `git init` inside checkout prints the default-branch hint because the runner's git has no
+      # `init.defaultBranch` set. Setting it here, before the checkout step, is what keeps the job
+      # log warning-free; the checkout itself is already the current major version.
+      - name: Set git's default branch name
+        run: git config --global init.defaultBranch main
+
       - uses: actions/checkout@v7
 
       - name: Show Swift version
