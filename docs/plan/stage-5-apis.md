@@ -11,7 +11,8 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
 — merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
 endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
-The rest of the handlers are not started, and the OPML slice is merged as PR #64.
+The rest of the handlers are not started, the OPML slice is merged as PR #64, and the public icon
+route is merged as PR #65.
 **Effort:** XL.
 **Depends on:** Stage 4.
 
@@ -133,8 +134,18 @@ The rest of the handlers are not started, and the OPML slice is merged as PR #64
       carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`. Auth:
       `api_key` (MD5 token); failure is HTTP 200 with
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
-- [ ] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
-      `Cache-Control`; Fever `favicons` returns `mime;base64,…`.
+- [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
+      `Cache-Control`; Fever `favicons` returns `mime;base64,…`. Landed as PR #65: the four rules
+      the response builder applies for a cached asset — the `ETag` shape, the `If-None-Match`
+      read, the `Cache-Control` value and the `Expires` value — are pinned as pure logic, and the
+      answer the route gives a row is pinned over a real socket: the read it runs, which values it
+      takes from the row, which headers it writes on which branch, and the status the two branches
+      answer. The builder's three headers are read as one rule shared by both paths. 10 pins and
+      18 probes by `CachingRulesTests`, 7 pins and 10 probes by `IconRouteTests`, 27 seen to fail
+      on the rule they name and one recorded as not biting; the ten pins read by more than one
+      patch, the three rows that reach more than one pin, and what no pin here can show are named in
+      the suite headers.
+
 - [x] OPML: import (nested categories) and export; shared by the CLI and used in tests, merged as
       PR #64: the shape rules the model tags and the value rules the switch carries are read as the
       reference reads them over the tree the tolerant reader builds, and the bytes the encoder
@@ -143,8 +154,8 @@ The rest of the handlers are not started, and the OPML slice is merged as PR #64
       `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests`. `import` is the port's own
       command and `--file` is the port's own half of `export`; the settings the port schema has no
       field for are read as data and not persisted, and the validation rules past the four ported
-      ones are not ported. Both are recorded in `docs/parity.md`. The icon route above is still
-      open, and so is the exit criterion for the journey.
+      ones are not ported. Both are recorded in `docs/parity.md`. The acceptance journey is what is
+      left open for this stage.
 - [ ] Deviations are recorded in `docs/parity.md` as soon as they are observed.
 
 ## Implementation notes
