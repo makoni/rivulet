@@ -432,9 +432,9 @@ and that file now takes the finder `RivuletApplication` owns and closes in `shut
 stub server it answers on. Two of the three shapes the run sends for these endpoints carry no class,
 and the quickadd shape names the one its key set can show, the title inside the request, because the
 rule that reads key sets reads no coverage; the two scan classes are recorded as classes the corpus
-cannot reach. The OPML slice opens as PR #64: the shape rules the model tags and the value rules the
-switch carries are read as the reference reads them over the tree the tolerant reader builds, and
-the bytes the encoder answers are reproduced rule by rule, so 57 pins and 75 probes across
+cannot reach. The OPML slice is merged as PR #64: the shape rules the model tags and the value rules
+the switch carries are read as the reference reads them over the tree the tolerant reader builds,
+and the bytes the encoder answers are reproduced rule by rule, so 57 pins and 75 probes across
 `OPMLReadTests`, `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests` name the root, the
 namespace, the name set, the element name the field path matches, the escape set, the layout, the
 group name read as bytes, and the four rules the handler applies per record; `import` is the port's
