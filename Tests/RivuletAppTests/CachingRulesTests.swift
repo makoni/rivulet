@@ -105,12 +105,11 @@ import Testing
     }
 
     @Test func theMatchReadDropsThePrefixAndReadsTheHeaderAsContainingTheTag() throws {
-        // Two rules the same read applies, pinned as one pin because a patch to either reaches it
-        // and no other pin reads either. A patch that stopped dropping the prefix answered false
-        // for the first input, which is what lets the weak form reach the strong one; a patch that
-        // compared the header as one value answered false for the second; a patch that read any
-        // part of the tag answered true for the third. Each of the three patches fires this pin
-        // alone.
+        // One pin for the three rules this read applies, each with its own patch, and no other pin
+        // reads any of the three. A patch that stopped dropping the prefix answered false for the
+        // first input, which is what lets the weak form reach the strong one; a patch that compared
+        // the header as one value answered false for the second; a patch that read any part of the
+        // tag answered true for the third.
         #expect(CachingRules.matchesNoneMatch(headerValue: "\"abc\"", etag: "W/\"abc\""),
             "the weak etag reaches the strong header")
         #expect(CachingRules.matchesNoneMatch(headerValue: "\"xyz\", \"abc\"", etag: "\"abc\""),
@@ -134,16 +133,16 @@ import Testing
     }
 
     @Test func expiresIsTheInstantTheRuleIsGivenInTheShapeAndTheZoneTheReferenceWrites() throws {
-        // The shape is `http.TimeFormat` and the zone is UTC, and the bound is added whole — the
-        // reference truncates only when it writes the value, so this pin reads the whole-second
-        // counting where `Cache-Control` is built, not here. The two inputs read three rules: the
-        // bound added to the instant, the three-letter weekday, and the padded day field — a day of
-        // 4 answers `04`, which is why the field is not the number. A patch that wrote the value
-        // with the machine's local zone answered `Wed, 07 Jan 2026 21:20:03 GMT` for the first
-        // input: this machine is `+07:00`, which is where the probe for that rule fires, while on a
-        // UTC machine the two answers are the same, so that half is named in the header rather than
-        // pinned here. The instant itself is what the run reads from the clock, so no pin can name
-        // it.
+        // The pin reads four rules of the formatter: the zone, the three-letter weekday, the padded
+        // day field, and the bound added to the instant — added whole, since the reference
+        // truncates only when it writes the value, so the whole-second counting is read where
+        // `Cache-Control` is built, not here. The two inputs read the bound, the weekday and the
+        // day: a day of 4 answers `04`, which is why the field is not the number. The zone is read
+        // through the formatter's zone, with its own patch: on this machine, whose zone is
+        // `+07:00`, a patch that wrote the value with the machine's local zone answered `Thu, 08
+        // Jan 2026 01:20:03 GMT` for the first input, while on a UTC runner the two answers are the
+        // same, so the zone rule can be shown here and not there. The instant itself is what the
+        // run reads from the clock, so no pin can name it.
         let instant = Date(timeIntervalSince1970: 1_767_550_803) // Sun, 04 Jan 2026 18:20:03 UTC
         #expect(CachingRules.expires(now: instant, duration: 259_200) ==
             "Wed, 07 Jan 2026 18:20:03 GMT", "the bound is added to the instant given")

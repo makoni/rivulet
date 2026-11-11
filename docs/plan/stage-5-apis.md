@@ -134,7 +134,7 @@ route is merged as PR #65.
       carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`. Auth:
       `api_key` (MD5 token); failure is HTTP 200 with
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
-- [x] - [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
+- [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
       `Cache-Control`; Fever `favicons` returns `mime;base64,…`. Landed as PR #65: the four rules
       the response builder applies for a cached asset — the `ETag` shape, the `If-None-Match`
       read, the `Cache-Control` value and the `Expires` value — are pinned as pure logic, and the
