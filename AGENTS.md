@@ -173,7 +173,10 @@ seen to fire on the rule it names, and the transport read every other pin runs t
 `GoogleReaderAuthTests`, so no patch can show it alone. The performance half records measurements
 taken here rather than bounds: `Scripts/perf.sh` is the run half, `Tools/clients/perf-run.txt` is
 the recorded run, and the rule matches each claim in `docs/performance.md` to the line that produced
-it. What follows: OPML and the acceptance journey.
+it. What this paragraph pointed to is merged: OPML as PR #64 and the acceptance journey as PR #66,
+the last piece being the automated half of stage 5, whose green run in CI is the criterion that
+closed with it. The manual client-matrix criterion stays open, because no client has been run
+against this port here.
 
 **Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
 is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed
@@ -463,8 +466,28 @@ only above its compression threshold; the HTML shapes the reference answers for 
 the storage answer this path has no branch for; the empty side of the guard, which cannot be shown
 by taking the guard away because Swift's read answers false for an empty value where Go's answers
 true, recorded as a row in `docs/parity.md`; the token read and the storage read, which are pinned
-by their own suites; and the routing rule, which is the framework's. What follows: the acceptance
-journey, the Fever parameter set having merged as PR #61 and the minimal scan as part of PR #59.
+by their own suites; and the routing rule, which is the framework's. The acceptance journey is
+merged as PR #66: one suite reading the chain the stage file names — the two console runs that build
+the account and its credential pairs, the OPML run that writes the rows, the pass over the batch
+that writes the entries, and the socket the client requests go to — 14 pins and 16 probes, every
+probe seen to fail on the pins it names and to revert its file byte-identically. Seven pins are read
+by one patch and seven by more than one, one patch per rule they name, and four rows reach more than
+one pin, which the header names: the login-compare patch fires the pin for the three text lines as
+well, because both read the same answer; the import-write patch and the patch for the site url the
+pass writes each fire the listing, pass, contents and Fever feeds pins, because all four read the
+row the run wrote; and the first-appearance-order patch fires the groups and feeds pins together,
+because both documents are built from it. What that header names as unpinnable: the ids the runs
+assign, which the pins read through SQL as the values per row because the pool does not fix the
+order the writes land in; the clock fields read as the placeholder — the document's `updated` from
+the handler's run instant and the item's `crawlTimeMsec` and `updated` from the row's created and
+changed instants; the stamp column, which cannot be told apart from the create column here because
+the run writes both in the same second; the wordings of the console lines and of the reported
+failures; the batch comparison, pinned by `SchedulerBatchTests`; the icon path, which has no row
+here because the fixture page carries no icon link; and the rules pinned by their own suites, which
+this round reads only through this suite, so a patch to one of them fires the pin in that suite as
+well, a reach reasoned there rather than shown here. Stage 5's one open criterion is the manual
+single-client check, repeated with the full matrix in stage 7, the Fever parameter set having merged
+as PR #61 and the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the

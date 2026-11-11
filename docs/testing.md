@@ -1241,6 +1241,63 @@ the run reads, so the pins hand the rule an instant; the zone rule fires only on
 local zone is not UTC, which is where the round ran, and the fixed locale cannot be shown on a
 machine already reading English month and weekday names.
 
+### The acceptance journey (`AcceptanceJourneyTests`, PR #66)
+
+One suite reading the chain `docs/plan/stage-5-apis.md` names as the acceptance backbone: the two
+console runs that build the account and its credential pairs, the OPML run that writes the rows, the
+pass over the batch that writes the entries, and the socket the client requests go to. 14 pins and
+16 probes, every probe seen to fail on the pins it names and to revert its file byte-identically.
+The run half asserts nothing, so every failure is recorded by a pin, and each pin asserts a document
+or a line built from the test's own inputs, with the stored values read through SQL digest lines so
+a pin is not satisfied by the read it tests. The round runs only this suite, in copies of the tree,
+and caches by the hash of the 13 probed files and the two suite files; no row is recorded as not
+biting.
+
+Seven pins are read by one patch and seven by more than one, one patch per rule they name, and four
+rows reach more than one pin, because a pin reads a value an earlier link of the chain wrote: the
+login-compare patch fires the pin for the three text lines as well, because both read the same
+answer; the import-write patch fires the listing pin, the pass pin, the contents pin and the Fever
+feeds pin, because all four read the row that patch wrote; the patch for the site url the pass
+writes on the row fires the same four, because that read answers from the parse; and the patch for
+the first-appearance order fires the groups pin and the feeds pin together, because both documents
+are built from it.
+
+What the pins read as the orders the reads answer: the subscription listing in the error-count then
+title order its read builds, the Google ids answer and the contents document in publication time
+newest first, the Fever items document and `unread_item_ids` in publication time oldest first, which
+is the default order that read has, the Fever groups in the byte order the titles answer in with the
+default row the schema writes for the account named too, and `feeds_groups` in the order the
+categories first appear in the feeds listing. The goldens are the reference's own answers for the
+values the fixture declares: the Fever token for the pair the run reads, and the `SHA256` for the
+value each item declares.
+
+What no pin here can show: the ids the runs assign, because the pass runs the jobs of the batch
+through the pool and the order the writes land in is not fixed, so the pins read the ids through SQL
+and assert the values per row; the clock fields, read as the placeholder `0` — the document's
+`updated`, which the handler builds from the instant it runs at, and the item's `crawlTimeMsec` and
+`updated`, which it builds from the row's created and changed instants; the column the Fever feeds
+document reads the stamp from, because the run creates the row and stamps it in the same second, so
+the pin cannot tell the stamp from the create time, and the zero half of that read, which has no row
+without a stamp here; the wordings of the console lines and of the reported failures; the batch
+comparison, which `SchedulerBatchTests` pins, because the pins here read the arrivals they count
+rather than the comparison itself; the two stored values the login pin reads as data, the name as
+the console read it and the flag the run writes, which its own suites pin; the icon path, which has
+no row here because the fixture page carries no icon link, so the icon field is read as the zero;
+and the rules pinned by their own suites, which the round reads only through this suite, so a patch
+to one of them fires the pin in that suite as well, a reach reasoned there rather than shown here:
+the two token derivations, the document shapes, the item-id forms, the stream and query reads, the
+storage reads and their orders, the sanitizer, the date parse, the bcrypt compare, and the
+single-row limits.
+
+The harness runs the chain once per pin on a database and a server started for that pin only, in
+`Support/AcceptanceJourney.swift`, split as the three console runs, the stamp, and the socket half.
+`CommandRun.swift` gained the inputs the console reads for the two prompts of `create-admin` and the
+four of `integration-credentials`, and `withServedApp` gained the database path another helper owns,
+so the console runs and the app read one file. The rows the import wrote are put in the batch by SQL
+the way the batch read compares them, and the fetch needs the name that lets the fetcher reach the
+stub server. The console runs are not nested inside a held storage checkout, which is what lets a
+pin read the rows the run wrote through the same connection.
+
 ## Robustness (stage 7)
 
 `FetcherHostileInputTests` is the hostile body corpus for the fetcher: a stream that inflates far
