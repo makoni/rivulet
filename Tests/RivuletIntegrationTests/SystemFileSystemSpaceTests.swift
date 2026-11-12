@@ -16,8 +16,12 @@ import Testing
 /// reserved blocks, which no test can name; the room for a directory whose metadata cannot be
 /// taken, which the same pin cannot answer without the machine; the branch where the attributes
 /// read succeeds and the file carries no size metadata, which no file the pin writes answers; the
-/// `Darwin` branch, which Linux CI does not compile; and the numbers the check decides on, which
-/// `FreeSpaceCheckTests` pins through the seam instead.
+/// `Darwin` branch, which Linux CI does not compile, and the `Musl` branch, which the glibc CI
+/// cannot see because the first branch is the only one the compiler reads there; and the numbers the
+/// check decides on, which `FreeSpaceCheckTests` pins through the seam instead. The musl half is
+/// checked by the static build rather than by a pin: the clean-container run is what showed it,
+/// because with the branch absent the read answered nothing for the directory the copy is written
+/// to and the `backup` run reported the refusal and wrote nothing.
 @Suite struct SystemFileSystemSpaceTests {
     @Test func aPathTheFilesystemCannotReadAnswersNothing() async throws {
         let directory = try TemporaryDirectory()

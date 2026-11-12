@@ -1642,6 +1642,151 @@ for the `0.0.0-dev` craft. What no craft can show is the conversion as a rule of
 code in this port performs, and the digit class, which no version this port carries can tell apart
 from Swift's `isNumber`.
 
+## Clean-container smoke job (stage 8)
+
+`Scripts/smoke.sh` is the run half: it puts the static artifact into a base that carries no
+toolchain and no libc, runs the chain the stage names — `migrate`, `create-admin`, the credential
+pair through `integration-credentials`, the `add` calls, `serve`, the health read, the login, the
+reader read, the round the stop catches in flight, the round after the restart, and the copy
+`backup` writes — and hands the run's data to `Tools/smoke/collect.py`, which writes
+`Tools/smoke/run.json`. The check half, `Tools/smoke/smoke_check.py`, reads that document rather
+than the container the run started, so each of its 19 rules is a function over data. It is not a
+test and it does not run in CI: the CI container has no Docker and no SDK, so the run is on demand,
+and the shell is checked here by `bash -n` and by its 13 guards, each seen to fail on the value it
+names. `Tools/smoke/probes.py` crafts one input per rule that violates it — 59 crafts plus the
+baseline over 19 rules, the baseline asserted to report nothing, so each probe is single-firing,
+four rules having one craft and fifteen reading more than one half — and the file readers are in
+`Tools/smoke/sources.py` so the rule list stays the readable part. Four helpers keep other rules out
+of the crafts that reach them: `keep_copy_equal` reads the copy as the rows the second snapshot
+holds, `set_due` keeps the mid-round count equal to the pick, `others` takes a row the scheduling
+rule does not read as the one in flight, and `change_url` writes a url change to both reads, so a
+craft that changes the row set does not also reach the corruption rule, which compares that field
+between the two reads. The terminal half, `Tools/smoke/console_feed.py`, gives the container a
+terminal, and `Tools/smoke/stub_server.py` declares which input it holds and writes one line per
+event; neither asserts anything, so the round rules read a record rather than a process.
+
+What the guards read, and each was seen to fail here on: the base against the line the committed
+Dockerfile writes, by `alpine`; the artifact against the product path `Scripts/build-release.sh`
+names for the triple's arch, by `aarch64-swift-linux-musl`, and against the file being there at all;
+the corpus against the number of records the manifest declares, by 6, and against every file the
+manifest names being present, by taking `corpus/smoke_gamma.xml` away; the held delay against the
+stop grace, by a delay that does not outlast it, because a round cannot be in flight when the stop
+lands before the delay ends; the stop grace against the bound the run names, by 0; the record path
+against the document the check half reads, by `/tmp/other.json`; the ports against what the machine
+already holds, by listening on 9010; the wait against the cadence the run declares, by a wait
+shorter than the interval the first read comes at; the address policy against the name the config
+reads the flag by, the value forms the switch reads, and the address class the policy names, by the
+value, by the name, and by a target outside the refused class; the build context against the file
+the Dockerfile's `COPY` line names, by naming another name; the held file against the last record
+the manifest declares, by a file named earlier; the gap between the `add` calls against the second
+the value is stored in, by 1, because the order rule reads the values those calls recorded and the
+clause fixes none between equal values; and the credentials run's prompt count against the number of
+prompts the command declares, read from the file the check half reads it from, by feeding one value
+fewer. The guard that reads Docker itself fails only on a machine without it, which is the point of
+the job.
+
+What the 19 rules read: the base and the file the `COPY` line names against the Dockerfile and
+against the export; the artifact as the pair of digests the run recorded, read as the bytes the
+image carries against the file the build left at the path the release script names; the corpus as
+the record count, the file set and the digests against the manifest; the account line against the
+sentence the command writes for the name it was given; the migration answer against the name the
+schema file declares; the health answer as the path the route registers, the status and the body the
+route writes; the login as the field names the handler binds, the order the credentials command
+declares its prompts in, the name the group registers that command as, and the status its guard
+answers; the reader answer as the key set the shape writes, the header name and the first word the
+auth read compares, the path the group and the registration build, and the token the login answered
+with; the policy as the name the config read takes the flag by, the value forms the switch reads,
+the default the file declares, and the address class the policy names; the round as the record the
+stub wrote, read as the request and the answer for each input and as the point the read was taken;
+the order the tick's pick takes the rows in as the value each `add` call wrote, read back through
+the contract, against the order the manifest declares the records in and against the column the
+batch file names; the two snapshots as the contract the soak documents, read key by key; the rows as
+one row per record the manifest declares, read through the url the run asked with, with the counts
+against the records; the stop as the sentence the second boot answered for the integrity rule, the
+row set, and the fields a fetch does not write; the scheduling as the pick the rules take at the
+read with the row the run names as in flight unstamped at that read, the stamp landing after the
+stop, the schedule landing after the round, and the mid-round count equal to the pick; the copy as
+the sentence the command wrote for the destination it was given, read against the file it wrote with
+no `-wal` beside it; the machine as the two reads compared through the label the run writes; and the
+report against the rule list and the items the check half has.
+
+Two read points are what make the mid-round claim readable, and both are read as data rather than
+asserted. The first snapshot is taken at the point the stub had recorded the answers for the inputs
+the round read before the held one and the request for the held one without its answer: for that
+file every hop is held, so the answer for it lands after the read, in the round after the restart.
+The second snapshot is taken once the pipeline had written the row for the interrupted job, because
+the row is written at the end of a job and the run waits on the answer the binary gave rather than
+on a hop count. The held file must be the last record the manifest declares for the first read to be
+a read of a round that had covered the corpus before it, which is why a guard reads the held file's
+position as data. The run here wrote the rows in the order the manifest declares them, with the held
+row unstamped at the read and the mid-round `due` equal to the pick, and the stub recorded the
+request for the held file without its answer for that round — the connection the stop closed — which
+is the point the rule reads as mid-way. The order the jobs of that round ran in is named as what no
+rule reads, because the pool fixes none: an earlier run here showed the requests first arriving as
+beta, gamma, delta, alpha, epsilon, while the values the `add` calls wrote put the rows in the
+declared order, and the record committed here shows the arrivals in the declared order too, which is
+a fact about this run rather than something the rule reads. Per feed the record shows the fetch hop
+and the icon hop, which asks the feed url again, then the site root and `favicon.ico` as names the
+corpus does not hold, because the icon read takes the root hop before the file it is given.
+
+The credential pair the login read compares is written through `integration-credentials`, which is
+the port's own path: the reference reaches the same values only through its web form, and `create-
+admin` writes the account hash alone, so the login would have answered 401 and the reader 401 with
+no row for the auth read to find. The command reads its five prompts, and the run writes them
+through the terminal the run gives the container, because the secure read answers nothing on a pipe
+— which is what the parity harness's first live run showed. The order the rule reads is the order
+the file declares the prompts in; which prompt produced which value is named as what no document
+can say. The values the run feeds are the names the shell declares as its defaults (`smoke` and
+`smoke-password`), so the committed document carries the derivation of that pair rather than a
+credential.
+
+Eight halves of the probe set cannot be fired by a crafted document alone, and
+`Tools/smoke/probes.py` names them: the corpus rule's missing-file half fires only by taking the
+file away, which is what the shell guard shows; the runbook half fires only when `docs/deploy.md`
+exists, which is the stage's open criterion; the policy rule's default half fires only when the
+value the run declares is one the switch names, so the default is read as the file declares it and
+not as a craft; the reader rule's endpoint half is read from the route registration, which a craft
+reaches only by changing the run's word for the endpoint; and the order rule's clause half is read
+from the batch file, so the crafts for that rule reach the values the run recorded rather than the
+clause. Two halves of the machine rule are craftable only as the labels the run declares, and the
+corruption rule has no WAL half to craft, because the checkpoint the process harness reads as an
+empty WAL is blocked by the write transaction the stop interrupted.
+
+What the report names as what no document can show — the 19 items `CANNOT_SHOW` holds, and the
+report rule compares the document against them: that the run ran at all, because it is on demand and
+not in CI; that the fetch was still in flight when the signal landed, which only the run knows; that
+the container held no toolchain beyond the file the Dockerfile writes, because a scratch base has no
+shell to list it with, so the run records the base and the file set; the wording of the lines the
+binary printed, which are the port's own; which device the console read took its values from, since
+the container has no terminal and the run gives it one through `Tools/smoke/console_feed.py`; the
+exit code the stop signal left, because a signal that never lands hangs the run rather than
+reporting a code; the WAL bytes the run recorded at the stop, which are the interrupted round's and
+are not read as the harness reads them; that the copy the backup wrote is a plain file rather than a
+database the run can open, beyond the listing the run read at the moment it looked; that the two
+machine reads came from the same machine, because the rule reads two lists rather than one list read
+twice; that the run created the containers the machine reads name; that a run which left a container
+behind would have read it in the second pass, because the run lists only what it started; that a hop
+read the same bytes as the corpus file holds, since the rule reads the record the stub wrote and the
+digest of the file; the decision the address policy answered on the round, which the rule reads only
+as the flag against the class; the value the config read answered with for the policy flag, since
+the run records the value it declared rather than the value the read normalized it to; the order the
+round's jobs ran in, which the pool fixes none of; the runbook's commands, because `docs/deploy.md`
+does not exist yet; the titles the corpus documents declare, because the fetch writes no title and
+neither does the reference's refresh path, so the rows carry the empty value the create defaults
+writes and the titles are read as declared data rather than as stored values; the whole set the
+export lists, because the base puts names of its own in it at build time and a scratch base has no
+shell to list them with, so only the file the run put there is read; and which prompt of the
+credentials run produced which value, because the run records only the order the file declares the
+prompts in, never the order they were answered in.
+
+The musl branch of the free-space read is what the run half showed and no pin can show on the glibc
+CI, because the first branch is the only one the compiler reads there: with the branch absent the
+read answered nothing for the directory the copy is written to, so `backup` reported the refusal and
+wrote nothing, and the copy rule had no copy to read. The branch is named in
+`Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
+`SystemFileSystemSpaceTests`, which names the musl half as checked by the static build rather than
+by a pin.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
@@ -1658,6 +1803,10 @@ each of its rules can fail on the rule it names.
 - `Scripts/build-release.sh` — stage 8's static release build, outside CI.
   `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` runs its checks against an artifact already on
   disk, which is how each of its checks was seen to fail on the value it names.
+- `Scripts/smoke.sh` — stage 8's clean-container smoke run, outside CI.
+  `python3 Tools/smoke/probes.py` checks that each of its 19 rules can fail on the rule it names and
+  that the baseline reports nothing; the 13 guards run only as part of the run, because they read
+  the machine's ports, Docker, and the files the run names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

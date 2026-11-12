@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>Smoke Delta</title><link>https://example.org/delta</link>
+<item><title>Item of Smoke Delta</title><link>https://example.org/delta/1</link>
+<guid>urn:smoke:delta:1</guid><pubDate>Mon, 03 Nov 2025 10:00:00 +0000</pubDate></item>
+</channel></rss>
