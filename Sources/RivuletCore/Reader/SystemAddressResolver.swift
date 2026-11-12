@@ -1,15 +1,23 @@
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(Musl)
+import Musl
 #elseif canImport(Darwin)
 import Darwin
 #endif
 
 import Foundation
 
-// The C enum import differs between platforms — `SOCK_STREAM` is a struct on Linux and an integer
-// on Darwin — so the values are named once here.
+// The C enum import differs between platforms: `SOCK_STREAM` is a struct with a `rawValue` on the
+// glibc Linux this project builds against, and the plain `Int32` the musl C module exports, which is
+// what the Static Linux SDK reads. Darwin exports the integer too. So the value is named once here,
+// with the two shapes separated by which C module the platform has. This is checked by the static
+// build in `Scripts/build-release.sh`, not by a pin: on the glibc CI the first branch is the only
+// one the compiler can see, so no test here can show the musl half.
 private let streamSocketType: Int32 = {
-    #if os(Linux)
+    #if canImport(Musl)
+    return SOCK_STREAM
+    #elseif os(Linux)
     return Int32(SOCK_STREAM.rawValue)
     #else
     return SOCK_STREAM
