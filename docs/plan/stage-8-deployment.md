@@ -52,7 +52,10 @@ needed.
   the two shapes separated by which C module the platform has, and the exit code is the number both
   platforms read, 1. No pin can show the musl branch, because on the glibc CI container only the
   glibc branch is in scope for the compiler, so the static build itself is the check for the musl
-  half; the glibc half is pinned by `AddressResolutionTests` through the resolver it runs. The other
+  half; the glibc half is pinned by `AddressResolutionTests` through the resolver it runs, which
+  reads the answer the lookup produces, so the pin can fail on a value that breaks the lookup rather
+  than on which socket type the value is, and the exit-code site has no pin at all because the top
+  level of the executable is not something a test can read. The other
   C reads this port has — `SIGINT`, `SIGTERM`, `EILSEQ`, `EINVAL` — built for the musl target
   unchanged.
 

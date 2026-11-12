@@ -1620,6 +1620,13 @@ the empty array; the key order in the answer, which is not fixed, so the contrac
 key rather than as one string; and that the row a migration created is the row a fetch would write,
 which the tests pin and this run cannot answer without a network.
 
+The two production-code sites the spike found are named once for the platforms rather than pinned,
+and what the glibc side can show is narrower than the naming suggests: `AddressResolutionTests`
+reads the resolver's answer, so a patch to the socket type bites only when the value breaks the
+lookup, not when it is another socket type the lookup still accepts, and the exit-code site in
+`Sources/rivulet/main.swift` has no pin at all, because the top level of the executable is not
+something a test can read.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
