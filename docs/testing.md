@@ -1590,23 +1590,26 @@ bounds.
 `Scripts/build-release.sh` is stage 8's run half for the release build, outside CI: the shell
 builds the full dependency stack for the static musl target with the Swift Static Linux SDK and
 reads the artifact rather than the build log. The CI container has no SDK installed, so the run
-half is checked here by `bash -n` and by its 13 checks. Twelve name a value the run declares
-against the toolchain's own list, the installed bundle, or a committed file, and each was seen to
-fail here on such a value or by taking the file it names away: an SDK name the toolchain does not
-list; the bundle's `swift-sdk.json` taken away; a triple the
-bundle declares no static target for (`x86_64-unknown-linux-musl`, the name the first attempt
-used); a triple the bundle declares but this run did not build (`aarch64-swift-linux-musl`), which
-is what made the artifact-path check name a path the run left nothing at; an artifact that is
-dynamically linked named at the path the check reads; the source declaring `1.2.3` against the
-artifact's answer, and the same read with its file taken away; the schema file naming `SchemaV2`
-against the answer, and the answer on a database that already holds the migration; a key name in
-the source renamed to `due_x`; and the values read as 0 on a fresh database against a database that
-holds one feed row. The thirteenth check reads the machine, so it fails only on a machine without
-the toolchain. One craft reaches more than one check: the seeded database is what both the
-migration check and the status checks read, so it fires the migration check first and reaches the
-two status checks, which are seen on that same craft by reading its answer alone.
-`RIVULET_SKIP_BUILD=1` runs the checks against an artifact already on disk, which is what made each
-of them checkable without a rebuild.
+half is checked here by `bash -n` and by its 13 checks. Twelve compare what the run reads against a
+value the run declares, the toolchain's own list, the installed bundle, or a committed file, and
+each was seen to fail here on such a value or by taking the file it names away: the SDK name, by a
+name the toolchain does not list; the bundle read, by the `swift-sdk.json` it names taken away, and
+the triple read, by `x86_64-unknown-linux-musl`, the name the first attempt used; the artifact path,
+by `aarch64-swift-linux-musl`, a triple the bundle declares but this run did not build; the file
+type, by a dynamically linked artifact named at the path the check reads; the three source reads, by
+the committed file each names taken away (`RivuletCore.swift`, `SchemaV1.swift`,
+`StatusSnapshot.swift`); the version answer, against a source declaring `1.2.3`; the migration
+answer, against the name `SchemaV2` and against the answer on a database that already holds the
+migration; the key-value check, by a key renamed to `due_x` and by the values read as 0 against a
+database that holds one feed row; and the feed-list check, by that same database. The thirteenth
+check reads the machine, so it fails only on a machine without the toolchain. Two checks are fired
+by more than one craft — the migration answer and the key-value check — and one craft reaches more
+than one check: the seeded database is read by the migration answer and by the contract checks, so
+it fires the migration answer first and reaches the contract checks as well, which are seen on that
+same craft by reading its answer alone. The run builds the database it reads, so a build directory
+an earlier run left is the failure the migration answer names rather than something the run
+prevents. `RIVULET_SKIP_BUILD=1` runs the checks against an artifact already on disk, which is what
+made each of them checkable without a rebuild.
 
 What the run half cannot show is named in its header: which branch the compiler takes for the two C
 reads the spike found — on the glibc CI container only the glibc branch is in scope, so the build
