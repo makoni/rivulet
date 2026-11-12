@@ -10,6 +10,8 @@ list stays the readable part. A rule that compares two values the run recorded a
 rule rather than a restatement, and the rules that compare the document with a count the document
 itself declares are only falsifiable through a crafted document, which is what the probe round does.
 What the rules cannot read is what `CANNOT_SHOW` names and `docs/testing.md` writes as the report.
+The rule that reads the runbook is in `runbook.py`, which is where it sits because this file is
+at the line cap the project sets.
 
 Usage, one per line:
 smoke_check.py --probe # the probe set against the committed document
@@ -20,6 +22,7 @@ import argparse
 import json
 import os
 
+import runbook
 import sources
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +58,8 @@ CANNOT_SHOW = [
     "the decision the address policy answered on the round, because the rule reads the flag the run declares against the class the policy names, so the decision itself is not read here",
     "the value the config read answered with for the policy flag, because the run records the value it declared, not the value the read normalized it to",
     "the order the round's jobs ran in, because the fetcher dispatches the picked rows through the worker pool, which fixes no order, so the record shows the arrivals and not the order the clause names; the rule reads the order the values the `add` calls wrote put the rows in",
-    "the runbook's commands, because `docs/deploy.md` does not exist yet, so the rule that would read it reports that it cannot",
+    "the runbook executed on a machine that is not the one that wrote it, because the run here ran on the machine that built the artifact, so the rule reads the page against the dispatch, the signatures, the names the config reads, the pragma and the factor, and against the first records the run kept of the commands the page names, while the stage's criterion is a fresh VPS",
+    "the tool the runbook names as outside the port, because no command of the port runs it, so the rule reads only that the page names it as external and not what a stream of it would hold",
     "the titles the corpus documents declare, because the fetch writes no title and neither does the reference's refresh path, so the rows carry the empty value the create defaults write and the titles are read as declared data rather than as stored values",
     "the whole set the export lists, because the base the run declares puts names of its own in it at build time and a scratch base has no shell to list them with, so only the file the run put there is read",
     "which prompt of the credentials run produced which value, because the run writes the values through the terminal it gives the container and records only the order the file declares the prompts in, never the order they were answered in",
@@ -439,8 +443,6 @@ def report_names_rules_and_gaps(data):
         findings.append(f"the report names {sorted(data['rules'])}, not every rule the check half has " f"({sorted(RULES)})")
     if sorted(data["cannot_show"]) != sorted(CANNOT_SHOW):
         findings.append(f"the report names {sorted(data['cannot_show'])}, not what the run cannot " f"show ({sorted(CANNOT_SHOW)})")
-    if os.path.isfile(sources.DEFAULTS["runbook"]):
-        findings.append(f"the runbook rule is named as not read, but {sources.DEFAULTS['runbook']} exists, so the run has commands to execute from it")
     return findings
 
 
@@ -454,7 +456,8 @@ RULES = {"image_base": image_base, "image_content": image_content, "artifact_ide
          "rows_match_manifest": rows_match_manifest, "stop_left_no_corruption":
          stop_left_no_corruption, "scheduling_resumed": scheduling_resumed,
          "copy_equals_the_source": copy_equals_the_source, "machine_left_as_found":
-         machine_left_as_found, "report_names_rules_and_gaps": report_names_rules_and_gaps}
+         machine_left_as_found, "report_names_rules_and_gaps": report_names_rules_and_gaps,
+         "runbook_reads_the_command_surface": runbook.runbook_reads_the_command_surface}
 
 
 def apply_rules(data):

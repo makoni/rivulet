@@ -7,23 +7,23 @@
   "add_values": [
    {
     "name": "smoke_alpha.xml",
-    "value": 1794479466
+    "value": 1794497188
    },
    {
     "name": "smoke_beta.xml",
-    "value": 1794479469
+    "value": 1794497191
    },
    {
     "name": "smoke_gamma.xml",
-    "value": 1794479472
+    "value": 1794497194
    },
    {
     "name": "smoke_delta.xml",
-    "value": 1794479475
+    "value": 1794497197
    },
    {
     "name": "smoke_epsilon.xml",
-    "value": 1794479478
+    "value": 1794497200
    }
   ],
   "credentials": {
@@ -54,12 +54,12 @@
     "Google Reader password: "
    ],
    "status": 200,
-   "token": "smoke/dcdcc175790f08a8209284a2fcc71450ab793738e1d82d31dbb3ab19125b0db0",
+   "token": "smoke/fe09b941401de97894c1170720ce0148baed17ccb7f1b87e9accc0ab42f333e3",
    "written_through": "integration-credentials"
   },
   "migrate": "Applied 1 migration(s): SchemaV1.",
   "reader": {
-   "carried_with": "smoke/dcdcc175790f08a8209284a2fcc71450ab793738e1d82d31dbb3ab19125b0db0",
+   "carried_with": "smoke/fe09b941401de97894c1170720ce0148baed17ccb7f1b87e9accc0ab42f333e3",
    "endpoint": "/reader/api/0/user-info",
    "field": "GoogleLogin",
    "half": "header",
@@ -71,7 +71,8 @@
    ],
    "name": "Authorization",
    "status": 200
-  }
+  },
+  "vacuum": "Vacuumed /data/smoke.db"
  },
  "cannot_show": [
   "that a run which left a container behind would have read it in the second pass, because the run lists only what it started, so the rule reports a document that names a container the run did not create rather than one the run left",
@@ -86,8 +87,9 @@
   "the decision the address policy answered on the round, because the rule reads the flag the run declares against the class the policy names, so the decision itself is not read here",
   "the exit code the stop signal left, because a signal that never lands hangs the run rather than reporting a code",
   "the order the round's jobs ran in, because the fetcher dispatches the picked rows through the worker pool, which fixes no order, so the record shows the arrivals and not the order the clause names; the rule reads the order the values the `add` calls wrote put the rows in",
-  "the runbook's commands, because `docs/deploy.md` does not exist yet, so the rule that would read it reports that it cannot",
+  "the runbook executed on a machine that is not the one that wrote it, because the run here ran on the machine that built the artifact, so the rule reads the page against the dispatch, the signatures, the names the config reads, the pragma and the factor, and against the first records the run kept of the commands the page names, while the stage's criterion is a fresh VPS",
   "the titles the corpus documents declare, because the fetch writes no title and neither does the reference's refresh path, so the rows carry the empty value the create defaults write and the titles are read as declared data rather than as stored values",
+  "the tool the runbook names as outside the port, because no command of the port runs it, so the rule reads only that the page names it as external and not what a stream of it would hold",
   "the value the config read answered with for the policy flag, because the run records the value it declared, not the value the read normalized it to",
   "the whole set the export lists, because the base the run declares puts names of its own in it at build time and a scratch base has no shell to list them with, so only the file the run put there is read",
   "the wording of the lines the binary printed, which are the port's own",
@@ -102,15 +104,15 @@
    "enabled": 5,
    "feeds": 5
   },
-  "instant": 1794479636.1855354,
+  "instant": 1794497357.7426786,
   "path": "/data/smoke-copy.db",
   "printed": "Backup written: /data/smoke-copy.db",
   "rows": [
    {
     "enabled": true,
-    "fetched_at": 1794479539,
+    "fetched_at": 1794497260,
     "id": 1,
-    "next_check_at": 1794483139,
+    "next_check_at": 1794500860,
     "parsing_error_count": 0,
     "parsing_error_message": "",
     "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
@@ -120,9 +122,9 @@
    },
    {
     "enabled": true,
-    "fetched_at": 1794479539,
+    "fetched_at": 1794497260,
     "id": 2,
-    "next_check_at": 1794483139,
+    "next_check_at": 1794500860,
     "parsing_error_count": 0,
     "parsing_error_message": "",
     "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
@@ -132,9 +134,9 @@
    },
    {
     "enabled": true,
-    "fetched_at": 1794479539,
+    "fetched_at": 1794497260,
     "id": 3,
-    "next_check_at": 1794483139,
+    "next_check_at": 1794500860,
     "parsing_error_count": 0,
     "parsing_error_message": "",
     "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
@@ -144,9 +146,9 @@
    },
    {
     "enabled": true,
-    "fetched_at": 1794479539,
+    "fetched_at": 1794497260,
     "id": 4,
-    "next_check_at": 1794483139,
+    "next_check_at": 1794500860,
     "parsing_error_count": 0,
     "parsing_error_message": "",
     "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
@@ -156,9 +158,9 @@
    },
    {
     "enabled": true,
-    "fetched_at": 1794479604,
+    "fetched_at": 1794497326,
     "id": 5,
-    "next_check_at": 1794483204,
+    "next_check_at": 1794500926,
     "parsing_error_count": 0,
     "parsing_error_message": "",
     "site_url": "http://127.0.0.1:9011/smoke_epsilon.xml",
@@ -173,187 +175,187 @@
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.175,
+   "instant": 1794497260.927,
    "name": "smoke_alpha.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.175,
+   "instant": 1794497260.927,
    "name": "smoke_alpha.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.181,
+   "instant": 1794497260.932,
    "name": "smoke_alpha.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.181,
+   "instant": 1794497260.932,
    "name": "smoke_alpha.xml"
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.182,
+   "instant": 1794497260.933,
    "name": ""
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.182,
+   "instant": 1794497260.934,
    "name": "favicon.ico"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.187,
+   "instant": 1794497260.938,
    "name": "smoke_beta.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.187,
+   "instant": 1794497260.938,
    "name": "smoke_beta.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.19,
+   "instant": 1794497260.941,
    "name": "smoke_beta.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.19,
+   "instant": 1794497260.941,
    "name": "smoke_beta.xml"
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.191,
+   "instant": 1794497260.942,
    "name": ""
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.192,
+   "instant": 1794497260.943,
    "name": "favicon.ico"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.196,
+   "instant": 1794497260.947,
    "name": "smoke_gamma.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.196,
+   "instant": 1794497260.947,
    "name": "smoke_gamma.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.199,
+   "instant": 1794497260.949,
    "name": "smoke_gamma.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.199,
+   "instant": 1794497260.949,
    "name": "smoke_gamma.xml"
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.2,
+   "instant": 1794497260.95,
    "name": ""
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.2,
+   "instant": 1794497260.951,
    "name": "favicon.ico"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.204,
+   "instant": 1794497260.955,
    "name": "smoke_delta.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.204,
+   "instant": 1794497260.955,
    "name": "smoke_delta.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479539.207,
+   "instant": 1794497260.958,
    "name": "smoke_delta.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.207,
+   "instant": 1794497260.958,
    "name": "smoke_delta.xml"
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.208,
+   "instant": 1794497260.959,
    "name": ""
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479539.208,
+   "instant": 1794497260.96,
    "name": "favicon.ico"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479539.212,
+   "instant": 1794497260.964,
    "name": "smoke_epsilon.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479604.265,
+   "instant": 1794497326.009,
    "name": "smoke_epsilon.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479619.266,
+   "instant": 1794497341.009,
    "name": "smoke_epsilon.xml"
   },
   {
    "action": "request",
    "held": false,
-   "instant": 1794479619.271,
+   "instant": 1794497341.014,
    "name": "smoke_epsilon.xml"
   },
   {
    "action": "answered",
    "held": false,
-   "instant": 1794479634.272,
+   "instant": 1794497356.014,
    "name": "smoke_epsilon.xml"
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479634.273,
+   "instant": 1794497356.016,
    "name": ""
   },
   {
    "action": "miss",
    "held": false,
-   "instant": 1794479634.274,
+   "instant": 1794497356.016,
    "name": "favicon.ico"
   }
  ],
@@ -375,13 +377,13 @@
  "machine": {
   "before": {
    "entries": [],
-   "instant": 1794479478.8620493
+   "instant": 1794497200.627395
   },
   "left": {
    "entries": [],
-   "instant": 1794479635.7586796
+   "instant": 1794497357.316796
   },
-  "work": "tmp.AFGdhkS6be"
+  "work": "tmp.CqD2RouhJW"
  },
  "manifest": [
   {
@@ -411,8 +413,8 @@
   }
  ],
  "rounds": {
-  "restarted": 1794479543.947128,
-  "started": 1794479478.8620534
+  "restarted": 1794497265.7043114,
+  "started": 1794497200.6274009
  },
  "rules": [
   "account_created",
@@ -431,6 +433,7 @@
   "report_names_rules_and_gaps",
   "round_reached_the_stub",
   "rows_match_manifest",
+  "runbook_reads_the_command_surface",
   "scheduling_resumed",
   "snapshot_contract",
   "stop_left_no_corruption"
@@ -449,6 +452,51 @@
    "value": "1"
   },
   "record": "Tools/smoke/run.json",
+  "steps": [
+   "migrate",
+   "create-admin",
+   "integration-credentials",
+   "add",
+   "status",
+   "add",
+   "status",
+   "add",
+   "status",
+   "add",
+   "status",
+   "add",
+   "status",
+   "serve",
+   "status",
+   "serve",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "status",
+   "backup",
+   "status",
+   "vacuum"
+  ],
   "target": "127.0.0.1",
   "triple": "x86_64-swift-linux-musl"
  },
@@ -458,9 +506,9 @@
     "feeds": [
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 1,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
@@ -470,9 +518,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 2,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
@@ -482,9 +530,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 3,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
@@ -494,9 +542,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 4,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
@@ -506,9 +554,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479604,
+      "fetched_at": 1794497326,
       "id": 5,
-      "next_check_at": 1794483204,
+      "next_check_at": 1794500926,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_epsilon.xml",
@@ -525,7 +573,7 @@
      "feeds": 5
     }
    },
-   "instant": 1794479635.097235,
+   "instant": 1794497356.6440244,
    "read_by": "after-restart"
   },
   "before_stop": {
@@ -533,9 +581,9 @@
     "feeds": [
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 1,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
@@ -545,9 +593,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 2,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
@@ -557,9 +605,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 3,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
@@ -569,9 +617,9 @@
      },
      {
       "enabled": true,
-      "fetched_at": 1794479539,
+      "fetched_at": 1794497260,
       "id": 4,
-      "next_check_at": 1794483139,
+      "next_check_at": 1794500860,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
@@ -583,7 +631,7 @@
       "enabled": true,
       "fetched_at": null,
       "id": 5,
-      "next_check_at": 1794479478,
+      "next_check_at": 1794497200,
       "parsing_error_count": 0,
       "parsing_error_message": "",
       "site_url": "",
@@ -600,13 +648,13 @@
      "feeds": 5
     }
    },
-   "instant": 1794479539.296233,
+   "instant": 1794497261.053518,
    "read_by": "mid-round"
   }
  },
  "stop": {
   "in_flight": "smoke_epsilon.xml",
-  "instant": 1794479539.7376156,
+  "instant": 1794497261.5096977,
   "integrity_line": "Database integrity check passed",
   "wal_bytes": 197792
  }

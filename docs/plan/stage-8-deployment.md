@@ -4,7 +4,9 @@
 **Status:** in progress — three slices are merged: the static-build spike (PR #67), the version
 value as a client reads it (PR #68), and the clean-container smoke job (PR #69), whose run half is
 `Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the document the
-run leaves behind rather than the container it ran.
+run leaves behind rather than the container it ran. The fourth slice, in this PR, is the runbook
+`docs/deploy.md` and the rule that reads it as data, `Tools/smoke/runbook.py`, which is where that
+rule sits because the check half is at the size cap the project sets.
 **Effort:** S–M.
 **Depends on:** Stage 6.
 
@@ -30,9 +32,13 @@ run leaves behind rather than the container it ran.
       shows that the artifact does not depend on the machine that built it. The `FROM` and `COPY`
       lines are read as data by the check half; the `ENTRYPOINT` line is read by no rule. The
       compose example, `.env.example` and the systemd unit are still open.
-- [ ] `docs/deploy.md`: zero-to-running on a fresh VPS; upgrade procedure; time/NTP notes;
+- [x] `docs/deploy.md`: zero-to-running on a fresh VPS; upgrade procedure; time/NTP notes;
       durability notes (`synchronous=NORMAL` RPO); backup recipes (`VACUUM INTO` + optional
-      Litestream, including free-space requirements) and restore procedure.
+      Litestream, including free-space requirements) and restore procedure. Landed with this slice:
+      the page calls only commands the dispatch registers, only flags those signatures declare and
+      only names the config reads, so the command surface the stage-6 criterion reads is the same
+      set the page calls; Litestream is named as a tool outside the port, with no command of the
+      port running it, and the page names what it cannot show as its own section.
 - [ ] Documentation publishing: generate DocC (API docs + tutorials) and publish, planned via
       GitHub Pages, wired into the release process.
 - [ ] Release workflow on tag.
@@ -102,8 +108,13 @@ needed.
 - Backup → restore → data equal. Read as the copy against the source, and the copy as the file the
   run wrote with nothing beside it; the restore half is not read, because restore is a recipe the
   runbook names.
-- The runbook's exact commands from `docs/deploy.md` execute in the smoke job. Not read: the file
-  does not exist yet, so the rule that would read it reports that it cannot.
+- The runbook's exact commands from `docs/deploy.md` execute in the smoke job. Read as the commands
+  its fenced lines call, against the case the dispatch registers, the flag names each command's
+  signature declares, the names the config reads, the durability value against the pragma the
+  storage wrapper runs and the factor the free-space check uses, and the order the page names its
+  steps in read as the first records the run kept of them. What the rule cannot show is that the
+  steps ran on a machine that is not the one that wrote the page, which is the criterion below, and
+  what a stream of the tool the page names as outside the port would hold.
 
 ## Exit criteria
 

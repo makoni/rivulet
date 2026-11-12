@@ -1646,16 +1646,19 @@ from Swift's `isNumber`.
 `Scripts/smoke.sh` is the run half: it puts the static artifact into a base that carries no
 toolchain and no libc, runs the chain the stage names — `migrate`, `create-admin`, the credential
 pair through `integration-credentials`, the `add` calls, `serve`, the health read, the login, the
-reader read, the round the stop catches in flight, the round after the restart, and the copy
-`backup` writes — and hands the run's data to `Tools/smoke/collect.py`, which writes
+reader read, the round the stop catches in flight, the round after the restart, the copy `backup`
+writes, and the `vacuum` run — and hands the run's data to `Tools/smoke/collect.py`, which writes
 `Tools/smoke/run.json`. The check half, `Tools/smoke/smoke_check.py`, reads that document rather
-than the container the run started, so each of its 19 rules is a function over data. It is not a
+than the container the run started, so each of its 20 rules is a function over data. It is not a
 test and it does not run in CI: the CI container has no Docker and no SDK, so the run is on demand,
 and the shell is checked here by `bash -n` and by its 13 guards, each seen to fail on the value it
-names. `Tools/smoke/probes.py` crafts one input per rule that violates it — 59 crafts plus the
-baseline over 19 rules, the baseline asserted to report nothing, so each probe is single-firing,
-four rules having one craft and fifteen reading more than one half — and the file readers are in
-`Tools/smoke/sources.py` so the rule list stays the readable part. Four helpers keep other rules out
+names. `Tools/smoke/probes.py` crafts one input per rule that violates it — 61 crafts plus the
+baseline over 20 rules, the baseline asserted to report nothing, so each probe is single-firing,
+four rules having one craft and sixteen reading more than one half — and the file readers are in
+`Tools/smoke/sources.py` so the rule list stays the readable part, with the runbook rule kept in
+`Tools/smoke/runbook.py` because the check half is at the size cap the project sets. The run records
+every command it calls as a step, which is the half the runbook rule reads as data rather than as a
+list the run declares. Four helpers keep other rules out
 of the crafts that reach them: `keep_copy_equal` reads the copy as the rows the second snapshot
 holds, `set_due` keeps the mid-round count equal to the pick, `others` takes a row the scheduling
 rule does not read as the one in flight, and `change_url` writes a url change to both reads, so a
@@ -1684,7 +1687,7 @@ stored in, by 1, because the order rule reads the values those calls recorded an
 none between equal values; and the credentials run's prompt count against the number of prompts the
 command declares, read from the file the check half reads it from, by feeding one value fewer. The
 guard that reads Docker itself fails only on a machine without it, which is the point of the job.
-What the 19 rules read: the base and the file the `COPY` line names against the Dockerfile and
+What the 20 rules read: the base and the file the `COPY` line names against the Dockerfile and
 against the export; the artifact as the pair of digests the run recorded — the file the build left
 at the path the release script names against the copy the run put in its build context — the image's
 own layer being named as what the run does not read; the corpus as the record count, the file set
@@ -1711,8 +1714,15 @@ scheduling as the pick the rules take at the read with the row the run names as 
 at that read, the stamp landing after the stop, the schedule landing after the round, and the mid-
 round count equal to the pick; the copy as the sentence the command wrote for the destination it was
 given, read against the file it wrote with no `-wal` beside it; the machine as the two reads
-compared through the label the run writes; and the report against the rule list and the items the
-check half has.
+compared through the label the run writes; the runbook as the commands its fenced lines call, read
+against the case the dispatch registers, the flag names each command's signature declares, the names
+the config reads, the durability value against the pragma the storage wrapper runs, the room number
+against the factor the free-space check uses, and the first record the run kept of each command the
+page names, read against the order the page gives them. Only the fenced lines are read as calls, so
+the restore
+recipe, which the page writes as steps to follow rather than as commands to run, is not read as a
+call set; the order the rule compares is the order the fenced commands appear in. And the report
+against the rule list and the items the check half has.
 Two read points are what make the mid-round claim readable, and both are read as data rather than
 asserted. The first snapshot is taken at the point the stub had recorded the answers for the inputs
 the round read before the held one and the request for the held one without its answer: for that
@@ -1740,10 +1750,15 @@ through the terminal the run gives the container, because the secure read answer
 the file declares the prompts in; which prompt produced which value is named as what no document can
 say. The values the run feeds are the names the shell declares as its defaults (`smoke` and `smoke-
 password`), so the committed document carries the derivation of that pair rather than a credential.
-Six halves of the probe set cannot be fired by a crafted document alone, and `Tools/smoke/probes.py`
-names them: the corpus rule's missing-file half fires only by taking the file away, which is what
-the shell guard shows; the runbook half fires only when `docs/deploy.md` exists, which is the
-stage's open criterion; the order rule's clause half is read from the batch file, so the crafts for
+Twelve halves of the probe set cannot be fired by a crafted document alone, and
+`Tools/smoke/probes.py` names them: the corpus rule's missing-file half fires only by taking the
+file away, which is what the shell guard shows; the runbook rule's five halves read the page itself,
+so they fire only on a patch to the page, which is what was seen here — a command the dispatch
+registers no case for, a flag its signature does not declare, a name no config read takes, `FULL`
+where the wrapper runs `NORMAL`, and 3 where the check uses 2 — each patch reverted byte-
+identically. The command patch reached the steps half as well, because that half reads the commands
+the page names against the order the run recorded, so the steps half is named as reached there
+rather than shown alone; the order rule's clause half is read from the batch file, so the crafts for
 that rule reach the values the run recorded rather than the clause; the corruption rule has no WAL
 half to craft, because the checkpoint the process harness reads as an empty WAL is blocked by the
 write transaction the stop interrupted; and two halves of the machine rule are craftable only as the
@@ -1751,8 +1766,16 @@ labels the run declares. Two more halves are craftable only through a value a co
 declares, so a craft cannot set the value it compares: the policy rule's default half reads the
 default the file declares, so a craft reaches it only with a value the switch reads as neither on
 nor off, and the reader rule's endpoint half reads the route registration, so a craft reaches it
-only by changing the run's word for the endpoint.
-What the report names as what no document can show — the 19 items `CANNOT_SHOW` holds, and the
+only by changing the run's word for the endpoint. The runbook rule has one half a craft can move,
+the first record the run kept of each command the page names, read against the order the page gives
+them: one craft drops a step the run did not run and another puts a step out of that order. A
+command the run called twice is read once, so the half cannot show the order of a repeat, which is
+named here as what the half reads only once. The order rule reads the values the `add` calls wrote:
+one craft puts them out of the
+declared order and another makes two of them one value. The order the jobs of the round ran in is
+not craftable, because the pool dispatch fixes none, so that half is named as a gap rather than
+asserted.
+What the report names as what no document can show — the 20 items `CANNOT_SHOW` holds, and the
 report rule compares the document against them: that the run ran at all, because it is on demand and
 not in CI; that the fetch was still in flight when the signal landed, which only the run knows; that
 the container held no toolchain beyond the file the Dockerfile writes, because a scratch base has no
@@ -1770,22 +1793,25 @@ read the same bytes as the corpus file holds, since the rule reads the record th
 digest of the file; the decision the address policy answered on the round, which the rule reads only
 as the flag against the class; the value the config read answered with for the policy flag, since
 the run records the value it declared rather than the value the read normalized it to; the order the
-round's jobs ran in, which the pool fixes none of; the runbook's commands, because `docs/deploy.md`
-does not exist yet; the titles the corpus documents declare, because the fetch writes no title and
-neither does the reference's refresh path, so the rows carry the empty value the create defaults
-writes and the titles are read as declared data rather than as stored values; the whole set the
-export lists, because the base puts names of its own in it at build time and a scratch base has no
-shell to list them with, so only the file the run put there is read; and which prompt of the
-credentials run produced which value, because the run records only the order the file declares the
-prompts in, never the order they were answered in.
-The musl branch of the free-space read is what the run half showed and no pin can show on the glibc
-CI, because the first branch is the only one the compiler reads there: with the branch absent the
-read answered nothing for the directory the copy is written to, so `backup` reported the refusal and
-wrote nothing, and the copy rule had no copy to read. The branch is named in
-`Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
+round's jobs ran in, which the pool fixes none of; the runbook executed on a machine that is not the
+one that wrote it, because the run here ran on the machine that built the artifact, so the rule
+reads the page against the dispatch, the signatures, the names the config reads, the pragma and the
+factor, and against the first records the run kept of the commands the page names, while the stage's
+criterion is a fresh VPS; the tool the runbook names as outside the port, because no command of the
+port runs it, so the rule reads only that the page names it as external and not what a stream of it
+would hold; the titles the corpus documents declare, because the fetch writes no title and neither
+does the reference's refresh path, so the rows carry the empty value the create defaults writes and
+the titles are read as declared data rather than as stored values; the whole set the export lists,
+because the base puts names of its own in it at build time and a scratch base has no shell to list
+them with, so only the file the run put there is read; and which prompt of the credentials run
+produced which value, because the run records only the order the file declares the prompts in, never
+the order they were answered in. The musl branch of the free-space read is what the run half showed
+and no pin can show on the glibc CI, because the first branch is the only one the compiler reads
+there: with the branch absent the read answered nothing for the directory the copy is written to, so
+`backup` reported the refusal and wrote nothing, and the copy rule had no copy to read. The branch
+is named in `Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
 `SystemFileSystemSpaceTests`, which names the musl half as checked by the static build rather than
-by a pin.
-## Running
+by a pin. ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).
@@ -1802,9 +1828,10 @@ each of its rules can fail on the rule it names.
   `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` runs its checks against an artifact already on
   disk, which is how each of its checks was seen to fail on the value it names.
 - `Scripts/smoke.sh` — stage 8's clean-container smoke run, outside CI.
-  `python3 Tools/smoke/probes.py` checks that each of its 19 rules can fail on the rule it names and
-  that the baseline reports nothing; the 13 guards run only as part of the run, because they read
-  the machine's ports, Docker, and the files the run names.
+  `python3 Tools/smoke/probes.py` checks that each of its 20 rules can fail on the rule it names and
+  that the baseline reports nothing, the runbook rule's five page-reading halves being seen to fail
+  by patching the page itself; the 13 guards run only as part of the run, because they read the
+  machine's ports, Docker, and the files the run names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

@@ -6,32 +6,40 @@ in `smoke_check.py` are functions over the document a run left behind, so a prob
 of that document. Each input is the committed run document — the run this machine produced, which
 every rule reports nothing on — with one thing changed, and the assertion is that the rule the
 change names reports it and no other rule does. The baseline case is that same document asserted to
-report nothing, which is what makes each probe single-firing. The set is 59 crafts plus the baseline
-over 19 rules: four rules have one craft and fifteen read more than one half.
+report nothing, which is what makes each probe single-firing. The set is 61 crafts plus the baseline
+over 20 rules: four rules have one craft and sixteen read more than one half.
 
-Six halves cannot be fired by a crafted document alone: the corpus rule's missing-file half fires
-only by taking that file away, which the shell guard shows; the runbook half fires only when
-`docs/deploy.md` exists, which is the stage's open criterion; the order rule's clause half is read
-from the batch file, so the crafts for that rule reach the values the run recorded and not the
-clause; the corruption rule has no WAL half to craft, because the checkpoint the process harness
-reads as an empty WAL is blocked by the write transaction the stop interrupted, so the bytes the run
-recorded are the interrupted round's; and two halves of the machine rule are craftable only as the
-labels the run declares: nothing can show that the containers the reads name are the ones the run
-created, or that a run which left a container behind would have read it in the second pass, because
-the run lists only what it started. Two more halves are craftable only through a value a committed
-file declares, so the craft cannot set the value it compares: the policy rule's default half reads
-the default the file declares, so a craft reaches it only with a value the switch reads as neither
-on nor off, and the reader rule's endpoint half reads the route registration, so a craft reaches it
-only by changing the run's word for the endpoint. The order rule reads the values the `add` calls
-wrote: one craft puts them out of the declared order and another makes two of them one value. The
-order the jobs of the round ran in is not craftable, because the pool dispatch fixes none, so that
-half is named as a gap rather than asserted.
-
-Four helpers keep other rules out of the crafts that reach them. `keep_copy_equal` reads the copy as
-the rows the second snapshot holds, so a craft that changes that snapshot does not also change what
-the copy rule reads; `set_due` keeps the mid-round count equal to the pick, so a craft that changes
-the pick does not also report the count; and `others` takes a row the scheduling rule does not read
-as the one in flight, so a craft on a field the stop does not write stays on the rule it names;
+A crafted document can move only what the document carries, so the halves that read a committed file
+cannot be fired by a craft: the corpus rule's missing-file half fires only by taking that file away,
+which the shell guard shows; the runbook rule's five halves read the page itself, so they fire only
+on a patch to the page, which is what was seen here, each reverted byte-identically — a command the
+dispatch registers no case for, a flag its signature does not declare, a name no config read takes,
+a pragma the wrapper does not run, and a number the check does not use — and the command patch
+reached the steps half as well, because that half reads the commands the page names against the
+first records the run kept of them, so the steps half is named as reached there rather than shown
+alone; the order rule's clause half is read from the batch file, so the crafts for that rule reach
+the values the run recorded and not the clause; the corruption rule has no WAL half to craft,
+because the checkpoint the process harness reads as an empty WAL is blocked by the write transaction
+the stop interrupted, so the bytes the run recorded are the interrupted round's; and two halves of
+the machine rule are craftable only as the labels the run declares: nothing can show that the
+containers the reads name are the ones the run created, or that a run which left a container behind
+would have read it in the second pass, because the run lists only what it started. Two more halves
+are craftable only through a value a committed file declares, so the craft cannot set the value it
+compares: the policy rule's default half reads the default the file declares, so a craft reaches it
+only with a value the switch reads as neither on nor off, and the reader rule's endpoint half reads
+the route registration, so a craft reaches it only by changing the run's word for the endpoint. The
+runbook rule has one half a craft can move, the first record the run kept of each command the page
+names, read against the order the page gives them: one craft drops a step the run did not run and
+another puts a step out of that order. A command the run called twice is read once, so the half
+cannot show the order of a repeat, which is named here as what the half reads only once. The order
+rule reads the values the `add` calls wrote: one craft puts them out of the declared order and
+another makes two of them one value. The order the jobs of the round ran in is not craftable,
+because the pool dispatch fixes none, so that half is named as a gap rather than asserted. Four
+helpers keep other rules out of the crafts that reach them. `keep_copy_equal` reads the copy as the
+rows the second snapshot holds, so a craft that changes that snapshot does not also change what the
+copy rule reads; `set_due` keeps the mid-round count equal to the pick, so a craft that changes the
+pick does not also report the count; and `others` takes a row the scheduling rule does not read as
+the one in flight, so a craft on a field the stop does not write stays on the rule it names;
 `change_url` writes a url change to both reads, so a craft that changes the row set does not also
 reach the corruption rule, which compares that field between the two reads. The craft for the row-
 set half takes the row out of the first read rather than the second, because the url and the counts
@@ -371,6 +379,15 @@ def report_missing_a_gap(data):
     data["cannot_show"] = data["cannot_show"][1:]
 
 
+def runbook_named_a_step_the_run_did_not_run(data):
+    data["run"]["steps"] = [one for one in data["run"]["steps"] if one != "vacuum"]
+
+
+def runbook_steps_not_in_the_order_the_page_gives(data):
+    steps = data["run"]["steps"]
+    data["run"]["steps"] = [one for one in steps if one != "serve"] + ["serve"]
+
+
 CRAFTS = [
     ("image_base", base_is_not_the_dockerfile),
     ("image_content", export_without_the_file_the_dockerfile_names),
@@ -431,6 +448,8 @@ CRAFTS = [
     ("machine_left_as_found", copy_read_before_the_machine_read),
     ("report_names_rules_and_gaps", report_missing_a_rule),
     ("report_names_rules_and_gaps", report_missing_a_gap),
+    ("runbook_reads_the_command_surface", runbook_named_a_step_the_run_did_not_run),
+    ("runbook_reads_the_command_surface", runbook_steps_not_in_the_order_the_page_gives),
 ]
 
 
