@@ -27,9 +27,9 @@ document the run leaves behind rather than the container it ran.
       commit or build-date half here to pin.
 - [x] **Dockerfile (scratch-based):** landed with the smoke job (PR #69) — `FROM scratch`, one
       `COPY` of the static artifact, no toolchain and no libc, so the run that starts the image
-      shows that the artifact does not depend on the machine that built it. The three lines are
-      read as data by the check half. The compose example, `.env.example` and the systemd unit are
-      still open.
+      shows that the artifact does not depend on the machine that built it. The `FROM` and `COPY`
+      lines are read as data by the check half; the `ENTRYPOINT` line is read by no rule. The
+      compose example, `.env.example` and the systemd unit are still open.
 - [ ] `docs/deploy.md`: zero-to-running on a fresh VPS; upgrade procedure; time/NTP notes;
       durability notes (`synchronous=NORMAL` RPO); backup recipes (`VACUUM INTO` + optional
       Litestream, including free-space requirements) and restore procedure.
@@ -93,8 +93,9 @@ needed.
 
 - The built binary in a clean container: `migrate` → `serve` → `/healthz` → `add` + `refresh`
   against the stub corpus → Google Reader responds. Read by the smoke job (PR #69), with the pass
-  over the corpus being the cadence loop's own round rather than the `refresh` command the run
-  calls, which `RefreshCommandTests` pins as a run.
+  over the corpus being the cadence loop's own round rather than the `refresh` command the plan
+  names, which `RefreshCommandTests` pins as a run; the smoke run calls no `refresh` itself, so the
+  rule reads the round the loop made.
 - Restart mid-refresh: no corruption; scheduling resumes. Read, apart from the WAL half, which the
   checkpoint the process harness reads as empty cannot answer here because the write transaction the
   stop interrupted blocks it.

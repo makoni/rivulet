@@ -40,6 +40,7 @@ set -euo pipefail
 #   SMOKE_HELD_SECONDS=1 Scripts/smoke.sh                   # the in-flight guard
 #   SMOKE_STOP_GRACE=0 Scripts/smoke.sh                     # the stop-grace bound
 #   SMOKE_RECORD=/tmp/other.json Scripts/smoke.sh           # the record-path guard
+#   SMOKE_PORT=9010 SMOKE_STUB_PORT=9010 Scripts/smoke.sh  # the port guard, on one name for both
 #   SMOKE_PORT=9010 with something already listening        # the port guard, on either port
 #   SMOKE_WAIT_SECONDS=30 Scripts/smoke.sh                  # the wait-against-cadence guard
 #   SMOKE_ALLOW_PRIVATE=0 Scripts/smoke.sh                  # the policy guard, on the value
@@ -161,8 +162,11 @@ fi
 
 #  Guard 7: the ports, which are the machine's and not the run's. The serve container answers on
 # one and the stub holds the other, so the guard reads both: a run that named one port for both
-# could only have read the answer the stub gave, which is the failure this guard would otherwise
-# hide.
+# could only have read the answer the stub gave, and the half that reads a port already held reads
+# the machine, so it fires only where `ss` is present.
+if [ "$SMOKE_PORT" = "$SMOKE_STUB_PORT" ]; then
+    fail "the run names $SMOKE_PORT for the boot and for the stub, so the answer it reads cannot be the boot's own"
+fi
 for port in "$SMOKE_PORT" "$SMOKE_STUB_PORT"; do
     if command -v ss >/dev/null && ss -ltn "sport = :$port" | grep -q LISTEN; then
         fail "the port the run declares, $port, is already held"

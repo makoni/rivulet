@@ -32,9 +32,11 @@ ROW_KEYS = {"id", "user_id", "title", "url", "site_url", "enabled", "fetched_at"
            "parsing_error_count", "parsing_error_message"}
 TOTAL_KEYS = {"feeds", "enabled", "disabled", "due", "at_error_limit"}
 
-#  The row fields the fetch does not write, which are the ones a stop is not allowed to change.
-# The fields a fetch does write are read by the scheduling rule, because the round is allowed to
-# move them.
+#  The row fields the stop does not write, which are the ones a stop is not allowed to change. The
+# fields a fetch does write are read by the scheduling rule, because the round is allowed to move
+# them; the two parsing-error fields are read here as unchanged because the job the stop interrupted
+# never reached its write, which is the last step of a job — the reason the second snapshot is taken
+# after the stamp lands.
 UNCHANGED_FIELDS = ("url", "enabled", "parsing_error_count", "parsing_error_message")
 
 CANNOT_SHOW = [
@@ -73,7 +75,9 @@ def pick(rows, now, error_limit, batch_size):
     """The rows the batch rules select at `now`, as `FeedRepository+Batch.swift` writes them.
 
     Strict due-ness, the disabled gate, the switch that reads a zero as off, and the window, read as
-    a set rather than as an order, because SQL fixes no order between rows sharing one value.
+    a set rather than as an order, because SQL fixes no order between rows sharing one value. The
+    per-host filter is not read here: the document declares no value for it, so the rule reads only
+    the default the file declares, which is off, and for this run the two sets are the same.
     """
     due = [row for row in rows if row.get("enabled")
            and row.get("next_check_at") is not None and row.get("next_check_at") < now
@@ -110,7 +114,7 @@ def artifact_identity(data):
     findings = []
     run = data["run"]
     if run["artifact_digest"] != run["image_copy_digest"]:
-        findings.append(f"the image carries {run['image_copy_digest']}, not the artifact the run built ({run['artifact_digest']})")
+        findings.append(f"the build context holds {run['image_copy_digest']}, not the artifact the run built ({run['artifact_digest']})")
     shape = sources.read("release").split("out/Products/")[1].split("/")[0].split("$")[0]
     product = shape + run["triple"].split("-")[0]
     named = run["artifact_path"].rsplit("/out/Products/", 1)
@@ -250,7 +254,7 @@ def round_reached_the_stub(data):
             findings.append(f"the stub recorded no request for {name}, so the run read no round for it")
             continue
         if arrived[0]["instant"] <= rounds["started"]:
-            findings.append(f"the request for {name} is dated {arrived[0]['instant']}, not after the round started at {rounds['started']}")
+            findings.append(f"the request for {name} is dated {arrived[0]['instant']}, not after the boot the run started for the round at {rounds['started']}")
 
     for row in sources.manifest_rows():
         name = os.path.basename(row["name"])

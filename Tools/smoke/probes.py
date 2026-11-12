@@ -9,36 +9,35 @@ change names reports it and no other rule does. The baseline case is that same d
 report nothing, which is what makes each probe single-firing. The set is 59 crafts plus the baseline
 over 19 rules: four rules have one craft and fifteen read more than one half.
 
-Five halves of five rules read a committed file, so no document can make them report: the corpus
-rule's missing-file half fires only by taking that file away, which the shell guard shows; the
-runbook half fires only when `docs/deploy.md` exists, which is the stage's open criterion; the
-policy rule's default half fires only when the value the run declares is one the switch names, so
-the default is read as the file declares it and not as a craft; the reader rule's endpoint half is
-read from the route registration, which a craft can only reach by changing the run's word for the
-endpoint; and the order rule's clause half is read from the batch file, so the crafts for that rule
-reach the values the run recorded and not the clause. Two halves of the machine rule are
-craftable only as the labels the run declares: nothing can show that the containers the reads name
-are the ones the run created, or that a run which left a container behind would have read it in the
-second pass, because the run lists only what it started. The order rule reads the values the `add`
-calls wrote: one craft puts them out of the declared order and another makes two of them one value.
-The order the jobs of the round ran in is not craftable, because the pool dispatch fixes none, so
-that half is named as a gap rather than asserted. The
-corruption rule has no WAL half to craft: the checkpoint the process harness reads as an empty WAL
-is blocked by the write transaction the stop interrupted, so the bytes the run recorded are the
-interrupted round's, and the half is named as a gap rather than asserted.
+Six halves cannot be fired by a crafted document alone: the corpus rule's missing-file half fires
+only by taking that file away, which the shell guard shows; the runbook half fires only when
+`docs/deploy.md` exists, which is the stage's open criterion; the order rule's clause half is read
+from the batch file, so the crafts for that rule reach the values the run recorded and not the
+clause; the corruption rule has no WAL half to craft, because the checkpoint the process harness
+reads as an empty WAL is blocked by the write transaction the stop interrupted, so the bytes the run
+recorded are the interrupted round's; and two halves of the machine rule are craftable only as the
+labels the run declares: nothing can show that the containers the reads name are the ones the run
+created, or that a run which left a container behind would have read it in the second pass, because
+the run lists only what it started. Two more halves are craftable only through a value a committed
+file declares, so the craft cannot set the value it compares: the policy rule's default half reads
+the default the file declares, so a craft reaches it only with a value the switch reads as neither
+on nor off, and the reader rule's endpoint half reads the route registration, so a craft reaches it
+only by changing the run's word for the endpoint. The order rule reads the values the `add` calls
+wrote: one craft puts them out of the declared order and another makes two of them one value. The
+order the jobs of the round ran in is not craftable, because the pool dispatch fixes none, so that
+half is named as a gap rather than asserted.
 
-Four helpers keep other rules out of the crafts that reach them. `keep_copy_equal` reads the copy
-as the rows the second snapshot holds, so a craft that changes that snapshot does not also change
-what the copy rule reads; `set_due` keeps the mid-round count equal to the pick, so a craft that
-changes the pick does not also report the count; and `others` takes a row the scheduling rule does
-not read as the one in flight, so a craft on a field the fetch does not write stays on the rule it
-names; `change_url` writes a url change to both reads, so a craft that changes the row set does not
-also reach the corruption rule, which compares that field between the two reads. The craft for the
-row-set half takes the row out of the first read rather than the second, because the url and the
-counts the row rule reads are read from the second, so such a craft reaches one rule.
+Four helpers keep other rules out of the crafts that reach them. `keep_copy_equal` reads the copy as
+the rows the second snapshot holds, so a craft that changes that snapshot does not also change what
+the copy rule reads; `set_due` keeps the mid-round count equal to the pick, so a craft that changes
+the pick does not also report the count; and `others` takes a row the scheduling rule does not read
+as the one in flight, so a craft on a field the stop does not write stays on the rule it names;
+`change_url` writes a url change to both reads, so a craft that changes the row set does not also
+reach the corruption rule, which compares that field between the two reads. The craft for the row-
+set half takes the row out of the first read rather than the second, because the url and the counts
+the row rule reads are read from the second, so such a craft reaches one rule.
 
-Run it with `python3 Tools/smoke/probes.py`, or through the check half with `--probe`.
-"""
+Run it with `python3 Tools/smoke/probes.py`, or through the check half with `--probe`."""
 
 import copy
 import os
@@ -214,10 +213,15 @@ def an_input_answered_after_the_read(data):
             one["instant"] = read_instant + 20
 
 
+def held_name(data):
+    """The record the run names as the one in flight at the read."""
+    return os.path.basename(data["stop"]["in_flight"])
+
+
 def held_file_answered_before_the_read(data):
     read_instant = data["snapshots"]["before_stop"]["instant"]
     for one in data["events"]:
-        if one["action"] == "answered" and one["name"] == os.path.basename(data["stop"]["in_flight"]):
+        if one["action"] == "answered" and one["name"] == held_name(data):
             one["instant"] = read_instant - 10
 
 
@@ -225,7 +229,7 @@ def held_answered_before_the_restart(data):
     read_instant = data["snapshots"]["before_stop"]["instant"]
     restarted = data["rounds"]["restarted"]
     for one in data["events"]:
-        if one["action"] == "answered" and one["name"] == os.path.basename(data["stop"]["in_flight"]):
+        if one["action"] == "answered" and one["name"] == held_name(data):
             one["instant"] = read_instant + (restarted - read_instant) / 2
 
 
