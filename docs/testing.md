@@ -1630,6 +1630,18 @@ lookup, not when it is another socket type the lookup still accepts, and the exi
 `Sources/rivulet/main.swift` has no pin at all, because the top level of the executable is not
 something a test can read.
 
+The version value is read by two pins in `RivuletCoreTests`: that the value is not empty, and that
+the digits it carries read as a positive integer, which mirrors the reference's
+`TestVersionConvertedToInteger` because a client converts the version string to a number. The value
+this port carried read as 0 on that rule, and the finding is closed at the production site the rule
+names: the constant. Three crafts, each patching the value and reverting the file byte-identically:
+`dev` fires the digit-presence half, whose conversion half can fire only as a consequence of that
+same empty digit set; `0.0.0-dev` fires the sign guard alone; and the empty string fires the
+presence pin and reaches the digit pin, because both read the same value. Single-firing holds only
+for the `0.0.0-dev` craft. What no craft can show is the conversion as a rule of its own, which no
+code in this port performs, and the digit class, which no version this port carries can tell apart
+from Swift's `isNumber`.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.

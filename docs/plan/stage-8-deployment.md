@@ -13,10 +13,15 @@ not started. **Effort:** S–M.
       statically, the artifact runs, and the result and the decision are recorded below. The stack
       this port builds is SwiftSoup rather than FeedKit, which this line named before the parser
       adapters landed.
-- [ ] Release build with the Swift Static Linux SDK, version stamping; `Scripts/build-release.sh`.
-      The script landed with the spike: the build and the checks that read the artifact. Version
-      stamping is the half still open, so the run half reads the version the committed source
-      declares against the artifact's answer.
+- [x] Release build with the Swift Static Linux SDK, version stamping; `Scripts/build-release.sh`.
+      The script landed with the spike: the build and the checks that read the artifact. The version
+      half landed as far as the port can have it: the value is the committed constant, the run half
+      reads the artifact's answer against that constant, and the pin reads the digits a client
+      converts as a positive integer, which is the rule the reference's own test asserts and which
+      this port's value failed on. What the build cannot stamp is recorded as unported in
+      `docs/parity.md`: SwiftPM carries no VCS build info, and Swift's compiler flag carries a name
+      rather than a value while the reference's value comes from a linker flag, so there is no
+      commit or build-date half here to pin.
 - [ ] Dockerfile (scratch-based) + docker-compose example + `.env.example`; systemd unit and
       install instructions for Ubuntu.
 - [ ] `docs/deploy.md`: zero-to-running on a fresh VPS; upgrade procedure; time/NTP notes;
@@ -65,10 +70,10 @@ needed.
   unstripped and 33,157,728 stripped, so the static artifact is the larger one: the runtime and
   these C libraries are inside the file rather than resolved at run time.
 
-- What the spike does not cover: version stamping, which the stage names as part of the release
-  build and which this slice does not implement, and the clean-container smoke job, which is the
-  next slice, because running the artifact on a machine without this toolchain is what that job
-  shows.
+- What the spike does not cover: the clean-container smoke job, which is the next slice, because
+  running the artifact on a machine without this toolchain is what that job shows. The version half
+  the stage names landed after the spike, as the pin and the parity row above record; the stamping
+  half cannot land as the reference has it, and is recorded as unported.
 
 ## Implementation notes
 

@@ -1557,3 +1557,26 @@ login answer, the rows each side recorded, and the stored rows read against the 
 served. Four of those eight were seen to fail here on the run's own data: a port something already
 holds, the base its own side answers on, by pointing the run at a binary that exits at once, the
 login answer, by the run itself, and the stored rows, by running the same declared database twice.
+
+## Version value (stage 8)
+
+`internal/version/version.go` declares three values. `LD_FLAGS` stamps only `Version`; the package
+fills the other two from the Go build info, with a fallback wording for a build that has none. This
+port has one value — the committed constant — so the pin reads it as data.
+
+**Matching the reference.**
+
+- The value carries a digit, and the digits it carries read as a positive integer, which is what the
+  ported test `TestVersionConvertedToInteger` asserts, because a client converts the version string
+  to a number. The value this port carried, `0.0.0-dev`, read as 0 on that rule, and the finding is
+  closed at the site the pin names: the constant, now `0.1.0-dev`.
+- The digit class is Unicode category Nd, read per Unicode scalar, which is what
+  `CharacterSet.decimalDigits` is.
+
+**Known differences.**
+
+| Case | Reference | Rivulet | Impact |
+| --- | --- | --- | --- |
+| The value a build stamps | `LD_FLAGS` sets `Version`, and the package falls back to `2.3.x-dev` when nothing was stamped | the committed constant is the value, so the build cannot change it and there is no unstamped build to compare | No pin can read a value the build cannot carry; the pin reads the committed constant as data |
+| Commit and build date | `vcs.revision` — the first 8 characters when the value is at least 8, otherwise the whole value — and `vcs.time`, each with the fallback wording `Unknown (built outside VCS)` | none: SwiftPM carries no VCS build info, and Swift's compiler flag carries a name rather than a value, while the reference's value comes from a linker flag, so the build has nothing to stamp and no rule to read | Unported, so nothing to pin; the port's command has no commit or date half |
+| The version command | `-version` prints the version alone, and `-info` prints version, commit, build date, Go version, compiler, arch and OS | `rivulet version` prints `rivulet <version>` as one line, and there is no info command | The port's own wording, pinned by `CommandLineTests`; the reference's info command is not ported |
