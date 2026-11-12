@@ -11,8 +11,9 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
 — merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
 endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
-The rest of the handlers are not started, the OPML slice is merged as PR #64, the public icon
-route is merged as PR #65, and the acceptance journey is merged as PR #66.
+Every handler the scope names has landed, so no handler item is open; the OPML slice is merged as
+PR #64, the public icon route as PR #65, and the acceptance journey as PR #66. What the stage still
+needs is the manual client run its exit criteria name.
 **Effort:** XL.
 **Depends on:** Stage 4.
 
@@ -39,7 +40,7 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       blank-name rule (this port keeps the stored value where the form writes what was submitted),
       the absent flag that would turn an integration off, the Fever password the reference does not
       store, and the unique index on `fever_token`. These are recorded in `docs/parity.md`.
-- [ ] Google Reader API — port the reference router exactly (see `docs/reference-notes.md`):
+- [x] Google Reader API — port the reference router exactly (see `docs/reference-notes.md`):
       `ClientLogin`; `token`; `edit-tag`; `rename-tag`; `disable-tag`; `tag/list`; `user-info`;
       `subscription/list` (embeds `iconUrl`); `subscription/edit` (`ac=subscribe|edit|unsubscribe`);
       `subscription/quickadd` (includes minimal feed discovery on website URLs — scan the HTML head
@@ -77,8 +78,10 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       from, the whole merged list read for `s` against the single value read for `a`, the
       presence test that opens the write branch, the order the guards run in, and the status the
       integer read failure maps to here. The minimal discovery `quickadd` calls is pinned as
-      pure logic, with its two steps read over a stub server. The rest stays on the catch-all
-      answer until its handler lands.
+      pure logic, with its two steps read over a stub server. Every endpoint the item names
+      has landed, so the catch-all answer is what a request on an endpoint the plan leaves
+      unimplemented gets — `unread-count`, `preference/stream/set` and the rest — which is
+      what the client-matrix route rule reads the registration for.
 - [x] The storage reads the client auth path is built on: the Fever token lookup, with both sides
       lowercase, and the stored-hash read for one Google Reader row, with the name compared as read.
       Landed with PR #40, pinned by `ClientAuthTests`; the reference's `*_enabled` gate has nothing
@@ -104,7 +107,7 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       and `JSONValueTests`. Plain text `OK` for the write operations follows with the routers, and
       so do the mux rules above, except the no-slash path, where this port has no rule that reads
       the trailing slash and the pin records that divergence.
-- [ ] Contract details pinned by golden tests. The pure rules landed with PR #42, with no HTTP: the
+- [x] Contract details pinned by golden tests. The pure rules landed with PR #42, with no HTTP: the
       four item-id forms with the `fmt.Sscanf` `%016x` rules and the error wordings — the space the
       scan skips before the field, the newline it does not skip, and the read per Unicode scalar —
       the stream branches with the two forms of each prefix as an OR and the seven suffixes, the
@@ -124,9 +127,10 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       unknown-stream 500 wording, and the subpath wildcard, pinned by `GoogleReaderHandlerTests`
       over a socket with the status mapping pinned directly by `GoogleReaderResponseStatusTests`;
       the plain-text `OK` for a write operation and the token-transport split landed with PR #41.
-      What the remaining handlers still have to answer is their own storage read and the document
-      each one builds.
-- [ ] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
+      The storage reads and the documents those handlers build landed with them: the entry
+      read by `EntryQueryTests` and `EntryContentsReadTests`, the categories rule for one
+      item by `GoogleReaderItemCategoriesTests`, the titles by `CategoryRepositoryTests`.
+- [x] Fever API — exact parameter set: `groups`, `feeds`, `favicons`, `unread_item_ids`,
       `saved_item_ids`, `items`, `mark=item|feed|group` with reference semantics (limit 50;
       `since_id` > `max_id` > `with_ids` precedence; `as=saved|unsaved`; invalid id → 0; `mark=feed`
       with `id<=0` → empty 200; `mark=group` with `id<0` → empty 200, ** `id=0` → mark all items
@@ -134,6 +138,12 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       carries `last_refreshed_on_time` (0 on auth failure) and `items` carries `total_items`. Auth:
       `api_key` (MD5 token); failure is HTTP 200 with
       `{"api_version": 3, "auth": 0, "last_refreshed_on_time": 0}`. No `keys`, no `hot`.
+      Merged as PR #61, the set sized to what the acceptance client calls: the base document, the
+      five read documents, the three `mark` branches and the reachability check the client sends as
+      `HEAD` — 32 pins and 67 probes across the seven Fever suites and the icon read, with the
+      precedence order, `as`, the invalid-id answer, the three `mark` id branches,
+      `last_refreshed_on_time`, `total_items` and the auth-failure shape pinned, and what no patch
+      can flip named in the headers.
 - [x] Public icon route: `GET /feed-icon/<external_id>` — unauthenticated, `ETag`, 72h
       `Cache-Control`; Fever `favicons` returns `mime;base64,…`. Merged as PR #65: the four rules
       the response builder applies for a cached asset — the `ETag` shape, the `If-None-Match`
@@ -156,7 +166,10 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
       field for are read as data and not persisted, and the validation rules past the four ported
       ones are not ported. Both are recorded in `docs/parity.md`. The acceptance journey landed as
       PR #66, which is the automated half of this stage closing.
-- [ ] Deviations are recorded in `docs/parity.md` as soon as they are observed.
+- [x] Deviations are recorded in `docs/parity.md` as soon as they are observed.
+      A standing rule, and every deviation observed so far is recorded there. The stage-7
+      harness table names the classes the port keeps: 17 rows, 16 `accepted` and one `fixed`,
+      with eight of them named as classes no rule can reach here.
 
 ## Implementation notes
 

@@ -15,7 +15,7 @@ the flag polish, is merged (PR #54). **Effort:** M. **Depends on:** Stages 1–5
 - [x] `add`, `remove` and `list` for the feeds landed with PR #47: the rule the reference's feed
 validator reads, the duplicate read, the category read, the delete that applies the account, and the
 listing order, with the account the command works for resolved from `--user` or from the single
-account. The flag polish and the process-level checks follow.
+account. The flag polish landed with PR #53 and PR #54, and the process-level checks with PR #51.
 - [x] `list` for the categories and the accounts landed with PR #49 as runs through the in-process
 console: the flag names which read the run makes, no flag still means the feeds, the pair of flags
 is reported as the rule the port names rather than picked, the account the run resolves reaches the
