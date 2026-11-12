@@ -1,14 +1,12 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — three slices are merged: the static-build spike (PR #67), the version
-value as a client reads it (PR #68), and the clean-container smoke job (PR #69), whose run half is
+**Status:** in progress — four slices are merged: the static-build spike (PR #67), the version value
+as a client reads it (PR #68), the clean-container smoke job (PR #69), whose run half is
 `Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the document the
-run leaves behind rather than the container it ran. The fourth slice, in this PR, is the runbook
-`docs/deploy.md` and the rule that reads it as data, `Tools/smoke/runbook.py`, which is where that
-rule sits because the check half is at the size cap the project sets.
-**Effort:** S–M.
-**Depends on:** Stage 6.
+run leaves behind rather than the container it ran, and the runbook `docs/deploy.md` with the rule
+that reads it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at
+the size cap the project sets. **Effort:** S–M. **Depends on:** Stage 6.
 
 ## Scope
 
