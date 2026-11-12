@@ -1585,6 +1585,51 @@ shape the document names, the timed pin's own file being read as data for that. 
 `python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as
 bounds.
 
+## Static release build (stage 8)
+
+`Scripts/build-release.sh` is stage 8's run half for the release build, outside CI: the shell
+builds the full dependency stack for the static musl target with the Swift Static Linux SDK and
+reads the artifact rather than the build log. The CI container has no SDK installed, so the run
+half is checked here by `bash -n` and by its 13 checks. Twelve compare what the run reads against a
+value the run declares, the toolchain's own list, the installed bundle, or a committed file, and
+each was seen to fail here on such a value or by taking the file it names away: the SDK name, by a
+name the toolchain does not list; the bundle read, by the `swift-sdk.json` it names taken away, and
+the triple read, by `x86_64-unknown-linux-musl`, the name the first attempt used; the artifact path,
+by `aarch64-swift-linux-musl`, a triple the bundle declares but this run did not build; the file
+type, by a dynamically linked artifact named at the path the check reads; the three source reads, by
+the committed file each names taken away (`RivuletCore.swift`, `SchemaV1.swift`,
+`StatusSnapshot.swift`); the version answer, against a source declaring `1.2.3`; the migration
+answer, against the name `SchemaV2` and against the answer on a database that already holds the
+migration; the key-value check, by a key renamed to `due_x` and by the values read as 0 against a
+database that holds one feed row; and the feed-list check, by that same database. The thirteenth
+check reads the machine, so it fails only on a machine without the toolchain. Two checks are fired
+by more than one craft — the migration answer and the key-value check — and one craft reaches more
+than one check: the seeded database is read by the migration answer and by the contract checks, so
+it fires the migration answer first and reaches the contract checks as well, which are seen on that
+same craft by reading its answer alone. The run builds the database it reads, so a build directory
+an earlier run left is the failure the migration answer names rather than something the run
+prevents. `RIVULET_SKIP_BUILD=1` runs the checks against an artifact already on disk, which is what
+made each of them checkable without a rebuild.
+
+What the run half cannot show is named in its header: which branch the compiler takes for the two C
+reads the spike found — on the glibc CI container only the glibc branch is in scope, so the build
+itself is the check for the musl half, which is why the two shapes are named in production code
+rather than worked around in the script, in
+`Sources/RivuletCore/Reader/SystemAddressResolver.swift` and in `Sources/rivulet/main.swift`; that
+the binary runs on a machine without this toolchain, which is the clean-container smoke job stage 8
+names; the size after stripping, reported as a measurement taken on this machine; that the
+top-level `feeds` key is the feed list rather than one of the counts, which the run reads only as
+the empty array; the key order in the answer, which is not fixed, so the contract is read key by
+key rather than as one string; and that the row a migration created is the row a fetch would write,
+which the tests pin and this run cannot answer without a network.
+
+The two production-code sites the spike found are named once for the platforms rather than pinned,
+and what the glibc side can show is narrower than the naming suggests: `AddressResolutionTests`
+reads the resolver's answer, so a patch to the socket type bites only when the value breaks the
+lookup, not when it is another socket type the lookup still accepts, and the exit-code site in
+`Sources/rivulet/main.swift` has no pin at all, because the top level of the executable is not
+something a test can read.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
@@ -1598,6 +1643,9 @@ each of its rules can fail on the rule it names.
 - `python3 Tools/clients/replay.py` — the client matrix check half, outside CI.
   `python3 Tools/clients/probes.py` checks that each of its 18 rules can fail on the rule it names
   and that the baseline reports nothing. `Scripts/perf.sh` is its run half, outside CI too.
+- `Scripts/build-release.sh` — stage 8's static release build, outside CI.
+  `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` runs its checks against an artifact already on
+  disk, which is how each of its checks was seen to fail on the value it names.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the
