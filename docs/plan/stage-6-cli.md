@@ -1,14 +1,16 @@
 # Stage 6 — CLI & operations
 
-**Goal:** everything is manageable without touching the database or a web UI. **Status:** in
-progress — the first slice, the feed commands `add`, `remove` and `list`, is merged (PR #47). The
+**Goal:** everything is manageable without touching the database or a web UI. **Status:** done — the
+first slice, the feed commands `add`, `remove` and `list`, is merged (PR #47). The
 second slice, the maintenance commands `backup` and `vacuum`, is merged (PR #48). The third slice,
 `list` for the categories and the accounts, is merged (PR #49). The fourth slice, the in-process
 cadence loop through the `Cadence` seam, is merged (PR #50). The fifth slice, the process harness
 with the signal seam and the wiring `serve` runs, is merged (PR #51). The sixth slice, the free-
 space check the `backup` run makes at its start, is merged (PR #52), the seventh, `--force`, is
 merged (PR #53), and the eighth, the check `--verify` gives the `backup` run and the last piece of
-the flag polish, is merged (PR #54). **Effort:** M. **Depends on:** Stages 1–5.
+the flag polish, is merged (PR #54). Its one exit criterion, that the deployment runbook needs
+nothing beyond these commands, closed with `docs/deploy.md`, which calls only commands this stage
+pinned as runs. **Effort:** M. **Depends on:** Stages 1–5.
 
 ## Scope
 
@@ -141,7 +143,10 @@ after retention — pinned as storage rules by `MaintenanceTests` and as runs by
 
 ## Exit criteria
 
-- [ ] The deployment runbook (stage 8) needs nothing beyond these commands.
+- [x] The deployment runbook (stage 8) needs nothing beyond these commands: `docs/deploy.md` calls
+  only commands the dispatch registers and only flags those signatures declare, and every command it
+  calls is one this stage pinned as a run. The one tool the page names outside that set is
+  Litestream, named there as outside the port.
 
 ## Backlog
 

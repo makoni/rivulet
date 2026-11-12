@@ -28,7 +28,8 @@ set -euo pipefail
 # would leave, the value a fetcher with the policy off would have refused before the round, the
 # titles the corpus documents declare, which the fetch does not store, which prompt produced which
 # value in the credentials run, the order the round's jobs ran in, which the worker pool does not
-# fix, and the runbook, because `docs/deploy.md` does not exist yet.
+# fix, the runbook executed on a machine that is not the one that wrote this page, and the tool the
+# runbook names as outside the port, which no command of the port runs.
 #
 # Usage, one guard per line, each run against the value that line names:
 #

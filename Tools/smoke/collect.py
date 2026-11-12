@@ -82,6 +82,7 @@ ERROR_LIMIT = int(os.environ["SMOKE_ERROR_LIMIT"])
 BATCH_SIZE = int(os.environ["SMOKE_BATCH_SIZE"])
 WAIT = int(os.environ["SMOKE_WAIT_SECONDS"])
 GAP = int(os.environ["SMOKE_ADD_GAP"])
+STEPS = []
 USER = os.environ["SMOKE_USER"]
 PASSWORD = os.environ["SMOKE_PASSWORD"]
 DB = "/data/smoke.db"
@@ -129,7 +130,12 @@ def call(args, database=DB, feed=False, feed_values=None):
     `feed_values` is the values the terminal half writes for this call, which are the values the run
     declares for the command that reads the prompts. The terminal half reads one set of values, so
     the run names the set for the call rather than making the half know which command it runs.
+
+    Every call is recorded as a step, because the rule that reads the runbook compares the order the
+    page names its steps in with the order the run ran them in, which is something only the run can
+    record.
     """
+    STEPS.append(args[0])
     argv = ["docker", "run", "--rm", "--network", "host", "-v", f"{VOLUME}:/data"]
     if feed:
         argv += ["-i", "-t"]
@@ -198,6 +204,8 @@ def event_records():
 
 
 def start(number):
+    """The serve run, recorded as the step the runbook names, because the run starts it as a container."""
+    STEPS.append("serve")
     subprocess.run(["docker", "run", "-d", "--name", f"{LABEL}-{number}", "--network", "host",
                     "-v", f"{VOLUME}:/data"] + env_args()
                    + ["-e", f"LISTEN_ADDR={TARGET}:{PORT}", IMAGE, "serve"], check=True,
@@ -396,7 +404,7 @@ def build_document(machine, files, answers, before, after, stop_record, copy, ro
                 "record": "Tools/smoke/run.json", "target": TARGET, "feed_base": f"http://{TARGET}:{STUB_PORT}",
                 "policy": {"name": POLICY_NAME, "value": POLICY_VALUE},
                 "declared_feeds": len(sources.manifest_rows()), "error_limit": ERROR_LIMIT,
-                "batch_size": BATCH_SIZE},
+                "batch_size": BATCH_SIZE, "steps": STEPS},
         "machine": machine,
         "image_content": files,
         "manifest": [{"name": row["name"], "title": row["title"],
@@ -455,6 +463,9 @@ def main():
         # report a state it did not read after its own containers were gone.
         machine["left"] = read_containers()
         copy = read_copy()
+        # The page's last step runs here as well, so the rule that reads the runbook sees the run as
+        # having executed every command the page names, not only the ones the rules happen to need.
+        answers["vacuum"] = call(["vacuum"])
         rounds = {"started": started, "restarted": restarted}
 
         document = build_document(machine, files, answers, before, after, stop_record, copy, rounds)
