@@ -1,0 +1,26 @@
+NewsFlash | 1 | fever/groups | POST | dispatch: groups | api_version auth last_refreshed_on_time groups feeds_groups | api_key
+NewsFlash | 3 | fever/unread_item_ids | POST | dispatch: unread_item_ids | api_version auth last_refreshed_on_time unread_item_ids | api_key
+NewsFlash | 4 | fever/saved_item_ids | POST | dispatch: saved_item_ids | api_version auth last_refreshed_on_time saved_item_ids | api_key
+NewsFlash | 2 | fever/feeds | POST | dispatch: feeds | api_version auth last_refreshed_on_time feeds feeds_groups | api_key
+NewsFlash | 5 | fever/items | POST | dispatch: items | api_version auth last_refreshed_on_time items total_items | api_key
+NewsFlash | 6 | fever/items/with_ids | POST | dispatch: items | api_version auth last_refreshed_on_time items total_items | api_key with_ids
+NewsFlash | 7 | fever/groups | POST | dispatch: groups | api_version auth last_refreshed_on_time groups feeds_groups | api_key
+NewsFlash | 8 | fever/saved_item_ids | POST | dispatch: saved_item_ids | api_version auth last_refreshed_on_time saved_item_ids | api_key
+NewsFlash | 10 | fever/unread_item_ids | POST | dispatch: unread_item_ids | api_version auth last_refreshed_on_time unread_item_ids | api_key
+NewsFlash | 9 | fever/feeds | POST | dispatch: feeds | api_version auth last_refreshed_on_time feeds feeds_groups | api_key
+NewsFlash | 11 | fever/items | POST | dispatch: items | api_version auth last_refreshed_on_time items total_items | api_key
+NewsFlash | 12 | fever/mark/item | POST | dispatch: mark=item | api_version auth last_refreshed_on_time | api_key as id mark
+NewsFlash | 13 | fever/mark/item | POST | dispatch: mark=item | api_version auth last_refreshed_on_time | api_key as id mark
+NewsFlash | 14 | fever/mark/item | POST | dispatch: mark=item | api_version auth last_refreshed_on_time | api_key as id mark
+NewsFlash | 15 | fever/mark/item | POST | dispatch: mark=item | api_version auth last_refreshed_on_time | api_key as id mark
+NewsFlash | 16 | fever/mark/feed | POST | dispatch: mark=feed | api_version auth last_refreshed_on_time | api_key as before id mark
+NewsFlash | 18 | fever/saved_item_ids | POST | dispatch: saved_item_ids | api_version auth last_refreshed_on_time saved_item_ids | api_key
+NewsFlash | 19 | fever/unread_item_ids | POST | dispatch: unread_item_ids | api_version auth last_refreshed_on_time unread_item_ids | api_key
+NewsFlash | 17 | fever/groups | POST | dispatch: groups | api_version auth last_refreshed_on_time groups feeds_groups | api_key
+NewsFlash | 20 | fever/feeds | POST | dispatch: feeds | api_version auth last_refreshed_on_time feeds feeds_groups | api_key
+NewsFlash | 21 | fever/items | POST | dispatch: items | api_version auth last_refreshed_on_time items total_items | api_key
+NewsFlash | 23 | fever/feeds | POST | dispatch: feeds | api_version auth last_refreshed_on_time feeds feeds_groups | api_key
+NewsFlash | 24 | fever/unread_item_ids | POST | dispatch: unread_item_ids | api_version auth last_refreshed_on_time unread_item_ids | api_key
+NewsFlash | 22 | fever/groups | POST | dispatch: groups | api_version auth last_refreshed_on_time groups feeds_groups | api_key
+NewsFlash | 25 | fever/saved_item_ids | POST | dispatch: saved_item_ids | api_version auth last_refreshed_on_time saved_item_ids | api_key
+NewsFlash | 26 | fever/items | POST | dispatch: items | api_version auth last_refreshed_on_time items total_items | api_key

@@ -25,10 +25,11 @@ import Vapor
 ///record names at the clamp — a patch that dropped the clamp; - the path no route registers — a
 ///patch that registered it; - the dispatch name the switch has no case for — a patch that gave it a
 ///case; - the prefix this port registers no route for — a patch that registered a route under it.
-///What these pins cannot show: the `>50` guard NewsFlash applies before it sends, which is the
-///client's own and fires before the request is sent, so no input reaches it; the values the records
-///carry, which are placeholders, so no pin reads a value; the order a closed-source client reaches
-///its calls at, which the record names as not read here; the app-level choice of which calls a
+///What these pins cannot show: the `>50` guard NewsFlash applies before it sends, read as the bound
+///on the list size, which this run reached below; the bound firing is what no pin can show, because
+///the record carries names and not values; the values the records carry, which are placeholders, so
+///no pin reads a value; the order a closed-source client reaches its calls at, which the record
+///names as not read here; the app-level choice of which calls a
 ///library-based client makes, which is read at the library boundary; the page size as a row count,
 ///because the difference between a value above the clamp and a value at it is only visible above
 ///the clamp, which the gated corpus holds; the half of the page pin that reads the value at the

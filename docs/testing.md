@@ -1542,44 +1542,69 @@ The client matrix is the half that records the calling sets of the acceptance cl
 `docs/performance.md`, `docs/reference-notes.md`, the port's own route, dispatch, auth and response
 sources, and the field the timed pin's print writes as data, so every rule is a function over data
 rather than an assertion about a client that was never run here. `Tools/clients/parsers.py` holds
-only the read: the sections, tables, record lines, the two sentences the rules parse as sets, and
-the routes the port registers, so the rules stay the readable part of the check half.
+only the read: the sections, tables, record lines, the two sentences the rules parse as sets, the
+names read in the order a record line carries them, and the routes the port registers, so the rules
+stay the readable part of the check half.
 `Tools/clients/probes.py` crafts one input per rule that violates it and asserts that the rule
 reports it alone; the baseline — the committed data — reports nothing, so each probe is
-single-firing: 18 rules, 23 crafted inputs and the baseline, so 24 cases, the performance rule
-having one for each of the five kinds of finding it reads and the route rule one for each of its two
-halves, because an input that violates one half of a rule still satisfies the other. Every craft
-changes the parsed data in memory and never a file, and the round hashes every file the check half
-reads before and after, so a craft that reached a file is reported.
-What the 18 rules read: the source each set names and its commit, the redaction as the placeholders
-the half reads rather than as values, the matrix rows against the manifest lines, the classes
-against the parity table and the output-check class against the endpoints the reference applies the
-check on, the routes the port registers against the answer each row names with the catch-all read as
-the registration line the file writes, the reference's route and dispatch sets, the two halves of a
-client that reaches one half only, the order the source declares, the login being first and the
-token coming before every call that carries it, the token half per method, the stream forms as the
-prefix and suffix sets the branch reads, the counts table against the records it counts, the replay
-records against the matrix's own column, the performance table against the run that answered it and
-the shape the document names, the rule list and the report items against what the check half has,
-and the response name a client acts on against the name the response builder writes.
-What this half cannot show, and is named in `docs/clients.md` rather than asserted: that no client
-has been run against this port here, the calling set of a client whose source cannot be read, the
-order a client reaches its calls at on a device, the values the calls carry, which are redacted, the
-app-level choice of a library-based client, the guard a client applies before it sends, the token
-half of a client that sends the stored value as the token, the numbers of another machine, and the
-query latency at the 100k corpus.
-The Swift half is `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes,
-reading the same files through `Bundle.module` as data — the recorded order, which call reaches a
-registered route and which reaches the catch-all, the two item-id forms the same client sends, the
-page size above the clamp against the value at the clamp, the token half per method, the guard the
-merged form answers for the call with no add and no remove pair, the name the dispatch switch has no
-case for, and the prefix this port registers no route for. Each probe was seen to fire on the rule
-it names; the transport read is the assumption the other pins run through, so no patch can show it
-alone, and the transport rules are pinned by `GoogleReaderAuthTests`. The login half and the token
-half are pinned as the answer they write, not as the order they happen in, which is what no pin can
-read.
-The performance half records measurements taken here rather than bounds: `Scripts/perf.sh` is the
-run, `Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
+single-firing: 19 rules, 30 crafted inputs and the baseline, so 31 cases, the performance rule
+having one for each of the five kinds of finding it reads, the route rule one for each of its two
+halves, because an input that violates one half of a rule still satisfies the other, and the rule
+that reads the run record one for each of its seven halves, on the record the run wrote here. One of
+those seven reaches two parts of the data at once, the record line and the paragraph that names the
+calls this run showed, because the half reads the record against the paragraph and this run reached
+no call outside the recorded set. Every craft changes the parsed data in memory and never a file,
+and the round hashes every file the check half reads before and after, so a craft that reached a
+file is reported. What the 19 rules read: the source each set names and its commit, the redaction as
+the placeholders the half reads rather than as values, the matrix rows against the manifest lines,
+the classes against the parity table and the output-check class against the endpoints the reference
+applies the check on, the routes the port registers against the answer each row names with the
+catch-all read as the registration line the file writes, the reference's route and dispatch sets,
+the two halves of a client that reaches one half only, the order the source declares, the login
+being first and the token coming before every call that carries it, the token half per method, the
+stream forms as the prefix and suffix sets the branch reads, the counts table against the records it
+counts, the replay records against the matrix's own column, the performance table against the run
+that answered it and the shape the document names, the rule list and the report items against what
+the check half has, the response name a client acts on against the name the response builder writes,
+and the record the client run wrote against the set, the matrix row, the response shape, the
+redaction and the paragraph the document writes for the calls this run showed. The rule that reads
+the run record has seven halves: the order column against the order the document names the calls
+this run showed, a call the set cannot name against the document naming it as shown, the answer
+against the matrix row, the answer for a call the reference records no case for against the default
+branch, the key names against the names the response shape writes, the name the redaction names for
+the credential pair, and the guarded call against the document naming it as shown. What this half
+cannot show, and is named in `docs/clients.md` rather than asserted: the clients that have not been
+run against this port here, the calling set of a client whose source cannot be read, the order a
+client reaches its calls at on a device, which the run record carries for the client run here and
+the source declares for the others, the values the calls carry, which are redacted, the app-level
+choice of which calls a library-based client makes, the guard a client applies before it sends, read
+as the bound on the list size, which no record line can show firing, the side of the bound the guard
+applies, which the record carries as names and not as values, the token half of a client that
+sends the stored value as the token, the numbers of another
+machine, and the query latency at the 100k corpus. The run half is `Scripts/client-run.sh` with
+`Tools/clients/observer.py`, outside CI: the observer writes one record line per request it
+forwarded and asserts nothing, and the check half reads the record the run left behind rather than
+the processes. It is checked here by `bash -n` and by its eight guards — ten read sites, because the
+ports item reads the two ports against each other and each of them against the machine — each seen
+to fail on the value it names: the record path, the client row, the two ports by naming the same
+port twice and by a port the machine already holds, seen by holding one port with a listener, the
+base, the version, the pair row, the entry rows, and the record being empty. The three guards that
+read what the run itself wrote — the pair row, the entry rows, and the record being empty — fail
+only on a run, and the guards that read the machine fail only on a machine. The guards that read a
+value the run declares run before the record is written, so a guard that fires leaves the committed
+record alone, which is what kept it untouched through the ports demos; the guard that reads the
+record itself runs after the run, on a record written outside the repo path. The Swift half is
+`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes, reading the same
+files through `Bundle.module` as data — the recorded order, which call reaches a registered route
+and which reaches the catch-all, the two item-id forms the same client sends, the page size above
+the clamp against the value at the clamp, the token half per method, the guard the merged form
+answers for the call with no add and no remove pair, the name the dispatch switch has no case for,
+and the prefix this port registers no route for. Each probe was seen to fire on the rule it names;
+the transport read is the assumption the other pins run through, so no patch can show it alone, and
+the transport rules are pinned by `GoogleReaderAuthTests`. The login half and the token half are
+pinned as the answer they write, not as the order they happen in, which is what no pin can read. The
+performance half records measurements taken here rather than bounds: `Scripts/perf.sh` is the run,
+`Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
 `docs/performance.md` against the numbers the run answered, the fields its sources declare and the
 shape the document names, the timed pin's own file being read as data for that. It is not in CI, so
 `python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as

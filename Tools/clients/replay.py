@@ -14,6 +14,10 @@ the code that names the routes the port registers. The rule that reads the perfo
 not read a bound: it reads what the run half answered here, and the names the performance document
 claims were measured here, and matches each claim to the recorded run.
 
+The rule that reads the client run is in `run_record.py`, because this file is at the size cap: the
+run half is `Scripts/client-run.sh`, and the rule reads the record that run left behind as data, so
+the run is falsifiable through the same round as every other rule here.
+
 The parsers are in `parsers.py`, so this file is the rules and nothing else: each rule returns the
 findings its own input causes, and no rule reads another rule's output. `probes.py` crafts one input
 per rule and asserts that the rule it names reports it alone.
@@ -26,18 +30,21 @@ import re
 import sys
 
 import parsers as read
+import run_record as observed_rule
 
 NOT_SHOWN = [
-    "that no client has been run against this port here, which is the half the manual matrix keeps "
-    "open",
+    "the clients that have not been run against this port here, which is the half the manual "
+    "matrix keeps open for them",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
-    "the order a client reaches its calls at on a device, which this matrix reads from the source "
-    "rather than from a run",
+    "the order a client reaches its calls at on a device, which the run record carries for the "
+    "client run here and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
-    "the app-level choice of which calls a library-based client makes, which is read at the library "
-    "boundary",
-    "the guard a client applies before it sends, which no input reaches",
+    "the app-level choice of which calls a library-based client makes, which is read at the "
+    "library boundary for the clients that have not been run here",
+    "the guard a client applies before it sends, read as the bound on the list size, which no "
+    "record line can show firing",
+    "the side of the bound the guard applies, which the record carries as names and not as values",
     "the token half of a client that sends the stored value as the token, which the read compares "
     "as a token",
     "the numbers of another machine, which the performance half records as measurements taken here "
@@ -81,13 +88,13 @@ def rule_redacted(data):
         if missing:
             continue
         if not re.match(r"^(T|api_key)$", redaction["token"]):
-            found.append(f"{name}: the redaction names the token as a value, not as the placeholder "
-                         f"the half reads")
+            found.append(f"{name}: the redaction names the token as a value, "
+                         f"not as the placeholder the half reads")
         for call in set_data["calls"]:
             for value in call.get("names", []):
                 if re.match(r"^[0-9a-f]{8,}$", value):
-                    found.append(f"{name}/{call['key']}: the set carries {value}, which reads as a "
-                                 f"captured value")
+                    found.append(f"{name}/{call['key']}: the set carries {value}, "
+                                 f"which reads as a captured value")
     return found
 
 
@@ -124,8 +131,8 @@ def rule_classes_read(data):
         if row["Read by"] != "docs/parity.md":
             found.append(f"{row['Class']}: a class the check half reads no rule for")
         elif row["Class"] not in parity_rows:
-            found.append(f"{row['Class']}: named as read by the parity table, which has no row for "
-                         f"it")
+            found.append(f"{row['Class']}: named as read by the parity table, "
+                         f"which has no row for it")
     return found
 
 
@@ -142,12 +149,12 @@ def rule_gr_reaches_a_route(data):
             continue
         if answer == "catch-all":
             if f"catch-all {row['Method']}" not in registered:
-                found.append(f"{row['Client']}/{row['Call']}: the port registers no catch-all for a "
-                             f"{row['Method']} call")
+                found.append(f"{row['Client']}/{row['Call']}: the port registers no catch-all "
+                             f"for a {row['Method']} call")
             continue
         if answer not in registered:
-            found.append(f"{row['Client']}/{row['Call']}: the port registers no route for the path "
-                         f"the row names")
+            found.append(f"{row['Client']}/{row['Call']}: the port registers no route "
+                         f"for the path the row names")
     return found
 
 
@@ -162,12 +169,12 @@ def rule_reference_answer(data):
         if read_by.startswith("dispatch:"):
             name = read_by.split("dispatch: ")[1]
             if name != "default" and name not in fever_dispatch:
-                found.append(f"{row['Client']}/{row['Call']}: the reference records no case for "
-                             f"{name}")
+                found.append(f"{row['Client']}/{row['Call']}: the reference records no case "
+                             f"for {name}")
             continue
         if read_by not in gr and read_by not in fever:
-            found.append(f"{row['Client']}/{row['Call']}: the reference records no route for "
-                         f"{read_by}")
+            found.append(f"{row['Client']}/{row['Call']}: the reference records no route "
+                         f"for {read_by}")
     return found
 
 
@@ -209,8 +216,8 @@ def rule_sequence(data):
         kind = set_data["sequence_kind"]
         if kind.startswith("not read here"):
             if set_data["calls"] or set_data["source_order"]:
-                found.append(f"{name}: the set names the order as not read here and still records "
-                             f"one")
+                found.append(f"{name}: the set names the order as not read here and still "
+                             f"records one")
             continue
         if kind == "the order the source declares them in" and \
                 set_data["declared_order"] != set_data["source_order"]:
@@ -244,7 +251,8 @@ def rule_login_first(data):
                          f"before `T`")
         for call in set_data["calls"]:
             if "T" in call.get("names", []) and order.index(call["key"]) < token:
-                found.append(f"{name}/{call['key']}: a call that carries `T` comes before the token")
+                found.append(f"{name}/{call['key']}: a call that carries `T` "
+                             f"comes before the token")
     return found
 
 
@@ -256,8 +264,9 @@ def rule_token_half(data):
                 continue
             expected = "header" if call["method"] == "GET" else "form"
             if call["auth"] != expected:
-                found.append(f"{name}/{call['key']}: the set names the {call['auth']} half for a "
-                             f"{call['method']} call, which the read takes from the {expected} side")
+                found.append(f"{name}/{call['key']}: the set names the {call['auth']} half "
+                             f"for a {call['method']} call, which the read takes from the "
+                             f"{expected} side")
     return found
 
 
@@ -270,8 +279,8 @@ def rule_stream_forms(data):
                 if prefix is None:
                     found.append(f"{name}/{call['key']}: the branch reads no prefix for {form}")
                 elif prefix.endswith("com.google/") and form[len(prefix):] not in SUFFIXES:
-                    found.append(f"{name}/{call['key']}: the branch has no case for the suffix the "
-                                 f"set records in {form}")
+                    found.append(f"{name}/{call['key']}: the branch has no case for the suffix "
+                                 f"the set records in {form}")
     return found
 
 
@@ -319,8 +328,9 @@ def rule_replayed(data):
             continue
         reason = record["rest"][0].startswith("not replayed here")
         if reason != (row["Replayed here"] != "yes"):
-            found.append(f"{record['key']}: the record names a {'reason' if reason else 'pin'}, the "
-                         f"matrix names it as {row['Replayed here']}")
+            found.append(f"{record['key']}: the record names a "
+                         f"{'reason' if reason else 'pin'}, the matrix names it as "
+                         f"{row['Replayed here']}")
     return found
 
 
@@ -332,8 +342,10 @@ def fields_declared(data):
 
 
 def shape_findings(data, run):
-    """The shape the performance document names, read as data, against the shape the run answered.
-    One finding per shape field, because the log carries the same shape on each of the four runs."""
+    """The shape the performance document names as the shape every run had, read as data.
+
+    One finding per shape field, because the log carries the same shape on each of the four runs.
+    """
     found = []
     for field, named in data["shape"].items():
         values = [values[0] for key, values in run.items() if key[2] == field]
@@ -345,10 +357,10 @@ def shape_findings(data, run):
 def rule_performance(data):
     """The table is read against the recorded run, the run against the fields its sources declare,
     and the shape the document names against the shape the run answered. Five kinds of finding, each
-    with its own craft: a claim the log does not carry, a field no source declares, a record line the
-    document does not name, a shape the document names differently than the run answered it, and the
-    value the table reports against the value the log carries. A shape or a field written as a
-    constant in this file could never be reported, so both are read as data."""
+    with its own craft: a claim the log does not carry, a field no source declares, a record line
+    the document does not name, a shape the document names differently than the run answered it,
+    and the value the table reports against the value the log carries. A shape or a field written as
+    a constant in this file could never be reported, so both are read as data."""
     found, run, undeclared, named = [], data["run_records"], set(), {}
     declared = fields_declared(data)
     for row in data["perf_table"]:
@@ -361,8 +373,8 @@ def rule_performance(data):
                 found.append(f"{row['Field']}: a field no source declares")
             continue
         if key not in run:
-            found.append(f"{row['Run']} {row['Field']}: the table reports it as measured here, the "
-                         f"run answered nothing")
+            found.append(f"{row['Run']} {row['Field']}: the table reports it as measured here, "
+                         f"the run answered nothing")
             continue
         named.setdefault(key, set()).add(row["Value"])
     found.extend(shape_findings(data, run))
@@ -370,8 +382,8 @@ def rule_performance(data):
         if key[2] in undeclared or key[2] in data["shape"]:
             continue
         if key not in named:
-            found.append(f"{key[0]} {key[2]}: the run answered {' or '.join(values)}, the table "
-                         f"does not read that number")
+            found.append(f"{key[0]} {key[2]}: the run answered {' or '.join(values)}, "
+                         f"the table does not read that number")
             continue
         for value in named[key]:
             if value not in values:
@@ -423,8 +435,8 @@ def rule_output_check_applied(data):
             continue
         endpoint = row["Call"].split("reader/api/0/", 1)[-1]
         if endpoint not in applied:
-            found.append(f"{row['Client']}/{row['Call']}: the reference records no output check for "
-                         f"the endpoint the row names as {row['Class']}")
+            found.append(f"{row['Client']}/{row['Call']}: the reference records no output "
+                         f"check for the endpoint the row names as {row['Class']}")
     return found
 
 
@@ -448,6 +460,10 @@ RULES = {
     "performance_names_which_numbers_were_measured_here": rule_performance,
     "the_matrix_names_every_rule_and_what_it_cannot_show": rule_names_every_rule,
     "the_name_a_client_acts_on_is_the_name_the_builder_writes": rule_acts_on_name,
+    # The rule the run half leaves behind is registered through the same round: the record is its
+    # input, and the document names the calls this run showed as part of what it reads.
+    "the_run_record_agrees_with_the_set_and_the_answer_it_names":
+        observed_rule.run_reads_the_record,
 }
 
 

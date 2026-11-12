@@ -22,6 +22,10 @@ DEFAULTS = {
     "reference": os.path.join(ROOT, "docs", "reference-notes.md"),
     "parity": os.path.join(ROOT, "docs", "parity.md"),
     "run": os.path.join(ROOT, "Tools", "clients", "perf-run.txt"),
+    # The record the client run wrote, read as data by the rule the run half leaves behind.
+    "record": os.path.join(ROOT, "Tools", "clients", "client-run.txt"),
+    # The file that writes the key names the record carries, read as the write, not as the comment.
+    "port_shape": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "FeverShape.swift"),
     "port_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes",
                                 "GoogleReaderRoutes.swift"),
     "port_fever": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "FeverHandlers.swift"),
@@ -127,13 +131,13 @@ def port_routes(text):
     """
     registered = set()
     for line in text.splitlines():
-        match = re.search(r'\b(get|post)\((.*?)((?=", use)|\))', line)
+        match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
         if match is not None:
             parts = [part.strip().strip('"') for part in match.group(2).split(",")]
             prefix = "/reader/api/0" if "protected." in line else ""
             registered.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
             continue
-        match = re.search(r'\bon\(\.(GET|POST), "\*\*"', line)
+        match = re.search(r"\bon\(\.(GET|POST), \"\*\*\"", line)
         if match is not None:
             registered.add(f"catch-all {match.group(1)}")
     return registered
@@ -159,6 +163,15 @@ def paragraph(text, first):
 def names(text):
     """The backticked names inside one part of a sentence, read as the sets the sentence writes."""
     return {match.group(1) for match in re.finditer(r"`([^`]*)`", text)}
+
+
+def names_in_order(text):
+    """The backticked names inside one part of a sentence, read as the order the sentence writes.
+
+    The run rule reads the order the paragraph names the calls in as part of what it reads, so the
+    read keeps the order rather than the set, which is the half the plain read cannot carry.
+    """
+    return [match.group(1) for match in re.finditer(r"`([^`]*)`", text)]
 
 
 def output_check_endpoints(text):
@@ -203,6 +216,45 @@ def perf_run(text):
     return out
 
 
+def observed(text):
+    """The record the client run wrote, as the rules read it: one line per request the client sent.
+
+    The header comment is not a record, so a record file with no record lines reports nothing for
+    the rules that read it, which is the half a probe cannot move.
+    """
+    out = []
+    for record in records(text):
+        if len(record["rest"]) != 6:
+            continue
+        out.append({"client": record["key"], "order": int(record["rest"][0]),
+                    "call": record["rest"][1], "method": record["rest"][2],
+                    "answer": record["rest"][3], "keys": record["rest"][4].split(),
+                    "fields": record["rest"][5].split()})
+    return out
+
+
+def shape_keys(text):
+    """The key names the response shape writes, read from the file that writes them.
+
+    Read as the write rather than as the comment that names the document, so a patch that renames a
+    key in the code can be reported against the record the run wrote.
+    """
+    return [match.group(1) for match in re.finditer(r"\(key: \"([^\"]*)\"", text)]
+
+
+def base_shape_keys(path):
+    """The names the base document writes, read from the function that writes them.
+
+    `FeverShape` writes these in the function every document of this path calls, which is the last
+    function in the file, so the read of that function is the set the answer half excludes. The path
+    is given so the run half reads the same file through the same read, which is what keeps the
+    answer the record writes and the answer the rule reads derived from one read.
+    """
+    text = read(path)
+    start = text.find("static func document(")
+    return shape_keys(text[start:])
+
+
 def build_matrix(paths):
     clients_doc = read(paths["clients"])
     performance = read(paths["performance"])
@@ -224,6 +276,8 @@ def build_matrix(paths):
         "perf_pin": read(paths["perf_pin"]),
         "port_response": read(paths["port_response"]),
         "run_records": perf_run(read(paths["run"])),
+        "observed": observed(read(paths["record"])),
+        "shape_keys": shape_keys(read(paths["port_shape"])),
         "matrix": table(section(clients_doc, "## The matrix")),
         "classes": table(section(clients_doc, "## The classes this matrix reads")),
         "counts": table(section(clients_doc, "## The counts the matrix reports")),

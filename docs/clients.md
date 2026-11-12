@@ -5,10 +5,15 @@ acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation when the client is closed source. No set is a capture: **no client has been
-run against this port here**, because this machine has no device to run one on. The manual matrix
-exit criterion of `docs/plan/stage-7-acceptance.md` is therefore still open, and the checklists
-below are the checks to run when a client can be run.
+project's documentation when the client is closed source. No set is a capture, and one client has
+been run against this port here — NewsFlash, the Fever client, through `Scripts/client-run.sh`, the
+run half that reads what one real client actually sent — and the record that run left behind,
+`Tools/clients/client-run.txt`, is read as data by the rule that reads it. The manual matrix exit
+criterion of `docs/plan/stage-7-acceptance.md` stays open for the four clients this machine cannot
+run, and the single-client criterion of `docs/plan/stage-5-apis.md`, which names one real client
+rather than a client by name, is closed for the halves this run shows: the client connects and
+syncs here. The half that adds a feed is not a call the Fever set has, so it stays open for a client
+that has that call. The checklists below are the checks to run for a client that cannot be run here.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own source
@@ -16,15 +21,57 @@ and the field the timed pin's print writes as data, with the parsers it reads th
 `Tools/clients/parsers.py` so the rules stay the readable part of the file. What it reads as data
 includes two sentences written for the sets they name: the shape the performance paragraph declares,
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
-against.
-`Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it and
-asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-firing
-— 18 rules, 23 crafted inputs and the baseline, so 24 cases: the performance rule has one for each
-of the five kinds of finding it reads, and the route rule has one for each of its two halves,
-because an input that violates one of them still satisfies the other.
+against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
+and asserts that the rule reports it alone; the baseline reports nothing, so each probe is
+single-firing — 19 rules, 30 crafted inputs and the baseline, so 31 cases: the performance rule has
+one for each of the five kinds of finding it reads, the route rule has one for each of its two
+halves, because an input that violates one of them still satisfies the other, and the rule that
+reads the run record has one for each of its seven halves, on the record the run wrote here. One of
+those seven reaches two parts of the data at once, the record line and the paragraph that names the
+calls this run showed, because the half reads the record against the paragraph and this run reached
+no call outside the recorded set.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
+
+## The run half
+
+`Scripts/client-run.sh` is the run half and `Tools/clients/observer.py` is its observing half. The
+run half asserts nothing about a record line: the observer writes what each request looked like as
+it arrived, and the rule `the_run_record_agrees_with_the_set_and_the_answer_it_names`, named in the
+list below, reads the record the run left behind. That is what makes the run falsifiable: the
+document the run wrote is the input, and a rule over it can be shown to report a run that did not
+agree with the set.
+
+A record line is seven parts split at `|`: the client, the order the request arrived at, the call as
+the recorded set names it, the method, the answer the port gave, the key names the answer carried in
+the order the answer wrote them, and the field names the request carried. The answer is written as
+the run saw it: the name the dispatch case answered on when the port wrote a document of this path,
+and the status when it wrote something else. The record carries no value, so the credential pair
+appears as the name the redaction names for it.
+
+The order is read as the order column, not as the position of the line, because the line is written
+when the response is complete and the client had more than one connection open at once, which the
+first pass shows: the order column reads groups, feeds, unread, saved while the lines the observer
+wrote came in as groups, unread, saved, feeds. It is read as first appearances, because the client
+reached the same call more than once. The call name is read from the path the client sent to, and
+the mark branch comes from the merged form, which is where the dispatch takes it.
+
+What the run half reads as guards, and what each guard can fail on, is named in its header. The run
+half is not in CI, so it is checked here by `bash -n` and by its guards seen to fail on the value
+each names: the record path, by a path the check half does not read; the client, by a name the
+matrix has no row for; the two ports, by naming the same port twice, and by a port the machine
+already holds, seen by holding the observer port with a listener and then the served port; the
+base, by the port the observer forwards to instead of its own; the version, by a version the app
+metadata does not write; the pair row, by a name the run wrote no row for; the entry rows, by the
+value 2 against the one row the pass wrote; and the record being empty, by an empty record. The
+three guards that read what the run itself wrote — the pair row, the entry rows, and the record
+being empty — fail only on a run, and the guards that read the machine fail only on a machine.
+The guards that read a value the run declares run before the record is written, so a guard that
+fires leaves the committed record alone, which is what kept it byte-identical through the ports
+demos; the guard that reads the record itself runs after the run, and the demo that fires it used a
+record written outside the repo path. The check half then reads the record the run wrote, not the
+processes.
 
 ## The rules the comparator reads
 
@@ -46,6 +93,7 @@ each read as one whole string. The record lines and the item lines here are exem
 - `performance_names_which_numbers_were_measured_here`
 - `the_matrix_names_every_rule_and_what_it_cannot_show`
 - `the_name_a_client_acts_on_is_the_name_the_builder_writes`
+- `the_run_record_agrees_with_the_set_and_the_answer_it_names`
 
 The record files are read as data, not as prose: each line is a record with the parts `replay.py`
 splits at `|`. For the rule that reads the replay records as its input, a file with no record lines
@@ -57,8 +105,8 @@ hashes every file the check half reads before and after, so a craft that reached
 
 A class is the rule the comparator reads for a row, and the `Read by` column names which half reads
 it: a class marked `docs/parity.md` is read against the tolerance table there, so a difference in it
-is covered by a row that already exists; a class marked `client matrix` is read only by the rule this
-document names, and that rule reports what the data says rather than what the table expects.
+is covered by a row that already exists; a class marked `client matrix` is read only by the rule
+this document names, and that rule reports what the data says rather than what the table expects.
 
 | Class | Read by | State |
 | --- | --- | --- |
@@ -113,7 +161,7 @@ document names, and that rule reports what the data says rather than what the ta
 | NewsFlash | fever/items | POST | dispatch: items | dispatch: items | yes | page_size |
 | NewsFlash | fever/items/since_id | POST | dispatch: items | dispatch: items | yes | dispatch_names |
 | NewsFlash | fever/items/max_id | POST | dispatch: items | dispatch: items | yes | dispatch_names |
-| NewsFlash | fever/items/with_ids | POST | dispatch: items | dispatch: items | no: the guard is this client's own, applied before the request is sent | client_guard |
+| NewsFlash | fever/items/with_ids | POST | dispatch: items | dispatch: items | no: the guard is this client's own bound on the list size, which this run reached below | client_guard |
 | NewsFlash | fever/links | POST | dispatch: default | dispatch: default | yes | dispatch_names |
 | NewsFlash | fever/unread_item_ids | POST | dispatch: unread_item_ids | dispatch: unread_item_ids | yes | none |
 | NewsFlash | fever/saved_item_ids | POST | dispatch: saved_item_ids | dispatch: saved_item_ids | yes | none |
@@ -139,12 +187,13 @@ document names, and that rule reports what the data says rather than what the ta
 Each line below is one report item line, read as one whole string by the check half, so it is exempt
 from the width rule.
 
-- that no client has been run against this port here, which is the half the manual matrix keeps open
+- the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
-- the order a client reaches its calls at on a device, which this matrix reads from the source rather than from a run
+- the order a client reaches its calls at on a device, which the run record carries for the client run here and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
-- the app-level choice of which calls a library-based client makes, which is read at the library boundary
-- the guard a client applies before it sends, which no input reaches
+- the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
+- the guard a client applies before it sends, read as the bound on the list size, which no record line can show firing
+- the side of the bound the guard applies, which the record carries as names and not as values
 - the token half of a client that sends the stored value as the token, which the read compares as a token
 - the numbers of another machine, which the performance half records as measurements taken here or names as not measured here
 - the query latency at the 100k corpus, which is gated
@@ -197,21 +246,36 @@ catch-all, so the list is empty by the reference's own rule.
 ### NewsFlash — Fever API
 
 Read from `news-flash/fever_api` `src/lib.rs` at `0.6.0`, the client library the app depends on: the
-set is the library's own, and the app's choice of which of these calls it makes is not read here. 14
-calls. Every name the switch has a case for is called, and two answers come from the branch it has
-no case for: the base document the request with no name gets, and `links`, which is a name the
-switch does not have. The key reaches the merged form as a multipart part, which is the read PR #61
-pins. The item page is the fixed 50, and the `with_ids` guard — a list above 50 refused before the
-request is sent — is the client's own, so no input reaches it. The `HEAD` reachability check PR #61
-sized to is not attributed to this client here: the library's own source sends POST only.
+set is the library's own, and the app's choice of which of these calls it makes is read at the
+library boundary for the clients that are not run here. 14 calls. Every name the switch has a case
+for is called, and two answers come from the branch it has no case for: the base document the
+request with no name gets, and `links`, which is a name the switch does not have. The key reaches
+the merged form as a multipart part, which is the read PR #61 pins. The item page is the fixed 50,
+and the `with_ids` guard is the bound on the list size the client applies before it sends: this run
+reached the call with one id, so the record carries a line for it, which is the half the bound does
+not cover, and the bound firing itself is a report item. The `HEAD` reachability check PR #61 sized
+to is not attributed to this client here: the library's own source sends POST only.
 
 Setup: Settings → Sync → the Fever service, with the integration name and password; the key is the
-digest the library builds from the pair, and the app takes the base URL without `/fever`.
+digest the library builds from the pair. The app sends to the base as it is typed, so the base has
+to name the path this port registers, which is what the run showed at login: a base without the path
+reached the root and answered the 404 Vapor writes for a path it does not register.
 
-Manual checklist, not executed here: log in; read the base document; read groups, feeds, favicons,
-unread and saved ids; read a page of items and the next page through `since_id`; mark one item read,
-un-read and saved; mark a feed read before a time; mark a group read; check the value for `id = 0`
-on the group branch, which is the user-wide half.
+Manual checklist, walked here by the run: log in; read the base document; read groups, feeds,
+favicons, unread and saved ids; read a page of items and the next page through `since_id`; mark one
+item read, un-read and saved; mark a feed read before a time; mark a group read; check the value for
+`id = 0` on the group branch, which is the user-wide half.
+
+The calls this run showed, in the order the record says they arrived: `fever/groups`, `fever/feeds`,
+`fever/unread_item_ids`, `fever/saved_item_ids`, `fever/items`, `fever/items/with_ids`,
+`fever/mark/item`, `fever/mark/feed`.
+
+The run showed four marks on one item, read, un-read, read, un-read, and the feed mark with the time
+the app sent, and it did not reach `fever/favicons`, `fever/links`, `fever/items/since_id`,
+`fever/items/max_id` or `fever/mark/group`, which are the checklist halves this run did not walk.
+The login is not a record line: it happened before the run started, when the app saved the account,
+and the first line the record carries is the first call of the first sync pass. The record carries
+26 lines over four sync passes, which is the document the rule reads as data.
 
 ### lire — the Fever API and the Miniflux REST API
 
