@@ -204,11 +204,25 @@ route is merged as PR #65, and the acceptance journey is merged as PR #66.
 
 ## Exit criteria
 
-- [ ] The automated journey is green in CI.
+- [x] The automated journey is green in CI. Landed as PR #66, the 14 pins of
+      `AcceptanceJourneyTests` reading the chain above, green in CI on head `5335f7f`, the head
+      the three review runs approved.
 - [ ] One real client (NetNewsWire) connects, adds a feed and syncs against a locally running
       instance (manual check; repeated with the full client matrix in stage 7).
 
 ## Backlog
+Findings from the review runs on PR #66 that do not change behavior:
+
+- The comment above `withoutRunInstant` says "the two fields the handler builds from the instant it
+  runs at", which is looser than the naming the suite header now uses: three fields, two sources —
+  the document's `updated` from the run instant, the item's `crawlTimeMsec` and `updated` from the
+  row's created and changed instants. The comment is not part of any assertion, so the probe round
+  that ran on head `5335f7f` stands as it is.
+
+- `AcceptanceJourneyTests.swift` is 426 lines, inside the ≤500 aim, and
+  `Support/AcceptanceJourney.swift` carries three types plus the free functions the chain needs,
+  which the one-primary-type convention would split if the file grew.
+
 Findings from review runs 1 and 2 on PR #64 that do not change behavior:
 
 - `OPMLImportTests.swift` is 469 lines, close to the ≤500 aim for a test file. The import and export
