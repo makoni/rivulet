@@ -1,10 +1,10 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — the static-build spike (PR #67) and the version value as a client reads it
-(PR #68) are merged; the clean-container smoke job (PR #69) is the third slice, with
-`Scripts/smoke.sh` as its run half and `Tools/smoke/smoke_check.py` as its check half, reading the
-document the run leaves behind rather than the container it ran.
+**Status:** in progress — three slices are merged: the static-build spike (PR #67), the version value
+as a client reads it (PR #68), and the clean-container smoke job (PR #69), whose run half is
+`Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the document the run
+leaves behind rather than the container it ran.
 **Effort:** S–M.
 **Depends on:** Stage 6.
 
