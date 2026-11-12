@@ -1590,8 +1590,11 @@ to fail on the value it names: the record path, the client row, the two ports by
 port twice and by a port the machine already holds, seen by holding one port with a listener, the
 base, the version, the pair row, the entry rows, and the record being empty. The three guards that
 read what the run itself wrote — the pair row, the entry rows, and the record being empty — fail
-only on a run, and the guards that read the machine fail only on a machine. The guards run before
-the record is written, so a guard that fires leaves the committed record alone. The Swift half is
+only on a run, and the guards that read the machine fail only on a machine. The guards that read a
+value the run declares run before the record is written, so a guard that fires leaves the committed
+record alone, which is what kept it untouched through the ports demos; the guard that reads the
+record itself runs after the run, on a record written outside the repo path. The Swift half is
+`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes, reading the same
 files through `Bundle.module` as data — the recorded order, which call reaches a registered route
 and which reaches the catch-all, the two item-id forms the same client sends, the page size above
 the clamp against the value at the clamp, the token half per method, the guard the merged form

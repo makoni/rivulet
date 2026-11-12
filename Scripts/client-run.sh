@@ -125,9 +125,9 @@ seed_feed() {
 }
 
 mkdir -p "$WORK"
-# The guards run before the record is written, so a run that fails a guard leaves the record
-# the previous run wrote alone: the guards read the record path as a name, not as a file, so
-# nothing a guard reads is a file the run itself writes.
+# The guards that read a value the run declares run before the record is written, and they read the
+# record path as a name rather than as a file, so a run that fails one of them leaves the record the
+# previous run wrote alone. The guard that reads the record itself runs after the run, at the end.
 run_guards
 : >"$RECORD"
 

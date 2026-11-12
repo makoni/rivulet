@@ -67,9 +67,11 @@ metadata does not write; the pair row, by a name the run wrote no row for; the e
 value 2 against the one row the pass wrote; and the record being empty, by an empty record. The
 three guards that read what the run itself wrote — the pair row, the entry rows, and the record
 being empty — fail only on a run, and the guards that read the machine fail only on a machine.
-The guards run before the record is written, so a guard that fires leaves the record the previous
-run wrote alone, which is what keeps the committed record byte-identical through these demos. The
-check half then reads the record the run wrote, not the processes.
+The guards that read a value the run declares run before the record is written, so a guard that
+fires leaves the committed record alone, which is what kept it byte-identical through the ports
+demos; the guard that reads the record itself runs after the run, and the demo that fires it used a
+record written outside the repo path. The check half then reads the record the run wrote, not the
+processes.
 
 ## The rules the comparator reads
 
