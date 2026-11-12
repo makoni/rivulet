@@ -11,8 +11,8 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
 — merged with PR #45 over the same socket, and `stream/items/contents` merged with PR #46, pinned
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
 endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
-The rest of the handlers are not started, the OPML slice is merged as PR #64, and the public icon
-route is merged as PR #65.
+The rest of the handlers are not started, the OPML slice is merged as PR #64, the public icon
+route is merged as PR #65, and the acceptance journey is merged as PR #66.
 **Effort:** XL.
 **Depends on:** Stage 4.
 
@@ -154,8 +154,8 @@ route is merged as PR #65.
       `OPMLSerializeTests`, `OPMLImportTests` and `OPMLCommandTests`. `import` is the port's own
       command and `--file` is the port's own half of `export`; the settings the port schema has no
       field for are read as data and not persisted, and the validation rules past the four ported
-      ones are not ported. Both are recorded in `docs/parity.md`. The acceptance journey is what is
-      left open for this stage.
+      ones are not ported. Both are recorded in `docs/parity.md`. The acceptance journey landed as
+      PR #66, which is the automated half of this stage closing.
 - [ ] Deviations are recorded in `docs/parity.md` as soon as they are observed.
 
 ## Implementation notes
@@ -180,6 +180,17 @@ route is merged as PR #65.
   the JSON path only with `output=json`) → `subscription/list` → `stream/items/ids` with `xt=…read`
   (unread counts) → `stream/items/contents` → `edit-tag` read → counts changed; Fever: `groups` →
   `feeds` → `items` → `mark=item` read/saved → `unread_item_ids`/ `saved_item_ids` changed.
+  Landed as PR #66 as `AcceptanceJourneyTests`: one chain run per pin, 14 pins and 16 probes, each
+  pin reading one link of the chain and asserting literals built from the fixture's own inputs, with
+  the stored values read through SQL digest lines so a pin is not satisfied by the read it tests.
+  The run half asserts nothing, so every failure is attributed to a pin. What the header names as
+  not pinned: the ids the runs assign, because the pool does not fix the order the writes land in,
+  so the pins read the ids through SQL and assert the values per row; the two clock fields the
+  documents build from the handler's run instant, read as the placeholder; the stamp column the
+  Fever feeds document reads, because the run creates the row and stamps it in the same second; the
+  wordings of the console lines; the batch comparison, which `SchedulerBatchTests` pins; and the
+  rules pinned by their own suites, which the round reads only through this suite. `docs/testing.md`
+  records what the round showed, including the four rows that reach more than one pin.
 - Contract matrix: every route listed above (including the `[]`/200 catch-all) and every Fever
   parameter; golden response shapes, including the text responses and the token-transport split
   (POST `T` vs GET `Authorization: GoogleLogin`).

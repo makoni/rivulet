@@ -15,11 +15,13 @@ import RivuletApp
 /// happy path, and a started server that is not stopped trips `HTTPServer`'s deinit assertion
 /// instead of reporting the real failure. The per-test temporary directory is removed here, so the
 /// teardown rule of `docs/testing.md` stays in one place.
-func withServedApp(environment: [String: String] = [:],
+func withServedApp(environment: [String: String] = [:], databasePath: String? = nil,
     _ body: (SQLiteStorage, Application, String) async throws -> Void) async throws {
-    let directory = try TemporaryDirectory()
-    let config = try Config.load(environment: environment.merging(
-        ["DATABASE_URL": directory.path("rivulet.db")]) { $1 })
+    // The file is the one the pins read; when a pin needs a file another helper owns, that helper
+    // names it and keeps the teardown, so this one removes only the directory it made.
+    let directory = databasePath == nil ? try TemporaryDirectory() : nil
+    let path = databasePath ?? directory?.path("rivulet.db")
+    let config = try Config.load(environment: environment.merging(["DATABASE_URL": try #require(path)]) { $1 })
     let rivulet = try await ApplicationFactory.make(config: config)
     do {
         try await rivulet.storage.prepare()
@@ -32,10 +34,10 @@ func withServedApp(environment: [String: String] = [:],
     } catch {
         await rivulet.application.server.shutdown()
         try? await rivulet.shutdown()
-        directory.remove()
+        directory?.remove()
         throw error
     }
     await rivulet.application.server.shutdown()
     try await rivulet.shutdown()
-    directory.remove()
+    directory?.remove()
 }
