@@ -1,8 +1,9 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — the first slice, the static-build spike, is merged as PR #67; the rest is
-not started. **Effort:** S–M.
+**Status:** in progress — two slices are merged: the static-build spike (PR #67) and the version
+value as a client reads it (PR #68). The clean-container smoke job is the next slice.
+**Effort:** S–M.
 **Depends on:** Stage 6.
 
 ## Scope
