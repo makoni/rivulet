@@ -26,22 +26,26 @@ PR #63: `docs/clients.md` records the calling sets of five clients — three rea
 source at a named commit, two from the project's documentation because their source cannot be read
 here — and the check half reads those sets, the record files, the document and the port's own route,
 dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from the
-rules so each rule stays a function over data. No set is a capture: no client has been run against
-this port here, so the manual matrix exit criterion stays open and the per-client checklists are the
-checks to run when a client can be run. The performance half records measurements taken here rather
-than bounds.
+rules so each rule stays a function over data. No set is a capture. NewsFlash is the client run
+against this port here, through `Scripts/client-run.sh`, and the record that run wrote is read as
+data by the rule that reads it, which is the nineteenth rule. The manual matrix criterion is closed
+for that client and stays open for the four this machine has no device to run, which is what the
+report items name. The performance half records measurements taken here rather than bounds.
 **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS),
       FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client
-      whose calling set the sixth slice was sized to — setup instructions and a manual
-      checklist (subscribe, add a feed from the client, sync read state, star, counts). Done as
-      the half this machine can do: the calling sets are recorded for all five, three read from
-      their own source at a named commit and two from documentation, with the setup and the
-      checklist written for each, and no set is a capture because no client has been run against
-      this port here. The manual half — running a checklist on a device — is the part still open.
+      whose calling set the sixth slice was sized to — setup instructions and a manual checklist
+      (subscribe, add a feed from the client, sync read state, star, counts). Done as the half this
+      machine can do: the calling sets are recorded for all five, three read from their own source
+      at a named commit and two from documentation, with the setup and the checklist written for
+      each. No set is a capture. NewsFlash is the client run against this port here, through the run
+      half `Scripts/client-run.sh`, and its checklist is the half that run walked. The manual half
+      stays open for the four clients this machine has no device to run, and the half that adds a
+      feed stays open for the run here too, because the Fever set has no call for adding a feed: the
+      row the run reads was put there by `rivulet add`.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and
       Rivulet read the same corpus, and the difference is read class by class against the
       tolerance table, which is read as data from `docs/parity.md` rather than restated in the
@@ -127,13 +131,20 @@ than bounds.
   named in the headers rather than asserted: the port's own `HEAD` registration, because Vapor
   forwards the method to the GET route, and the order the reference's icon join answers, which its
   statement does not order.
-- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 18 rules over the
+- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 rules over the
   record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
   writes for the output-check sets, and the port's own route, dispatch, auth and response sources
   read as data, each rule shown to report its own crafted input alone and the baseline to report
-  nothing — 23 crafted inputs plus the baseline, so 24 cases, with the round hashing every file the
+  nothing — 30 crafted inputs plus the baseline, so 31 cases, with the round hashing every file the
   check half reads before and after, so a craft that reached a file is reported. The parsers are in
   `Tools/clients/parsers.py`, so the rules stay the readable part.
+- `Scripts/client-run.sh` with `Tools/clients/observer.py` — the run half of the client matrix,
+  outside CI: the observer writes one record line per request it forwarded and asserts nothing, and
+  the rule that reads the run record reads the record the run left behind as data in seven halves.
+  The run half is checked here by `bash -n` and by its eight guards, each seen to fail on the value
+  it names: the record path, the client row, the two ports, the base, the version, the pair row, the
+  entry rows, and the record being empty. The two guards that read the rows the run writes fail only
+  on a run, and the guards that read the machine fail only on a machine.
 - `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a
   real socket, read through `Bundle.module` as data rather than restated: the order each set
   declares, which recorded call reaches a registered route and which reaches the catch-all answer,
@@ -174,7 +185,11 @@ than bounds.
       through the collector with an authenticated pair; the login half is closed as the
       accepted-divergence row for the path that writes the pair, and what is still open is the
       classes no corpus input can reach.
-- [ ] Manual client matrix green (or deviations documented with client-specific notes).
+- [ ] Manual client matrix green (or deviations documented with client-specific notes). Closed for
+      the halves one real client can show here: NewsFlash connects and syncs against a locally
+      served port through `Scripts/client-run.sh`, and the record that run wrote is read as data.
+      The four clients this machine has no device to run are one open half, and the feed the client
+      adds is another, because the Fever set has no call for adding a feed.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

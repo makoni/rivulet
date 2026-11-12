@@ -33,7 +33,7 @@ newsflash/fever/favicons | none | the encoded image value, which the read return
 newsflash/fever/items | page_size | the page size, which is fixed here so a value the client sends cannot show it
 newsflash/fever/items/since_id | dispatch_names | the precedence between the three names, which one input cannot show all three ways
 newsflash/fever/items/max_id | dispatch_names | the negative value, which answers the default
-newsflash/fever/items/with_ids | client_guard | the guard this client applies before the request is sent, which no input reaches
+newsflash/fever/items/with_ids | client_guard | the bound on the list size this client applies before it sends; this run reached the call below the bound, which is the half no line can show firing
 newsflash/fever/links | dispatch_names | the case the switch does not have, which only the default branch can answer
 newsflash/fever/unread_item_ids | none | the order the id list answers in, which the statement does not order
 newsflash/fever/saved_item_ids | none | the order the id list answers in, which the statement does not order

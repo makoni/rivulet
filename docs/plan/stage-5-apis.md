@@ -220,8 +220,12 @@ needs is the manual client run its exit criteria name.
 - [x] The automated journey is green in CI. Landed as PR #66, the 14 pins of
       `AcceptanceJourneyTests` reading the chain above, green in CI on head `5335f7f`, the head
       the three review runs approved.
-- [ ] One real client (NetNewsWire) connects, adds a feed and syncs against a locally running
-      instance (manual check; repeated with the full client matrix in stage 7).
+- [ ] One real client connects, adds a feed and syncs against a locally running instance (manual
+      check; repeated with the full client matrix in stage 7). Read as one real client rather than
+      as a client by name, this is half closed: NewsFlash connects and syncs against a locally
+      served port, and the record that run wrote is read as data. The half that adds a feed stays
+      open, because the Fever calling set has no call for adding a feed, so no Fever run can show
+      it.
 
 ## Backlog
 Findings from the review runs on PR #66 that do not change behavior:
