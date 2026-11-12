@@ -28,9 +28,12 @@ here — and the check half reads those sets, the record files, the document and
 dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from the
 rules so each rule stays a function over data. No set is a capture. NewsFlash is the client run
 against this port here, through `Scripts/client-run.sh`, and the record that run wrote is read as
-data by the rule that reads it, which is the nineteenth rule. The manual matrix criterion is closed
-for that client and stays open for the four this machine has no device to run, which is what the
-report items name. The performance half records measurements taken here rather than bounds.
+data by the rule that reads it, which is the nineteenth rule. That run half and that rule are the
+eighth slice, merged as PR #71: seven halves over the record the run left behind, 30 crafted inputs
+plus the baseline over 19 rules, and eight guards, ten read sites, seen to fail on the value each
+names. The manual matrix criterion is closed for that client and stays open for the four this
+machine has no device to run, which is what the report items name. The performance half records
+measurements taken here rather than bounds.
 **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
