@@ -2,6 +2,8 @@ import Foundation
 
 #if canImport(Glibc)
 import Glibc
+#elseif canImport(Musl)
+import Musl
 #endif
 
 /// The filesystem the application reads: the bytes a file holds, and the bytes the filesystem at a
@@ -26,9 +28,17 @@ public struct SystemFileSystemSpace: FileSystemSpace {
     /// The bytes the filesystem at `directory` has free for an unprivileged writer.
     ///
     /// `f_bavail` rather than `f_bfree`, because the reserved blocks of a filesystem are not room a
-    /// writer can use, which is the number the run decides on.
+    /// writer can use, which is the number the run decides on. The two C shapes are the same value
+    /// read through the C module the platform has: `statvfs` on Linux, `statfs` on Darwin, and the
+    /// size the struct reports with it. No pin can see the musl branch, because on the glibc CI the
+    /// first branch is the only one the compiler can see, so the static build is the check for that
+    /// half — the read the clean-container smoke run takes at the directory it writes its copy to.
     public func freeSpace(at directory: String) -> Int64? {
         #if canImport(Glibc)
+        var info = statvfs()
+        guard statvfs(directory, &info) == 0 else { return nil }
+        return Int64(info.f_bavail) * Int64(info.f_frsize)
+        #elseif canImport(Musl)
         var info = statvfs()
         guard statvfs(directory, &info) == 0 else { return nil }
         return Int64(info.f_bavail) * Int64(info.f_frsize)

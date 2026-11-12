@@ -1,0 +1,19 @@
+# The smoke job's corpus: one record line per feed the clean container is asked to read, the title
+# the document declares, and what that input cannot show on its own. A record line is one record, so
+# it is not wrapped and is exempt from the width rule. These documents are the smoke's own, not
+# ported from the reference, and they carry no fixture value the stage-3 corpora pin.
+# The rule reads a record as the file it names, its digest and the count, and reads each row as
+# naming that record through the url the run asked with. The title column is declared data no rule
+# reads: the fetch stores no title and neither does the reference's refresh path, so the rows carry
+# the empty value the create defaults write, and the titles are named as what no rule reads.
+# The record order is the order the run creates the rows in, which is the order the values the add
+# calls wrote put them in, and that is the order the order rule reads. The order the round's jobs
+# ran in is read by no rule, because the worker pool fixes none. The file the stub holds must be the
+# last record here: the run takes its mid-round read at the point the records before it are
+# answered, and a held file named earlier than the last record was answered before that read. The
+# guard reads this order.
+corpus/smoke_alpha.xml | Smoke Alpha | nothing beyond the bytes the file holds, which no rule reads
+corpus/smoke_beta.xml | Smoke Beta | nothing beyond the bytes the file holds, which no rule reads
+corpus/smoke_gamma.xml | Smoke Gamma | nothing beyond the bytes the file holds, which no rule reads
+corpus/smoke_delta.xml | Smoke Delta | nothing beyond the bytes the file holds, which no rule reads
+corpus/smoke_epsilon.xml | Smoke Epsilon | the row the stop catches in flight, which only the run knows

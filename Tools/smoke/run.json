@@ -1,0 +1,613 @@
+{
+ "answers": {
+  "account": {
+   "declared": "smoke",
+   "line": "Created admin user smoke."
+  },
+  "add_values": [
+   {
+    "name": "smoke_alpha.xml",
+    "value": 1794479466
+   },
+   {
+    "name": "smoke_beta.xml",
+    "value": 1794479469
+   },
+   {
+    "name": "smoke_gamma.xml",
+    "value": 1794479472
+   },
+   {
+    "name": "smoke_delta.xml",
+    "value": 1794479475
+   },
+   {
+    "name": "smoke_epsilon.xml",
+    "value": 1794479478
+   }
+  ],
+  "credentials": {
+   "command": "integration-credentials",
+   "prompts": [
+    "Account: ",
+    "Fever username: ",
+    "Fever password: ",
+    "Google Reader username: ",
+    "Google Reader password: "
+   ]
+  },
+  "health": {
+   "body": "OK",
+   "path": "/healthz",
+   "status": 200
+  },
+  "login": {
+   "fields": [
+    "Email",
+    "Passwd"
+   ],
+   "prompts": [
+    "Account: ",
+    "Fever username: ",
+    "Fever password: ",
+    "Google Reader username: ",
+    "Google Reader password: "
+   ],
+   "status": 200,
+   "token": "smoke/dcdcc175790f08a8209284a2fcc71450ab793738e1d82d31dbb3ab19125b0db0",
+   "written_through": "integration-credentials"
+  },
+  "migrate": "Applied 1 migration(s): SchemaV1.",
+  "reader": {
+   "carried_with": "smoke/dcdcc175790f08a8209284a2fcc71450ab793738e1d82d31dbb3ab19125b0db0",
+   "endpoint": "/reader/api/0/user-info",
+   "field": "GoogleLogin",
+   "half": "header",
+   "keys": [
+    "userEmail",
+    "userId",
+    "userName",
+    "userProfileId"
+   ],
+   "name": "Authorization",
+   "status": 200
+  }
+ },
+ "cannot_show": [
+  "that a run which left a container behind would have read it in the second pass, because the run lists only what it started, so the rule reports a document that names a container the run did not create rather than one the run left",
+  "that the container held no toolchain beyond the file the Dockerfile writes, because a scratch base has no shell to list it with, so the run records the base and the file set",
+  "that the copy the backup wrote is a plain file rather than a database the run can open, beyond the listing the run read at the moment it looked",
+  "that the fetch read the same bytes as the corpus file holds, because the run reads the record the stub wrote and the digest of the file, so no rule reads the bytes a hop answered with",
+  "that the fetch was still in flight when the stop signal landed, which only the run knows",
+  "that the run created the containers the machine reads name, because the rule reads the names, not the calls that created them, so no run can report a container it did not start",
+  "that the run ran at all, because it is on demand and not in CI",
+  "that the two machine reads came from the same machine, because the run reads the machine twice with the same call, so the rule reads two lists rather than one list read twice",
+  "the WAL bytes the run recorded at the stop, because the checkpoint the process harness reads as empty is blocked by the write transaction the stop interrupted, so those bytes are the interrupted round's and no rule reads them as the harness reads them",
+  "the decision the address policy answered on the round, because the rule reads the flag the run declares against the class the policy names, so the decision itself is not read here",
+  "the exit code the stop signal left, because a signal that never lands hangs the run rather than reporting a code",
+  "the order the round's jobs ran in, because the fetcher dispatches the picked rows through the worker pool, which fixes no order, so the record shows the arrivals and not the order the clause names; the rule reads the order the values the `add` calls wrote put the rows in",
+  "the runbook's commands, because `docs/deploy.md` does not exist yet, so the rule that would read it reports that it cannot",
+  "the titles the corpus documents declare, because the fetch writes no title and neither does the reference's refresh path, so the rows carry the empty value the create defaults write and the titles are read as declared data rather than as stored values",
+  "the value the config read answered with for the policy flag, because the run records the value it declared, not the value the read normalized it to",
+  "the whole set the export lists, because the base the run declares puts names of its own in it at build time and a scratch base has no shell to list them with, so only the file the run put there is read",
+  "the wording of the lines the binary printed, which are the port's own",
+  "which device the console read took its values from, because the container has no terminal and the run gives it one through `Tools/smoke/console_feed.py`",
+  "which prompt of the credentials run produced which value, because the run writes the values through the terminal it gives the container and records only the order the file declares the prompts in, never the order they were answered in"
+ ],
+ "copy": {
+  "counts": {
+   "at_error_limit": 0,
+   "disabled": 0,
+   "due": 0,
+   "enabled": 5,
+   "feeds": 5
+  },
+  "instant": 1794479636.1855354,
+  "path": "/data/smoke-copy.db",
+  "printed": "Backup written: /data/smoke-copy.db",
+  "rows": [
+   {
+    "enabled": true,
+    "fetched_at": 1794479539,
+    "id": 1,
+    "next_check_at": 1794483139,
+    "parsing_error_count": 0,
+    "parsing_error_message": "",
+    "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
+    "title": "",
+    "url": "http://127.0.0.1:9011/smoke_alpha.xml",
+    "user_id": 1
+   },
+   {
+    "enabled": true,
+    "fetched_at": 1794479539,
+    "id": 2,
+    "next_check_at": 1794483139,
+    "parsing_error_count": 0,
+    "parsing_error_message": "",
+    "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
+    "title": "",
+    "url": "http://127.0.0.1:9011/smoke_beta.xml",
+    "user_id": 1
+   },
+   {
+    "enabled": true,
+    "fetched_at": 1794479539,
+    "id": 3,
+    "next_check_at": 1794483139,
+    "parsing_error_count": 0,
+    "parsing_error_message": "",
+    "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
+    "title": "",
+    "url": "http://127.0.0.1:9011/smoke_gamma.xml",
+    "user_id": 1
+   },
+   {
+    "enabled": true,
+    "fetched_at": 1794479539,
+    "id": 4,
+    "next_check_at": 1794483139,
+    "parsing_error_count": 0,
+    "parsing_error_message": "",
+    "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
+    "title": "",
+    "url": "http://127.0.0.1:9011/smoke_delta.xml",
+    "user_id": 1
+   },
+   {
+    "enabled": true,
+    "fetched_at": 1794479604,
+    "id": 5,
+    "next_check_at": 1794483204,
+    "parsing_error_count": 0,
+    "parsing_error_message": "",
+    "site_url": "http://127.0.0.1:9011/smoke_epsilon.xml",
+    "title": "",
+    "url": "http://127.0.0.1:9011/smoke_epsilon.xml",
+    "user_id": 1
+   }
+  ],
+  "wal_beside": false
+ },
+ "events": [
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.175,
+   "name": "smoke_alpha.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.175,
+   "name": "smoke_alpha.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.181,
+   "name": "smoke_alpha.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.181,
+   "name": "smoke_alpha.xml"
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.182,
+   "name": ""
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.182,
+   "name": "favicon.ico"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.187,
+   "name": "smoke_beta.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.187,
+   "name": "smoke_beta.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.19,
+   "name": "smoke_beta.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.19,
+   "name": "smoke_beta.xml"
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.191,
+   "name": ""
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.192,
+   "name": "favicon.ico"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.196,
+   "name": "smoke_gamma.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.196,
+   "name": "smoke_gamma.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.199,
+   "name": "smoke_gamma.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.199,
+   "name": "smoke_gamma.xml"
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.2,
+   "name": ""
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.2,
+   "name": "favicon.ico"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.204,
+   "name": "smoke_delta.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.204,
+   "name": "smoke_delta.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479539.207,
+   "name": "smoke_delta.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.207,
+   "name": "smoke_delta.xml"
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.208,
+   "name": ""
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479539.208,
+   "name": "favicon.ico"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479539.212,
+   "name": "smoke_epsilon.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479604.265,
+   "name": "smoke_epsilon.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479619.266,
+   "name": "smoke_epsilon.xml"
+  },
+  {
+   "action": "request",
+   "held": false,
+   "instant": 1794479619.271,
+   "name": "smoke_epsilon.xml"
+  },
+  {
+   "action": "answered",
+   "held": false,
+   "instant": 1794479634.272,
+   "name": "smoke_epsilon.xml"
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479634.273,
+   "name": ""
+  },
+  {
+   "action": "miss",
+   "held": false,
+   "instant": 1794479634.274,
+   "name": "favicon.ico"
+  }
+ ],
+ "image_content": [
+  ".dockerenv",
+  "console",
+  "dev",
+  "etc",
+  "hostname",
+  "hosts",
+  "mtab",
+  "proc",
+  "pts",
+  "resolv.conf",
+  "rivulet",
+  "shm",
+  "sys"
+ ],
+ "machine": {
+  "before": {
+   "entries": [],
+   "instant": 1794479478.8620493
+  },
+  "left": {
+   "entries": [],
+   "instant": 1794479635.7586796
+  },
+  "work": "tmp.AFGdhkS6be"
+ },
+ "manifest": [
+  {
+   "digest": "sha256:514d17e329eb9af6fb04c4aeb3a70c9bc44b41e7e1287b8225e3d9896c0e2b70",
+   "name": "corpus/smoke_alpha.xml",
+   "title": "Smoke Alpha"
+  },
+  {
+   "digest": "sha256:cd982dbedce2a89e47d4f97dca7a97fb15056b2ef282826a8e362012444dbdeb",
+   "name": "corpus/smoke_beta.xml",
+   "title": "Smoke Beta"
+  },
+  {
+   "digest": "sha256:cb192e4e99a3dc5e8b5321f88a9ddf8f05f2fe0cf3d887aac248ad92265336fd",
+   "name": "corpus/smoke_gamma.xml",
+   "title": "Smoke Gamma"
+  },
+  {
+   "digest": "sha256:cb6e6e42db25a9c6c84534621fc854b95584f7f71d7197297bdc969017522508",
+   "name": "corpus/smoke_delta.xml",
+   "title": "Smoke Delta"
+  },
+  {
+   "digest": "sha256:d9908a36732810994cca5c5d5f65b6563e9c0e99c9970ca59b2726e25f893d96",
+   "name": "corpus/smoke_epsilon.xml",
+   "title": "Smoke Epsilon"
+  }
+ ],
+ "rounds": {
+  "restarted": 1794479543.947128,
+  "started": 1794479478.8620534
+ },
+ "rules": [
+  "account_created",
+  "artifact_identity",
+  "copy_equals_the_source",
+  "corpus_matches_manifest",
+  "health_answer",
+  "image_base",
+  "image_content",
+  "login_answer",
+  "machine_left_as_found",
+  "migration_answer",
+  "pick_order_follows_declared_order",
+  "policy_admits_the_target",
+  "reader_answer",
+  "report_names_rules_and_gaps",
+  "round_reached_the_stub",
+  "rows_match_manifest",
+  "scheduling_resumed",
+  "snapshot_contract",
+  "stop_left_no_corruption"
+ ],
+ "run": {
+  "artifact_digest": "sha256:3af648220cb3fc448501f0fc2a2b799fb25b5bd1eafcc4143bbcdc85b709d1aa",
+  "artifact_path": "/home/mak/Work/rivulet/.build/static/out/Products/Release-staticlinux-x86_64/rivulet",
+  "base": "scratch",
+  "batch_size": 100,
+  "declared_feeds": 5,
+  "error_limit": 0,
+  "feed_base": "http://127.0.0.1:9011",
+  "image_copy_digest": "sha256:3af648220cb3fc448501f0fc2a2b799fb25b5bd1eafcc4143bbcdc85b709d1aa",
+  "policy": {
+   "name": "FETCHER_ALLOW_PRIVATE_NETWORKS",
+   "value": "1"
+  },
+  "record": "Tools/smoke/run.json",
+  "target": "127.0.0.1",
+  "triple": "x86_64-swift-linux-musl"
+ },
+ "snapshots": {
+  "after_stop": {
+   "document": {
+    "feeds": [
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 1,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_alpha.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 2,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_beta.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 3,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_gamma.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 4,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_delta.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479604,
+      "id": 5,
+      "next_check_at": 1794483204,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_epsilon.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_epsilon.xml",
+      "user_id": 1
+     }
+    ],
+    "totals": {
+     "at_error_limit": 0,
+     "disabled": 0,
+     "due": 0,
+     "enabled": 5,
+     "feeds": 5
+    }
+   },
+   "instant": 1794479635.097235,
+   "read_by": "after-restart"
+  },
+  "before_stop": {
+   "document": {
+    "feeds": [
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 1,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_alpha.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_alpha.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 2,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_beta.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_beta.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 3,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_gamma.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_gamma.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": 1794479539,
+      "id": 4,
+      "next_check_at": 1794483139,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "http://127.0.0.1:9011/smoke_delta.xml",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_delta.xml",
+      "user_id": 1
+     },
+     {
+      "enabled": true,
+      "fetched_at": null,
+      "id": 5,
+      "next_check_at": 1794479478,
+      "parsing_error_count": 0,
+      "parsing_error_message": "",
+      "site_url": "",
+      "title": "",
+      "url": "http://127.0.0.1:9011/smoke_epsilon.xml",
+      "user_id": 1
+     }
+    ],
+    "totals": {
+     "at_error_limit": 0,
+     "disabled": 0,
+     "due": 1,
+     "enabled": 5,
+     "feeds": 5
+    }
+   },
+   "instant": 1794479539.296233,
+   "read_by": "mid-round"
+  }
+ },
+ "stop": {
+  "in_flight": "smoke_epsilon.xml",
+  "instant": 1794479539.7376156,
+  "integrity_line": "Database integrity check passed",
+  "wal_bytes": 197792
+ }
+}

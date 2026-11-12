@@ -1,8 +1,10 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — two slices are merged: the static-build spike (PR #67) and the version
-value as a client reads it (PR #68). The clean-container smoke job is the next slice.
+**Status:** in progress — the static-build spike (PR #67) and the version value as a client reads it
+(PR #68) are merged; the clean-container smoke job (PR #69) is the third slice, with
+`Scripts/smoke.sh` as its run half and `Tools/smoke/smoke_check.py` as its check half, reading the
+document the run leaves behind rather than the container it ran.
 **Effort:** S–M.
 **Depends on:** Stage 6.
 
@@ -23,8 +25,11 @@ value as a client reads it (PR #68). The clean-container smoke job is the next s
       `docs/parity.md`: SwiftPM carries no VCS build info, and Swift's compiler flag carries a name
       rather than a value while the reference's value comes from a linker flag, so there is no
       commit or build-date half here to pin.
-- [ ] Dockerfile (scratch-based) + docker-compose example + `.env.example`; systemd unit and
-      install instructions for Ubuntu.
+- [x] **Dockerfile (scratch-based):** landed with the smoke job (PR #69) — `FROM scratch`, one
+      `COPY` of the static artifact, no toolchain and no libc, so the run that starts the image
+      shows that the artifact does not depend on the machine that built it. The `FROM` and `COPY`
+      lines are read as data by the check half; the `ENTRYPOINT` line is read by no rule. The
+      compose example, `.env.example` and the systemd unit are still open.
 - [ ] `docs/deploy.md`: zero-to-running on a fresh VPS; upgrade procedure; time/NTP notes;
       durability notes (`synchronous=NORMAL` RPO); backup recipes (`VACUUM INTO` + optional
       Litestream, including free-space requirements) and restore procedure.
@@ -87,10 +92,18 @@ needed.
 ### Integration (smoke — required, not optional)
 
 - The built binary in a clean container: `migrate` → `serve` → `/healthz` → `add` + `refresh`
-  against the stub corpus → Google Reader responds.
-- Restart mid-refresh: no corruption; scheduling resumes.
-- Backup → restore → data equal.
-- The runbook's exact commands from `docs/deploy.md` execute in the smoke job.
+  against the stub corpus → Google Reader responds. Read by the smoke job (PR #69), with the pass
+  over the corpus being the cadence loop's own round rather than the `refresh` command the plan
+  names, which `RefreshCommandTests` pins as a run; the smoke run calls no `refresh` itself, so the
+  rule reads the round the loop made.
+- Restart mid-refresh: no corruption; scheduling resumes. Read, apart from the WAL half, which the
+  checkpoint the process harness reads as empty cannot answer here because the write transaction the
+  stop interrupted blocks it.
+- Backup → restore → data equal. Read as the copy against the source, and the copy as the file the
+  run wrote with nothing beside it; the restore half is not read, because restore is a recipe the
+  runbook names.
+- The runbook's exact commands from `docs/deploy.md` execute in the smoke job. Not read: the file
+  does not exist yet, so the rule that would read it reports that it cannot.
 
 ## Exit criteria
 
