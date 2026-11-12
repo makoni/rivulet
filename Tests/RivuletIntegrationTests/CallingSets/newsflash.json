@@ -123,7 +123,7 @@
       "names": ["api_key", "with_ids"],
       "dispatch": "case",
       "page_size": "50",
-      "client_guard": "the library refuses a list above 50 before the request is sent, so nothing reaches the read here"
+      "client_guard": "the bound on the list size the library applies before it sends, which this run reached below, so no input here can show it firing"
     },
     {
       "key": "fever/links",

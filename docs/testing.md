@@ -1542,8 +1542,9 @@ The client matrix is the half that records the calling sets of the acceptance cl
 `docs/performance.md`, `docs/reference-notes.md`, the port's own route, dispatch, auth and response
 sources, and the field the timed pin's print writes as data, so every rule is a function over data
 rather than an assertion about a client that was never run here. `Tools/clients/parsers.py` holds
-only the read: the sections, tables, record lines, the two sentences the rules parse as sets, and
-the routes the port registers, so the rules stay the readable part of the check half.
+only the read: the sections, tables, record lines, the two sentences the rules parse as sets, the
+names read in the order a record line carries them, and the routes the port registers, so the rules
+stay the readable part of the check half.
 `Tools/clients/probes.py` crafts one input per rule that violates it and asserts that the rule
 reports it alone; the baseline — the committed data — reports nothing, so each probe is
 single-firing: 19 rules, 30 crafted inputs and the baseline, so 31 cases, the performance rule
@@ -1583,11 +1584,14 @@ sends the stored value as the token, the numbers of another
 machine, and the query latency at the 100k corpus. The run half is `Scripts/client-run.sh` with
 `Tools/clients/observer.py`, outside CI: the observer writes one record line per request it
 forwarded and asserts nothing, and the check half reads the record the run left behind rather than
-the processes. It is checked here by `bash -n` and by its eight guards, each seen to fail on the
-value it names: the record path, the client row, the two ports, the base, the version, the pair row,
-the entry rows, and the record being empty. The two guards that read the rows the run writes fail
-only on a run, and the guards that read the machine fail only on a machine. The Swift half is
-`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes, reading the same
+the processes. It is checked here by `bash -n` and by its eight guards — ten read sites, because the
+ports item reads the two ports against each other and each of them against the machine — each seen
+to fail on the value it names: the record path, the client row, the two ports by naming the same
+port twice and by a port the machine already holds, seen by holding one port with a listener, the
+base, the version, the pair row, the entry rows, and the record being empty. The three guards that
+read what the run itself wrote — the pair row, the entry rows, and the record being empty — fail
+only on a run, and the guards that read the machine fail only on a machine. The guards run before
+the record is written, so a guard that fires leaves the committed record alone. The Swift half is
 files through `Bundle.module` as data — the recorded order, which call reaches a registered route
 and which reaches the catch-all, the two item-id forms the same client sends, the page size above
 the clamp against the value at the clamp, the token half per method, the guard the merged form

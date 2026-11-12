@@ -20,8 +20,10 @@ set -euo pipefail
 # the pair is the half the run reaches only when a request carried it; the entry rows the pass wrote
 # against the value the run declares its seeded feed page carries, which is the half the client
 # reads and marks; and the record being empty, which is what a check half that reads no record line
-# cannot show. The guards that read the machine fail only on a machine, and the two that read the
-# rows the run writes fail only on a run.
+# cannot show. The guards that read the machine fail only on a machine, and the three that read what
+# the run itself wrote — the pair row, the entry rows, and the record being empty — fail only on a
+# run. The eight guards are ten read sites, because the ports item reads the two ports against each
+# other and each of them against the machine.
 #
 # Usage, one guard per line, each run against the value that line names:
 #
@@ -63,8 +65,12 @@ trap 'kill "${stub_pid:-}" "${serve_pid:-}" "${observer_pid:-}" 2>/dev/null || t
 
 fail() { printf 'guard: %s\n' "$1"; exit 1; }
 
+# True when something already answers on the port, read as connect_ex answering 0 for a
+# connection it can make. The ports guard reads this as the machine already holding the port,
+# and the wait below reads the same helper in the same sense, so both sites agree with their
+# own messages.
 answers() {
-    python3 -c 'import socket,sys; s = socket.socket(); sys.exit(0 if s.connect_ex(("127.0.0.1", int(sys.argv[1]))) else 1)' "$1"
+    python3 -c 'import socket,sys; s = socket.socket(); sys.exit(0 if s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0 else 1)' "$1"
 }
 
 # The wait the run makes for a port it started itself: the ports guard names the ports, and a
@@ -82,8 +88,8 @@ run_guards() {
         fail "the record path $RECORD is not the file the check half reads"
     grep -q "^| $CLIENT |" "$ROOT/docs/clients.md" || fail "the matrix has no row for $CLIENT"
     [ "$OBSERVE_PORT" != "$TARGET_PORT" ] || fail "the observer forwards to the port it listens on"
-    answers "$OBSERVE_PORT" || fail "the machine already holds the observer port $OBSERVE_PORT"
-    answers "$TARGET_PORT" || fail "the machine already holds the served port $TARGET_PORT"
+    answers "$OBSERVE_PORT" && fail "the machine already holds the observer port $OBSERVE_PORT"
+    answers "$TARGET_PORT" && fail "the machine already holds the served port $TARGET_PORT"
     # The base carries the path the port registers: the app sends to the base as it is typed, so a
     # base without the path reaches the root and answers Vapor's 404, which is what this run's login
     # showed.
@@ -119,8 +125,11 @@ seed_feed() {
 }
 
 mkdir -p "$WORK"
-: >"$RECORD"
+# The guards run before the record is written, so a run that fails a guard leaves the record
+# the previous run wrote alone: the guards read the record path as a name, not as a file, so
+# nothing a guard reads is a file the run itself writes.
 run_guards
+: >"$RECORD"
 
 "$RIVULET" migrate
 STUB_PORT=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
