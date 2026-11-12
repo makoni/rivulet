@@ -1717,8 +1717,9 @@ given, read against the file it wrote with no `-wal` beside it; the machine as t
 compared through the label the run writes; the runbook as the commands its fenced lines call, read
 against the case the dispatch registers, the flag names each command's signature declares, the names
 the config reads, the durability value against the pragma the storage wrapper runs, the room number
-against the factor the free-space check uses, and the order the page names its steps in against the
-order the run recorded running them in. Only the fenced lines are read as calls, so the restore
+against the factor the free-space check uses, and the first record the run kept of each command the
+page names, read against the order the page gives them. Only the fenced lines are read as calls, so
+the restore
 recipe, which the page writes as steps to follow rather than as commands to run, is not read as a
 call set; the order the rule compares is the order the fenced commands appear in. And the report
 against the rule list and the items the check half has.
@@ -1766,43 +1767,49 @@ declares, so a craft cannot set the value it compares: the policy rule's default
 default the file declares, so a craft reaches it only with a value the switch reads as neither on
 nor off, and the reader rule's endpoint half reads the route registration, so a craft reaches it
 only by changing the run's word for the endpoint. The runbook rule has one half a craft can move,
-the order the page names its steps in read against the order the run recorded running them in: one
-craft drops a step the run did not run and another puts a step out of that order. What the report
-names as what no document can show — the 20 items `CANNOT_SHOW` holds, and the report rule compares
-the document against them: that the run ran at all, because it is on demand and not in CI; that the
-fetch was still in flight when the signal landed, which only the run knows; that the container held
-no toolchain beyond the file the Dockerfile writes, because a scratch base has no shell to list it
-with, so the run records the base and the file set; the wording of the lines the binary printed,
-which are the port's own; which device the console read took its values from, since the container
-has no terminal and the run gives it one through `Tools/smoke/console_feed.py`; the exit code the
-stop signal left, because a signal that never lands hangs the run rather than reporting a code; the
-WAL bytes the run recorded at the stop, which are the interrupted round's and are not read as the
-harness reads them; that the copy the backup wrote is a plain file rather than a database the run
-can open, beyond the listing the run read at the moment it looked; that the two machine reads came
-from the same machine, because the rule reads two lists rather than one list read twice; that the
-run created the containers the machine reads name; that a run which left a container behind would
-have read it in the second pass, because the run lists only what it started; that a hop read the
-same bytes as the corpus file holds, since the rule reads the record the stub wrote and the digest
-of the file; the decision the address policy answered on the round, which the rule reads only as the
-flag against the class; the value the config read answered with for the policy flag, since the run
-records the value it declared rather than the value the read normalized it to; the order the round's
-jobs ran in, which the pool fixes none of; the runbook executed on a machine that is not the one
-that wrote it, because the run here ran on the machine that built the artifact, so the rule reads
-the page against the dispatch, the signatures, the names the config reads, the pragma and the
-factor, and against the steps this run recorded, while the stage's criterion is a fresh VPS; the
-tool the runbook names as outside the port, because no command of the port runs it, so the rule
-reads only that the page names it as external and not what a stream of it would hold; the titles the
-corpus documents declare, because the fetch writes no title and neither does the reference's refresh
-path, so the rows carry the empty value the create defaults writes and the titles are read as
-declared data rather than as stored values; the whole set the export lists, because the base puts
-names of its own in it at build time and a scratch base has no shell to list them with, so only the
-file the run put there is read; and which prompt of the credentials run produced which value,
-because the run records only the order the file declares the prompts in, never the order they were
-answered in. The musl branch of the free-space read is what the run half showed and no pin can show
-on the glibc CI, because the first branch is the only one the compiler reads there: with the branch
-absent the read answered nothing for the directory the copy is written to, so `backup` reported the
-refusal and wrote nothing, and the copy rule had no copy to read. The branch is named in
-`Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
+the first record the run kept of each command the page names, read against the order the page gives
+them: one craft drops a step the run did not run and another puts a step out of that order. A
+command the run called twice is read once, so the half cannot show the order of a repeat, which is
+named here as what the half reads only once. The order rule reads the values the `add` calls wrote:
+one craft puts them out of the
+declared order and another makes two of them one value. The order the jobs of the round ran in is
+not craftable, because the pool dispatch fixes none, so that half is named as a gap rather than
+asserted.
+What the report names as what no document can show — the 20 items `CANNOT_SHOW` holds, and the
+report rule compares the document against them: that the run ran at all, because it is on demand and
+not in CI; that the fetch was still in flight when the signal landed, which only the run knows; that
+the container held no toolchain beyond the file the Dockerfile writes, because a scratch base has no
+shell to list it with, so the run records the base and the file set; the wording of the lines the
+binary printed, which are the port's own; which device the console read took its values from, since
+the container has no terminal and the run gives it one through `Tools/smoke/console_feed.py`; the
+exit code the stop signal left, because a signal that never lands hangs the run rather than
+reporting a code; the WAL bytes the run recorded at the stop, which are the interrupted round's and
+are not read as the harness reads them; that the copy the backup wrote is a plain file rather than a
+database the run can open, beyond the listing the run read at the moment it looked; that the two
+machine reads came from the same machine, because the rule reads two lists rather than one list read
+twice; that the run created the containers the machine reads name; that a run which left a container
+behind would have read it in the second pass, because the run lists only what it started; that a hop
+read the same bytes as the corpus file holds, since the rule reads the record the stub wrote and the
+digest of the file; the decision the address policy answered on the round, which the rule reads only
+as the flag against the class; the value the config read answered with for the policy flag, since
+the run records the value it declared rather than the value the read normalized it to; the order the
+round's jobs ran in, which the pool fixes none of; the runbook executed on a machine that is not the
+one that wrote it, because the run here ran on the machine that built the artifact, so the rule
+reads the page against the dispatch, the signatures, the names the config reads, the pragma and the
+factor, and against the first records the run kept of the commands the page names, while the stage's
+criterion is a fresh VPS; the tool the runbook names as outside the port, because no command of the
+port runs it, so the rule reads only that the page names it as external and not what a stream of it
+would hold; the titles the corpus documents declare, because the fetch writes no title and neither
+does the reference's refresh path, so the rows carry the empty value the create defaults writes and
+the titles are read as declared data rather than as stored values; the whole set the export lists,
+because the base puts names of its own in it at build time and a scratch base has no shell to list
+them with, so only the file the run put there is read; and which prompt of the credentials run
+produced which value, because the run records only the order the file declares the prompts in, never
+the order they were answered in. The musl branch of the free-space read is what the run half showed
+and no pin can show on the glibc CI, because the first branch is the only one the compiler reads
+there: with the branch absent the read answered nothing for the directory the copy is written to, so
+`backup` reported the refusal and wrote nothing, and the copy rule had no copy to read. The branch
+is named in `Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
 `SystemFileSystemSpaceTests`, which names the musl half as checked by the static build rather than
 by a pin. ## Running
 

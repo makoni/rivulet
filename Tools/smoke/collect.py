@@ -204,7 +204,8 @@ def event_records():
 
 
 def start(number):
-    """The serve run, recorded as the step the runbook names, because the run starts it as a container."""
+    """The serve run, recorded as the step the runbook names, because the run starts it as a
+    container."""
     STEPS.append("serve")
     subprocess.run(["docker", "run", "-d", "--name", f"{LABEL}-{number}", "--network", "host",
                     "-v", f"{VOLUME}:/data"] + env_args()

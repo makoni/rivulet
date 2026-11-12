@@ -8,11 +8,13 @@ leaves, and the data is the file `DATABASE_URL` names.
 
 Only `DATABASE_URL` is required; the rest read as their defaults. Every name below is a name the
 config parser reads, and a name it does not reads as nothing — so a typo here is not an error the
-run reports.
+run reports. `LISTEN_ADDR` is read as `host:port`, so the port comes from the value as well and the
+default is the loopback listener `127.0.0.1:8080`; a value with no port is reported as an invalid
+value, not read as the default.
 
 ```sh
 export DATABASE_URL=/var/lib/rivulet/rivulet.db
-export LISTEN_ADDR=0.0.0.0
+export LISTEN_ADDR=0.0.0.0:8080
 export BASE_URL=https://reader.example.com
 export RUN_MIGRATIONS=1
 export POLLING_FREQUENCY=60
@@ -40,18 +42,21 @@ rivulet serve
 ```
 
 `create-admin` and `integration-credentials` read their prompts from the terminal, so this part of
-the runbook runs on a console, not from a unit or a pipe: a secure read answers nothing when its
-input is not a terminal, and the run then writes nothing. The credential pair the clients log in
-with is the one `integration-credentials` writes; `create-admin` writes the account hash alone, so
-the login answers 401 until the second command has run.
+the runbook runs on a console, not from a unit or a pipe: the secure read the dependency uses takes
+its values from the terminal device, and on a pipe it answered nothing, which is what the parity run
+showed — this port has no terminal guard of its own, so that is what the read does rather than a
+rule the port reads. The credential pair the clients log in with is the one
+`integration-credentials` writes; `create-admin` writes the account hash alone, so the login answers
+401 until the second command has run.
 
 `add` writes the row and fetches nothing, so the first round is the cadence loop's own: the serve
 run waits the interval it was built with, reads the batch, and writes the entries. `status --json`
 is the minimal contract the reader reads, and the counts it reports are read over every row whatever
 its state.
 
-`serve` is the run that keeps running; the unit names it, and the signal it reads is the clean stop
-path, which exits with 0. The port the run answers on is the one `LISTEN_ADDR` names.
+`serve` is the run that keeps running; a deployment names it in a service unit, which the stage plan
+still lists as open, and the signal it reads is the clean stop path, which exits with 0. The port
+the run answers on is the one the value names.
 
 ## Backups
 

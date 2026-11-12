@@ -4,8 +4,8 @@
 The rule reads the page as data: the commands its fenced lines call against the command surface the
 dispatch registers, the flags those lines use against the signature each command declares, the
 environment names against the names the config reads, the durability value against the pragma the
-storage wrapper runs, the room number against the factor the free-space check uses, and the
-order the page names its steps in against the order the run recorded running them in.
+storage wrapper runs, the room number against the factor the free-space check uses, and the first
+records the run kept of the commands the page names, read against the order the page gives them.
 
 Five of those six halves read a committed file, so a crafted document cannot move them: they are
 seen to fail by patching the page itself, which the header of `probes.py` names. The sixth reads the
@@ -16,7 +16,13 @@ import sources
 
 
 def runbook_reads_the_command_surface(data):
-    """The rule over the page, split into the halves each message names."""
+    """The rule over the page, split into the halves each message names.
+
+    The steps half reads the first record of each command the page names, because the run calls some
+    of them again for its own reads, and a command the page names twice — the copy command with and
+    without its check flag — is one position in that order. Repeats are not read, which the docs
+    name as what the half cannot show.
+    """
     calls, findings = sources.runbook_calls("runbook"), []
     declared = sources.literals_in("cli", "static func makeCommandGroup", "    }", 'as: "',
                                    "commands.use(")
@@ -34,9 +40,9 @@ def runbook_reads_the_command_surface(data):
     if sources.number_after("runbook", "factor") != int(sources.code_value("free_space", "factor")):
         findings.append(f"the runbook states the room with the factor {sources.number_after('runbook', 'factor')}, not the {sources.code_value('free_space', 'factor')} the check uses")
     named = [command for command, _ in calls]
-    ran = [one for one in dict.fromkeys(data["run"]["steps"]) if one in named]
-    if ran != list(dict.fromkeys(named)):
-        findings.append(f"the run ran the steps the page names as {ran}, not in the order it gives them ({list(dict.fromkeys(named))})")
+    first_named = [one for one in dict.fromkeys(data["run"]["steps"]) if one in named]
+    if first_named != list(dict.fromkeys(named)):
+        findings.append(f"the run's first record of each command the page names reads as {first_named}, not the order the page gives them ({list(dict.fromkeys(named))})")
     return findings
 
 

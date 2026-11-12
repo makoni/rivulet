@@ -112,7 +112,7 @@ needed.
   its fenced lines call, against the case the dispatch registers, the flag names each command's
   signature declares, the names the config reads, the durability value against the pragma the
   storage wrapper runs and the factor the free-space check uses, and the order the page names its
-  steps in read as the order the run recorded running them in. What the rule cannot show is that the
+  steps in read as the first records the run kept of them. What the rule cannot show is that the
   steps ran on a machine that is not the one that wrote the page, which is the criterion below, and
   what a stream of the tool the page names as outside the port would hold.
 
