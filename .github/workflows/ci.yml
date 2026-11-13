@@ -28,3 +28,67 @@ jobs:
 
       - name: Test
         run: swift test
+
+  probe-rounds:
+    # The five Python check halves read committed files as data, so the round each of them is
+    # checked by runs that need no container, socket or service: each craft changes the parsed
+    # form and never a file, and the baseline case asserts the committed document each harness
+    # left reports nothing. The run halves are on demand, so this job runs the rounds only. The
+    # Swift container has no python3, which is why this job runs on the runner host; the rounds
+    # read the repository through the root they are run from, so the job is machine-independent —
+    # each round was seen to be green from a tree copied to a different root.
+    name: Probe rounds (python3, ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Show the Python version the rounds run on
+        run: python3 --version
+
+      - name: Client matrix round
+        run: python3 Tools/clients/probes.py
+
+      - name: Parity comparator round
+        run: python3 Tools/parity/probes.py
+
+      - name: Smoke job round
+        run: python3 Tools/smoke/probes.py
+
+      - name: Deploy artifacts round
+        run: python3 Tools/deploy/probes.py
+
+      - name: DocC harness round
+        run: python3 Tools/docs/probes.py
+
+  pages:
+    # The site is the DocC catalog published as one site. The job builds it with the tool and
+    # publishes what the tool wrote; the check half reads the committed document the run half
+    # left, which the tool answered on the machine that wrote the catalog, so the round is what
+    # CI checks for this harness and this job is the publish path. The build is written to the
+    # gitignored build directory the working agreement names for a DocC build, and the tool is on
+    # the image, which is the half this job can show and no rule on this machine can.
+    name: Publish the DocC site
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: swift:latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the site from the catalog
+        run: docc convert Sources/RivuletCore/RivuletCore.docc --output-dir .docc-build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .docc-build
+
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4
