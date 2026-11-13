@@ -1927,6 +1927,50 @@ One thing outside this harness is named here rather than asserted: the stage cri
 VPS following `docs/deploy.md` cannot be closed on this machine, which is what the runbook report
 item names, and the run that wrote the committed document is the run this machine ran.
 
+## DocC harness (stage 8)
+
+`Scripts/docs.sh` is the run half of the DocC slice and `Tools/docs/docs_check.py` is its check
+half. The run copies the committed catalog into the directory it ran in, keeping the name the tool
+reads it as, because the tool reads a directory as a catalog only when the name carries the
+extension; it writes its build outside the repository, because a build inside the tree is an
+artifact the working agreement does not allow to be committed; runs `docc convert` on the copy; and
+hands the answer to `Tools/docs/collect.py`, which writes `Tools/docs/docs.json`. The check half
+reads that document rather than a build, so each of its 21 rules is a function over data. It is not
+a test: the shell is checked by `bash -n` and by its eight guards, thirteen read sites, each seen to
+fail here on the value the usage line names — the record path, the catalog path, the tool, the seven
+copies, one for each file the copy has, the asset, the build path, the page set and the document.
+
+The 21 rules read the pages as the shapes they write — the top directive's kind and arguments, the
+child directives, the references and assets the table of contents names, the fenced lines, the
+commands a page calls, the flags each call carries, the names the page sets, the name-and-value
+pairs the fences write, the stated values, the routes, the clients, the links, the repository paths,
+the version and the TODO lines — against the sources that write those values: the manifest target,
+the dispatch, the config parser and the fetcher options, the two route files, the storage wrapper,
+the free-space check, the committed example, the client matrix, the plan table, the root README, the
+contents table, the documents the docs directory has, the Swift sources and the report document. The
+pages state only what a check here can show, so a page that names a command the dispatch does not
+register, a flag no signature declares, a name no config read takes, or a client the matrix records
+no row for is a finding rather than a sentence.
+
+`Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part, and
+`Tools/docs/probes.py` crafts at least one input per rule that violates it: 30 cases over 21 rules,
+29 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
+craft here reaches more than one rule, and six rules have more than one craft because each reads
+more than one half. Every craft changes the parsed form and never a file, and the round hashes every
+file the check half reads before and after, so a craft that reached a file is reported. The shapes
+no rule compares are named as not read rather than left unread: the directive kind, the child
+directives, and the fenced lines, which are read through the shapes they build.
+
+The run half needs the tool, so CI runs the round, not the run; the Pages job builds the site from
+the committed catalog with `docc convert` and publishes what the tool wrote. The tool answers no
+version for its own run, so the document records the program the run invoked, which is the half no
+rule reads. What this harness cannot show is named as sixteen report items in `docs/docc.md`, and
+the same list is what `docs_check.py` keeps as `CANNOT_SHOW` and reads against the document, so the
+report is data rather than prose. The symbol pages are the item that names a gap in the toolchain
+rather than in the catalog: this toolchain's SwiftPM answers no plugin for the symbol graph the tool
+reads, so the site publishes the pages the catalog writes and the rule that reads the sources reads
+the comment attached to a declaration through its attribute lines.
+
 ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
@@ -1952,6 +1996,11 @@ each of its rules can fail on the rule it names.
   --probe` checks that each of its 16 rules can fail on the rule it names and that the baseline
   reports nothing; its eight guards run only as part of the run, because they read the two tools and
   the files the run writes.
+- `Scripts/docs.sh` — stage 8's DocC run, outside CI, because the run half needs the tool.
+  `python3 Tools/docs/docs_check.py` reads the committed document as data and
+  `python3 Tools/docs/docs_check.py --probe` checks that each of its 21 rules can fail on the rule
+  it names and that the baseline reports nothing. The run half was seen here to fail on the values
+  its usage lines name, thirteen read sites over eight guards.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the
@@ -1962,9 +2011,13 @@ default job, and it is not gated.
 CI runs on Linux: `ubuntu-latest` with the `swift:latest` container and a 15-minute job timeout.
 Keep the default suite well under that. Stage 7's cheap CI slice is in the default job — the reduced
 hostile corpus and the reduced large-feed scenario, both ungated — and the full parity harness runs
-on demand via `Scripts/parity.sh`. None of the Python check halves runs in CI, because the job
-builds and tests the Swift targets only, so each probe round is run by hand on the machine that has
-Docker, systemd and the toolchain.
+on demand via `Scripts/parity.sh`. The run halves are not in CI, because they read a machine, a tool
+or a process: Docker, systemd, the terminal, the DocC tool. The probe rounds are, as their own job
+on the runner host, because the Swift container has no `python3` — the five rounds read committed
+files as data, so they run on any machine that has the repository and a Python, which is what makes
+the job machine-independent; each round was seen to be green from a tree copied to a different root.
+The Pages job publishes the DocC site from the committed catalog in the Swift container, where the
+tool is on the image.
 
 ## Framework
 

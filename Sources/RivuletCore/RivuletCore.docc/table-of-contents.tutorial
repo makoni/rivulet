@@ -1,0 +1,30 @@
+@Tutorials(name: "RivuletCore") {
+  @Intro(title: "RivuletCore") {
+    Rivulet is a small self-hosted feed reader for one personal server: a Swift port of Miniflux
+    v2.3.3, with SQLite storage, a command-line interface and no web UI. One program and one
+    database file are the whole deployment.
+
+    Every page here states only what this project's checks can show: the commands the dispatch
+    registers, the flags those signatures declare, the names the configuration reads, the values
+    the sources write, the routes the port registers and the clients whose calling sets are read
+    as data. What a check cannot show is named in the project's documentation rather than here,
+    so a page never claims a rule it cannot fail on.
+
+    The pages are read as data by this project's check half, and the probe round crafts one input per
+    rule that violates it. That round is what makes the claims below falsifiable, so a page that names
+    a command the dispatch does not register is a finding, not a sentence.
+  }
+
+  @Chapter(name: "Getting started") {
+    @Image(source: "rivulet.svg", alt: "One program over one database file.")
+    @TutorialReference(tutorial: "doc:GettingStarted")
+  }
+
+  @Chapter(name: "Concepts") {
+    @Image(source: "rivulet.svg", alt: "One program over one database file.")
+    @TutorialReference(tutorial: "doc:Setup")
+    @TutorialReference(tutorial: "doc:Feeds")
+    @TutorialReference(tutorial: "doc:Clients")
+    @TutorialReference(tutorial: "doc:Deployment")
+  }
+}

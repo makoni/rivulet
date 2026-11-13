@@ -190,25 +190,40 @@ the last piece being the automated half of stage 5, whose green run in CI is the
 closed with it. The manual client-matrix criterion is closed for the client run here and stays
 open for the four clients this machine has no device to run, which is what the report items name.
 
-**Stage 8 — Packaging & deployment** is in progress with five slices merged: the static musl build
+**Stage 8 — Packaging & deployment** is in progress with six slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
 the stage's distro-linked fallback is not taken; the version value as a client reads it (PR #68);
 the clean-container smoke job (PR #69), read as 13 guards in the run half and 20 rules in the check
 half over the document the run leaves behind; the runbook `docs/deploy.md` with the rule that reads
 it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at the size
-cap the project sets; and the three deploy artifacts read as data (PR #72), whose run half is
+cap the project sets; the three deploy artifacts read as data (PR #72), whose run half is
 `Scripts/deploy.sh` with its eight guards, fourteen read sites, eleven seen to fail on the value
 they name, whose check half is `Tools/deploy/deploy_check.py` over 16 rules reading the document the
 run left rather than a container or a service, whose reads are in `Tools/deploy/parsers.py`, and
 whose probe round is `Tools/deploy/probes.py` with 22 cases — 21 crafts plus the baseline asserted
 to report nothing — two crafts being named as reaching more than one rule through the one patch they
-name. The twelve report items name what it cannot show: no image was built or started, no unit was
-installed on a machine, the tool that read the unit read it as a parse whose only finding is the
-program path not being on this machine, and the committed example carries placeholders rather than
-the values an operator fills in. What the stage cannot close here is the criterion of a fresh VPS
-following the runbook, and the Python check halves of this stage are not run by CI, which builds and
-tests the Swift targets only, so each probe round is run by hand on the machine that has Docker and
-systemd.
+name; and the DocC catalog published as one site (the documentation deliverable this agreement names
+for stage 8), whose check half is `Tools/docs/docs_check.py` over 21 rules reading the pages as the
+shapes they write against the sources that write the values — the manifest target, the dispatch, the
+config reads, the two route files, the storage wrapper, the free-space check, the committed example,
+the client matrix, the plan table, the root README, the contents table, the Swift sources and its
+own report document — with the run half `Scripts/docs.sh` at eight guards and thirteen read sites,
+all eight seen to fail here on the values the usage lines name, and the round `Tools/docs/probes.py`
+at 30 cases — 29 crafts plus the baseline asserted to report nothing, no craft reaching more than
+one rule — the reads being in `Tools/docs/parsers.py`. The sixteen report items name what no rule
+reads: the tool's answer for another machine, the tool's own version, the reading time, the titles
+and child directives, a page's prose, the way a page renders, the served site, and the symbol pages,
+which this toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool
+reads; the site publishes the pages the catalog writes. The 21 public declarations that had no
+comment are the second half of the same rule, read through the comment attached to a declaration
+over its attribute lines.
+
+What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
+check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
+container has no `python3`, and each round was seen to be green from a tree copied to a different
+root, which is what makes that job machine-independent; the run halves stay on demand, because they
+read a machine, a tool or a process — Docker, systemd, the terminal, the DocC tool. The Pages job
+publishes the catalog in the Swift container, where the tool is on the image.
 
 **Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion,
 the deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as
