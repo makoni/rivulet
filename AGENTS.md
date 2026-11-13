@@ -140,9 +140,10 @@ as a class the corpus cannot reach. The seventh slice is the client matrix and t
 notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three
 read from their own source at a named commit, two from the project's documentation because their
 source cannot be read here — and the check half reads those sets, the record files, the document and
-the port's own route, dispatch and auth sources as data over 18 rules. No set is a capture, because
-no client has been run against this port here, so the manual matrix exit criterion stays open and
-the checklists are the checks to run when a client can be run. What the 18 rules read: the source
+the port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, but
+one client has been run against this port here — NewsFlash, the Fever client, through the run
+half `Scripts/client-run.sh` — so the manual matrix criterion is closed for that client and
+stays open for the four this machine has no device to run. What the 19 rules read: the source
 each set names and its commit, the redaction as the placeholders the half reads, the matrix rows
 against the manifest lines, the classes against the parity table and the output-check class against
 the endpoints the reference applies the check on, the routes the port registers against the answer
@@ -154,16 +155,27 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — 23 crafted inputs plus the baseline over 18 rules, which is asserted to report nothing, so each
+it — 30 crafted inputs plus the baseline over 19 rules, which is asserted to report nothing, so each
 probe is single-firing, the performance rule having one for each of the five kinds it reads and the
 route rule one for each of its two halves — and the round hashes every file the check half reads
 before and after, so a craft that reached a file is reported; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can
-show is named in the document rather than asserted: no client run here, a closed-source set, the
-order a client reaches its calls at on a device, the values the calls carry, which are redacted, the
-app-level choice of a library-based client, the guard a client applies before it sends, the token
-half of a client that sends the stored value as the token, the numbers of another machine, and the
-query latency at the gated 100k corpus. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
+`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named
+in the document rather than asserted: the clients that have not been run against this port here,
+the calling set of a client whose source cannot be read, the order a client reaches its calls at
+on a device, which the run record carries for the client run here and the source declares for
+the others, the values the calls carry, which are redacted, the app-level choice of which calls
+a library-based client makes, the guard a client applies before it sends, read as the bound on the
+list size, which no record line can show firing, the side of the bound the guard applies,
+which the record carries as names and not as values, the token half of a client that sends the
+stored value as the token, the numbers of another machine, and the query latency at the 100k
+corpus. The eighth slice, merged as PR #71, is the run half executed here: `Scripts/client-run.sh`
+with `Tools/clients/observer.py` writes one record line per request it forwarded and asserts
+nothing, the record the run left behind is read as data by the nineteenth rule over seven
+halves, on the 26 lines the four sync passes wrote, and the run half is checked by `bash -n` and
+by its eight guards, ten read sites, each seen to fail on the value it names. The order half
+reads the order column rather than the position of the line, and one of the seven crafts reaches
+two parts of the data at once, the record line and the paragraph naming the calls this run
+showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10 probes, reading
 probes, reading the same files through `Bundle.module` as data: the recorded order, which call
 reaches a registered route and which reaches the catch-all answer, the two item-id forms the same
 client sends, the page size above the clamp against the value at the clamp, the token half per
@@ -175,8 +187,8 @@ taken here rather than bounds: `Scripts/perf.sh` is the run half, `Tools/clients
 the recorded run, and the rule matches each claim in `docs/performance.md` to the line that produced
 it. What this paragraph pointed to is merged: OPML as PR #64 and the acceptance journey as PR #66,
 the last piece being the automated half of stage 5, whose green run in CI is the criterion that
-closed with it. The manual client-matrix criterion stays open, because no client has been run
-against this port here.
+closed with it. The manual client-matrix criterion is closed for the client run here and stays
+open for the four clients this machine has no device to run, which is what the report items name.
 
 **Stage 8 — Packaging & deployment** is in progress with its first slice merged (PR #67): the static
 musl build spike, which is the answer that the Static Linux SDK builds the whole dependency stack,
@@ -192,8 +204,9 @@ named once in production code, with the musl branch named as what no pin can sho
 and the exit-code site named as having no pin. Version stamping and the clean-container smoke job
 are the open parts of the stage.
 
-**Stage 6 — CLI & operations** is in progress with its eight slices merged; the deployment runbook
-is the one exit criterion still open and it belongs to stage 8. Its first slice was the feed
+**Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion,
+the deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as
+stage 8's fourth slice (PR #70), read as data over six halves. Its first slice was the feed
 commands `add`, `remove` and `list` (PR #47). The order the rule reads — the guard, then the
 absolute-URL rule, then the duplicate read, then the category read — the url written as the command
 read it, the category resolved from the named title or from the default, the account resolved from
