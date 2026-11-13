@@ -169,7 +169,7 @@ server answers. The run half and the build half both need the tool, so they stay
 
 ## Backlog (style findings on the build half, from its review)
 
-- `add_markdown_link` is 59 lines, above the ~40-line aim, because the link half is one script
+- `add_markdown_link` is 83 lines, above the ~40-line aim, because the link half is one script
   block rather than a function the way the other halves are.
 - The comment references in the sources are read by no rule, because a rule would have to resolve
   them the way the tool does, which is the half that stays open here; the four the tool reported
