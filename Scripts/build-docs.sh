@@ -21,19 +21,20 @@ set -euo pipefail
 # What the guards read, and what each can fail on: the output path against the repository, which is
 # the half a build that writes inside the tree fails; the catalog against the path the check half
 # reads it at; the program the run invokes against the answer it gives for its own run, for the tool
-# and for SwiftPM; the base against the base each page the build wrote carries, which is the half a
-# build that asks for an empty base fails; the names the markdown manifest carries against the
-# markdown files the build wrote; the copy against the file SwiftPM wrote, which is the half a build
-# that reads a graph it did not copy fails; the module the copy names against the target the
-# manifest writes, which is the half a copy that names another module fails; and each page against
-# the link it carries, which is the half a build that wrote no link fails. The guards that read a
-# program fail here on a stand-in for that program, which is why this build stays on demand rather
-# than in CI. The thirteen read sites, one read for each value a guard names: the output path, the
-# catalog path, the tool's answer, SwiftPM's answer, the base value, the base as the page set
-# carries it, the manifest, the markdown file as the name set carries it, the copy and the file
-# SwiftPM wrote, the module the copy names and the target the manifest writes, and the link as the
-# page set carries it. The base is read as the tool writes it, the slashes at each end taken off, so
-# the guard, the tool and the link half read one base rather than two forms of it.
+# and for SwiftPM; the base, read as the tool writes it, against the base each page the guard's page
+# set carries, which is the half a build that asks for an empty base fails; the names the markdown
+# manifest carries against the markdown files the build wrote; the copy against the file SwiftPM
+# wrote, which is the half a build that reads a graph it did not copy fails; the module the copy
+# names against the target the manifest writes, which is the half a copy that names another module
+# fails; and each page the committed document names against the link it carries, which is the half a
+# build that wrote no link fails. The guards that read a program fail here on a stand-in for that
+# program, which is why this build stays on demand rather than in CI. The thirteen read sites, one
+# read for each value a guard names: the output path, the catalog path, the tool's answer, SwiftPM's
+# answer, the base value, the base as the page set carries it, the manifest, the markdown file as the
+# name set carries it, the copy and the file SwiftPM wrote, the module the copy names and the target
+# the manifest writes, and the link as the page set carries it. The base is read as the tool writes
+# it, the slashes at each end taken off, so the guard, the tool and the link half read one base
+# rather than two forms of it, and the page set the guards read is the page set the document names.
 
 # The link is put on every page the build wrote; the hrefs are the routes the build has a markdown
 # file for, which with a graph are the pages the symbol graph writes as well as the tutorial, so the
@@ -115,6 +116,7 @@ export docs_extra_module=${docs_extra_module-}
 export docs_no_link=${docs_no_link-}
 export DOCC_OUTPUT_PATH=${DOCC_OUTPUT_PATH-$HOME/Downloads/rivulet}
 export DOCC_HOSTING_BASE_PATH=${DOCC_HOSTING_BASE_PATH-docs/rivulet}
+export docs_base=$(read_base)
 
 value_guards() {
     case "$DOCC_OUTPUT_PATH" in
@@ -124,7 +126,7 @@ value_guards() {
         fail "the build reads the catalog at a path the check half does not read"
     answers "$docs_tool" convert --help
     answers "$docs_swiftpm" package dump-symbol-graph --help
-    [ -n "$DOCC_HOSTING_BASE_PATH" ] ||
+    [ -n "$docs_base" ] ||
         fail "the build asks for an empty base, which answers the root the site is served at"
 }
 
@@ -272,7 +274,6 @@ PY
 # the half the copy guard reads; a copy that names another module is the half the module guard
 # reads.
 value_guards
-docs_base=$(read_base)
 build_symbol_graph
 build_archive
 [ -n "$docs_no_link" ] || add_markdown_link

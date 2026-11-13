@@ -152,16 +152,16 @@ as the pages it writes. The 21 public declarations that had no documentation com
 same rule, through the comment attached to a declaration over its attribute lines, and are now
 filled.
 - The build half `Scripts/build-docs.sh` is checked by `bash -n` and by its nine guards, thirteen
-- read sites, each seen to fail here on the value its usage line names: the archive path, the
-- catalog path, the tool, SwiftPM, the base, the names the markdown manifest carries, the copy
-- against the file SwiftPM wrote, the module the copy names against the target the manifest writes,
-- and the link each page the build wrote carries. It writes the archive a site is built from outside
-- the repository, the graph being the copy of the one file for the target the manifest writes, and
-- the link stays hidden for a page the build has no markdown file for, which here is the page the
-- site opens first. The round is what CI runs for this harness, in the probe-rounds job on the
-- runner host, because the Swift container has no `python3`. Publishing the pages as a site happens
-- outside this repository, so no CI job here shows a served site, and no rule here reads what a web
-- server answers. The run half and the build half both need the tool, so they stay on demand.
+read sites, each seen to fail here on the value its usage line names: the archive path, the
+catalog path, the tool, SwiftPM, the base, the names the markdown manifest carries, the copy
+against the file SwiftPM wrote, the module the copy names against the target the manifest writes,
+and the link each page the build wrote carries. It writes the archive a site is built from outside
+the repository, the graph being the copy of the one file for the target the manifest writes, and
+the link stays hidden for a page the build has no markdown file for, which here is the page the
+site opens first. The round is what CI runs for this harness, in the probe-rounds job on the
+runner host, because the Swift container has no `python3`. Publishing the pages as a site happens
+outside this repository, so no CI job here shows a served site, and no rule here reads what a web
+server answers. The run half and the build half both need the tool, so they stay on demand.
 
 ## Exit criteria
 
@@ -172,9 +172,6 @@ filled.
 - `add_markdown_link` is 59 lines, above the ~40-line aim, because the link half is one script
   block rather than a function the way the other halves are.
 - The comment references in the sources are read by no rule, because a rule would have to resolve
-- them the way the tool does; the four the tool reported as findings for a build that reads the
-- graph are fixed at the sites they name, and the tool answered nothing for the build run here.
-- The manifest guard has nothing to compare when the tool writes no manifest at all, so it can fail
-  only on a name it is given.
-- The markdown href is relative to the directory of the page, so a page served at a url with no
-  trailing slash resolves it one level short.
+  them the way the tool does, which is the half that stays open here; the four the tool reported
+  as findings for a build that reads the graph were fixed at the sites they name, which is what
+  the tool's answer for the build run here shows.

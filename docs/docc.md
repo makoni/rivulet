@@ -103,19 +103,20 @@ the asset, the build path, the page set, and the document.
 ## The build half
 
 `Scripts/build-docs.sh` is the build half: it reads the catalog at the path the check half reads it
-at, takes the symbol graph from SwiftPM's own subcommand — the tool has no plugin for the graph here —
-copies the one file for the target the manifest writes, because a single build answers for one module
-while the graph dir holds every module the manifest resolves, and writes the archive a site is built
-from, outside the repository, with a markdown link on every page the build wrote. The routes the build
-has a markdown file for are the pages the graph writes as well as the tutorial, so the page the site
-opens first keeps the link hidden rather than pointing at a file the build never wrote. The script is
-checked by `bash -n` and by its nine guards, thirteen read sites, each seen to fail here on the value
-the usage lines name: the archive path, the catalog path, the tool, SwiftPM, the base, the names the
-manifest carries, the copy against the file SwiftPM wrote, the module the copy names against the
-target the manifest writes, and the link each page the build wrote carries. No rule here reads an
-archive, so this half is what a person runs before publishing, and publishing is outside this
-repository. The four comment references the tool reported as findings for a build that reads the
-graph are fixed at the sites they name, and the tool answered nothing for the build run here.
+at, takes the symbol graph from SwiftPM's own subcommand — the tool has no plugin for the graph here
+— copies the one file for the target the manifest writes, because a single build answers for one
+module while the graph dir holds every module the manifest resolves, and writes the archive a site
+is built from, outside the repository, with a markdown link on every page the build wrote. The
+routes the build has a markdown file for are the pages the graph writes as well as the tutorial, so
+the page the site opens first keeps the link hidden rather than pointing at a file the build never
+wrote. The script is checked by `bash -n` and by its nine guards, thirteen read sites, each seen to
+fail here on the value the usage lines name: the archive path, the catalog path, the tool, SwiftPM,
+the base read as the tool writes it, the names the markdown manifest carries, the copy against the
+file SwiftPM wrote, the module the copy names against the target the manifest writes, and the link
+on each page the committed document names. No rule here reads an archive, so this half is what a
+person runs before publishing, and publishing is outside this repository. The four comment
+references the tool reported as findings for a build that reads the graph are fixed at the sites
+they name, and the tool answered nothing for the build run here.
 
 ## Running it
 
