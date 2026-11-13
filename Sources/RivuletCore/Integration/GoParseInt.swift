@@ -14,6 +14,8 @@ public enum GoParseInt {
         case invalidSyntax(String)
         case outOfRange(String)
 
+        /// The wording the reference reports for whichever half the value is, which is why this read
+        /// writes it rather than the call sites.
         public var description: String {
             switch self {
             case .invalidSyntax(let value):

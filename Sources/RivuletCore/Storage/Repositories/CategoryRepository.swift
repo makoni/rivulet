@@ -162,6 +162,7 @@ public struct CategoryRepository {
     public enum DeleteError: Error, CustomStringConvertible, Sendable {
         case leavesNone
 
+        /// The reference's wording for the rule, which the handler answers with the same string.
         public var description: String {
             "store: at least 1 category must remain after deletion"
         }

@@ -16,6 +16,7 @@ public enum GoogleReaderTags {
         case starredSimultaneously
         case unsupportedTagType(GoogleReaderStreamType)
 
+        /// The wording the 500 answer writes for whichever branch the pair or the type is.
         public var description: String {
             switch self {
             case .readAndKeptUnreadSimultaneously:
