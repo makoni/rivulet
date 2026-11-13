@@ -129,13 +129,14 @@ rather than a stream.
 
 ## The three artifacts read as data
 
-`deploy/compose.yml`, `deploy/rivulet.service` and `.env.example` are read as data by
-`Tools/deploy/deploy_check.py`, which reads the document `Scripts/deploy.sh` leaves behind rather
-than a container or a service. The compose file is read as the key set the tool resolves it as, with
-each pair read as the tool took it, and the env file read as the values the tool resolved into the
-service environment rather than as a key of its own. The unit is read as the sections it puts its
-keys in, which is what the tool reads it as, and the example as one name-and-value pair per line.
-Comment lines and empty lines are the part no rule reads.
+`deploy/compose.yml`, `deploy/rivulet.service` and `.env.example` are the three artifacts read as
+data by `Tools/deploy/deploy_check.py`, which reads the document `Scripts/deploy.sh` leaves behind
+rather than a container or a service, and the run's fourth file is `Dockerfile`, read as the line
+that names the file the program has to be. The compose file is read as the key set the tool resolves
+it as, with each pair read as the tool took it, and the env file read as the values the tool
+resolved into the service environment rather than as a key of its own. The unit is read as the
+sections it puts its keys in, which is what the tool reads it as, and the example as one
+name-and-value pair per line. Comment lines and empty lines are the part no rule reads.
 
 Sixteen rules, read over the document the run left and the committed files it names: the compose as
 the tool read it, key by key and pair by pair; the copies the run wrote against the bytes the
@@ -146,18 +147,26 @@ that name as; no value in the example reading as the shape a credential has, rea
 hasher writes and the width the pin names for the hex form the token derivation writes; the data
 path as the three files name it; the unit subcommand against the names the dispatch registers; the
 program the unit names against the file the image copy line writes; the tool's own lines as data,
-the file each names and the key each names in its section; the restart policy the two files name as
-one value; the signal the unit names against the signals the handler has a case for; the project
-name as the tool resolved it against the name the run declared; the keys the three artifacts write
-against the bookkeeping the check half keeps; and the two lists the document carries against what
-the check half has.
+the file each names read in the shape the tool prints it in for the kind of finding the line is, and
+the key each names in the section the tool read it in; the restart policy the two files name as one
+value; the signal the unit names against the signals the handler has a case for; the project name as
+the tool resolved it against the name the run declared; the keys the three artifacts write against
+the bookkeeping the check half keeps; and the two lists the document carries against what the check
+half has. The position the tool prints for a key finding is recorded in the document for the reader
+and read by no rule.
 
-Twenty-two cases, one craft per rule plus the baseline, the baseline asserted to report nothing. Two
-crafts reach more than one rule through one patch, which `Tools/deploy/probes.py` names as
-`REACHES`: the restart policy and the container subcommand, because the rule that reads the compose
-as the tool read it reads the same key each of those crafts changes. Those are recorded as the reach
-rather than asserted as single-firing, and the round asserts each other craft reports its own rule
-alone.
+Twenty-two cases: 21 crafts plus the baseline, the baseline asserted to report nothing, which is
+what makes each craft single-firing. Four rules have more than one craft, because each reads more
+than one half: the compose rule has one craft for the key it resolves and one for the pair it takes,
+the credential rule one for the marker and one for the width, the tool-lines rule one for the file
+shape, one for the section and one for the program, and the report rule one for each of the two
+lists it reads. Two crafts reach more than one rule through one patch, which
+`Tools/deploy/probes.py` names as `REACHES`: the restart policy and the container subcommand,
+because the rule that reads the compose as the tool read it reads the same key each of those crafts
+changes. Those two are recorded as the reach rather than asserted as single-firing, and the round
+asserts each other craft reports its own rule alone. Two halves of the tool-lines rule are read but
+not probed alone, which the header of `probes.py` names: the shape the tool prints for a key
+finding, because the committed answer carries only the line about the program.
 
 What the harness cannot show, which the check half names as its report items:
 
@@ -168,7 +177,7 @@ the unit installed and run on a machine, because the tool reads the file as a pa
 the signal a stop delivers, because the tool reads the signal the unit names as text, and which signal a stop sends is what the unit answers on a machine that runs it
 the values an operator fills in, because the committed example carries placeholders and the file a deployment reads is the gitignored name
 the credential pair, which lands through the command the runbook names, not through a name the config reads
-the published port being free on the machine, because the guard reads the machine before the run and the rule reads the pair the compose writes
+the published port being free on the machine, because this run half reads no machine and the rule reads the pair as a value the file writes
 the wording of the lines the tools printed, which the rule reads as the file and the value each line names, not as the sentence
 the version of each tool the run names, because the run records the line each tool answered for itself and no rule reads it
 the runbook executed on a machine that is not the one that wrote it, because the stage criterion is a fresh VPS and this run ran on the machine that built the artifact

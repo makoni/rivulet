@@ -11,7 +11,7 @@
     "the artifact the Dockerfile names being in the build context, because the run does not build and the tool resolves the name without reading the file",
     "the credential pair, which lands through the command the runbook names, not through a name the config reads",
     "the image being built or started, because the run reads the compose as the tool resolves it and never builds",
-    "the published port being free on the machine, because the guard reads the machine before the run and the rule reads the pair the compose writes",
+    "the published port being free on the machine, because this run half reads no machine and the rule reads the pair as a value the file writes",
     "the runbook executed on a machine that is not the one that wrote it, because the stage criterion is a fresh VPS and this run ran on the machine that built the artifact",
     "the signal a stop delivers, because the tool reads the signal the unit names as text, and which signal a stop sends is what the unit answers on a machine that runs it",
     "the unit installed and run on a machine, because the tool reads the file as a parse and the only finding it answers is the program path not being on this machine",
@@ -30,7 +30,7 @@
     "services": {
       "rivulet": {
         "build": {
-          "context": "/tmp/tmp.3XKtKg6LYW",
+          "context": "/tmp/tmp.mVaOSaCZsy",
           "dockerfile": "Dockerfile"
         },
         "command": [
@@ -99,10 +99,10 @@
     "analyze_tool": "systemd 262 (262.1-1-arch)",
     "compose_tool": "Docker Compose version 5.6.1",
     "copies": {
-      "compose": "/tmp/tmp.3XKtKg6LYW/deploy/compose.yml",
-      "dockerfile": "/tmp/tmp.3XKtKg6LYW/Dockerfile",
-      "example": "/tmp/tmp.3XKtKg6LYW/.env",
-      "unit": "/tmp/tmp.3XKtKg6LYW/deploy/rivulet.service"
+      "compose": "/tmp/tmp.mVaOSaCZsy/deploy/compose.yml",
+      "dockerfile": "/tmp/tmp.mVaOSaCZsy/Dockerfile",
+      "example": "/tmp/tmp.mVaOSaCZsy/.env",
+      "unit": "/tmp/tmp.mVaOSaCZsy/deploy/rivulet.service"
     },
     "copy_digests": {
       "compose": "b8c54bf53dcf953449014a4f28a068bff3c9d484bb76df90d49e5ee3bdd4c736",
@@ -119,6 +119,6 @@
     "program_on_this_machine": false,
     "project": "rivulet",
     "unit_named": "rivulet.service",
-    "work": "/tmp/tmp.3XKtKg6LYW"
+    "work": "/tmp/tmp.mVaOSaCZsy"
   }
 }

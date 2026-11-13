@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """The rules the deploy check half reads over the document the deploy run leaves behind.
-
 This is the deploy slice check half (`Scripts/deploy.sh` is the run half, `collect.py` writes the
 document). It is not a test and it does not run in CI: the CI container has neither Docker nor
-systemd, so the run is on demand, and the check half is checked by `probes.py`, which crafts one
-input per rule that violates it and asserts the rule reports it alone. The committed document is the
-run this machine produced, and the baseline case asserts it reports nothing.
+systemd, so the run is on demand, and the check half is checked by `probes.py`, which crafts at
+least one input per rule that violates it and asserts each craft reports its own rule alone or
+the rules its patch reaches. The committed document is the run this machine produced, and the
+baseline case asserts it reports nothing.
 
 Every rule is a function over the data `parsers.py` builds: the document the run left, or the
-document and a committed file the run names. The parsers read the three artifacts as the keys they
-write, so a rule that compares a tool answer with a key the file writes reads the file rather than
-the word the run declared for it. What the rules cannot read is what `CANNOT_SHOW` names and what
-`docs/testing.md` writes as the report. The coverage rule reads the keys the three artifacts write
-against `READS`, the bookkeeping of which rule reads which key, plus `NOT_READ`, the two unit keys
-that are structure rather than a value the port reads.
+document and a committed file the run names. The parsers read the three artifacts as the keys
+they write, so a rule that compares a tool answer with a key the file writes reads the file
+rather than the word the run declared for it. What the rules cannot read is what `CANNOT_SHOW`
+names and what `docs/testing.md` writes as the report. The coverage rule reads the keys the three
+artifacts write against `READS`, the bookkeeping of which rule reads which key, plus `NOT_READ`,
+the two unit keys that are structure rather than a value the port reads.
 
 Usage, one per line:
+
 deploy_check.py --probe # the probe set against the committed document
+
 deploy_check.py --document deploy.json # apply the rules to one run document
+
 """
 
 import argparse
@@ -36,7 +39,7 @@ CANNOT_SHOW = [
     "the signal a stop delivers, because the tool reads the signal the unit names as text, and which signal a stop sends is what the unit answers on a machine that runs it",
     "the values an operator fills in, because the committed example carries placeholders and the file a deployment reads is the gitignored name",
     "the credential pair, which lands through the command the runbook names, not through a name the config reads",
-    "the published port being free on the machine, because the guard reads the machine before the run and the rule reads the pair the compose writes",
+    "the published port being free on the machine, because this run half reads no machine and the rule reads the pair as a value the file writes",
     "the artifact the Dockerfile names being in the build context, because the run does not build and the tool resolves the name without reading the file",
     "the wording of the lines the tools printed, which the rule reads as the file and the value each line names, not as the sentence",
     "the version of each tool the run names, because the run records the line each tool answered for itself and no rule reads it",
@@ -56,7 +59,7 @@ READS = {
         "compose.services.rivulet.volumes", "compose.volumes", "compose.volumes.rivulet-data"],
     "build_reads_the_files_the_run_copied": ["compose.services.rivulet.build.context",
         "compose.services.rivulet.build.dockerfile", "compose.services.rivulet.env_file",
-        "compose.services.rivulet.env_file.env_file"],
+        "compose.services.rivulet.env_file"],
     "the_container_starts_a_command_the_dispatch_registers": ["compose.services.rivulet.command"],
     "the_published_port_is_the_port_the_address_names": ["compose.services.rivulet.ports"],
     "every_name_the_deploy_set_writes_is_a_config_read": [f"example.{name}" for name in sorted(read.example_values())],
@@ -259,10 +262,11 @@ def every_name_the_deploy_set_writes_is_a_config_read(data):
 def the_values_read_as_the_parser_reads_them(data):
     """Each value as the kind of value the source reads that name as.
 
-    The kinds come from the sources: the integer reads with their minimum, the choice reads with the
-    case set the enum declares, the boolean read with the forms the switch has, and the three reads
-    that take a value as a shape of their own. A name the source reads with a trim alone is not read
-    here, because no rule can show a value that reads as free text.
+    The kinds come from the sources: the integer reads with their minimum and the plus the number read
+    takes as part of it, the choice reads with the case set the enum declares read after the read
+    lowercases what it is given, the boolean read with the forms the switch has after the same
+    lowercase, and the three reads that take a value as a shape of their own. A name the source reads
+    with a trim alone is not read here, because no rule can show a value that reads as free text.
     """
     findings = []
     for name, value in sorted(data["example"].items()):
@@ -271,11 +275,11 @@ def the_values_read_as_the_parser_reads_them(data):
             continue
         kind = shape["kind"]
         host = value.split("//")[-1].split("/")[0] if "//" in value else value
-        if kind == "integer" and (not value.isdigit() or int(value) < shape["minimum"]):
+        if kind == "integer" and (not value.lstrip("+").isdigit() or int(value) < shape["minimum"]):
             findings.append(f"{name} reads as {value}, which is not an integer at least the {shape['minimum']} the read requires")
-        elif kind == "choice" and value not in shape["cases"]:
+        elif kind == "choice" and value.lower() not in shape["cases"]:
             findings.append(f"{name} reads as {value}, not one of the cases the enum declares ({shape['cases']})")
-        elif kind == "boolean" and value not in shape["forms"]:
+        elif kind == "boolean" and value.lower() not in shape["forms"]:
             findings.append(f"{name} reads as {value}, not one of the forms the switch has ({shape['forms']})")
         elif kind == "path" and re.match(data["value_shapes"]["path_scheme"], value):
             findings.append(f"{name} reads as {value}, which the path read reports as a value carrying a scheme")
@@ -363,14 +367,19 @@ def the_tool_read_the_unit_as_the_file_the_run_named(data):
     """The tool lines as data: the file each names, and the key each names in its section.
 
     The tool reads the unit as a parse, so the lines it printed are the whole of what the run saw of
-    the unit. A line naming a key in a section the unit does not put that key in is a reading the
-    file does not support, and the finding about the program is read as the run declaring the path
-    as being on this machine, which the line reports it is not.
+    the unit, and it names the file in two shapes: as the path it resolved the unit at, which is the
+    copy the run wrote, for a finding about a key, and as the name the run passed it, with no
+    position, for the finding about the program. A line naming the file in neither shape is a line
+    the run did not read. A line naming a key in a section the unit does not put that key in is a
+    reading the file does not support, and the finding about the program is read as the run declaring
+    the path as being on this machine, which is what the line reports it is not.
     """
-    passed, findings = run(data)["unit_named"], []
+    passed, written, findings = run(data)["unit_named"], run(data)["copies"]["unit"], []
     for entry in data["analyze"]:
-        if entry["file"] != passed:
-            findings.append(f"the line names {entry['file']}, not the file the run passed ({passed})")
+        shape = written if entry["kind"] == "key" else passed
+        if entry["file"] != shape:
+            findings.append(f"the line names {entry['file']}, not the {shape} the tool reads for a "
+                            f"{entry['kind']} finding")
         if entry["kind"] == "key" and entry["key"] not in data["unit"].get(entry["section"], {}):
             findings.append(f"the tool read {entry['key']} as a key in [{entry['section']}], where the unit writes no such key")
         if entry["kind"] == "program" and run(data)["program_on_this_machine"]:
@@ -460,11 +469,15 @@ def apply_rules(data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--probe", action="store_true")
+    parser.add_argument("--document", help="apply the rules to one run document instead of the committed one")
     args = parser.parse_args()
 
     if args.probe:
         import probes
         return probes.assert_each()
+
+    if args.document:
+        read.DEFAULTS["document"] = args.document
 
     data = read.build()
     fired = apply_rules(data)

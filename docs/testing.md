@@ -1840,17 +1840,18 @@ by a pin.
 
 ## Deploy artifacts (stage 8)
 `Scripts/deploy.sh` is the run half of the deploy slice and `Tools/deploy/deploy_check.py` is its
-check half. The run copies the three committed deploy artifacts into the directory it ran in, asks
-the two tools to read them there - `docker compose config --format json` for the compose file and
-`systemd-analyze verify` for the unit - and hands the answers to `Tools/deploy/collect.py`, which
-writes `Tools/deploy/deploy.json`. The check half reads that document rather than a container or a
-service, so each of its 16 rules is a function over data. It is not a test and it does not run in
-CI: the CI container has neither Docker nor systemd, so the run is on demand, and the shell is
-checked here by `bash -n` and by its eight guards, each seen to fail on the value it names.
-`Tools/deploy/parsers.py` holds only the reads, so the rule list stays the readable part, and
-`Tools/deploy/probes.py` crafts one input per rule that violates it: 22 cases over 16 rules, 21
-crafts plus the baseline, the baseline asserted to report nothing, so each craft reports its own
-rule alone or the rules its patch reaches.
+check half. The run copies the four committed files it reads - the three artifacts and the image
+file - into the directory it ran in, asks the two tools to read them there - `docker compose config
+--format json` for the compose file and `systemd-analyze verify` for the unit - and hands the
+answers to `Tools/deploy/collect.py`, which writes `Tools/deploy/deploy.json`. The check half reads
+that document rather than a container or a service, so each of its 16 rules is a function over data.
+It is not a test and it does not run in CI: the CI container has neither Docker nor systemd, so the
+run is on demand, and the shell is checked here by `bash -n` and by its eight guards, each seen to
+fail on the value it names. `Tools/deploy/parsers.py` holds only the reads, so the rule list stays
+the readable part, and `Tools/deploy/probes.py` crafts at least one input per rule that violates it:
+22 cases over 16 rules, 21 crafts (four rules having more than one, because those rules read more
+than one half) plus the baseline, the baseline asserted to report nothing, so each craft reports its
+own rule alone or the rules its patch reaches.
 
 What the 16 rules read: the compose as the tool resolved it, key by key, with each port and volume
 pair read as the tool took it and the volume name read as the tool resolved it with the project the
@@ -1864,21 +1865,25 @@ resolved names, read as one port on both halves of the pair and against the port
 with a value that is the listener the read answers for a value it does not read being reported as
 the default rather than as a value the example writes; every name the three files write against the
 names the config sources read; each value as the kind of value the source reads that name as, with
-the integer reads carrying their minimum, the choice reads carrying the case set the enum declares,
-the boolean read carrying the forms the switch has, and the three reads that take a value as a shape
-of their own named by the function that reads them; no value in the example reading as the shape a
-credential has, read as the marker the hasher writes and the width the pin names for the hex form
-the token derivation writes, with the file the run built read as the gitignored name the file a
-deployment reads has; the data path as the three files name it; the unit subcommand against the
-names the dispatch registers; the program the unit names against the file the image copy line writes
-and against the program the tool printed; the tool lines as data, the file each names against the
-name the run passed and the key each names in the section the tool read it in; the restart policy
-the two files name as one value; the signal the unit names against the signals the handler has a
-case for; the project name as the tool resolved it against the name the run declared; the keys the
-three artifacts write against the bookkeeping the check half keeps; and the two lists the document
-carries against what the check half has. The two unit keys that are structure rather than a value
-the port reads, the description and the install target, are named in `NOT_READ` rather than left
-unread, and the comment lines and empty lines in the three artifacts are the part no rule reads.
+the integer reads carrying their minimum and the plus the number read takes as part of it, the
+choice reads carrying the case set the enum declares read after the read lowercases what it is
+given, the boolean read carrying the forms the switch has after the same lowercase, and the three
+reads that take a value as a shape of their own named by the function that reads them; no value in
+the example reading as the shape a credential has, read as the marker the hasher writes and the
+width the pin names for the hex form the token derivation writes, with the file the run built read
+as the gitignored name the file a deployment reads has; the data path as the three files name it;
+the unit subcommand against the names the dispatch registers; the program the unit names against the
+file the image copy line writes and against the program the tool printed; the tool lines as data,
+with the file each names read in the shape the tool prints it in - the name the run passed for the
+finding about the program and the path the run built the copy at for a finding about a key - and the
+key each names read against the section the tool named it in; the restart policy the two files name
+as one value; the signal the unit names against the signals the handler has a case for; the project
+name as the tool resolved it against the name the run declared; the keys the three artifacts write
+against the bookkeeping the check half keeps; and the two lists the document carries against what
+the check half has. The two unit keys that are structure rather than a value the port reads, the
+description and the install target, are named in `NOT_READ` rather than left unread, the comment and
+empty lines in the three artifacts are the part no rule reads, and the position the tool prints for
+a key finding is recorded for the reader and read by no rule.
 
 Two crafts reach more than one rule through one patch, which `Tools/deploy/probes.py` names as
 `REACHES`: the restart policy and the container subcommand, because the rule that reads the compose
@@ -1898,14 +1903,17 @@ against the paths the check half reads them at, by `/tmp/opencode/dtest/deploy/c
 run builds against the gitignored name the file a deployment reads has, by `env.local`; the four
 copies against the bytes the committed files have, by writing one extra byte to a copy; the two
 tools against the answer each gives for the run, by `/bin/false` for both; the first line the unit
-tool printed against the name the run passed it, by `reader.service`, which is the half that reports
-the tool not finding the unit at all; the service key the compose writes against the service the run
-declares, by `reader`; and the document the run wrote against the answer both tools gave, by an
-empty document, which is the half a run that never ran cannot pass. The eight guards are thirteen
-read sites, because the artifact item reads three files, the copy item reads four and the tool item
-reads two answers. The guards that read a value the run declares run before the document is written,
-so a run that fails one of them leaves the document the previous run wrote alone, and the guards
-that read a tool fail only on a machine without it, which is the point of the job.
+tool printed against the file the run read the unit as - the name it passed for the finding about
+the program and the copy it wrote for a finding about a key - by `reader.service`, which is the half
+that reports the tool not finding the unit at all; the service key the compose writes against the
+service the run declares, by `reader`; and the document the run wrote against the answer both tools
+gave, by an empty document written through `deploy_empty=1`, which is the half a run that never ran
+cannot pass. The eight guards are fourteen read sites: the record path reads one, the three
+committed artifacts read three, the env name reads one, the copies read four, the tools read two
+answers, the unit line reads one, the service key reads one, and the document reads two, one for
+each answer it carries. Eleven of the fourteen were seen to fail here, because the copy item fires
+on the first of the four copies it reads and the document item on the first of the two answers it
+reads, which is the order this run reads them in.
 
 What this harness cannot show is named as twelve report items in `docs/deploy.md`, and the same list
 is what `deploy_check.py` keeps as `CANNOT_SHOW` and reads against the document, so the report is
@@ -1913,10 +1921,13 @@ data rather than prose: the run having run at all, the image being built or star
 the Dockerfile names being in the build context, the unit installed and run on a machine, the signal
 a stop delivers, the values an operator fills in, the credential pair, the published port being free
 on the machine, the wording of the lines the tools printed, the version of each tool the run names,
-the runbook executed on a machine that is not the one that wrote it, and a value an operator changes
+the runbook executed on a machine that is not the one that wrote it, and a value an operator
+changes.
 One thing outside this harness is named here rather than asserted: the stage criterion of a fresh
 VPS following `docs/deploy.md` cannot be closed on this machine, which is what the runbook report
-item names. ## Running
+item names, and the run that wrote the committed document is the run this machine ran.
+
+## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).

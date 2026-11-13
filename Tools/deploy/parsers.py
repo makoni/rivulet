@@ -13,8 +13,9 @@ the hasher and the pin that names the width the token derivation writes; `.gitig
 where the env file name the run builds is read as data; and the runbook, which names the data path
 and the port the run publishes.
 
-Comment lines and empty lines in the artifacts are the part no rule reads, which `deploy_check.py`
-names as the lines the coverage rule does not read.
+Comment lines and empty lines in the artifacts are the part no rule reads. The two unit keys that are
+structure rather than a value the port reads are named as not read in `deploy_check.py`, and the
+position the unit tool prints for a key finding is recorded here for the reader and read by no rule.
 """
 
 import hashlib
@@ -219,18 +220,24 @@ def credential_shapes():
 
 
 def analyze_lines(raw_lines, passed):
-    """The lines the unit tool printed, read as the file and the value each line names.
+    """The lines the unit tool printed, read as the file, the position and the value each names.
 
-    A line names the file as the run passed it, so the rule that reads the tool as data reads this
-    rather than the word the run declared. A line can name a key the unit writes in a section the
-    unit does not put it in, which is what the tool reads as an unknown key, or the program the
-    command names, which is the finding the run declares as not being on this machine.
+    The tool names the file two ways: as the path it resolved the unit at with the position the key
+    sits at for a key finding, and as the name the run passed it with no position for the finding
+    about the program, so the rule that reads the tool as data reads the file in the shape the tool
+    printed it. The position is recorded for the reader and read by no rule. A line can name a key
+    the unit writes in a section the unit does not put it in, which is what the tool reads as an
+    unknown key, or the program the command names, which is the finding the run declares as not
+    being on this machine.
     """
     out = []
     for raw in raw_lines:
-        file, _, rest = raw.partition(": ")
-        entry = {"file": file, "kind": "other", "key": None, "section": None, "program": None,
-                 "passed": passed}
+        head, _, rest = raw.partition(":")
+        position = re.match(r"^(\d+):", rest)
+        if position:
+            rest = rest[position.end():]
+        entry = {"file": head, "position": position.group(1) if position else None,
+                 "kind": "other", "key": None, "section": None, "program": None, "passed": passed}
         key = re.search(r"Unknown key '([A-Za-z]+)' in section \[(\w+)\]", rest)
         if key:
             entry.update({"kind": "key", "key": key.group(1), "section": key.group(2)})

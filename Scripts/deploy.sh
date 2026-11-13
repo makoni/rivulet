@@ -13,12 +13,17 @@ set -euo pipefail
 # half reads them at; the file this run builds against the gitignored name the file a deployment
 # reads has; the four copies this run wrote against the bytes the committed files have, which is the
 # run being allowed to copy and not to change; the two tools against the answer each gives for the
-# run; the first line the unit tool printed against the name this run passed it; the service key the
-# compose writes against the service this run declares; and the document this run wrote against the
-# answer both tools gave, which is the half a run that never ran cannot show. The guards that read a
-# tool fail only on a machine without it, which is the point of the job; the guards that read what
-# this run wrote fail only on a run. The eight guards are thirteen read sites, because the artifact
-# item reads three files, the copy item reads four, and the tool item reads two answers.
+# run; the first line the unit tool printed against the file this run read the unit as, which is the
+# name it passed for the finding about the program and the copy it wrote for a finding about a key;
+# the service key the compose writes against the service this run declares; and the document this
+# run wrote against the answer both tools gave, which is the half a run that never ran cannot show.
+# The guards that read a tool fail only on a machine without it, which is the point of the job; the
+# guards that read what this run wrote fail only on a run. The eight guards are fourteen read sites:
+# the record path reads one, the three committed artifacts read three, the env name reads one, the
+# copies read four, the tools read two answers, the unit line reads one, the service key reads one,
+# and the document reads two, one for each answer it carries. Eleven of the fourteen were seen to
+# fail here, because the copy item fires on the first of the four copies it reads and the document
+# item on the first of the two answers it reads, which is the order this run reads them in.
 
 # This run reads and never builds: the tool resolves the compose without reading the artifact the
 # Dockerfile names, so the published port is read as a value the file writes and never as a port the
@@ -38,7 +43,7 @@ set -euo pipefail
 #   deploy_analyze_tool=/bin/false Scripts/deploy.sh                             # the unit tool
 #   deploy_unit_named=<a name the tool line does not carry> Scripts/deploy.sh   # the unit name
 #   deploy_service=<a name the compose writes no key for> Scripts/deploy.sh     # the service key
-#   deploy_record=<an empty document> Scripts/deploy.sh                         # the document half
+#   deploy_empty=1 Scripts/deploy.sh                                               # the document half, through the data writer
 
 # The guards that read a value this run declares run before the document is written, so a run that
 # fails one of them leaves the document the previous run wrote alone.
@@ -116,8 +121,9 @@ run_guards() {
     tool_answers "$deploy_analyze_tool" --version
     first=$(cd "$deploy_work/deploy" && "$deploy_analyze_tool" verify "$deploy_unit_named" 2>&1 | head -1 || true)
     [ -n "$first" ] || fail "the unit tool answered no line for the run"
-    [ "$(printf '%s' "$first" | cut -d: -f1)" = "$deploy_unit_named" ] ||
-        fail "the line names $(printf '%s' "$first" | cut -d: -f1), not the name the run passed ($deploy_unit_named)"
+    named=$(printf '%s' "$first" | cut -d: -f1)
+    [ "$named" = "$deploy_unit_named" ] || [ "$named" = "$(copy_of unit)" ] ||
+        fail "the line names $named, not the file the run read the unit as ($deploy_unit_named, or the copy it wrote at $(copy_of unit))"
 }
 
 # The run: the copies, the guards, the two tools, then the document. The run asserts nothing about

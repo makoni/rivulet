@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
-"""The probe round the deploy check half is checked with, one crafted input per rule.
+"""The probe round the deploy check half is checked with, at least one crafted input per rule.
 
-Every craft changes the parsed form and never a file, so the round hashes every file the check half
-reads before and after and reports a craft that reached a file. The committed document is the run
-this
-machine produced, and the baseline case asserts it reports nothing, which is what makes each craft
-single-firing: a craft that reached a second rule is reported as reaching it, and `REACHES` names
-the
-crafts that reach more than one rule through the same patch.
+Every craft changes the parsed form and never a file, so the round hashes every file the check
+half reads before and after and reports a craft that reached a file. The committed document is
+the run this machine produced, and the baseline case asserts it reports nothing, which is what
+makes each craft single-firing: a craft that reached a second rule is reported as reaching it,
+and `REACHES` names the crafts that reach more than one rule through the same patch. Four rules
+have more than one craft, because each of those rules reads more than one half.
 
-Crafts that change one side of a tool-versus-file read mirror the change on the other side, the way
-the smoke probe round does: `mirror` keeps the tool answer for a key equal to what the file side now
-writes, `mirror_file` keeps the file side equal to what the tool side now writes, `mirror_env` keeps
-the values the tool resolved equal to the values the example now writes, `mirror_pairs` keeps a pair
-list equal on both sides, `keep_program_line` keeps the tool line for the unit equal to what the
-unit
-side now writes, and `keep_covered` keeps the bookkeeping equal to the keys the artifacts write
-after
-the craft.
+Crafts that change one side of a tool-versus-file read mirror the change on the other side, the
+way the smoke probe round does: `mirror` keeps the tool answer for a key equal to what the file
+side now writes, `mirror_file` keeps the file side equal to what the tool side now writes,
+`mirror_env` keeps the values the tool resolved equal to the values the example now writes,
+`mirror_pairs` keeps a pair list equal on both sides, `keep_program_line` keeps the tool line for
+the unit equal to what the unit side now writes, and `keep_covered` keeps the bookkeeping equal
+to the keys the artifacts write after the craft.
 
 Two crafts reach the rule that reads the compose as the tool resolved it as well as their own,
-because
-that rule reads the same key each of them changes: the restart policy and the container subcommand.
-They are named in `REACHES`, which is the reach `docs/testing.md` records rather than asserts.
+because that rule reads the same key each of them changes: the restart policy and the container
+subcommand. They are named in `REACHES`, which is the reach `docs/testing.md` records rather than
+asserts. Two further halves are read by a rule but not probed alone: the file shape the tool
+prints for a key finding, because the committed answer carries only the line about the program,
+and the position each key line names, which no rule reads.
 
 Run it through `deploy_check.py --probe`.
 """
@@ -187,6 +186,11 @@ def the_unit_names_the_binary_the_dockerfile_writes(data):
 
 
 def the_tool_read_the_unit_as_the_file_the_run_named(data):
+    # The tool lines as data: the file each names, read in the shape the tool prints it in, which is
+    # the name the run passed for the finding about the program. This is the half the committed
+    # answer can show, because it carries only that line. The shape the tool prints for a key
+    # finding, the path the run built the copy at, is read by the rule but not probed alone, and the
+    # position each key line carries is recorded for the reader and read by no rule.
     for entry in data["analyze"]:
         entry["file"] = "reader.service"
     keep_covered(data)
