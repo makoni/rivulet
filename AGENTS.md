@@ -175,7 +175,7 @@ halves, on the 26 lines the four sync passes wrote, and the run half is checked 
 by its eight guards, ten read sites, each seen to fail on the value it names. The order half
 reads the order column rather than the position of the line, and one of the seven crafts reaches
 two parts of the data at once, the record line and the paragraph naming the calls this run
-showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10 probes, reading
+showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
 probes, reading the same files through `Bundle.module` as data: the recorded order, which call
 reaches a registered route and which reaches the catch-all answer, the two item-id forms the same
 client sends, the page size above the clamp against the value at the clamp, the token half per
