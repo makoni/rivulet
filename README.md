@@ -3,17 +3,27 @@
 A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2)
 (behavioral reference: v2.3.3).
 
-> **Status:** early development. The foundation, the storage layer, the fetcher, the parser and the
-> sanitizer are in place: configuration, the SQLite storage wrapper with its pragmas, the CLI
-> skeleton, `/healthz`, entry queries and FTS5 search, retention and maintenance (backup, vacuum,
-> checkpoint on shutdown, startup integrity check), the per-feed refresh pipeline with the
-> scheduler's due-batch selection, the icon path, and the CLI commands `refresh` and `status`,
-> together with the soak artifact that drives the pipeline over 2h against local stub feeds. Stage 4
-> stays open for the icon image resizing, which needs a dependency that has not been approved;
-> its in-process cadence loop landed with stage 6 as PR #50, and with PR #51 that loop is what
-> `serve` runs — the wiring built from the environment values, the stop signal answering the
-> decision, and the shutdown running after the loop, pinned by the process-level suite. The client
-> APIs land with stage 5.
+> **Status:** in progress. What is in place: configuration, the SQLite storage wrapper with its
+> pragmas, the fetcher, the parser and the sanitizer, `/healthz`, entry queries and FTS5 search,
+> retention and maintenance (backup, vacuum, checkpoint on shutdown, startup integrity check), the
+> per-feed refresh pipeline with the scheduler's due-batch selection, the icon path with its resize
+> step, the client APIs (Google Reader and Fever) with the storage reads the routers run, the CLI
+> command set with the in-process cadence loop `serve` runs, and the acceptance harnesses that read
+> their own runs as data. Stage 8's documentation layer is the DocC catalog, its four articles and its
+> tutorial, published as one site by the Pages job.
+
+Stage states as `docs/plan/README.md`'s table states them:
+
+- Stage 0 - Foundation: done
+- Stage 1 - Storage layer: done
+- Stage 2 - Feed fetching: done
+- Stage 3 - Parsing & sanitization: merged
+- Stage 4 - Ingestion & scheduling: done
+- Stage 5 - Client APIs & OPML: in progress
+- Stage 6 - CLI & operations: criteria met
+- Stage 7 - Acceptance & hardening: in progress
+- Stage 8 - Packaging & deployment: in progress
+- Stage 9 - Post-MVP backlog: backlog
 
 ## What it will be
 
@@ -53,8 +63,8 @@ Rivulet is CLI-first. The commands that exist so far:
 | `rivulet vacuum` | Rebuilds the database file, releasing the free pages the rows left behind |
 | `rivulet --help` | Lists all commands, including the planned ones |
 
-The remaining commands are registered placeholders that report the stage implementing them:
-`import` and `export`, the OPML path of stage 5.
+Every command in the table is a run: the command set is complete, `import` and `export` being the OPML
+commands of stage 5 that landed with PR #64.
 
 `--help` and `version` work without any configuration; every other command reads the
 configuration first and needs `DATABASE_URL`.

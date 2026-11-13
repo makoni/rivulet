@@ -9,7 +9,10 @@
 /// that matches no prefix is the fallback error. `GoogleReaderStreamTests` pins the branches, the
 /// seven suffixes, the empty value, and the wording the 500 answer writes.
 public struct GoogleReaderStream: Sendable, Equatable {
+    /// Which branch the value matched, as the `switch` chose it.
     public let type: GoogleReaderStreamType
+
+    /// The part of the value left after the prefix was removed.
     public let id: String
 
     /// What the reference reports for a value that is not one of the forms it reads, which is the
@@ -19,6 +22,7 @@ public struct GoogleReaderStream: Sendable, Equatable {
         case unknownStreamWithID(String)
         case unknownStreamType(String)
 
+        /// The wording the 500 answer writes for whichever branch the value is.
         public var description: String {
             switch self {
             case .unknownStreamWithID(let id): return "googlereader: unknown stream with id: \(id)"

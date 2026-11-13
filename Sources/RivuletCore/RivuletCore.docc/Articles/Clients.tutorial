@@ -1,0 +1,47 @@
+@Article(time: 5) {
+  @Intro(title: "Clients") {
+    Two client paths are implemented: the Google Reader API and the Fever API. Each is read as the
+    set the port registers, so a path named here is a path a registration line writes, and the
+    catch-all, which answers an empty document for a path no registration names, is named as the
+    branch the file writes rather than as a route.
+
+    The routes this port registers for the Google Reader path:
+
+    - `POST /accounts/ClientLogin`
+    - `GET /reader/api/0/token`
+    - `GET /reader/api/0/user-info`
+    - `GET /reader/api/0/tag/list`
+    - `GET /reader/api/0/subscription/list`
+    - `GET /reader/api/0/stream/items/ids`
+    - `POST /reader/api/0/edit-tag`
+    - `POST /reader/api/0/rename-tag`
+    - `POST /reader/api/0/disable-tag`
+    - `POST /reader/api/0/mark-all-as-read`
+    - `POST /reader/api/0/subscription/edit`
+    - `POST /reader/api/0/subscription/quickadd`
+    - `POST /reader/api/0/stream/items/contents`
+
+    The Fever path is registered as `GET /fever`, `POST /fever` and `HEAD /fever`, with the
+    parameter read deciding which answer the handler builds, and the auth wrapper applied per route
+    rather than as application middleware, so the health answer is not covered by it.
+
+    The login reads its own field names and compares against the stored value, and a guard that an
+    empty name ends the login runs before any read. The transport is chosen by method, the merged
+    form follows Go's order, and a header read is read as the first value winning over the list of
+    its values. Three headers are written on every response of this path, and the page size is
+    clamped: a value above the clamp answers the value at the clamp.
+
+    The clients read as data by the client matrix, and the names this page writes are the names that
+    matrix records:
+
+    - NetNewsWire
+    - lire
+    - Reeder Classic
+    - FeedFlow
+    - NewsFlash
+
+    Only one of them has been run against this port here, through the run half that reads what one
+    real client actually sent. The other four are read from their own source at a named commit, or
+    from the project's documentation where the client is closed source; no set is a capture.
+  }
+}

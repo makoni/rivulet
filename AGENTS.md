@@ -137,18 +137,18 @@ trigger. The accepted row for the empty list this client's deserializer refuses 
 writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both sides because the
 reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
-notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three
-read from their own source at a named commit, two from the project's documentation because their
-source cannot be read here — and the check half reads those sets, the record files, the document and
-the port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, but
-one client has been run against this port here — NewsFlash, the Fever client, through the run
-half `Scripts/client-run.sh` — so the manual matrix criterion is closed for that client and
-stays open for the four this machine has no device to run. What the 19 rules read: the source
-each set names and its commit, the redaction as the placeholders the half reads, the matrix rows
-against the manifest lines, the classes against the parity table and the output-check class against
-the endpoints the reference applies the check on, the routes the port registers against the answer
-each row names, with the catch-all read as the registration line the file writes, the reference's
-route and dispatch sets, the two halves of a client that reaches one half only, the order the source
+notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three read
+from their own source at a named commit, two from the project's documentation because their source
+cannot be read here — and the check half reads those sets, the record files, the document and the
+port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, but one
+client has been run against this port here — NewsFlash, the Fever client, through the run half
+`Scripts/client-run.sh` — so the manual matrix criterion is closed for that client and stays open
+for the four this machine has no device to run. What the 19 rules read: the source each set names
+and its commit, the redaction as the placeholders the half reads, the matrix rows against the
+manifest lines, the classes against the parity table and the output-check class against the
+endpoints the reference applies the check on, the routes the port registers against the answer each
+row names, with the catch-all read as the registration line the file writes, the reference's route
+and dispatch sets, the two halves of a client that reaches one half only, the order the source
 declares, the login being first and the token coming before every call that carries it, the token
 half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
 against the records it counts, the replay records against the matrix's own column, the performance
@@ -159,23 +159,22 @@ it — 30 crafted inputs plus the baseline over 19 rules, which is asserted to r
 probe is single-firing, the performance rule having one for each of the five kinds it reads and the
 route rule one for each of its two halves — and the round hashes every file the check half reads
 before and after, so a craft that reached a file is reported; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named
-in the document rather than asserted: the clients that have not been run against this port here,
-the calling set of a client whose source cannot be read, the order a client reaches its calls at
-on a device, which the run record carries for the client run here and the source declares for
-the others, the values the calls carry, which are redacted, the app-level choice of which calls
-a library-based client makes, the guard a client applies before it sends, read as the bound on the
-list size, which no record line can show firing, the side of the bound the guard applies,
-which the record carries as names and not as values, the token half of a client that sends the
-stored value as the token, the numbers of another machine, and the query latency at the 100k
-corpus. The eighth slice, merged as PR #71, is the run half executed here: `Scripts/client-run.sh`
-with `Tools/clients/observer.py` writes one record line per request it forwarded and asserts
-nothing, the record the run left behind is read as data by the nineteenth rule over seven
-halves, on the 26 lines the four sync passes wrote, and the run half is checked by `bash -n` and
-by its eight guards, ten read sites, each seen to fail on the value it names. The order half
-reads the order column rather than the position of the line, and one of the seven crafts reaches
-two parts of the data at once, the record line and the paragraph naming the calls this run
-showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
+`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
+the document rather than asserted: the clients that have not been run against this port here, the
+calling set of a client whose source cannot be read, the order a client reaches its calls at on a
+device, which the run record carries for the client run here and the source declares for the others,
+the values the calls carry, which are redacted, the app-level choice of which calls a library-based
+client makes, the guard a client applies before it sends, read as the bound on the list size, which
+no record line can show firing, the side of the bound the guard applies, which the record carries as
+names and not as values, the token half of a client that sends the stored value as the token, the
+numbers of another machine, and the query latency at the 100k corpus. The eighth slice, merged as PR
+#71, is the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py` writes
+one record line per request it forwarded and asserts nothing, the record the run left behind is read
+as data by the nineteenth rule over seven halves, on the 26 lines the four sync passes wrote, and
+the run half is checked by `bash -n` and by its eight guards, ten read sites, each seen to fail on
+the value it names. The order half reads the order column rather than the position of the line, and
+one of the seven crafts reaches two parts of the data at once, the record line and the paragraph
+naming the calls this run showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
 probes, reading the same files through `Bundle.module` as data: the recorded order, which call
 reaches a registered route and which reaches the catch-all answer, the two item-id forms the same
 client sends, the page size above the clamp against the value at the clamp, the token half per
@@ -187,8 +186,8 @@ taken here rather than bounds: `Scripts/perf.sh` is the run half, `Tools/clients
 the recorded run, and the rule matches each claim in `docs/performance.md` to the line that produced
 it. What this paragraph pointed to is merged: OPML as PR #64 and the acceptance journey as PR #66,
 the last piece being the automated half of stage 5, whose green run in CI is the criterion that
-closed with it. The manual client-matrix criterion is closed for the client run here and stays
-open for the four clients this machine has no device to run, which is what the report items name.
+closed with it. The manual client-matrix criterion is closed for the client run here and stays open
+for the four clients this machine has no device to run, which is what the report items name.
 
 **Stage 8 — Packaging & deployment** is in progress with five slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
@@ -196,91 +195,108 @@ the stage's distro-linked fallback is not taken; the version value as a client r
 the clean-container smoke job (PR #69), read as 13 guards in the run half and 20 rules in the check
 half over the document the run leaves behind; the runbook `docs/deploy.md` with the rule that reads
 it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at the size
-cap the project sets; and the three deploy artifacts read as data (PR #72), whose run half is
+cap the project sets; the three deploy artifacts read as data (PR #72), whose run half is
 `Scripts/deploy.sh` with its eight guards, fourteen read sites, eleven seen to fail on the value
 they name, whose check half is `Tools/deploy/deploy_check.py` over 16 rules reading the document the
 run left rather than a container or a service, whose reads are in `Tools/deploy/parsers.py`, and
 whose probe round is `Tools/deploy/probes.py` with 22 cases — 21 crafts plus the baseline asserted
 to report nothing — two crafts being named as reaching more than one rule through the one patch they
-name. The twelve report items name what it cannot show: no image was built or started, no unit was
-installed on a machine, the tool that read the unit read it as a parse whose only finding is the
-program path not being on this machine, and the committed example carries placeholders rather than
-the values an operator fills in. What the stage cannot close here is the criterion of a fresh VPS
-following the runbook, and the Python check halves of this stage are not run by CI, which builds and
-tests the Swift targets only, so each probe round is run by hand on the machine that has Docker and
-systemd.
+name; and the sixth slice, opened here, is the DocC catalog published as one site (the documentation
+deliverable this agreement names for stage 8), whose check half is `Tools/docs/docs_check.py` over
+21 rules reading the pages as the shapes they write against the sources that write the values — the
+manifest target, the dispatch, the config reads, the two route files, the storage wrapper, the
+free-space check, the committed example, the client matrix, the plan table, the root README, the
+contents table, the Swift sources and its own report document — with the run half `Scripts/docs.sh`
+at eight guards and thirteen read sites, all eight seen to fail here on the values the usage lines
+name, and the round `Tools/docs/probes.py` at 31 cases — 30 crafts plus the baseline asserted to
+report nothing, no craft reaching more than one rule — the reads being in `Tools/docs/parsers.py`.
+The seventeen report items name what no rule reads: the tool's answer for another machine, the
+tool's own version, the reading time, the titles and child directives, a page's prose, the way a
+page renders, the served site, the deployment the Pages job creates for a pull request, and the
+symbol pages, which this toolchain cannot build because SwiftPM answers no plugin for the symbol
+graph the tool reads; the site publishes the pages the catalog writes. The 21 public declarations
+that had no comment are the second half of the same rule, read through the comment attached to a
+declaration over its attribute lines.
 
-**Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion,
-the deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as
-stage 8's fourth slice (PR #70), read as data over six halves. Its first slice was the feed
-commands `add`, `remove` and `list` (PR #47). The order the rule reads — the guard, then the
-absolute-URL rule, then the duplicate read, then the category read — the url written as the command
-read it, the category resolved from the named title or from the default, the account resolved from
-`--user` or from the single account, the delete that applies the account it is given, and the
-listing order with the lowercased title as the tiebreaker, are pinned by `FeedValidationTests`,
-`FeedManagementReadsTests` and `FeedCommandTests`. What those headers name as unpinnable: the
-single-row limit of the duplicate read, the order between the duplicate read and the category read
-at the command level — a category name the command cannot resolve answers `0`, so the guard runs
-first — the rows below the feed at the command level, which the read suite pins, the wording of the
-lines and of the reported failures, and the rules the port names rather than the reference. The
-command surface is recorded in `docs/parity.md`. The second slice is merged (PR #48): `backup` and
-`vacuum` as runs, with the destination read as it was given, the copy as the snapshot at the run
-rather than the bytes of the main file, the copy being a file of its own that does not change with
-the source afterwards, a destination the command did not create reported rather than built or
-overwritten and read against a row the pin writes after the control run, the file rebuilt without
-losing a row, and the flag that gates the migrations, pinned by `MaintenanceCommandTests`, with the
-storage rules these commands call pinned by `MaintenanceTests`. What that header names as
-unpinnable: the truncating checkpoint the vacuum run ends with, because `RivuletApplication` runs a
-best-effort one after every command; which file the environment names, which `ConfigTests` pin;
-reusing an existing empty destination file; the size of the main file before the run, because the
-checkpoint at the end of a run moves the rows from the WAL into it; the shape guards that read what
-the pin built before the run, which bite only on the storage rules; the copy being a plain file with
-no `-wal` beside it; that these commands fetch nothing and sleep nothing; the wording of the lines
-and of the reported failures; and the rules the port names rather than the reference. The third
-slice is merged (PR #49): `list` answers one listing per run, with the flag naming which read the
-run makes, no flag still meaning the feeds, the pair of flags reported as the rule the port names
-rather than picked, the account the run resolves reaching the category read and not the account
-read, the line carrying the stored position and the stored admin flag rather than the schema
-default, one line carrying one row, the run writing nothing, and the title order being the port's
-byte order, pinned by `ListingCommandTests` over the in-process console, with the two orders it
-reads pinned as reads by `CategoryRepositoryTests` and `UserRepositoryTests`. What that header names
-as unpinnable: the wording of the lines and of the reported failures apart from the values the pins
-read off a line and the rule name the run writes; a flag the command does not know, which the
-command-signature parser rejects before the command runs; which fields a line carries and their
-order on the line; the header line, read only as the one line that is not a row; the `position`
-column, which is the port's own and recorded in `docs/parity.md`; the guards that read what the pin
-built before the run, which bite only on the storage rules; the single-row limit of the reads; the
-account resolution, which `FeedCommandTests` pin; the flag that gates the migrations; that these
-commands fetch nothing and sleep nothing; and the collation the reference's Postgres answers `ORDER
-BY title` with, which this port cannot have. The shape is flags because `@Argument` has no default,
-so a run cannot name an optional listing. The fourth slice is merged (PR #50): the in-process
-cadence loop, pinned as the calls the loop makes through its seam — the wait before the first read,
-which is the reference's shape, the interval the loop was built with on every wait, one read per
-wait, the instant the clock gives at each read, the reported failing read with the loop going on,
-the empty read reported as nothing, nothing read after the seam answers stop, and the jobs of a tick
-before the next read, which is the port's shape — by `CadenceLoopTests` through test seams that
-record each call. What that header names as unpinnable: that any time passes, since the seam stands
-in for a sleep; the number of iterations, which is the answer the seam gives; the order the jobs of
-one tick are recorded in, which concurrency does not fix, so the pins read the calls across the tick
-boundary; the shape and the field names of a report, which are the port's choice; that the
-reference's ticker goroutine has no stop rule at all, so the stop answer is the port's own, recorded
-in `docs/parity.md`; the reference's second ticker for the cleanup tasks, which this port has no
-loop for and which `RetentionTests` pin as storage rules; the pool cap; the real seam
-implementation, which sleeps, so its decisions are read through test seams that name the interval as
-zero (`SystemCadenceTests`) and its real signal source lands with the process harness. The fifth
-slice is merged (PR #51): the process harness (`Support/SpawnedProcess.swift`) reads the built
-binary as the events it answers — the port the serve event reports, the response a request on that
-port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop exit),
-and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring that
-runs the loop to its end and the hook once after it pinned as the calls it makes through its seams
-by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves — waits
-that answer on an event, the probed port, the child killed on both paths, and the line the harness
-reads as the serve event, from which a pin reads only the port value; that the child exits at all,
-because a patch that made the child never exit hangs a pin rather than flipping what it reads, while
-a child that writes no line fails the pin through the harness; which part of the shutdown emptied
-the WAL, because a clean close checkpoints on its own; which line is the serve event and its
-wording; the order the two paths of the decision answer on, which no in-process test can read
-either; the answer belonging to the decision the path was created for, and a cancelled wait
+What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
+check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
+container has no `python3`, and each round was seen to be green from a tree copied to a different
+root, which is what makes that job machine-independent; the run halves stay on demand, because they
+read a machine, a tool or a process — Docker, systemd, the terminal, the DocC tool. The Pages job
+publishes the catalog in the Swift container, where the tool is on the image, and the deployment it
+creates shows on the branch the Pages environment names, because the policy refuses the merge ref a
+pull request builds.
+
+**Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion, the
+deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as stage 8's
+fourth slice (PR #70), read as data over six halves. Its first slice was the feed commands `add`,
+`remove` and `list` (PR #47). The order the rule reads — the guard, then the absolute-URL rule, then
+the duplicate read, then the category read — the url written as the command read it, the category
+resolved from the named title or from the default, the account resolved from `--user` or from the
+single account, the delete that applies the account it is given, and the listing order with the
+lowercased title as the tiebreaker, are pinned by `FeedValidationTests`, `FeedManagementReadsTests`
+and `FeedCommandTests`. What those headers name as unpinnable: the single-row limit of the duplicate
+read, the order between the duplicate read and the category read at the command level — a category
+name the command cannot resolve answers `0`, so the guard runs first — the rows below the feed at
+the command level, which the read suite pins, the wording of the lines and of the reported failures,
+and the rules the port names rather than the reference. The command surface is recorded in
+`docs/parity.md`. The second slice is merged (PR #48): `backup` and `vacuum` as runs, with the
+destination read as it was given, the copy as the snapshot at the run rather than the bytes of the
+main file, the copy being a file of its own that does not change with the source afterwards, a
+destination the command did not create reported rather than built or overwritten and read against a
+row the pin writes after the control run, the file rebuilt without losing a row, and the flag that
+gates the migrations, pinned by `MaintenanceCommandTests`, with the storage rules these commands
+call pinned by `MaintenanceTests`. What that header names as unpinnable: the truncating checkpoint
+the vacuum run ends with, because `RivuletApplication` runs a best-effort one after every command;
+which file the environment names, which `ConfigTests` pin; reusing an existing empty destination
+file; the size of the main file before the run, because the checkpoint at the end of a run moves the
+rows from the WAL into it; the shape guards that read what the pin built before the run, which bite
+only on the storage rules; the copy being a plain file with no `-wal` beside it; that these commands
+fetch nothing and sleep nothing; the wording of the lines and of the reported failures; and the
+rules the port names rather than the reference. The third slice is merged (PR #49): `list` answers
+one listing per run, with the flag naming which read the run makes, no flag still meaning the feeds,
+the pair of flags reported as the rule the port names rather than picked, the account the run
+resolves reaching the category read and not the account read, the line carrying the stored position
+and the stored admin flag rather than the schema default, one line carrying one row, the run writing
+nothing, and the title order being the port's byte order, pinned by `ListingCommandTests` over the
+in-process console, with the two orders it reads pinned as reads by `CategoryRepositoryTests` and
+`UserRepositoryTests`. What that header names as unpinnable: the wording of the lines and of the
+reported failures apart from the values the pins read off a line and the rule name the run writes; a
+flag the command does not know, which the command-signature parser rejects before the command runs;
+which fields a line carries and their order on the line; the header line, read only as the one line
+that is not a row; the `position` column, which is the port's own and recorded in `docs/parity.md`;
+the guards that read what the pin built before the run, which bite only on the storage rules; the
+single-row limit of the reads; the account resolution, which `FeedCommandTests` pin; the flag that
+gates the migrations; that these commands fetch nothing and sleep nothing; and the collation the
+reference's Postgres answers `ORDER BY title` with, which this port cannot have. The shape is flags
+because `@Argument` has no default, so a run cannot name an optional listing. The fourth slice is
+merged (PR #50): the in-process cadence loop, pinned as the calls the loop makes through its seam —
+the wait before the first read, which is the reference's shape, the interval the loop was built with
+on every wait, one read per wait, the instant the clock gives at each read, the reported failing
+read with the loop going on, the empty read reported as nothing, nothing read after the seam answers
+stop, and the jobs of a tick before the next read, which is the port's shape — by `CadenceLoopTests`
+through test seams that record each call. What that header names as unpinnable: that any time
+passes, since the seam stands in for a sleep; the number of iterations, which is the answer the seam
+gives; the order the jobs of one tick are recorded in, which concurrency does not fix, so the pins
+read the calls across the tick boundary; the shape and the field names of a report, which are the
+port's choice; that the reference's ticker goroutine has no stop rule at all, so the stop answer is
+the port's own, recorded in `docs/parity.md`; the reference's second ticker for the cleanup tasks,
+which this port has no loop for and which `RetentionTests` pin as storage rules; the pool cap; the
+real seam implementation, which sleeps, so its decisions are read through test seams that name the
+interval as zero (`SystemCadenceTests`) and its real signal source lands with the process harness.
+The fifth slice is merged (PR #51): the process harness (`Support/SpawnedProcess.swift`) reads the
+built binary as the events it answers — the port the serve event reports, the response a request on
+that port gets, the exit code the clean signal path leaves (0, which is the reference's clean-stop
+exit), and the WAL the run's shutdown leaves empty — pinned by `ServeProcessTests`, with the wiring
+that runs the loop to its end and the hook once after it pinned as the calls it makes through its
+seams by `ServeWiringTests`. What those headers name as unpinnable: the harness rules themselves —
+waits that answer on an event, the probed port, the child killed on both paths, and the line the
+harness reads as the serve event, from which a pin reads only the port value; that the child exits
+at all, because a patch that made the child never exit hangs a pin rather than flipping what it
+reads, while a child that writes no line fails the pin through the harness; which part of the
+shutdown emptied the WAL, because a clean close checkpoints on its own; which line is the serve
+event and its wording; the order the two paths of the decision answer on, which no in-process test
+can read either; the answer belonging to the decision the path was created for, and a cancelled wait
 answering only its own wait, which bite only inside the child across two decisions; the reference's
 HTTP servers being shut down before the pool, which this port has no piece for; `SIGHUP`, which the
 reference feeds to a certificate reload and which is not ported; and the reference's log lines,
@@ -372,8 +388,8 @@ those headers name as unpinnable: the count `fmt.Sscanf` reports, the order the 
 are removed in, the error `r.URL.Query()` discards, the `WithOffset` branch the parameter read never
 reaches, the platform reading `bitSize 0` as 64 bits, and which count the continuation rule is
 given, because that is the handler's choice. The form read reports a pair error for the whole form
-while the query read skips that pair, which is `r.URL.Query()`; both are recorded in the code
-comment.
+while the query read skips that pair, which is `r.URL.Query()`; both are recorded in the
+code comment.
 
 PR #43 merged the rules the handlers read, still as pure logic with no HTTP: the tag read with the
 add loop before the remove loop, the value each branch writes for `read`, `kept-unread` and
@@ -477,50 +493,50 @@ group name read as bytes, and the four rules the handler applies per record; `im
 own command, `--file` is the port's own half of `export`, the settings the port schema has no field
 for are read as data and not persisted, and the validation rules past the four ported ones are not
 ported, both recorded in `docs/parity.md`, with the date zone answered as `UTC` rather than as the
-reference's local name. The icon route is merged as PR #65: the four rules the reference's
-response builder applies for a cached asset — the `ETag` shape, the `If-None-Match` read, the
-`Cache-Control` value and the `Expires` value — are pinned as pure logic, and the answer the route
-gives one row is pinned over a real socket for what the route adds on top: which values it takes
-from the row, which headers it writes on which branch, and the status the two branches answer. The
-trim reads the class the reference trims with — Unicode `White_Space` per scalar, which is wider
-than Swift's `.whitespaces` — and `Expires` adds the whole bound, truncating only when the value
-is written, as the builder does. 10 pins and 18 probes by `CachingRulesTests`, 7 pins and 10
-probes by `IconRouteTests`, 27 seen to fail on the rule they name and one recorded as not biting.
-Ten pins are read by more than one patch, one patch per rule they name, and three rows reach more
-than one pin, which the headers name: the quoted-half patch reaches the trim pin, whose input is
-already quoted; the patch for the empty side of the guard reaches the three pins that read the
-callback branch, because that read chooses the branch the answer takes; and the patch naming which
-value the `ETag` is built from reaches the match pin, which reads the header value the route
-builds from the row. What those headers name as unpinnable: the instant `Expires` is built from,
-which is the clock the run reads; the zone rule, which fires only on a machine whose local zone is
-not UTC; the fixed locale the shape is written with; the compression the reference skips for a
-body that is not SVG, which this port has no middleware for; the `Vary` name the builder writes
-only above its compression threshold; the HTML shapes the reference answers for a missing row and
-the storage answer this path has no branch for; the empty side of the guard, which cannot be shown
-by taking the guard away because Swift's read answers false for an empty value where Go's answers
-true, recorded as a row in `docs/parity.md`; the token read and the storage read, which are pinned
-by their own suites; and the routing rule, which is the framework's. The acceptance journey is
-merged as PR #66: one suite reading the chain the stage file names — the two console runs that build
-the account and its credential pairs, the OPML run that writes the rows, the pass over the batch
-that writes the entries, and the socket the client requests go to — 14 pins and 16 probes, every
-probe seen to fail on the pins it names and to revert its file byte-identically. Seven pins are read
-by one patch and seven by more than one, one patch per rule they name, and four rows reach more than
-one pin, which the header names: the login-compare patch fires the pin for the three text lines as
-well, because both read the same answer; the import-write patch and the patch for the site url the
-pass writes each fire the listing, pass, contents and Fever feeds pins, because all four read the
-row the run wrote; and the first-appearance-order patch fires the groups and feeds pins together,
-because both documents are built from it. What that header names as unpinnable: the ids the runs
-assign, which the pins read through SQL as the values per row because the pool does not fix the
-order the writes land in; the clock fields read as the placeholder — the document's `updated` from
-the handler's run instant and the item's `crawlTimeMsec` and `updated` from the row's created and
-changed instants; the stamp column, which cannot be told apart from the create column here because
-the run writes both in the same second; the wordings of the console lines and of the reported
-failures; the batch comparison, pinned by `SchedulerBatchTests`; the icon path, which has no row
-here because the fixture page carries no icon link; and the rules pinned by their own suites, which
-this round reads only through this suite, so a patch to one of them fires the pin in that suite as
-well, a reach reasoned there rather than shown here. Stage 5's one open criterion is the manual
-single-client check, repeated with the full matrix in stage 7, the Fever parameter set having merged
-as PR #61 and the minimal scan as part of PR #59.
+reference's local name. The icon route is merged as PR #65: the four rules the reference's response
+builder applies for a cached asset — the `ETag` shape, the `If-None-Match` read, the `Cache-Control`
+value and the `Expires` value — are pinned as pure logic, and the answer the route gives one row is
+pinned over a real socket for what the route adds on top: which values it takes from the row, which
+headers it writes on which branch, and the status the two branches answer. The trim reads the class
+the reference trims with — Unicode `White_Space` per scalar, which is wider than Swift's
+`.whitespaces` — and `Expires` adds the whole bound, truncating only when the value is written, as
+the builder does. 10 pins and 18 probes by `CachingRulesTests`, 7 pins and 10 probes by
+`IconRouteTests`, 27 seen to fail on the rule they name and one recorded as not biting. Ten pins are
+read by more than one patch, one patch per rule they name, and three rows reach more than one pin,
+which the headers name: the quoted-half patch reaches the trim pin, whose input is already quoted;
+the patch for the empty side of the guard reaches the three pins that read the callback branch,
+because that read chooses the branch the answer takes; and the patch naming which value the `ETag`
+is built from reaches the match pin, which reads the header value the route builds from the row.
+What those headers name as unpinnable: the instant `Expires` is built from, which is the clock the
+run reads; the zone rule, which fires only on a machine whose local zone is not UTC; the fixed
+locale the shape is written with; the compression the reference skips for a body that is not SVG,
+which this port has no middleware for; the `Vary` name the builder writes only above its compression
+threshold; the HTML shapes the reference answers for a missing row and the storage answer this path
+has no branch for; the empty side of the guard, which cannot be shown by taking the guard away
+because Swift's read answers false for an empty value where Go's answers true, recorded as a row in
+`docs/parity.md`; the token read and the storage read, which are pinned by their own suites; and the
+routing rule, which is the framework's. The acceptance journey is merged as PR #66: one suite
+reading the chain the stage file names — the two console runs that build the account and its
+credential pairs, the OPML run that writes the rows, the pass over the batch that writes the
+entries, and the socket the client requests go to — 14 pins and 16 probes, every probe seen to fail
+on the pins it names and to revert its file byte-identically. Seven pins are read by one patch and
+seven by more than one, one patch per rule they name, and four rows reach more than one pin, which
+the header names: the login-compare patch fires the pin for the three text lines as well, because
+both read the same answer; the import-write patch and the patch for the site url the pass writes
+each fire the listing, pass, contents and Fever feeds pins, because all four read the row the run
+wrote; and the first-appearance-order patch fires the groups and feeds pins together, because both
+documents are built from it. What that header names as unpinnable: the ids the runs assign, which
+the pins read through SQL as the values per row because the pool does not fix the order the writes
+land in; the clock fields read as the placeholder — the document's `updated` from the handler's run
+instant and the item's `crawlTimeMsec` and `updated` from the row's created and changed instants;
+the stamp column, which cannot be told apart from the create column here because the run writes both
+in the same second; the wordings of the console lines and of the reported failures; the batch
+comparison, pinned by `SchedulerBatchTests`; the icon path, which has no row here because the
+fixture page carries no icon link; and the rules pinned by their own suites, which this round reads
+only through this suite, so a patch to one of them fires the pin in that suite as well, a reach
+reasoned there rather than shown here. Stage 5's one open criterion is the manual single-client
+check, repeated with the full matrix in stage 7, the Fever parameter set having merged as PR #61 and
+the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the
@@ -575,22 +591,22 @@ the session has no index of its own.
 Reach for it when the answer spans more than one place: a subsystem not read yet, or before editing
 a rule, where the blast radius names the pins that can fail on it — the same list a review run
 checks. Read and Grep stay right for the opposite case: the file and the symbol are already known,
-one value or one line is needed, or the file is outside the index (`docs/`, `Scripts/`, `Tools/`,
-`Package.swift`).
+one value or one line is needed, or the file is outside the index (`docs/`, `Scripts/`,
+`Tools/`, `Package.swift`).
 
 Two rules once it has been called:
 
 - Do **not** follow it with a grep or Read sweep over the same files: the source it printed is
-  current on-disk content, so treat it as already read.
+current on-disk content, so treat it as already read.
 - Use the normal file tools for editing. Codegraph is for finding and understanding, and it cannot
-  show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
+show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
 
 ## Toolchain
 
 - Use the latest Swift release installed on the system (currently 6.4.1). Do not target old
 toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
-- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container (see
-`.github/workflows/ci.yml`).
+- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container
+(see `.github/workflows/ci.yml`).
 
 ## TDD is mandatory
 
@@ -632,14 +648,14 @@ to resource files, not inline megablocks.
 exempt because none can be broken without changing what it says: a Markdown table row; an inline
 code span longer than the width; a line the check half reads as one whole string, which is a
 manifest record line or a generated report item line; and a shell command line or a guard message,
-which the run reads as one line. Each stays whole on its own line. Code lines are single
-expressions and are not split to meet the width. A commit that only rewraps does not change
-behavior, so it does not reopen a review that already approved the words.
-- Zero warnings: the project and the test targets build clean — `swift build` and
-`swift build --build-tests` answer with no warning on a clean build. Each warning is fixed at the
-site it names, not silenced with a flag: the `await` on a call that is not async is dropped, a
-binding or a result nothing reads is removed or assigned to `_`, and `@discardableResult` is put on
-a function only when no caller reads its result.
+which the run reads as one line. Each stays whole on its own line. Code lines are single expressions
+and are not split to meet the width. A commit that only rewraps does not change behavior, so it does
+not reopen a review that already approved the words.
+- Zero warnings: the project and the test targets build clean — `swift build` and `swift build
+--build-tests` answer with no warning on a clean build. Each warning is fixed at the site it names,
+not silenced with a flag: the `await` on a call that is not async is dropped, a binding or a result
+nothing reads is removed or assigned to `_`, and `@discardableResult` is put on a function only when
+no caller reads its result.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
 `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved when
 they make data structures, algorithms or hashing clearer or more efficient — add them as direct

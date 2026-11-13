@@ -1,0 +1,49 @@
+@Article(time: 5) {
+  @Intro(title: "Deployment") {
+    One static binary and one SQLite file. The artifact is the static musl build, which is the answer
+    that the whole dependency stack links statically, so the machine that runs it needs no toolchain,
+    no interpreter and no service beyond what this page names.
+
+    The data is the file `DATABASE_URL` names, in the directory the mount and the state directory
+    name as the same place, and the port the run answers on is the port the address value names.
+    The policy the two deployment files name is read as one value, and the signal the service file
+    names is a signal the process handler has a case for, which is the clean stop path answering 0.
+
+    ```sh
+    rivulet migrate
+    rivulet backup /var/backups/rivulet.db
+    rivulet backup --verify /var/backups/rivulet.db
+    rivulet backup --force /var/backups/rivulet.db
+    rivulet vacuum
+    rivulet serve
+    ```
+
+    The copy is `VACUUM INTO`: the snapshot at the moment of the run, written as a file of its own
+    that does not change with the source afterwards. Before the write the run reads the room at the
+    directory the destination is in, and asks for the bytes the source holds as the filesystem reads
+    them, plus the bytes the WAL holds, times the factor it uses (2). A destination the run did not
+    create is reported, not built; a destination that exists is reported rather than overwritten
+    unless `--force` names it, and that flag does not skip the room read. `--verify` opens the copy
+    the run wrote through its own connection and reports the problems it finds, leaving the copy as
+    written. `vacuum` rebuilds the file it already holds, so it reads no room.
+
+    There is no restore command: the recipe is the file swap, which is why the copy is a plain file
+    rather than a database the run can open. Stop the run that keeps running, copy the copy back to
+    the path `DATABASE_URL` names, run `migrate`, and read the counts back with `status --json`.
+
+    The storage wrapper sets synchronous to `NORMAL`, so committed writes are in the operating
+    system's cache rather than forced to the device per row: the recovery point is one round, not one
+    entry, and the round is the batch the tick takes. The checkpoint that empties the WAL runs
+    best-effort at the end of a run, so the bytes a run leaves in the WAL are the interrupted round's
+    when a stop lands mid-round.
+
+    The schedule is read as whole Unix seconds and the cadence as minutes, so a clock that moves by
+    more than the interval moves the schedule for every row. Adjust the time incrementally and read
+    the clock after the first round rather than before it.
+
+    An upgrade replaces the binary and runs `migrate`. Until the first release the schema is edited in
+    place, so an upgrade that changes the schema is not something the run can apply to an existing
+    database. Streaming the file to another device is a tool outside this port: no command of the port
+    runs it, and nothing here reads what a stream of it would hold.
+  }
+}

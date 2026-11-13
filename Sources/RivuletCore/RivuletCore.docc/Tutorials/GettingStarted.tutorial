@@ -1,0 +1,50 @@
+@Tutorial {
+  @Intro(title: "Getting started") {
+    Six steps, in the order the runs read them. Each names a command the dispatch registers, a flag
+    that command's signature declares, or a name the configuration reads, which is what the check half
+    reads the page against.
+
+    The steps run on a console: two of them read their values from the terminal device, so they do not
+    run from a unit or from a pipe.
+  }
+
+  @Section(title: "The run") {
+    The first three steps write rows, the fourth reads them, and the last is the run that keeps
+    running.
+
+    @Steps {
+      @Step {
+        Name the data the runs read with the value the example writes: `DATABASE_URL` as
+        `/var/lib/rivulet/rivulet.db`. Only this name is required, and a name the configuration does
+        not read answers nothing.
+      }
+
+      @Step {
+        Apply the schema the migration declares with `rivulet migrate`, which answers nothing when the
+        schema is already there.
+      }
+
+      @Step {
+        Create the account with `rivulet create-admin`, then the credential pair the clients log in
+        with through `rivulet integration-credentials`. The account command writes the hash alone, so
+        a login answers 401 until the credential command has run.
+      }
+
+      @Step {
+        Add a feed with `rivulet add https://example.com/feed.xml --user alice`. The command writes the
+        row and fetches nothing, so the first round is the cadence loop's own.
+      }
+
+      @Step {
+        Read the counts back with `rivulet status --json`, then run the part that keeps running with
+        `rivulet serve` on the port the address value names. A deployment names this run in a service
+        file, and the signal that file names is a signal the process handler has a case for.
+      }
+
+      @Step {
+        Take the copy before the artifact changes with `rivulet backup --verify /var/backups/rivulet.db`,
+        which opens the copy the run wrote through its own connection and reports the problems it finds.
+      }
+    }
+  }
+}

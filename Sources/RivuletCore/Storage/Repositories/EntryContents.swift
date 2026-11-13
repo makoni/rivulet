@@ -25,22 +25,37 @@ public struct EntryContents: Sendable {
     /// The category row's title, which the categories list is built from.
     public var categoryTitle: String
 
-    /// The entry's own fields.
+    /// The entry's title, read from the `title` column of the same row.
     public var title: String
+
+    /// The entry's url, read from the `url` column.
     public var url: String
+
+    /// The entry's author, read from the `author` column.
     public var author: String
+
+    /// The body, read from the `content` column, which is the sanitized HTML the parser left.
     public var content: String
+
+    /// The state the row is in, read from the `status` column.
     public var status: EntryStatus
+
+    /// The starred flag, read from the `starred` column.
     public var starred: Bool
 
-    /// The three time columns the item document is built from, as whole seconds.
+    /// The publication time, read from the `published_at` column as a whole second.
     public var publishedAt: Int
+
+    /// The instant the row was written, read from the `created_at` column as a whole second.
     public var createdAt: Int
+
+    /// The instant the row last changed, read from the `updated_at` column as a whole second.
     public var updatedAt: Int
 
     /// The attachments of this row, in the order the second statement reads them.
     public var attachments: [Enclosure]
 
+    /// A row as the read answered it, one field per column the statement names.
     public init(entryID: Int, feedID: Int, feedTitle: String, siteURL: String, categoryTitle: String,
         title: String, url: String, author: String, content: String, status: EntryStatus,
         starred: Bool, publishedAt: Int, createdAt: Int, updatedAt: Int, attachments: [Enclosure]) {

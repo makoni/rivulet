@@ -1,0 +1,43 @@
+@Article(time: 5) {
+  @Intro(title: "Feeds") {
+    The feed commands are the whole management surface: `add` writes a row, `remove` deletes the row
+    the account it is given owns, and `list` answers one listing per run. The order `add` reads in is
+    the guard, then the absolute-URL rule, then the duplicate read, then the category read, so a
+    duplicate is reported before the category is resolved, and the url written is the url as the
+    command read it.
+
+    ```sh
+    rivulet add https://example.com/feed.xml --user alice
+    rivulet add https://example.com/feed.xml --category news --user alice
+    rivulet remove https://example.com/feed.xml --user alice
+    rivulet list
+    rivulet list --categories
+    rivulet refresh
+    rivulet status --json
+    ```
+
+    A category is resolved from the title the flag names, or from the default when no title is named,
+    and the account is resolved from `--user` or from the single account. `list` with no flag still
+    means the feeds: the flag names which read the run makes, and a run that names both listing flags
+    is reported as the rule the port names rather than as a choice the run picks.
+
+    The listing order is the port's byte order, with the lowercased title as the tiebreaker, and each
+    line carries the stored position and the stored admin flag rather than the schema default. The
+    counts `status --json` reports are read over every row whatever its state, and a row with no
+    stamp answers `null`.
+
+    The round that writes entries is the cadence loop's own. The loop waits before its first read,
+    takes one read per wait with the interval it was built with, reports a failing read and goes on,
+    and reads nothing after the seam answers stop. `refresh` is the manual pass over the same batch:
+    each job of the batch runs once, and a failure is reported without stopping the rest.
+
+    One write transaction is taken per feed refresh, in WAL mode, and the storage layer takes its
+    pragmas through its own wrapper, so nothing here calls `fsync` per row. The entry loop writes
+    nothing for an entry the document no longer declares and for a tombstoned pair, which is the half
+    that keeps a feed's rows from growing back.
+
+    Retention reads the age as whole days: a zero age clamps to one day, and the pass takes the batch
+    it is given and leaves the rows below the limit for the next run. Search runs through the FTS5
+    index, which is the index the schema declares for the entry table.
+  }
+}

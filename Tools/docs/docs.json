@@ -1,0 +1,20 @@
+{
+  "run": {
+    "catalog": "Sources/RivuletCore/RivuletCore.docc",
+    "out": "/tmp/tmp.yq3EivouDj/site",
+    "record": "Tools/docs/docs.json",
+    "tool": "docc"
+  },
+  "tool": {
+    "findings": [],
+    "pages": [
+      "index.html",
+      "tutorials/rivuletcore/clients/index.html",
+      "tutorials/rivuletcore/deployment/index.html",
+      "tutorials/rivuletcore/feeds/index.html",
+      "tutorials/rivuletcore/gettingstarted/index.html",
+      "tutorials/rivuletcore/setup/index.html",
+      "tutorials/table-of-contents/index.html"
+    ]
+  }
+}

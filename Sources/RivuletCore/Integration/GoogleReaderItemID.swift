@@ -32,10 +32,16 @@ public enum GoogleReaderItemID {
             case decimal
         }
 
+        /// Which read reported it, which is the word the wording names.
         public let form: Form
+
+        /// The value the read was given, as it was given.
         public let input: String
+
+        /// What the read found wrong with it, as the reference's wording names it.
         public let reason: String
 
+        /// The whole wording, built from the three parts above.
         public var description: String {
             "failed to parse \(form.rawValue) item ID \(input): \(reason)"
         }

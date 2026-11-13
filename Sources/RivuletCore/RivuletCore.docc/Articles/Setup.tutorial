@@ -1,0 +1,39 @@
+@Article(time: 4) {
+  @Intro(title: "Setup") {
+    Only `DATABASE_URL` is required, and every other name reads as its default. A name the
+    configuration does not read answers nothing, so a typo in a name here is not an error the run
+    reports; that is why the list below is the whole set the runs read.
+
+    ```sh
+    export DATABASE_URL=/var/lib/rivulet/rivulet.db
+    export LISTEN_ADDR=0.0.0.0:8080
+    export BASE_URL=https://reader.example.com
+    export RUN_MIGRATIONS=1
+    export POLLING_FREQUENCY=60
+    export POLLING_PARSING_ERROR_LIMIT=3
+    export LOG_LEVEL=info
+    export LOG_FORMAT=text
+    export FETCHER_ALLOW_PRIVATE_NETWORKS=0
+    ```
+
+    `LISTEN_ADDR` is read as a host with a port, so the port comes from the value as well and the
+    default is the loopback listener `127.0.0.1:8080`. A value with no port is reported as an
+    invalid value rather than read as the default.
+
+    Each integer read carries its own minimum, and the number inside parentheses below is the number
+    that read takes: `POLLING_FREQUENCY` (1), `BATCH_SIZE` (1), `WORKER_POOL_SIZE` (1), and the two
+    count reads take (0). A value below the number the read takes is reported rather than read as
+    the fallback, and a name the source reads with a trim alone is read as free text.
+
+    One name is the address policy: on a host that can reach its own addresses it stays off, and the
+    fetcher refuses a target in a class the policy names. A feed that lives on the host's own
+    network needs it on, which is a decision one run makes rather than a default.
+
+    Two commands read their values from the terminal: the account command and the credential
+    command. The secure read the dependency uses takes its values from the terminal device, so these
+    two run on a console and not from a unit or a pipe, where the same read answered nothing.
+
+    The commands the pages here call are the commands the dispatch registers, and the flags they use
+    are the flags those signatures declare, which is what the check half reads them against.
+  }
+}
