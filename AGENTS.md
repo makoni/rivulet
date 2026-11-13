@@ -594,28 +594,28 @@ one value or one line is needed, or the file is outside the index (`docs/`, `Scr
 Two rules once it has been called:
 
 - Do **not** follow it with a grep or Read sweep over the same files: the source it printed is
-  current on-disk content, so treat it as already read.
+current on-disk content, so treat it as already read.
 - Use the normal file tools for editing. Codegraph is for finding and understanding, and it cannot
-  show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
+show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
 
 ## Toolchain
 
 - Use the latest Swift release installed on the system (currently 6.4.1). Do not target old
 toolchains or work around modern Swift; prefer current stdlib and Concurrency features.
-- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container (see
-`.github/workflows/ci.yml`).
+- CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container
+(see `.github/workflows/ci.yml`).
 
 ## TDD is mandatory
 
 We work test-first: **red → green → refactor**.
 
-- Write a failing test before writing production code. Bug fixes start with a regression test that
-  reproduces the bug.
+- Write a failing test before writing production code.
+- Bug fixes start with a regression test that reproduces the bug.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
 test, not just a unit test.
-- Ported Miniflux behavior must bring the corresponding ported tests. Tests are written with Swift
-Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`); XCTest and `XCTVapor` are not
-used anywhere.
+- Ported Miniflux behavior must bring the corresponding ported tests.
+- Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
+XCTest and `XCTVapor` are not used anywhere.
 - Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
 genuinely wrong, fix the test in the same commit with a clear explanation.
 - New public APIs without tests are not accepted.
@@ -624,12 +624,12 @@ genuinely wrong, fix the test in the same commit with a clear explanation.
 
 - Documentation and tutorials are a project deliverable, not an afterthought. We will collect them
 with DocC and publish them later (planned: GitHub Pages, wired up in stage 8).
-- Every public API gets a DocC documentation comment. DocC catalogs live next to the code
-(`Sources/RivuletCore/RivuletCore.docc/`, later also for the executable): articles for concepts,
-tutorials for key workflows (setup, feeds, clients, deployment).
-- Write docs so they can be published as-is: no local-only references, no TODOs in prose. Keep
-`docs/` (plan, architecture, testing, reference notes) current. When code and docs disagree, fix
-both in the same commit.
+- Every public API gets a DocC documentation comment.
+- DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
+executable): articles for concepts, tutorials for key workflows (setup, feeds, clients, deployment).
+- Write docs so they can be published as-is: no local-only references, no TODOs in prose.
+- Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs disagree,
+fix both in the same commit.
 
 ## Code quality
 
@@ -640,19 +640,19 @@ only the seams the plan requires.
 - File size: aim for 150–300 lines per production file, hard cap ~500 — split before you reach it.
 One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
 to resource files, not inline megablocks.
-- Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting. Wrapping: prose and
-comments wrap at ≤100 columns, breaking at word boundaries. Four things are exempt because none can
-be broken without changing what it says: a Markdown table row; an inline code span longer than the
-width; a line the check half reads as one whole string, which is a manifest record line or a
-generated report item line; and a shell command line or a guard message, which the run reads as one
-line. Each stays whole on its own line. Code lines are single expressions and are not split to meet
-the width. A commit that only rewraps does not change behavior, so it does not reopen a review that
-already approved the words.
-- Zero warnings: the project and the test targets build clean — `swift build` and
-`swift build --build-tests` answer with no warning on a clean build. Each warning is fixed at the
-site it names, not silenced with a flag: the `await` on a call that is not async is dropped, a
-binding or a result nothing reads is removed or assigned to `_`, and `@discardableResult` is put on
-a function only when no caller reads its result.
+- Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
+- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Four things are
+exempt because none can be broken without changing what it says: a Markdown table row; an inline
+code span longer than the width; a line the check half reads as one whole string, which is a
+manifest record line or a generated report item line; and a shell command line or a guard message,
+which the run reads as one line. Each stays whole on its own line. Code lines are single expressions
+and are not split to meet the width. A commit that only rewraps does not change behavior, so it does
+not reopen a review that already approved the words.
+- Zero warnings: the project and the test targets build clean — `swift build` and `swift build
+--build-tests` answer with no warning on a clean build. Each warning is fixed at the site it names,
+not silenced with a flag: the `await` on a call that is not async is dropped, a binding or a result
+nothing reads is removed or assigned to `_`, and `@discardableResult` is put on a function only when
+no caller reads its result.
 - Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
 `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved when
 they make data structures, algorithms or hashing clearer or more efficient — add them as direct
@@ -668,11 +668,11 @@ read for their dimensions only.
 ## Review
 
 - Every PR is reviewed by three read-only reviewers, and all three must APPROVE on the final head.
-  The budget is three runs, hard cap four. Run 1 is a full review of the pushed head; run 2 verifies
-  the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
-  if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This
-  replaces the older "two clean rounds" wording, which counted rounds but did not cap them: a run
-  per blocker kept the count open.
+- The budget is three runs, hard cap four. Run 1 is a full review of the pushed head; run 2 verifies
+the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
+if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This replaces
+the older "two clean rounds" wording, which counted rounds but did not cap them: a run per blocker
+kept the count open.
 - Runs are sequential, one agent at a time: a run starts only after the previous one has reported.
 Three reviewers read the same head, so the three agents run one after another, never together — a
 parallel set is one pass over the head, not three runs, and it cannot verify a delta that does not
@@ -692,14 +692,14 @@ are counted on that head.
 ## Commands
 
 ```sh swift build                            # debug build
-swift test # all tests (unit + integration); must be green swift test --filter RivuletCoreTests #
-fast unit loop swift run rivulet --help swift build --build-tests # must be warning-free, for the
-project and the tests ```
+swift test                             # all tests (unit + integration); must be green
+swift test --filter RivuletCoreTests   # fast unit loop swift run rivulet --help
+swift build --build-tests              # must be warning-free, for the project and the tests ```
 
 ## Conventions
 
-- Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop. Code, comments,
-  docs and commit messages are in English.
+- Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
+- Code, comments, docs and commit messages are in English.
 - Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for
 Swift/SQLite.` Ported tests keep a comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
@@ -710,21 +710,22 @@ oversights.
 
 ## Stage workflow
 
-- Work on one stage at a time, starting from the lowest not-started stage. A stage is complete when
-  its exit criteria and the global definition of done are met. Update the status table in
-  `docs/plan/README.md` and the "Current focus" line above in the same commit that completes
-  a stage.
+- Work on one stage at a time, starting from the lowest not-started stage.
+- A stage is complete when its exit criteria and the global definition of done are met.
+- Update the status table in `docs/plan/README.md` and the "Current focus" line above in the same
+commit that completes a stage.
 
 ## Commits
 
 - Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
 support conditional GET with ETag`.
-- Behavior + its tests + doc updates land in the same commit. Never commit generated artifacts
-(`.build/`, `.docc-build/`, database files, secrets) — see `.gitignore`.
+- Behavior + its tests + doc updates land in the same commit.
+- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
+`.gitignore`.
 
 ## Safety
 
 - The HTML sanitizer is security-critical: never relax allowlists to make a test pass; when in
 doubt, port Miniflux behavior.
-- Respect size and time limits in the fetcher; never disable SSRF protections by default. No
-  secrets, tokens or personal feed lists in the repository or in fixtures.
+- Respect size and time limits in the fetcher; never disable SSRF protections by default.
+- No secrets, tokens or personal feed lists in the repository or in fixtures.

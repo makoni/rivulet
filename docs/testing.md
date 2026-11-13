@@ -32,9 +32,9 @@ the bug.
 
 Rules:
 
-- No production code without a corresponding test change. Never delete, skip or weaken a test to
-  make the suite pass (see `AGENTS.md`). When behavior crosses a module boundary, cover it with an
-  integration test, not only a unit test.
+- No production code without a corresponding test change.
+- Never delete, skip or weaken a test to make the suite pass (see `AGENTS.md`).
+- When behavior crosses a module boundary, cover it with an integration test, not only a unit test.
 
 ## Integration test infrastructure
 
@@ -59,15 +59,15 @@ the token as the `T` field of the merged form, which is what a POST request has 
 category — and sets the integration credentials the token read needs, so a pin that depends on which
 categories a user has reads the graph the command creates rather than a set the test made.
 - `FeverRequests.swift` — the requests and answer reads the five Fever suites over a real socket
-  share: `get`, `post` and `head` build the path the client calls, `postParts` and `multipart` send
-  the body as the bytes are given so a rule about what the form read sees is shown by the bytes
-  rather than by an encoding the client added, and `body`, `contentType` and `header` read the
-  answer as the transport left it, so the pin for a method that writes no bytes reads the framing
-  name. `seed` creates the account through `UserRepository.create`, so the default "All" category
-  the create path writes is one of the rows the pins read, and answers the token the guard reads;
-  `categoryID` reads the id the groups golden names. The rows are written through SQL on one
-  connection and the request runs after that connection goes back to the pool, because the driver
-  keeps a single pooled connection, so a pin cannot hold one while the handler checks out another.
+share: `get`, `post` and `head` build the path the client calls, `postParts` and `multipart` send
+the body as the bytes are given so a rule about what the form read sees is shown by the bytes rather
+than by an encoding the client added, and `body`, `contentType` and `header` read the answer as the
+transport left it, so the pin for a method that writes no bytes reads the framing name. `seed`
+creates the account through `UserRepository.create`, so the default "All" category the create path
+writes is one of the rows the pins read, and answers the token the guard reads; `categoryID` reads
+the id the groups golden names. The rows are written through SQL on one connection and the request
+runs after that connection goes back to the pool, because the driver keeps a single pooled
+connection, so a pin cannot hold one while the handler checks out another.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
 with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
 set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
@@ -1328,20 +1328,20 @@ is named there and in the suite headers. 8 pins and 7 probes across five suites,
 its pin failing on the rule it names:
 
 - `RepeatedResponseHeadersTests` — a response name that appears twice keeps the first value, as the
-  reference's `Header.Get` answers, and one name written two ways is one name; the first `Location`
-  is the hop the fetch takes. 3 pins and 2 probes over the stub server, which now writes headers as
-  ordered pairs because `Behavior.headers` is a dictionary and cannot hold two values for one name.
-  This is the finding the pass closed in production code.
+reference's `Header.Get` answers, and one name written two ways is one name; the first `Location` is
+the hop the fetch takes. 3 pins and 2 probes over the stub server, which now writes headers as
+ordered pairs because `Behavior.headers` is a dictionary and cannot hold two values for one name.
+This is the finding the pass closed in production code.
 - `FetcherSecurityTests` — the address policy runs on the hop that took its client from the cache,
-  read as the seam's call count across two fetches of one host: 1 pin and 1 probe.
+read as the seam's call count across two fetches of one host: 1 pin and 1 probe.
 - `FetcherClientCacheTests` — the cache stays at the cap after a checkout that goes over it, and the
-  entry the trim closes is the one whose expiry comes first, both read through an internal accessor,
-  because nothing a fetch can answer changes when a different entry is closed: 2 pins and 2 probes.
+entry the trim closes is the one whose expiry comes first, both read through an internal accessor,
+because nothing a fetch can answer changes when a different entry is closed: 2 pins and 2 probes.
 - `SanitizerTests` — `width="+10"` is a positive integer, because `strconv.Atoi` reads the sign as
-  part of the number: 1 pin and 1 probe, with the expected value taken from the reference.
+part of the number: 1 pin and 1 probe, with the expected value taken from the reference.
 - `SanitizerHostileCorpusTests` — the scheme check reads the value the entity table decodes, so
-  membership in that table is part of the rule; the case is `href="http&colon;example.org"`, kept as
-  an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
+membership in that table is part of the rule; the case is `href="http&colon;example.org"`, kept as
+an address with an allowed scheme: 1 pin and 1 probe, on the corpus growing from 145 to 146 cases.
 
 The dependency audit is part of the checklist too: the 36 pins in `Package.resolved` were queried
 against the GitHub Advisory DB on 2026-11-07, because OSV has no Swift ecosystem, and the 27
@@ -1471,16 +1471,16 @@ see a feed written at the same instant it reads.
 
 What it cannot show, and the harness and the docs say so:
 
-- that the run ran at all, because it is on demand and not in CI; that the two sides read the same
-  bytes over the network, because each fetch is its own hop;
-- the row order a storage read answers for rows sharing one value, which SQL does not fix; the clock
-  fields, which each side wrote at its own write instant. The rule that reads the parse results can
-  never fail on a clock difference, because it never reads one: that half of its name is the rule,
-  not an assertion, so no probe covers it;
-- the rules the stage-3 corpora already pin, which the run re-reads rather than pins; the other half
-  of the table rule: a class the manifest reaches but no row names is a difference nothing covers,
-  so the difference rules read it, and a probe cannot make the table rule report it alone — removing
-  the row also makes the difference itself a finding;
+- that the run ran at all, because it is on demand and not in CI;
+- that the two sides read the same bytes over the network, because each fetch is its own hop;
+- the row order a storage read answers for rows sharing one value, which SQL does not fix;
+- the clock fields, which each side wrote at its own write instant. The rule that reads the parse
+results can never fail on a clock difference, because it never reads one: that half of its name is
+the rule, not an assertion, so no probe covers it;
+- the rules the stage-3 corpora already pin, which the run re-reads rather than pins;
+- the other half of the table rule: a class the manifest reaches but no row names is a difference
+nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
+alone — removing the row also makes the difference itself a finding;
 - the rules that are tautologies on run data because the collector writes both sides from one
 source: the input digests, the flags, the names the run asked with, and the response name read with
 the value that response answered, which are one read on a run. They can only be shown on crafted
@@ -1966,33 +1966,34 @@ the comment attached to a declaration through its attribute lines.
 
 ## Running
 
-- `swift test` — everything (unit + integration); this is what CI runs. `swift test --filter
-  RivuletCoreTests` — unit only (fast loop). `swift test --filter RivuletIntegrationTests` —
-  integration only. `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py
-  --probe` checks that each of its rules can fail on the rule it names.
-- `Scripts/parity.sh` — the parity run, outside CI.
-  `python3 Tools/parity/probes.py` checks that each of its rules can fail on the rule it names, and
-  `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the guards alone.
-- `python3 Tools/clients/replay.py` — the client matrix check half, outside CI.
-  `python3 Tools/clients/probes.py` checks that each of its 19 rules can fail on the rule it names
-  and that the baseline reports nothing. `Scripts/perf.sh` is its run half, outside CI too.
-- `Scripts/build-release.sh` — stage 8's static release build, outside CI.
-  `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` runs its checks against an artifact already on
-  disk, which is how each of its checks was seen to fail on the value it names.
-- `Scripts/smoke.sh` — stage 8's clean-container smoke run, outside CI.
-  `python3 Tools/smoke/probes.py` checks that each of its 20 rules can fail on the rule it names and
-  that the baseline reports nothing, the runbook rule's five page-reading halves being seen to fail
-  by patching the page itself; the 13 guards run only as part of the run, because they read the
-  machine's ports, Docker, and the files the run names.
+- `swift test` — everything (unit + integration); this is what CI runs.
+- `swift test --filter RivuletCoreTests` — unit only (fast loop).
+- `swift test --filter RivuletIntegrationTests` — integration only.
+- `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
+each of its rules can fail on the rule it names.
+- `Scripts/parity.sh` — the parity run, outside CI. `python3 Tools/parity/probes.py` checks that
+each of its rules can fail on the rule it names, and `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the
+guards alone.
+- `python3 Tools/clients/replay.py` — the client matrix check half, outside CI. `python3
+Tools/clients/probes.py` checks that each of its 19 rules can fail on the rule it names and that the
+baseline reports nothing. `Scripts/perf.sh` is its run half, outside CI too.
+- `Scripts/build-release.sh` — stage 8's static release build, outside CI. `RIVULET_SKIP_BUILD=1
+Scripts/build-release.sh` runs its checks against an artifact already on disk, which is how each of
+its checks was seen to fail on the value it names.
+- `Scripts/smoke.sh` — stage 8's clean-container smoke run, outside CI. `python3
+Tools/smoke/probes.py` checks that each of its 20 rules can fail on the rule it names and that the
+baseline reports nothing, the runbook rule's five page-reading halves being seen to fail by patching
+the page itself; the 13 guards run only as part of the run, because they read the machine's ports,
+Docker, and the files the run names.
 - `Scripts/deploy.sh` — stage 8's deploy run, outside CI. `python3 Tools/deploy/deploy_check.py
-  --probe` checks that each of its 16 rules can fail on the rule it names and that the baseline
-  reports nothing; its eight guards run only as part of the run, because they read the two tools and
-  the files the run writes.
-- `Scripts/docs.sh` — stage 8's DocC run, outside CI, because the run half needs the tool.
-  `python3 Tools/docs/docs_check.py` reads the committed document as data and `python3
-  Tools/docs/docs_check.py --probe` checks that each of its 21 rules can fail on the rule it names
-  and that the baseline reports nothing. The run half was seen here to fail on the values its usage
-  lines name, thirteen read sites over eight guards.
+--probe` checks that each of its 16 rules can fail on the rule it names and that the baseline
+reports nothing; its eight guards run only as part of the run, because they read the two tools and
+the files the run writes.
+- `Scripts/docs.sh` — stage 8's DocC run, outside CI, because the run half needs the tool. `python3
+Tools/docs/docs_check.py` reads the committed document as data and `python3 Tools/docs/docs_check.py
+--probe` checks that each of its 21 rules can fail on the rule it names and that the baseline
+reports nothing. The run half was seen here to fail on the values its usage lines name, thirteen
+read sites over eight guards.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

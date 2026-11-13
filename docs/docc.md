@@ -44,13 +44,13 @@ the run half, which needs the tool.
 - the_values_the_pages_write_are_the_values_the_example_writes
 
 Seven rules read more than one half, so they have one craft for each half: the document rule reads
-the value its build path is compared with and the document read as the run wrote nothing; the catalog
-rule reads the directory the tool reads the catalog at and the name the table of contents writes for
-the site; the table-of-contents rule reads the list against the page files and the page files
-against the list; the stated-value rule reads the pragma, the factor, the listener and the integer
-minimums, which are four kinds of value; the reference-path rule reads an inline-code path and a
-link; the contents-table rule reads the rows against the documents and the documents against the
-rows; and the report rule reads the two lists below against what the check half has.
+the value its build path is compared with and the document read as the run wrote nothing; the
+catalog rule reads the directory the tool reads the catalog at and the name the table of contents
+writes for the site; the table-of-contents rule reads the list against the page files and the page
+files against the list; the stated-value rule reads the pragma, the factor, the listener and the
+integer minimums, which are four kinds of value; the reference-path rule reads an inline-code path
+and a link; the contents-table rule reads the rows against the documents and the documents against
+the rows; and the report rule reads the two lists below against what the check half has.
 
 ## What this harness cannot show
 
@@ -102,8 +102,9 @@ the asset, the build path, the page set, and the document.
 ## Running it
 
 ```sh
-Scripts/docs.sh # the run, then the guards python3 Tools/docs/docs_check.py # the committed document
-as data python3 Tools/docs/docs_check.py --probe # the probe round
+Scripts/docs.sh                                  # the run, then the guards
+python3 Tools/docs/docs_check.py                 # the committed document as data
+python3 Tools/docs/docs_check.py --probe         # the probe round
 ```
 
 The Pages job publishes what this harness reads: `docc convert` on the catalog, with the build

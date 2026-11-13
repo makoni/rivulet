@@ -46,23 +46,27 @@ surface.** Linux-first. New dependencies require explicit approval.
 
 ## Working agreement
 
-- Stages are sequential: start the lowest not-started stage unless explicitly redirected. Update the
-  status table in the same commit that completes a stage.
+- Stages are sequential: start the lowest not-started stage unless explicitly redirected.
+- Update the status table in the same commit that completes a stage.
 
 ## Definition of done (every stage)
 
-- [ ] New behavior is covered by tests written first (TDD). [ ] Integration tests cover anything
-  that crosses a module boundary (HTTP, SQLite, scheduler, API).
-- [ ] `swift test` is green locally and in CI. [ ] Docs updated (`README.md`, stage status, `docs/`
-  as needed); public APIs carry DocC comments. [ ] Ported code/fixtures carry provenance comments
-  and `NOTICE` stays accurate. [ ] No compiler warnings, from the project or the test targets; no
-  skipped or disabled tests (except the documented heavy/on-demand suites).
+- [ ] New behavior is covered by tests written first (TDD).
+- [ ] Integration tests cover anything that crosses a module boundary (HTTP, SQLite,
+scheduler, API).
+- [ ] `swift test` is green locally and in CI.
+- [ ] Docs updated (`README.md`, stage status, `docs/` as needed); public APIs carry DocC comments.
+- [ ] Ported code/fixtures carry provenance comments and `NOTICE` stays accurate.
+- [ ] No compiler warnings, from the project or the test targets; no skipped or disabled tests
+(except the documented heavy/on-demand suites).
 
 ## Non-goals (MVP)
 
-- Web UI of any kind. PostgreSQL, Redis, external cron, message queues. Multi-user (single user; the
-  schema leaves room for more). Miniflux REST v1 parity and API keys (a subset may appear later on
-  demand). Native apps of our own — we reuse the existing client ecosystem.
+- Web UI of any kind.
+- PostgreSQL, Redis, external cron, message queues.
+- Multi-user (single user; the schema leaves room for more).
+- Miniflux REST v1 parity and API keys (a subset may appear later on demand).
+- Native apps of our own — we reuse the existing client ecosystem.
 
 ## Known risks
 

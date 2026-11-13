@@ -61,9 +61,9 @@ def the_document_names_the_run_that_wrote_it(data):
 
 
 def catalog_directory(data):
-    # The directory the tool read the catalog at, read as a name the manifest writes no target for. The
-    # table of contents keeps the name it writes equal to the catalog, so the second half reports
-    # nothing, which is what keeps this craft single-firing.
+    # The directory the tool read the catalog at, read as a name the manifest writes no target for.
+    # The table of contents keeps the name it writes equal to the catalog, so the second half
+    # reports nothing, which is what keeps this craft single-firing.
     data["catalog"] = "Extra"
     toc = check.toc(data)
     toc["args"]["name"] = "Extra"
@@ -99,10 +99,9 @@ def tool_answered_a_finding(data):
 
 
 def page_calls_an_unregistered_command(data):
-    # Only the shape the rule reads is changed: the call, not the fenced line it came from, so
-    # no other
-    # rule reads this craft. The command is one the port has no run for, which the runbook names as the
-    # recipe rather than as a command.
+    # Only the shape the rule reads is changed: the call, not the fenced line it came from, so no
+    # other rule reads this craft. The command is one the port has no run for, which the runbook
+    # names as the recipe rather than as a command.
     page = data["pages"][one_page(data)]
     page["calls"] = sorted(set(page["calls"]) | {"rivulet restore /var/backups/rivulet.db"})
 
@@ -208,10 +207,10 @@ def report_names_gaps(data):
 
 
 def document_with_no_answer(data):
-    # The document read as the run wrote nothing, which the rule reports as a finding for each of the
-    # two halves instead of crashing. The rules that read the tool's answer have no answer to read
-    # here, so this craft fires the rule that reads the document alone, and it is the same shape the
-    # run half's guard reads through the data writer.
+    # The document read as the run wrote nothing, which the rule reports as a finding for each of
+    # the two halves instead of crashing. The rules that read the tool's answer have no answer to
+    # read here, so this craft fires the rule that reads the document alone, and it is the same
+    # shape the run half's guard reads through the data writer.
     data["document"] = {}
 
 
