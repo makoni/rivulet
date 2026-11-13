@@ -44,6 +44,7 @@ CANNOT_SHOW = [
     "the reading time each article names, which the tool reads and no rule reads",
     "the titles, the chapter names and the child directives the tool requires, recorded for the reader and read by no rule",
     "the way a page renders, because the tool writes files and the rules read the shapes the files write",
+    "the archive the build half writes, because it lives outside the repository and no rule here reads an archive or the link the build puts on a page it wrote",
     "the site the pages are published on, because the publishing happens outside this repository and no rule here reads what a web server answers",
     "a value a page states for a name the source reads with a trim alone, because no rule reads a value that reads as free text",
     "a stage state past the first part the rule reads, because the plan table writes a state as one long cell",

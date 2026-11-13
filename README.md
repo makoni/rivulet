@@ -10,7 +10,8 @@ A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://gi
 > step, the client APIs (Google Reader and Fever) with the storage reads the routers run, the CLI
 > command set with the in-process cadence loop `serve` runs, and the acceptance harnesses that read
 > their own runs as data. Stage 8's documentation layer is the DocC catalog, its four articles and
-> its tutorial, read as data by the harness and published as a site outside this repository.
+> its tutorial, read as data by the harness; `Scripts/build-docs.sh` writes the archive the site is
+> built from, and that site is published outside this repository.
 
 Stage states as `docs/plan/README.md`'s table states them:
 

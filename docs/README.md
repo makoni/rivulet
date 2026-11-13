@@ -33,8 +33,9 @@ criteria met, and stages 5, 7 and 8 are in progress; the MVP is stages 0–8. Se
 
 The pages a person reads are the DocC catalog next to the code,
 `Sources/RivuletCore/RivuletCore.docc/`: one table of contents, four concept articles and one
-tutorial. The layer is published as a site outside this repository, so no CI job here shows a served
-site, and nothing here reads what a web server answers. That layer is written so it can be published
-as is — no local-only references, no TODOs — and the rule that reads it as data is what keeps the
-claims in it falsifiable: a page that names a command the dispatch does not register is a finding.
+tutorial. The site the layer is published on is outside this repository, and the archive that site
+is built from is written by `Scripts/build-docs.sh`, so no CI job here shows a served site and
+nothing here reads what a web server answers. That layer is written so it can be published as is —
+no local-only references, no TODOs — and the rule that reads it as data is what keeps the claims in
+it falsifiable: a page that names a command the dispatch does not register is a finding.
 [docc.md](docc.md) names the 21 rules, the run half, the shapes read, and what no rule reads.
