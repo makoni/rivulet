@@ -1,18 +1,19 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation. **Status:** in
-progress — six slices are merged: the static-build spike (PR #67), the version value as a client
+progress — seven slices are merged: the static-build spike (PR #67), the version value as a client
 reads it (PR #68), the clean-container smoke job (PR #69), whose run half is `Scripts/smoke.sh` and
 whose check half is `Tools/smoke/smoke_check.py`, reading the document run leaves behind rather than
 the container it ran, the runbook `docs/deploy.md` with the rule that reads it as data (PR #70),
 which sits in `Tools/smoke/runbook.py` because the check half is at the size cap the project sets,
 the three deploy artifacts read as data (PR #72): `Scripts/deploy.sh` is its run half,
 `Tools/deploy/deploy_check.py` its check half over 16 rules, `Tools/deploy/parsers.py` the reads,
-and `Tools/deploy/probes.py` the 22 cases that show each rule can fail on the rule it names, and the
+and `Tools/deploy/probes.py` the 22 cases that show each rule can fail on the rule it names, the
 documentation layer read as data over 21 rules in `Tools/docs/docs_check.py` (PR #73) with
 `Scripts/docs.sh` as its run half and `Tools/docs/probes.py` as its round — the catalog being the
 pages a site is built from, published outside this repository, the Pages publish half dropped as
-PR #74 so no CI job here publishes it. **Effort:** S–M.
+PR #74 so no CI job here publishes it — and the build half `Scripts/build-docs.sh` (PR #75), which
+writes the archive that site is built from outside the repository. **Effort:** S–M.
 **Depends on:** Stage 6.
 
 ## Scope

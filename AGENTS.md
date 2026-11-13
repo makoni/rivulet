@@ -189,7 +189,7 @@ the last piece being the automated half of stage 5, whose green run in CI is the
 closed with it. The manual client-matrix criterion is closed for the client run here and stays open
 for the four clients this machine has no device to run, which is what the report items name.
 
-**Stage 8 — Packaging & deployment** is in progress with six slices merged: the static musl build
+**Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
 the stage's distro-linked fallback is not taken; the version value as a client reads it (PR #68);
 the clean-container smoke job (PR #69), read as 13 guards in the run half and 20 rules in the check
@@ -218,9 +218,9 @@ toolchain cannot build because SwiftPM answers no plugin for the symbol graph th
 site shows is the pages the catalog writes. The same slice's publish half is PR #74, named here as
 merged: the Pages job is out of CI and the Pages site setting is off, and the item that named a pull
 request deployment went with the job, which left sixteen items until the archive
-`Scripts/build-docs.sh` writes took the report back to seventeen. That build half is checked here by
-`bash -n` and by its six guards, twenty read sites, each seen to fail on the value its usage line
-names. The 21 public declarations that had
+`Scripts/build-docs.sh` writes took the report back to seventeen. That build half is PR #75, named
+here as merged, and is checked here by `bash -n` and by its six guards, twenty read sites, each seen
+to fail on the value its usage line names. The 21 public declarations that had
 no comment are the second half of the same rule, read through the comment attached to a declaration
 over its attribute lines.
 
