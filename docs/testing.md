@@ -1836,7 +1836,87 @@ there: with the branch absent the read answered nothing for the directory the co
 `backup` reported the refusal and wrote nothing, and the copy rule had no copy to read. The branch
 is named in `Sources/RivuletCore/Storage/SystemFileSystemSpace.swift` and in the header of
 `SystemFileSystemSpaceTests`, which names the musl half as checked by the static build rather than
-by a pin. ## Running
+by a pin.
+
+## Deploy artifacts (stage 8)
+`Scripts/deploy.sh` is the run half of the deploy slice and `Tools/deploy/deploy_check.py` is its
+check half. The run copies the three committed deploy artifacts into the directory it ran in, asks
+the two tools to read them there - `docker compose config --format json` for the compose file and
+`systemd-analyze verify` for the unit - and hands the answers to `Tools/deploy/collect.py`, which
+writes `Tools/deploy/deploy.json`. The check half reads that document rather than a container or a
+service, so each of its 16 rules is a function over data. It is not a test and it does not run in
+CI: the CI container has neither Docker nor systemd, so the run is on demand, and the shell is
+checked here by `bash -n` and by its eight guards, each seen to fail on the value it names.
+`Tools/deploy/parsers.py` holds only the reads, so the rule list stays the readable part, and
+`Tools/deploy/probes.py` crafts one input per rule that violates it: 22 cases over 16 rules, 21
+crafts plus the baseline, the baseline asserted to report nothing, so each craft reports its own
+rule alone or the rules its patch reaches.
+
+What the 16 rules read: the compose as the tool resolved it, key by key, with each port and volume
+pair read as the tool took it and the volume name read as the tool resolved it with the project the
+run declared, plus the values the tool read from the env file against the committed example, because
+the tool puts those values into the service environment rather than answering a key for them; the
+build context against the directory the run ran in, and each of the four copies against the bytes
+the committed file has, which is the run being allowed to copy and not to change; the subcommand the
+tool resolves for the container against the names the dispatch registers, with the entrypoint read
+as the file the image copy line writes; the published port against the port the address the tool
+resolved names, read as one port on both halves of the pair and against the port the runbook names,
+with a value that is the listener the read answers for a value it does not read being reported as
+the default rather than as a value the example writes; every name the three files write against the
+names the config sources read; each value as the kind of value the source reads that name as, with
+the integer reads carrying their minimum, the choice reads carrying the case set the enum declares,
+the boolean read carrying the forms the switch has, and the three reads that take a value as a shape
+of their own named by the function that reads them; no value in the example reading as the shape a
+credential has, read as the marker the hasher writes and the width the pin names for the hex form
+the token derivation writes, with the file the run built read as the gitignored name the file a
+deployment reads has; the data path as the three files name it; the unit subcommand against the
+names the dispatch registers; the program the unit names against the file the image copy line writes
+and against the program the tool printed; the tool lines as data, the file each names against the
+name the run passed and the key each names in the section the tool read it in; the restart policy
+the two files name as one value; the signal the unit names against the signals the handler has a
+case for; the project name as the tool resolved it against the name the run declared; the keys the
+three artifacts write against the bookkeeping the check half keeps; and the two lists the document
+carries against what the check half has. The two unit keys that are structure rather than a value
+the port reads, the description and the install target, are named in `NOT_READ` rather than left
+unread, and the comment lines and empty lines in the three artifacts are the part no rule reads.
+
+Two crafts reach more than one rule through one patch, which `Tools/deploy/probes.py` names as
+`REACHES`: the restart policy and the container subcommand, because the rule that reads the compose
+as the tool resolved it reads the same key each of those crafts changes. Every other craft is kept
+single-firing by mirroring the change on the other side of a tool-versus-file read: `mirror` and
+`mirror_file` keep the two sides of a key equal, `mirror_env` keeps the values the tool resolved
+equal to the values the example writes, `mirror_pairs` keeps a pair list equal on both sides,
+`keep_program_line` keeps the tool line for the unit equal to what the unit writes, and
+`keep_covered` keeps the bookkeeping equal to the keys the artifacts write after the craft. The
+round hashes every file the check half reads before and after, so a craft that reached a file is
+reported.
+
+What the eight guards read, each seen to fail here on the value it names: the record path against
+the document the check half reads, by `/tmp/opencode/not-read.json`; the three committed artifacts
+against the paths the check half reads them at, by `/tmp/opencode/dtest/deploy/compose.yml`,
+`/tmp/opencode/dtest/deploy/rivulet.service` and `/tmp/opencode/dtest/.env.example`; the file the
+run builds against the gitignored name the file a deployment reads has, by `env.local`; the four
+copies against the bytes the committed files have, by writing one extra byte to a copy; the two
+tools against the answer each gives for the run, by `/bin/false` for both; the first line the unit
+tool printed against the name the run passed it, by `reader.service`, which is the half that reports
+the tool not finding the unit at all; the service key the compose writes against the service the run
+declares, by `reader`; and the document the run wrote against the answer both tools gave, by an
+empty document, which is the half a run that never ran cannot pass. The eight guards are thirteen
+read sites, because the artifact item reads three files, the copy item reads four and the tool item
+reads two answers. The guards that read a value the run declares run before the document is written,
+so a run that fails one of them leaves the document the previous run wrote alone, and the guards
+that read a tool fail only on a machine without it, which is the point of the job.
+
+What this harness cannot show is named as twelve report items in `docs/deploy.md`, and the same list
+is what `deploy_check.py` keeps as `CANNOT_SHOW` and reads against the document, so the report is
+data rather than prose: the run having run at all, the image being built or started, the artifact
+the Dockerfile names being in the build context, the unit installed and run on a machine, the signal
+a stop delivers, the values an operator fills in, the credential pair, the published port being free
+on the machine, the wording of the lines the tools printed, the version of each tool the run names,
+the runbook executed on a machine that is not the one that wrote it, and a value an operator changes
+One thing outside this harness is named here rather than asserted: the stage criterion of a fresh
+VPS following `docs/deploy.md` cannot be closed on this machine, which is what the runbook report
+item names. ## Running
 
 - `swift test` — everything (unit + integration); this is what CI runs.
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).
@@ -1857,6 +1937,10 @@ each of its rules can fail on the rule it names.
   that the baseline reports nothing, the runbook rule's five page-reading halves being seen to fail
   by patching the page itself; the 13 guards run only as part of the run, because they read the
   machine's ports, Docker, and the files the run names.
+- `Scripts/deploy.sh` — stage 8's deploy run, outside CI. `python3 Tools/deploy/deploy_check.py
+  --probe` checks that each of its 16 rules can fail on the rule it names and that the baseline
+  reports nothing; its eight guards run only as part of the run, because they read the two tools and
+  the files the run writes.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the
@@ -1867,7 +1951,9 @@ default job, and it is not gated.
 CI runs on Linux: `ubuntu-latest` with the `swift:latest` container and a 15-minute job timeout.
 Keep the default suite well under that. Stage 7's cheap CI slice is in the default job — the reduced
 hostile corpus and the reduced large-feed scenario, both ungated — and the full parity harness runs
-on demand via `Scripts/parity.sh`.
+on demand via `Scripts/parity.sh`. None of the Python check halves runs in CI, because the job
+builds and tests the Swift targets only, so each probe round is run by hand on the machine that has
+Docker, systemd and the toolchain.
 
 ## Framework
 

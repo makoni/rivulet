@@ -47,7 +47,13 @@ the dispatch, the flags against each command's signature, the names against the 
 durability value against the pragma the storage wrapper runs, the room number against the factor the
 free-space check uses, and the step order against the order the run recorded — which took the check
 half to 20 rules and 61 crafts plus the baseline, with the five page-reading halves fired only by
-patching the page itself, each patch reverted byte-identically | S–M |
+patching the page itself, each patch reverted byte-identically; the fifth slice, merged as PR #72, is
+the three deploy artifacts read as data — `Scripts/deploy.sh` as the run half with its eight guards
+and thirteen read sites, `Tools/deploy/deploy_check.py` as the check half over 16 rules,
+`Tools/deploy/parsers.py` holding the reads, and 22 cases in `Tools/deploy/probes.py`, the baseline
+asserted to report nothing, two crafts named as reaching more than one rule through the one patch
+they name, and the twelve things the harness cannot show kept as report items the check half reads
+against the document | S–M |
 | 9 | [Post-MVP backlog](stage-9-stretch.md) | backlog | — |
 
 **MVP = stages 0–8** (roughly 6–9k lines of Swift plus tests; expect a few months of part-time work
@@ -97,4 +103,6 @@ captured client requests, manual checklist | | SQLite write contention under ref
 unproven is the artifact on a machine that is not the one that built it, and the runbook's steps on
 a fresh VPS | Stage 8 | The clean-container smoke job (PR #69) is the check that shows it, read over
 the document the run leaves behind; `docs/deploy.md` now names the commands and its rule reads them,
-but the row still stands for another machine, which the run half cannot show |
+and the three deploy artifacts read as data (PR #72) name as their report items that no container
+and no service was run here, so the row still stands for another machine, which the run half cannot
+show |
