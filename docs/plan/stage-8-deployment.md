@@ -154,7 +154,7 @@ lines, and are now filled.
 sites, each seen to fail here on the value its usage line names: the archive path, the catalog path,
 the tool, the base path, the names the markdown manifest carries, and the link each page the build
 wrote carries. It writes the archive a site is built from outside the repository, and the link stays
-hidden for a page the tool answered no markdown for, which on this toolchain is every chapter page.
+hidden for a page the tool answered no markdown for, which here is every page but the tutorial.
 - The round is what CI runs for this harness, in the probe-rounds job on the runner host, because
 the Swift container has no `python3`. Publishing the pages as a site happens outside this
 repository, so no CI job here shows a served site, and no rule here reads what a web server answers.

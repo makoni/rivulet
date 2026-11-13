@@ -105,9 +105,9 @@ the asset, the build path, the page set, and the document.
 `Scripts/build-docs.sh` is the build half: it reads the catalog at the path the check half reads it
 at and writes the archive a site is built from, outside the repository, with the markdown version of
 each page the tool answered markdown for and a link to it on every page the build wrote. The tool
-answers markdown for the tutorial alone here, so a page the catalog writes as a chapter keeps the
-link hidden, and the hrefs the build computed for the routes it has a markdown file for are written
-into the page the site opens. The script is checked by `bash -n` and by its six guards, twenty read
+answers markdown for the tutorial alone here, so every other page the build wrote keeps the link
+hidden, and the hrefs the build computed for the routes it has a markdown file for are written into
+the page the site opens. The script is checked by `bash -n` and by its six guards, twenty read
 sites, each seen to fail here on the value the usage lines name: the archive path, the catalog path,
 the tool, the base path, the names the manifest carries, and the link each page the build wrote
 carries. No rule here reads an archive, so this half is what a person runs before publishing, and
@@ -123,8 +123,8 @@ Scripts/build-docs.sh                            # the build half, then the guar
 ```
 
 Publishing the pages as a site happens outside this repository, so no CI job here publishes them and
-no rule here reads what a web server answers. The round is what CI runs for this harness, because the
-run half and the build half both need the tool. The run half writes its copy and its build in a
+no rule here reads what a web server answers. The round is what CI runs for this harness, because
+the run half and the build half both need the tool. The run half writes its copy and its build in a
 temporary directory outside the repository; the build half writes the archive outside the repository
-as well, at the path its guard reads against the tree, which is what keeps the archive out of a
-commit.
+as well, at the path its guard reads against the tree, which is what keeps the archive
+out of a commit.
