@@ -1954,15 +1954,15 @@ file the check half reads before and after, so a craft that reached a file is re
 no rule compares are named as not read rather than left unread: the directive kind, the child
 directives, and the fenced lines, which are read through the shapes they build.
 
-The run half needs the tool, so CI runs the round, not the run; the Pages job builds the site from
-the committed catalog with `docc convert` and publishes what the tool wrote. The tool answers no
-version for its own run, so the document records the program the run invoked, which is the half no
-rule reads. What this harness cannot show is named as seventeen report items in `docs/docc.md`, and
+The run half needs the tool, so CI runs the round, not the run; publishing the pages as a site
+happens outside this repository, so no CI job here reads what a web server answers. The tool answers
+no version for its own run, so the document records the program the run invoked, which is the half
+no rule reads. What this harness cannot show is named as sixteen report items in `docs/docc.md`, and
 the same list is what `docs_check.py` keeps as `CANNOT_SHOW` and reads against the document, so the
 report is data rather than prose. The symbol pages are the item that names a gap in the toolchain
 rather than in the catalog: this toolchain's SwiftPM answers no plugin for the symbol graph the tool
-reads, so the site publishes the pages the catalog writes and the rule that reads the sources reads
-the comment attached to a declaration through its attribute lines.
+reads, so what a site shows is the pages the catalog writes and the rule that reads the sources
+reads the comment attached to a declaration through its attribute lines.
 
 ## Running
 
@@ -2009,8 +2009,8 @@ or a process: Docker, systemd, the terminal, the DocC tool. The probe rounds are
 on the runner host, because the Swift container has no `python3` — the five rounds read committed
 files as data, so they run on any machine that has the repository and a Python, which is what makes
 the job machine-independent; each round was seen to be green from a tree copied to a different root.
-The Pages job publishes the DocC site from the committed catalog in the Swift container, where the
-tool is on the image.
+Publishing the DocC pages as a site happens outside this repository, so the pages the harness reads
+are the deliverable and no CI job here shows a served site.
 
 ## Framework
 

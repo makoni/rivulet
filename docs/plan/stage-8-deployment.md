@@ -11,7 +11,8 @@ the three deploy artifacts read as data (PR #72): `Scripts/deploy.sh` is its run
 and `Tools/deploy/probes.py` the 22 cases that show each rule can fail on the rule it names, and the
 documentation layer read as data over 21 rules in `Tools/docs/docs_check.py` (PR #73) with
 `Scripts/docs.sh` as its run half and `Tools/docs/probes.py` as its round — the catalog being the
-site the Pages job publishes. **Effort:** S–M. **Depends on:** Stage 6.
+pages a site is built from, published outside this repository. **Effort:** S–M.
+**Depends on:** Stage 6.
 
 ## Scope
 
@@ -48,8 +49,9 @@ only commands the dispatch registers, only flags those signatures declare and on
 reads, so the command surface the stage-6 criterion reads is the same set the page calls; Litestream
 is named as a tool outside the port, with no command of the port running it, and the page names what
 it cannot show as its own section.
-- [ ] Documentation publishing: generate DocC (API docs + tutorials) and publish, planned via GitHub
-Pages, wired into the release process.
+- [ ] Documentation publishing: the pages this harness reads as data are published as a site outside
+this repository, so no CI job here shows a served site; the symbol pages stay open because this
+toolchain answers no plugin for the symbol graph the tool reads.
 - [ ] Release workflow on tag.
 
 ## Spike result
@@ -129,10 +131,10 @@ which were seen to fail on the value they name. Nothing here runs a container or
 twelve report items in `docs/deploy.md` name what the harness cannot show, and the run is on demand
 rather than in CI because the CI container has neither Docker nor systemd.
 
-### The documentation layer (DocC — the site the Pages job publishes)
+### The documentation layer (DocC — the pages the harness reads as data)
 
-- The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept
-- articles, one tutorial and the asset the table of contents names — is read as data by 21 rules in
+- The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept articles
+and one tutorial and the asset the table of contents names — is read as data by 21 rules in
 `Tools/docs/docs_check.py`, with `Scripts/docs.sh` as the run half (eight guards, thirteen read
 sites, all eight seen to fail here on the values the usage lines name) and `Tools/docs/probes.py`
 crafting 31 cases over the 21 rules: 30 crafts plus the baseline asserted to report nothing, no
@@ -140,15 +142,16 @@ craft reaching more than one rule, and every craft changing the parsed form rath
 pages state only what a check here can show — the commands the dispatch registers, the flags the
 signatures declare, the names the config reads, the values the sources write, the routes the port
 registers, the clients the client matrix records and the version the plan pins — so a page naming
-something the sources do not write is a finding. The seventeen report items in `docs/docc.md` name
+something the sources do not write is a finding. The sixteen report items in `docs/docc.md` name
 the shapes no rule compares and what no rule can show, including the symbol pages, which this
-toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: the
-site publishes the pages the catalog writes. The 21 public declarations that had no documentation
+toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: what a
+site shows is the pages the catalog writes. The 21 public declarations that had no documentation
 comment are read by the same rule, through the comment attached to a declaration over its attribute
-lines, and are now filled. - The round is what CI runs for this harness, in the probe-rounds job on
-the runner host, because the Swift container has no `python3`; the Pages job in the Swift container
-builds the site with the tool and publishes what it wrote. The run half needs the tool, so it stays
-on demand.
+lines, and are now filled.
+- The round is what CI runs for this harness, in the probe-rounds job on the runner host, because
+the Swift container has no `python3`. Publishing the pages as a site happens outside this
+repository, so no CI job here shows a served site, and no rule here reads what a web server answers.
+The run half needs the tool, so it stays on demand.
 
 ## Exit criteria
 
