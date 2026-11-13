@@ -28,7 +28,7 @@ public struct Retention: Sendable {
     /// `max(days, 1)`).
     ///
     /// - Parameters:
-    ///   - on: The storage to clean.
+    ///   - storage: The storage to clean.
     ///   - now: The current Unix seconds; the process clock applies when
     ///     omitted (tests pass a fixed value).
     /// - Returns: The number of archived entries per status.
