@@ -21,11 +21,11 @@ set -euo pipefail
 # an empty base fails; the names the markdown manifest carries against the markdown files the build
 # wrote; and each page the build wrote against the link it carries, which is the half a build that
 # wrote no link fails. The guard that reads the tool fails here on a tool that answers nothing for
-# its own run, which is why this build stays on demand rather than in CI. The twenty read sites, one
-# read for each value a guard names: the output path reads one, the catalog reads one, the tool
-# reads one answer, the base path reads its own value and the base each of the seven pages the build
-# wrote carries, the markdown half reads the manifest and one file for each name it carries, and the
-# link half reads one for each page the build wrote.
+# its own run, which is why this build stays on demand rather than in CI. The twenty read sites:
+# the output path reads one, the catalog reads one, the tool reads one answer, the base path reads
+# its own value and the base each of the seven pages the build wrote carries, the markdown half
+# reads the manifest and one file for each name it carries, and the link half reads one for each
+# page the build wrote.
 
 # The link is written for the pages the tool answered markdown for, which on this toolchain is the
 # tutorial alone: the pages the catalog writes as chapters, the table of contents and the page the
