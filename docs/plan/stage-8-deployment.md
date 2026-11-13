@@ -1,15 +1,15 @@
 # Stage 8 — Packaging & deployment
 
 **Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — four slices are merged: the static-build spike (PR #67), the version value
+**Status:** in progress — five slices are merged: the static-build spike (PR #67), the version value
 as a client reads it (PR #68), the clean-container smoke job (PR #69), whose run half is
 `Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the document the
-run leaves behind rather than the container it ran, and the runbook `docs/deploy.md` with the rule
-that reads it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at
-the size cap the project sets. The fifth slice, the three deploy artifacts read as data, is this
-branch's work: `Scripts/deploy.sh` is its run half, `Tools/deploy/deploy_check.py` its check half
-over 16 rules, `Tools/deploy/parsers.py` the reads, and `Tools/deploy/probes.py` the 22 cases that
-show each rule can fail on the rule it names. **Effort:** S–M. **Depends on:** Stage 6.
+run leaves behind rather than the container it ran, the runbook `docs/deploy.md` with the rule that
+reads it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at the
+size cap the project sets, and the three deploy artifacts read as data (PR #72): `Scripts/deploy.sh`
+is its run half, `Tools/deploy/deploy_check.py` its check half over 16 rules,
+`Tools/deploy/parsers.py` the reads, and `Tools/deploy/probes.py` the 22 cases that show each rule
+can fail on the rule it names. **Effort:** S–M. **Depends on:** Stage 6.
 
 ## Scope
 
@@ -34,8 +34,8 @@ show each rule can fail on the rule it names. **Effort:** S–M. **Depends on:**
       lines are read as data by the smoke check half, and the `ENTRYPOINT` line is read by the
       deploy check half as the program it names against the file the `COPY` line writes, which is
       the half that shows the entrypoint carries no subcommand of its own.
-- [x] **The compose example, `.env.example` and the systemd unit:** landed as this branch's work
-      (`deploy/compose.yml`, `.env.example`, `deploy/rivulet.service`), read as data by
+- [x] **The compose example, `.env.example` and the systemd unit:** landed with PR #72 as
+      `deploy/compose.yml`, `.env.example` and `deploy/rivulet.service`, read as data by
       `Tools/deploy/deploy_check.py` over 16 rules. The compose is read as the key set the tool
       resolves it as, the unit as the sections it puts its keys in, and the example as one
       name-and-value pair per line; the two unit keys that are structure rather than a value the
@@ -124,8 +124,8 @@ needed.
   steps in read as the first records the run kept of them. What the rule cannot show is that the
   steps ran on a machine that is not the one that wrote the page, which is the criterion below, and
   what a stream of the tool the page names as outside the port would hold.
-The three deploy artifacts as data, read by `Tools/deploy/deploy_check.py` over 16 rules and shown
-  to fail on the rule each names by 22 cases in `Tools/deploy/probes.py` (this branch's work). The
+- The three deploy artifacts as data, read by `Tools/deploy/deploy_check.py` over 16 rules and shown
+  to fail on the rule each names by 22 cases in `Tools/deploy/probes.py` (PR #72). The
   run half is `Scripts/deploy.sh`, checked by `bash -n` and by its eight guards, fourteen read
   sites, eleven of which were seen to fail on the value they name. Nothing here runs a container or
   a service, so the twelve report items in `docs/deploy.md` name what the harness cannot show, and
