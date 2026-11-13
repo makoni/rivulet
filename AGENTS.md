@@ -219,11 +219,11 @@ as pages, the graph being read as the path it is at. The same slice's publish ha
 here as merged: the Pages job is out of CI and the Pages site setting is off, and the item that
 named a pull request deployment went with the job, which left sixteen items until the archive
 `Scripts/build-docs.sh` writes took the report back to seventeen. That build half is PR #75, named
-here as merged, and is checked here by `bash -n` and by its nine guards, thirteen read sites, each
-seen to fail on the value its usage line names, the copy half being the one file for the target the
-manifest writes because a single build answers for one module. The 21 public declarations that had
-no comment are the second half of the same rule, read through the comment attached to a declaration
-over its attribute lines.
+here as merged, whose symbol-graph half is PR #76, named here as merged, and is checked here by
+`bash -n` and by its nine guards, thirteen read sites, each seen to fail on the value its usage line
+names, the copy half being the one file for the target the manifest writes because a single build
+answers for one module. The 21 public declarations that had no comment are the second half of the
+same rule, read through the comment attached to a declaration over its attribute lines.
 
 What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
 check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift

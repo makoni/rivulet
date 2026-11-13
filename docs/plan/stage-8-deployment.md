@@ -151,17 +151,15 @@ half writes from the file SwiftPM's own subcommand answers for its own run and w
 as the pages it writes. The 21 public declarations that had no documentation comment are read by the
 same rule, through the comment attached to a declaration over its attribute lines, and are now
 filled.
-- The build half `Scripts/build-docs.sh` is checked by `bash -n` and by its nine guards, thirteen
-read sites, each seen to fail here on the value its usage line names: the archive path, the
-catalog path, the tool, SwiftPM, the base, the names the markdown manifest carries, the copy
-against the file SwiftPM wrote, the module the copy names against the target the manifest writes,
-and the link each page the build wrote carries. It writes the archive a site is built from outside
-the repository, the graph being the copy of the one file for the target the manifest writes, and
-the link stays hidden for a page the build has no markdown file for, which here is the page the
-site opens first. The round is what CI runs for this harness, in the probe-rounds job on the
-runner host, because the Swift container has no `python3`. Publishing the pages as a site happens
-outside this repository, so no CI job here shows a served site, and no rule here reads what a web
-server answers. The run half and the build half both need the tool, so they stay on demand.
+- The build half `Scripts/build-docs.sh` (PR #75, named here as merged, whose symbol-graph half is
+PR #76, named here as merged) is checked by `bash -n` and by its nine guards, thirteen read sites,
+each seen to fail here on the value its usage line names: the archive path, the catalog path, the
+tool, SwiftPM, the base read as the tool writes it, the names the markdown manifest carries, the
+copy against the file SwiftPM wrote, the module the copy names against the target the manifest
+writes, and the link on each page the committed document names. It writes the archive a site is
+built from outside the repository, the graph being the copy of the one file for the target the
+manifest writes, and the link stays hidden for a page the build has no markdown file for, which
+here is the page the site opens first.
 
 ## Exit criteria
 
