@@ -50,9 +50,10 @@ only commands the dispatch registers, only flags those signatures declare and on
 reads, so the command surface the stage-6 criterion reads is the same set the page calls; Litestream
 is named as a tool outside the port, with no command of the port running it, and the page names what
 it cannot show as its own section.
-- [ ] Documentation publishing: the pages this harness reads as data are published as a site outside
-this repository, so no CI job here shows a served site; the symbol pages stay open because this
-toolchain answers no plugin for the symbol graph the tool reads.
+- [ ] Documentation publishing: `Scripts/build-docs.sh` writes the archive the site is built from,
+and the site itself is outside this repository and is published by hand, so no CI job here shows a
+served site; the symbol pages stay open because this toolchain answers no plugin for the symbol
+graph the tool reads.
 - [ ] Release workflow on tag.
 
 ## Spike result
@@ -143,16 +144,21 @@ craft reaching more than one rule, and every craft changing the parsed form rath
 pages state only what a check here can show — the commands the dispatch registers, the flags the
 signatures declare, the names the config reads, the values the sources write, the routes the port
 registers, the clients the client matrix records and the version the plan pins — so a page naming
-something the sources do not write is a finding. The sixteen report items in `docs/docc.md` name
+something the sources do not write is a finding. The seventeen report items in `docs/docc.md` name
 the shapes no rule compares and what no rule can show, including the symbol pages, which this
 toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: what a
 site shows is the pages the catalog writes. The 21 public declarations that had no documentation
 comment are read by the same rule, through the comment attached to a declaration over its attribute
 lines, and are now filled.
+- The build half `Scripts/build-docs.sh` is checked by `bash -n` and by its six guards, twenty read
+sites, each seen to fail here on the value its usage line names: the archive path, the catalog path,
+the tool, the base path, the names the markdown manifest carries, and the link each page the build
+wrote carries. It writes the archive a site is built from outside the repository, and the link stays
+hidden for a page the tool answered no markdown for, which here is every page but the tutorial.
 - The round is what CI runs for this harness, in the probe-rounds job on the runner host, because
 the Swift container has no `python3`. Publishing the pages as a site happens outside this
 repository, so no CI job here shows a served site, and no rule here reads what a web server answers.
-The run half needs the tool, so it stays on demand.
+The run half and the build half both need the tool, so they stay on demand.
 
 ## Exit criteria
 

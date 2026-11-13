@@ -63,6 +63,7 @@ the rows; and the report rule reads the two lists below against what the check h
 - the reading time each article names, which the tool reads and no rule reads
 - the titles, the chapter names and the child directives the tool requires, recorded for the reader and read by no rule
 - the way a page renders, because the tool writes files and the rules read the shapes the files write
+- the archive the build half writes, because it lives outside the repository and no rule here reads an archive or the link the build puts on a page it wrote
 - the site the pages are published on, because the publishing happens outside this repository and no rule here reads what a web server answers
 - a value a page states for a name the source reads with a trim alone, because no rule reads a value that reads as free text
 - a stage state past the first part the rule reads, because the plan table writes a state as one long cell
@@ -99,15 +100,31 @@ shell is checked by `bash -n` and by its eight guards, thirteen read sites, each
 on the value the usage line names: the record path, the catalog path, the tool, the seven copies,
 the asset, the build path, the page set, and the document.
 
+## The build half
+
+`Scripts/build-docs.sh` is the build half: it reads the catalog at the path the check half reads it
+at and writes the archive a site is built from, outside the repository, with the markdown version of
+each page the tool answered markdown for and a link to it on every page the build wrote. The tool
+answers markdown for the tutorial alone here, so every other page the build wrote keeps the link
+hidden, and the hrefs the build computed for the routes it has a markdown file for are written into
+the page the site opens. The script is checked by `bash -n` and by its six guards, twenty read
+sites, each seen to fail here on the value the usage lines name: the archive path, the catalog path,
+the tool, the base path, the names the manifest carries, and the link each page the build wrote
+carries. No rule here reads an archive, so this half is what a person runs before publishing, and
+publishing is outside this repository.
+
 ## Running it
 
 ```sh
 Scripts/docs.sh                                  # the run, then the guards
 python3 Tools/docs/docs_check.py                 # the committed document as data
 python3 Tools/docs/docs_check.py --probe         # the probe round
+Scripts/build-docs.sh                            # the build half, then the guards
 ```
 
-Publishing the pages as a site happens outside this repository, so no CI job here publishes them
-and no rule here reads what a web server answers. The round is what CI runs for this harness,
-because the run half needs the tool, and the build it writes goes to the gitignored build directory
-the working agreement names for a DocC build.
+Publishing the pages as a site happens outside this repository, so no CI job here publishes them and
+no rule here reads what a web server answers. The round is what CI runs for this harness, because
+the run half and the build half both need the tool. The run half writes its copy and its build in a
+temporary directory outside the repository; the build half writes the archive outside the repository
+as well, at the path its guard reads against the tree, which is what keeps the archive
+out of a commit.

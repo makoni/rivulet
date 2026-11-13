@@ -203,23 +203,26 @@ whose probe round is `Tools/deploy/probes.py` with 22 cases — 21 crafts plus t
 to report nothing — two crafts being named as reaching more than one rule through the one patch they
 name; and the sixth slice, merged as PR #73, is the DocC catalog the harness reads as data, the
 pages a site is built from outside this repository (the documentation deliverable this agreement
-names for stage 8), whose check half is
-`Tools/docs/docs_check.py` over 21 rules reading the pages as the shapes they write against the
-sources that write the values — the manifest target, the dispatch, the config reads, the two route
-files, the storage wrapper, the free-space check, the committed example, the client matrix, the plan
-table, the root README, the contents table, the Swift sources and its own report document — with the
-run half `Scripts/docs.sh` at eight guards and thirteen read sites, all eight seen to fail here on
-the values the usage lines name, and the round `Tools/docs/probes.py` at 31 cases — 30 crafts plus
-the baseline asserted to report nothing, no craft reaching more than one rule — the reads being in
-`Tools/docs/parsers.py`. The sixteen report items name what no rule reads: the tool's answer for
-another machine, the tool's own version, the reading time, the titles and child directives, a page's
-prose, the way a page renders, the site the pages are published on, and the symbol pages, which this
+names for stage 8), whose check half is `Tools/docs/docs_check.py` over 21 rules reading the pages
+as the shapes they write against the sources that write the values — the manifest target, the
+dispatch, the config reads, the two route files, the storage wrapper, the free-space check, the
+committed example, the client matrix, the plan table, the root README, the contents table, the Swift
+sources and its own report document — with the run half `Scripts/docs.sh` at eight guards and
+thirteen read sites, all eight seen to fail here on the values the usage lines name, and the round
+`Tools/docs/probes.py` at 31 cases — 30 crafts plus the baseline asserted to report nothing, no
+craft reaching more than one rule — the reads being in `Tools/docs/parsers.py`. The seventeen report
+items name what no rule reads: the tool's answer for another machine, the tool's own version, the
+reading time, the titles and child directives, a page's prose, the way a page renders, the archive
+the build half writes, the site the pages are published on, and the symbol pages, which this
 toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads; what a
 site shows is the pages the catalog writes. The same slice's publish half is PR #74, named here as
-merged: the Pages job is out of CI and the Pages site setting is off, so the report half is sixteen
-items rather than seventeen, and the item that named a pull request deployment went with the job.
-The 21 public declarations that had no comment are the second half of the same rule, read through
-the comment attached to a declaration over its attribute lines.
+merged: the Pages job is out of CI and the Pages site setting is off, and the item that named a pull
+request deployment went with the job, which left sixteen items until the archive
+`Scripts/build-docs.sh` writes took the report back to seventeen. That build half is checked here by
+`bash -n` and by its six guards, twenty read sites, each seen to fail on the value its usage line
+names. The 21 public declarations that had
+no comment are the second half of the same rule, read through the comment attached to a declaration
+over its attribute lines.
 
 What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
 check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
@@ -227,7 +230,8 @@ container has no `python3`, and each round was seen to be green from a tree copi
 root, which is what makes that job machine-independent; the run halves stay on demand, because they
 read a machine, a tool or a process — Docker, systemd, the terminal, the DocC tool. Publishing the
 DocC pages as a site happens outside this repository, so no CI job here shows a served site, and the
-pages the harness reads as data are the deliverable.
+pages the harness reads as data are the deliverable; the build half `Scripts/build-docs.sh` needs
+the tool too, so it stays on demand with the run halves.
 
 **Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion, the
 deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as stage 8's
@@ -628,7 +632,8 @@ genuinely wrong, fix the test in the same commit with a clear explanation.
 ## Documentation and DocC
 
 - Documentation and tutorials are a project deliverable, not an afterthought. We collect them with
-DocC; the site they are published on is outside this repository, so no CI job here publishes them.
+DocC; `Scripts/build-docs.sh` writes the archive the site is built from, and the site itself is
+outside this repository, so no CI job here publishes it.
 - Every public API gets a DocC documentation comment.
 - DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
 executable): articles for concepts, tutorials for key workflows (setup, feeds, clients, deployment).
