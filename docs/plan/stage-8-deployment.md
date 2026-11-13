@@ -1,19 +1,17 @@
 # Stage 8 — Packaging & deployment
 
-**Goal:** one static binary on a VPS; dead-simple backups; published documentation.
-**Status:** in progress — six slices are merged or opened: the static-build spike (PR #67), the
-version value as a client reads it (PR #68), the clean-container smoke job (PR #69), whose run
-half is `Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the
-document
-run leaves behind rather than the container it ran, the runbook `docs/deploy.md` with the rule that
+**Goal:** one static binary on a VPS; dead-simple backups; published documentation. **Status:** in
+progress — six slices are merged or opened: the static-build spike (PR #67), the version value as a
+client reads it (PR #68), the clean-container smoke job (PR #69), whose run half is
+`Scripts/smoke.sh` and whose check half is `Tools/smoke/smoke_check.py`, reading the document run
+leaves behind rather than the container it ran, the runbook `docs/deploy.md` with the rule that
 reads it as data (PR #70), which sits in `Tools/smoke/runbook.py` because the check half is at the
-size cap the project sets, the three deploy artifacts read as data (PR #72): `Scripts/deploy.sh`
-is its run half, `Tools/deploy/deploy_check.py` its check half over 16 rules,
-`Tools/deploy/parsers.py` the reads, and `Tools/deploy/probes.py` the 22 cases that show each rule
-can fail on the rule it names, and the documentation layer read as data over 21 rules in
-`Tools/docs/docs_check.py` with `Scripts/docs.sh` as its run half and `Tools/docs/probes.py` as its
-round — the catalog being the site the Pages job publishes. **Effort:** S–M. **Depends on:** Stage
-6.
+size cap the project sets, the three deploy artifacts read as data (PR #72): `Scripts/deploy.sh` is
+its run half, `Tools/deploy/deploy_check.py` its check half over 16 rules, `Tools/deploy/parsers.py`
+the reads, and `Tools/deploy/probes.py` the 22 cases that show each rule can fail on the rule it
+names, and the documentation layer read as data over 21 rules in `Tools/docs/docs_check.py` with
+`Scripts/docs.sh` as its run half and `Tools/docs/probes.py` as its round — the catalog being the
+site the Pages job publishes. **Effort:** S–M. **Depends on:** Stage 6.
 
 ## Scope
 
@@ -58,15 +56,15 @@ round — the catalog being the site the Pages job publishes. **Effort:** S–M.
 
 ## Spike result
 
-The Static Linux SDK builds the whole stack, so the distro-linked fallback named below is not
-needed.
+The Static Linux SDK builds the whole stack, so the distro-linked fallback named below is
+not needed.
 
 - The SDK `swift-6.4.2-RELEASE_static-linux-0.1.0` is installed as an artifact bundle under
   `~/.config/swiftpm/swift-sdks/`. Its toolset adds `-static-executable -static-stdlib`, and its
   `swift-sdk.json` declares two static targets: `x86_64-swift-linux-musl` and
-  `aarch64-swift-linux-musl`. Those are the canonical names the run declares: a triple outside
-  that list — the first attempt used `x86_64-unknown-linux-musl` — is not resolved against the SDK
-  at all, so the toolchain answers "No Swift SDK found matching query" rather than building for it.
+  `aarch64-swift-linux-musl`. Those are the canonical names the run declares: a triple outside that
+  list — the first attempt used `x86_64-unknown-linux-musl` — is not resolved against the SDK at
+  all, so the toolchain answers "No Swift SDK found matching query" rather than building for it.
 
 - The full dependency stack compiles and links for that target: Vapor, Fluent and the SQLite
   driver, AsyncHTTPClient, NIO with BoringSSL, SwiftSoup, console-kit, swift-log, swift-crypto and
@@ -86,9 +84,8 @@ needed.
   half; the glibc half is pinned by `AddressResolutionTests` through the resolver it runs, which
   reads the answer the lookup produces, so the pin can fail on a value that breaks the lookup rather
   than on which socket type the value is, and the exit-code site has no pin at all because the top
-  level of the executable is not something a test can read. The other
-  C reads this port has — `SIGINT`, `SIGTERM`, `EILSEQ`, `EINVAL` — built for the musl target
-  unchanged.
+  level of the executable is not something a test can read. The other C reads this port has —
+  `SIGINT`, `SIGTERM`, `EILSEQ`, `EINVAL` — built for the musl target unchanged.
 
 - Sizes measured here, as measurements rather than as bounds: the static artifact is 287,748,480
   bytes unstripped and 88,570,920 stripped. The glibc release build of the same head is 146,076,544
@@ -103,8 +100,8 @@ needed.
 ## Implementation notes
 
 - If the static musl build proves impractical for the full stack, fall back to a distro-linked
-  container binary and record the decision here. Not taken: the spike's result above is that the
-  SDK is usable for the whole stack, so this line stays as the record of what was decided instead.
+  container binary and record the decision here. Not taken: the spike's result above is that the SDK
+  is usable for the whole stack, so this line stays as the record of what was decided instead.
 
 ## Tests
 
@@ -129,19 +126,19 @@ needed.
   steps ran on a machine that is not the one that wrote the page, which is the criterion below, and
   what a stream of the tool the page names as outside the port would hold.
 - The three deploy artifacts as data, read by `Tools/deploy/deploy_check.py` over 16 rules and shown
-  to fail on the rule each names by 22 cases in `Tools/deploy/probes.py` (PR #72). The
-  run half is `Scripts/deploy.sh`, checked by `bash -n` and by its eight guards, fourteen read
-  sites, eleven of which were seen to fail on the value they name. Nothing here runs a container or
-  a service, so the twelve report items in `docs/deploy.md` name what the harness cannot show, and
-  the run is on demand rather than in CI because the CI container has neither Docker nor systemd.
+  to fail on the rule each names by 22 cases in `Tools/deploy/probes.py` (PR #72). The run half is
+  `Scripts/deploy.sh`, checked by `bash -n` and by its eight guards, fourteen read sites, eleven of
+  which were seen to fail on the value they name. Nothing here runs a container or a service, so the
+  twelve report items in `docs/deploy.md` name what the harness cannot show, and the run is on
+  demand rather than in CI because the CI container has neither Docker nor systemd.
 
 ### The documentation layer (DocC — the site the Pages job publishes)
 
-- - The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept
-- articles, one tutorial and the asset the table of contents names — is read as data by 21 rules in
+- The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept
+  articles, one tutorial and the asset the table of contents names — is read as data by 21 rules in
   `Tools/docs/docs_check.py`, with `Scripts/docs.sh` as the run half (eight guards, thirteen read
   sites, all eight seen to fail here on the values the usage lines name) and `Tools/docs/probes.py`
-  crafting 30 cases over the 21 rules: 29 crafts plus the baseline asserted to report nothing, no
+  crafting 31 cases over the 21 rules: 30 crafts plus the baseline asserted to report nothing, no
   craft reaching more than one rule, and every craft changing the parsed form rather than a file.
   The pages state only what a check here can show — the commands the dispatch registers, the flags
   the signatures declare, the names the config reads, the values the sources write, the routes the

@@ -27,14 +27,14 @@ below, and it is what reads the facts only a process can answer.
 ## Workflow (TDD)
 
 1. Write a failing test that describes the behavior. 2. Implement the minimal change to make it
-pass. 3. Refactor with tests green. 4. Bug fixes start with a regression test that reproduces the
-bug.
+pass. 3. Refactor with tests green. 4. Bug fixes start with a regression test that reproduces
+the bug.
 
 Rules:
 
-- No production code without a corresponding test change.
-- Never delete, skip or weaken a test to make the suite pass (see `AGENTS.md`).
-- When behavior crosses a module boundary, cover it with an integration test, not only a unit test.
+- No production code without a corresponding test change. Never delete, skip or weaken a test to
+  make the suite pass (see `AGENTS.md`). When behavior crosses a module boundary, cover it with an
+  integration test, not only a unit test.
 
 ## Integration test infrastructure
 
@@ -65,10 +65,9 @@ categories a user has reads the graph the command creates rather than a set the 
   answer as the transport left it, so the pin for a method that writes no bytes reads the framing
   name. `seed` creates the account through `UserRepository.create`, so the default "All" category
   the create path writes is one of the rows the pins read, and answers the token the guard reads;
-  `categoryID` reads the id the groups golden names.
-The rows are written through SQL on one connection and the request runs after that connection goes
-back to the pool, because the driver keeps a single pooled connection, so a pin cannot hold one
-while the handler checks out another.
+  `categoryID` reads the id the groups golden names. The rows are written through SQL on one
+  connection and the request runs after that connection goes back to the pool, because the driver
+  keeps a single pooled connection, so a pin cannot hold one while the handler checks out another.
 - `EntryFixtures.swift` — seeds users, categories and feeds, inserts entries through the repository
 with a chosen status/starred state, bulk-seeds entries for pagination limits, seeds the four-entry
 set the stream branch pins read, builds entry inputs, counts entries, tombstones and FTS matches,
@@ -89,9 +88,9 @@ answer as they did before it. It moved out of `MaintenanceCommandTests` with PR 
 suite started reading it.
 - `RecordingVerifier.swift` — the `DatabaseVerifier` seam the verify pins drive: answers the
 problems the pin names and records the calls the run made through it, with whether the file was
-already there at the call, which is how a pin reads the check as running after the write rather
-than before it. The recording is a read the helper makes on the filesystem itself, not a rule the
-check applies, so a pin that reads the check as not running answers a control that does run it.
+already there at the call, which is how a pin reads the check as running after the write rather than
+before it. The recording is a read the helper makes on the filesystem itself, not a rule the check
+applies, so a pin that reads the check as not running answers a control that does run it.
 
 - `DatabaseContent.swift` — the content read the command suites share: the tables a file holds and
 one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
@@ -265,12 +264,12 @@ table, and where comment data ends, because the renderer writes nothing for a co
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
 `Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
 content, each with the output the reference produced for it and the rule that output pins (145 from
-stage 3, plus the entity-table case the stage-7 security checklist added). The
-inputs are ours, not upstream's; the outputs were written by running Miniflux v2.3.3 at commit
-`c4d54f87` with the reference's test helper options — `OpenLinksInNewTab: true`, base URL
-`http://example.org/`, `TZ=UTC` — the same method the parser corpus uses, so a failure here is a
-difference in the port. Every case can fail on the rule its line names: a case is not in the corpus
-when a wrong implementation of that rule writes the same output, which is what the fixture says.
+stage 3, plus the entity-table case the stage-7 security checklist added). The inputs are ours, not
+upstream's; the outputs were written by running Miniflux v2.3.3 at commit `c4d54f87` with the
+reference's test helper options — `OpenLinksInNewTab: true`, base URL `http://example.org/`,
+`TZ=UTC` — the same method the parser corpus uses, so a failure here is a difference in the port.
+Every case can fail on the rule its line names: a case is not in the corpus when a wrong
+implementation of that rule writes the same output, which is what the fixture says.
 
 What it pins is the rules its cases name: the scheme allowlist, the data-URI prefixes, the mandatory
 attributes, the pixel tracker, the blocked resources, the hidden check, what a dropped tag leaves of
@@ -472,8 +471,8 @@ atomic step only there. What these pins cannot fail on is stated in the suite he
 boundary, the batch limit and the starred rule of the archive, which `RetentionTests` pins, because
 the pin that runs the archive runs it on an instant past every stored row and on a single row; the
 atomicity itself; the user state an update must not touch, which the storage suite pins; and the
-reference's return value, which counts the tombstone rows it inserted rather than the rows it
-deleted.
+reference's return value, which counts the tombstone rows it inserted rather than the rows
+it deleted.
 
 The icon finder half (`IconDocumentLinksTests`, `IconDataURLTests`) pins the two rules of
 `internal/reader/icon/finder.go` that read no network: which `link` elements a document offers as
@@ -486,8 +485,8 @@ cases that come from the tree are pinned as tokenizer facts: a `link` inside a r
 text, not an element, and `/>` is the self-closing token kind. The data-URL suite pins the shape —
 the mediatype is mandatory and has to name an image, the encoding is one of three, data is required
 and cannot contain a newline, which is Go's `.` production — and that the three encodings do three
-different things, with Go's `QueryUnescape` turning a `+` into a space and refusing a truncated
-escape.
+different things, with Go's `QueryUnescape` turning a `+` into a space and refusing a
+truncated escape.
 
 The download half of the same file (`IconDownloadTests`, `URLJoinPathTests`, `IconFinderTests`) is
 the part that reads the network. `IconDownloadTests` pins how a response becomes an icon: the
@@ -544,15 +543,14 @@ points at. The join for the per-user read answers one row per feed, so an icon t
 appears twice — a read that went through the icon table alone cannot answer that — and the order
 that read answers is the icon row then the feed row, which is the order this port names; and the
 `data` field is the stored content type, a semicolon and the standard base64 with its padding, so
-neither the url-safe alphabet nor a patch that dropped the padding can be read here. 2 pins and
-4 probes cover those two rules, 2 for the join and 2 for the `data` field. The count that pass
-returns can fail, and is read through `SELECT changes()` because this
-SQLKit version gives no row count for a raw statement. The pins cannot fail on the randomness of
-`external_id`, which they read only as the shape, nor on the single transaction the reference wraps
-the dedupe and the link in — the same boundary the pipeline records. The request headers the icon
-path sends are the fetch suite's rules, pinned in `FetchRequestTests` as following the options; that
-the icon path sends no conditional headers cannot fail, because there are no stored validators on it
-to send.
+neither the url-safe alphabet nor a patch that dropped the padding can be read here. 2 pins and 4
+probes cover those two rules, 2 for the join and 2 for the `data` field. The count that pass returns
+can fail, and is read through `SELECT changes()` because this SQLKit version gives no row count for
+a raw statement. The pins cannot fail on the randomness of `external_id`, which they read only as
+the shape, nor on the single transaction the reference wraps the dedupe and the link in — the same
+boundary the pipeline records. The request headers the icon path sends are the fetch suite's rules,
+pinned in `FetchRequestTests` as following the options; that the icon path sends no conditional
+headers cannot fail, because there are no stored validators on it to send.
 
 `IconCheckerTests` adds the checker half — the wiring that runs the search for one stored feed. The
 guard stops the search when the feed already has an icon, and it reads the mapping for this feed
@@ -591,8 +589,8 @@ with FNV-128a and this port with SHA-256 — the pins can fail only on which byt
 taken over; Go's base64 decoder accepting an unpadded last quantum, which this port refuses; and the
 reference's logging, which this port has no layer for. What the pins do reach through another layer
 — the URL resolution and escaping, the charset layer, the tokenizer's lowercasing and value decoding
-— is named in the headers as read through the scan, with the rules themselves pinned by those
-suites.
+— is named in the headers as read through the scan, with the rules themselves pinned by
+those suites.
 
 The stage-5 contract suites pin the reference's output as values inside the suite rather than as
 fixture files, because each of those pins reads one answer for one rule rather than a corpus.
@@ -761,8 +759,8 @@ The pins read the rows back through SQL, so a pin is not satisfied by the read i
 each pin is handed both all the rows read back and the rows the run wrote: "a failing run writes
 nothing" is read as the rows that were not seeded, which counting every row could not tell apart
 from the seed. The account pins need different account sets — one account, several accounts, and a
-run whose named account has no row — so the helper takes the accounts it seeds rather than a fixed
-graph.
+run whose named account has no row — so the helper takes the accounts it seeds rather than a
+fixed graph.
 
 What the headers name as unpinnable: the single-row limit of the duplicate read, because the
 schema's `UNIQUE (user_id, url)` means that read can never have two rows to choose between; the
@@ -893,8 +891,8 @@ ticker for the cleanup tasks, which this port has no loop for and which `Retenti
 storage rules; the pool cap; the real seam implementation, which sleeps, so the pins read its
 decisions through test seams with a zero interval (`SystemCadenceTests`) and the real signal path
 lands with the process harness; the wiring that starts the loop for `serve` and the signal that asks
-it to stop, which the process-level suite pins; and the reference's log lines, which have no layer
-here.
+it to stop, which the process-level suite pins; and the reference's log lines, which have no
+layer here.
 
 ### The process harness (`Support/SpawnedProcess.swift`, PR #51)
 
@@ -982,8 +980,8 @@ The rule is one: without the flag a destination that already holds something is 
 it was, and with the flag the file the destination names is replaced by the snapshot the run writes,
 read as the filesystem reads the path rather than as a database the run can open, while a path that
 is a directory is reported rather than deleted. The flag does not skip the room check, a run that
-cannot hold the copy removes nothing, and the flag does not build the directory the storage layer
-needs.
+cannot hold the copy removes nothing, and the flag does not build the directory the storage
+layer needs.
 
 What the pins can fail on, each with a probe that patches the rule and reverts byte-identically,
 named by what it flips: the flag read as absent, which refused the pins reading a replacement and
@@ -1013,90 +1011,90 @@ here to compare with.
 
 ### The three subscription endpoints (`GoogleReaderSubscriptionRoutesTests`, PR #59)
 
-The three routes the reference registers for subscriptions are pinned over the same socket,
-through the shared helper `Support/SubscriptionSocket.swift`, which carries the token as the form
-field the merged read answers on the POST half and through the header the transport pins on the GET
-half, and writes the rows through SQL so that no pin is satisfied by the read it is testing. 62
-probes in this slice, one per rule, each seen to fail on the rule it names and to revert the file
-byte-identically: 13 for the scan read as pure logic, 5 for the two steps the finder has, 6 for the
-document shapes, 4 for the three routes, 6 for the listing, 4 for the quickadd, 19 for the edit
-handler, and 5 for the two storage reads this path calls — 3 for the title order the category read
-answers and 2 for the write that names only the column the caller names.
+The three routes the reference registers for subscriptions are pinned over the same socket, through
+the shared helper `Support/SubscriptionSocket.swift`, which carries the token as the form field the
+merged read answers on the POST half and through the header the transport pins on the GET half, and
+writes the rows through SQL so that no pin is satisfied by the read it is testing. 62 probes in this
+slice, one per rule, each seen to fail on the rule it names and to revert the file byte-identically:
+13 for the scan read as pure logic, 5 for the two steps the finder has, 6 for the document shapes, 4
+for the three routes, 6 for the listing, 4 for the quickadd, 19 for the edit handler, and 5 for the
+two storage reads this path calls — 3 for the title order the category read answers and 2 for the
+write that names only the column the caller names.
 
-Two pins had to read the answer as well as the document, because a wrong write is not something
-the document states. The pin that names the status the integer read failure maps to here reads
-the status as well as the wording: the wording is what the response builder writes for any
-status, so a pin that read only the wording could not fail on the status. The pin that names the
-title guard reads the title the write before it left, because the input that runs the rename
-first is the same row the guard's input then reads, and a pin that read the seeded title would
-have passed on a patch that ran the write for the empty value.
+Two pins had to read the answer as well as the document, because a wrong write is not something the
+document states. The pin that names the status the integer read failure maps to here reads the
+status as well as the wording: the wording is what the response builder writes for any status, so a
+pin that read only the wording could not fail on the status. The pin that names the title guard
+reads the title the write before it left, because the input that runs the rename first is the same
+row the guard's input then reads, and a pin that read the seeded title would have passed on a patch
+that ran the write for the empty value.
 
 Two claims are named in the headers rather than pinned, because no patch can make them fail: the
 order between the absolute rule and the duplicate read, which no input can fail both at once, and
 `rename`'s own empty-title guard, which the handler's title test answers before the read, so no
 input reaches it. The title guard's own branch is pinned, on the pin that reads the title the input
 before it wrote, so a patch that ran the write for the empty value fails; the order between the
-create and the validation is read as the guard's wording, because the read that found no row left
-0 and the guard reads its own value before the duplicate read.
-The same is true of the discovery steps this port does not have, of the title and format the
-reference's subscription value carries, and of the reference parsing the discovered feed inside the
-request, where its `streamName` is the parsed title while this port writes the row with the create
-defaults. These are recorded in `docs/parity.md`.
+create and the validation is read as the guard's wording, because the read that found no row left 0
+and the guard reads its own value before the duplicate read. The same is true of the discovery steps
+this port does not have, of the title and format the reference's subscription value carries, and of
+the reference parsing the discovered feed inside the request, where its `streamName` is the parsed
+title while this port writes the row with the create defaults. These are recorded
+in `docs/parity.md`.
 
 ### The Fever parameter set (`FeverMultipartReadTests`, `FeverShapeTests`, `FeverAuthTests`,
 `FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests`, `FeverWriteTests`, merged as PR #61)
 
 The parameter set is the one the acceptance client calls: the base document, the five read
-documents, the three `mark` branches, and the reachability check that client sends as `HEAD`.
-32 pins and 67 probes across the seven Fever suites — two unit and five integration — and the
-icon read: 8 pins and 17 probes for the multipart read as pure logic, 5 and 8 for the document
-shapes, 3 and 5 for the transport over a real socket, 2 and 6 for the dispatch, 4 and 8 for the
-storage reads the documents are built from, 4 and 8 for the items read, 4 and 11 for the three
-write branches, and 2 and 4 for the icon read. Each probe patches one rule, is seen to fail on
-the rule it names, and reverts the file byte-identically.
+documents, the three `mark` branches, and the reachability check that client sends as `HEAD`. 32
+pins and 67 probes across the seven Fever suites — two unit and five integration — and the icon
+read: 8 pins and 17 probes for the multipart read as pure logic, 5 and 8 for the document shapes, 3
+and 5 for the transport over a real socket, 2 and 6 for the dispatch, 4 and 8 for the storage reads
+the documents are built from, 4 and 8 for the items read, 4 and 11 for the three write branches, and
+2 and 4 for the icon read. Each probe patches one rule, is seen to fail on the rule it names, and
+reverts the file byte-identically.
 
 What the probes read, with the number of patches the suite header gives each rule: the multipart
 read's 17 — 2 for the media type compared lowercased and only `multipart/form-data` reaching the
-body read, 1 for the boundary being a parameter of the content type rather than the read's own,
-4 for the parameter rules (a pair with no `=`, an unquoted empty value being the error, a
-trailing semicolon not being the error, and the media type surviving the error on the urlencoded
-half), 1 for a part that cannot be read ending the whole body read, 4 for the three guards of
-the part loop — disposition, name, and the filename parameter being empty rather than present,
-which is what makes the part a value part — 1 for a header line with no colon ending the read,
-2 for the part value being the bytes as written, with no percent decoding, and a line ending that
-can be a bare `LF`, and 2 for the order per name and the method guard. The shapes' 8: the base
-document's three fields before the document's own, the reported version, and the two zeros of the
-failure document; the field order the value documents write, read on the group document's pair; the
-nine fields of the item document with `is_saved` before `is_read` and `total_items` as a number;
-`favicon_id` written as the zero for a row with no icon; and `[]` for an empty list on every
-document of this path. The transport's 5: the failure answer at 200 rather than the common-value
-document and rather than 401, the key read through the merged form rather than through the header
-the sibling path reads, the order for a name both halves carry, and the pairs the query half put in
-the form surviving a body read that failed. The `HEAD` pin in that suite has no patch: neither its
-registration nor the length it reads can fail — Vapor forwards a `HEAD` request to the `GET` route,
-and the failure document and the common-value document are the same length, so that pin reads only
-that the method reaches the handler. The dispatch's 6: 2 for the precedence, 2 for presence whatever
-the value is, 1 for the mark name coming from the merged form, and 1 for the default answer. The
-storage reads' 8: 3 for the groups document — the title order, the feed ids inside a group, the
-group order — 2 for the feeds document — the sort order and the icon row — and 3 for the id
-documents — the comma join and the two filters. The items read's 8: 1 for the page of 50 with the
-count read without the page, 1 for the precedence, 2 for a negative value — the sign guard and the
-half of the branch the default lands in, so a negative `max_id` is the zero half — 1 for the zero
-the list read answers for a value it cannot read, 1 for its trim, and 2 for the item document — the
-two flags and the publication time the reference's `entry.Date` holds, read on data where the two
-columns differ. The write branches' 11: 2 for the guards, 4 for the item switch, 2 for the feed
-branch not reading the state name and comparing strictly before, and 3 for the three branches of the
-group guard. The icon read's 4: 2 for the join answering one row per feed with the order this port
-names, and 2 for the standard alphabet and the padding of the `data` field; the join and the `data`
-field are pinned as a read there, so the favicons pin of this suite reads those rules through the
-document and no patch is run against it here.
+body read, 1 for the boundary being a parameter of the content type rather than the read's own, 4
+for the parameter rules (a pair with no `=`, an unquoted empty value being the error, a trailing
+semicolon not being the error, and the media type surviving the error on the urlencoded half), 1 for
+a part that cannot be read ending the whole body read, 4 for the three guards of the part loop —
+disposition, name, and the filename parameter being empty rather than present, which is what makes
+the part a value part — 1 for a header line with no colon ending the read, 2 for the part value
+being the bytes as written, with no percent decoding, and a line ending that can be a bare `LF`, and
+2 for the order per name and the method guard. The shapes' 8: the base document's three fields
+before the document's own, the reported version, and the two zeros of the failure document; the
+field order the value documents write, read on the group document's pair; the nine fields of the
+item document with `is_saved` before `is_read` and `total_items` as a number; `favicon_id` written
+as the zero for a row with no icon; and `[]` for an empty list on every document of this path. The
+transport's 5: the failure answer at 200 rather than the common-value document and rather than 401,
+the key read through the merged form rather than through the header the sibling path reads, the
+order for a name both halves carry, and the pairs the query half put in the form surviving a body
+read that failed. The `HEAD` pin in that suite has no patch: neither its registration nor the length
+it reads can fail — Vapor forwards a `HEAD` request to the `GET` route, and the failure document and
+the common-value document are the same length, so that pin reads only that the method reaches the
+handler. The dispatch's 6: 2 for the precedence, 2 for presence whatever the value is, 1 for the
+mark name coming from the merged form, and 1 for the default answer. The storage reads' 8: 3 for the
+groups document — the title order, the feed ids inside a group, the group order — 2 for the feeds
+document — the sort order and the icon row — and 3 for the id documents — the comma join and the two
+filters. The items read's 8: 1 for the page of 50 with the count read without the page, 1 for the
+precedence, 2 for a negative value — the sign guard and the half of the branch the default lands in,
+so a negative `max_id` is the zero half — 1 for the zero the list read answers for a value it cannot
+read, 1 for its trim, and 2 for the item document — the two flags and the publication time the
+reference's `entry.Date` holds, read on data where the two columns differ. The write branches' 11: 2
+for the guards, 4 for the item switch, 2 for the feed branch not reading the state name and
+comparing strictly before, and 3 for the three branches of the group guard. The icon read's 4: 2 for
+the join answering one row per feed with the order this port names, and 2 for the standard alphabet
+and the padding of the `data` field; the join and the `data` field are pinned as a read there, so
+the favicons pin of this suite reads those rules through the document and no patch is run against
+it here.
 
-Two claims are named in the headers rather than asserted, because no patch can make them fail on
-the rule they name: that the port registers `HEAD` itself, since Vapor forwards a `HEAD` request to
-the GET route when no HEAD route is registered, so taking the registration away changes nothing the
-pin can read and that pin reads only that the method reaches the handler; and the order the
-reference's icon join answers, which its statement has no `ORDER BY` for, so the order the pins
-read is the order this port names.
+Two claims are named in the headers rather than asserted, because no patch can make them fail on the
+rule they name: that the port registers `HEAD` itself, since Vapor forwards a `HEAD` request to the
+GET route when no HEAD route is registered, so taking the registration away changes nothing the pin
+can read and that pin reads only that the method reaches the handler; and the order the reference's
+icon join answers, which its statement has no `ORDER BY` for, so the order the pins read is the
+order this port names.
 
 `MissingRow` moved from `Support/SubscriptionSocket.swift` to `Support/EntryFixtures.swift` as the
 setup error both helper files throw, because the nested type was not visible to the Fever helper.
@@ -1189,30 +1187,30 @@ the command set.
 
 ### The icon route (`CachingRulesTests`, `IconRouteTests`, PR #65)
 
-The four rules the reference's response builder applies for a cached asset are pinned as pure
-logic, and the route that answers an icon row is pinned over a real socket on top of them. 17 pins
-and 28 probes, 27 of them seen to fail on the rule they name: 10 pins and 18 probes for the rules,
-7 pins and 10 probes for the answer, one of which is the row recorded below as not biting. Each
-probe patches one rule, is seen to fail on the pin it names and reverts the file byte-identically;
-the round runs the two suites as one run per probe, in copies of the tree, and caches by the hash
-of the two probed files and the two suites.
+The four rules the reference's response builder applies for a cached asset are pinned as pure logic,
+and the route that answers an icon row is pinned over a real socket on top of them. 17 pins and 28
+probes, 27 of them seen to fail on the rule they name: 10 pins and 18 probes for the rules, 7 pins
+and 10 probes for the answer, one of which is the row recorded below as not biting. Each probe
+patches one rule, is seen to fail on the pin it names and reverts the file byte-identically; the
+round runs the two suites as one run per probe, in copies of the tree, and caches by the hash of the
+two probed files and the two suites.
 
 Ten pins are read by more than one patch, one patch per rule they name, and three rows reach more
 than one pin, which is why the round reports those rows as a set rather than as a failure. In the
 rules: the trim pin reads the order and the class — the class is Unicode `White_Space`, read per
-scalar, which is the form the repo's other trim reads use, and the pin's input carries a newline,
-so a patch that narrowed the class fired it — and the quoted-half patch reaches it as well,
-because its input is already quoted; the star pin reads the star and the trim of the same read;
-the match pin reads the prefix drop, the contains read and the whole-tag read; the `Cache-Control`
-pin reads the whole seconds and the directive order; and the `Expires` pin reads the bound, the
-zone, the weekday field and the day field. On the socket: the token pin reads that the token read
-is not run and that the answer carries the bytes of the row, and the caching-headers pin reads the
-bound and that `Expires` is written on this path, each with one patch per rule; the patch for the
-empty side of the guard reaches the token pin, the content-type pin and the policy pin together,
-because the branch the answer takes is chosen by that read, while the caching-headers pin is not
-reached, because the headers it reads are written before the read runs; and the match pin is read
-by its own patch and by the patch naming which value the `ETag` is built from, because it reads
-the header value the route builds from the row.
+scalar, which is the form the repo's other trim reads use, and the pin's input carries a newline, so
+a patch that narrowed the class fired it — and the quoted-half patch reaches it as well, because its
+input is already quoted; the star pin reads the star and the trim of the same read; the match pin
+reads the prefix drop, the contains read and the whole-tag read; the `Cache-Control` pin reads the
+whole seconds and the directive order; and the `Expires` pin reads the bound, the zone, the weekday
+field and the day field. On the socket: the token pin reads that the token read is not run and that
+the answer carries the bytes of the row, and the caching-headers pin reads the bound and that
+`Expires` is written on this path, each with one patch per rule; the patch for the empty side of the
+guard reaches the token pin, the content-type pin and the policy pin together, because the branch
+the answer takes is chosen by that read, while the caching-headers pin is not reached, because the
+headers it reads are written before the read runs; and the match pin is read by its own patch and by
+the patch naming which value the `ETag` is built from, because it reads the header value the route
+builds from the row.
 
 The three rows the round records as reaching more than one pin are those reaches: the quoted-half
 patch, which fires its own pin and the trim pin; the patch for the empty side of the guard, which
@@ -1224,10 +1222,10 @@ One row is recorded as not biting: the body half of the match pin, because the f
 body for a `304` answer, so a patch that writes the bytes on that branch still answers an empty
 body. The pin stays, because it reads what the reference's builder answers on that branch.
 
-The pin for the empty side of the match read cannot be falsified by taking the guard away: an
-empty value is inside every value for Go's `strings.Contains`, which is the other half of the
-rule, while Swift's read answers false for an empty value, so the guard and its absence answer the
-same here. That probe flips the answer the guard gives instead, and the difference is the row
+The pin for the empty side of the match read cannot be falsified by taking the guard away: an empty
+value is inside every value for Go's `strings.Contains`, which is the other half of the rule, while
+Swift's read answers false for an empty value, so the guard and its absence answer the same here.
+That probe flips the answer the guard gives instead, and the difference is the row
 `docs/parity.md` records.
 
 The socket pins that read a response shape carry the token as the transport reads it for a GET, so
@@ -1250,8 +1248,8 @@ pass over the batch that writes the entries, and the socket the client requests 
 The run half asserts nothing, so every failure is recorded by a pin, and each pin asserts a document
 or a line built from the test's own inputs, with the stored values read through SQL digest lines so
 a pin is not satisfied by the read it tests. The round runs only this suite, in copies of the tree,
-and caches by the hash of the 13 probed files and the two suite files; no row is recorded as not
-biting.
+and caches by the hash of the 13 probed files and the two suite files; no row is recorded as
+not biting.
 
 Seven pins are read by one patch and seven by more than one, one patch per rule they name, and four
 rows reach more than one pin, because a pin reads a value an earlier link of the chain wrote: the
@@ -1465,24 +1463,24 @@ has its own loopback and the corpus is served on this machine's; its connection 
 the SSL mode, because the driver it reads that string through defaults to `require` when the string
 names no mode; `CREATE_ADMIN` is a boolean for its parser, with the account as two names beside it,
 so a value written as `name:password` is an invalid boolean; the schema is applied by a run of its
-own through its own flag, with the migrations gated off as the guard says; the name
-`DATABASE_URL` is not one value for the two sides, so each side is
-handed its own; the port's own side is served before the collector reads it; the secure console read
-takes its value from a terminal rather than from a pipe, so the run gives that command one; and the
-due rule is strict, so the batch read cannot see a feed written at the same instant it reads.
+own through its own flag, with the migrations gated off as the guard says; the name `DATABASE_URL`
+is not one value for the two sides, so each side is handed its own; the port's own side is served
+before the collector reads it; the secure console read takes its value from a terminal rather than
+from a pipe, so the run gives that command one; and the due rule is strict, so the batch read cannot
+see a feed written at the same instant it reads.
 
 What it cannot show, and the harness and the docs say so:
 
-- that the run ran at all, because it is on demand and not in CI;
-- that the two sides read the same bytes over the network, because each fetch is its own hop;
-- the row order a storage read answers for rows sharing one value, which SQL does not fix;
-- the clock fields, which each side wrote at its own write instant. The rule that reads the parse
-results can never fail on a clock difference, because it never reads one: that half of its name is
-the rule, not an assertion, so no probe covers it;
-- the rules the stage-3 corpora already pin, which the run re-reads rather than pins;
-- the other half of the table rule: a class the manifest reaches but no row names is a difference
-nothing covers, so the difference rules read it, and a probe cannot make the table rule report it
-alone — removing the row also makes the difference itself a finding;
+- that the run ran at all, because it is on demand and not in CI; that the two sides read the same
+  bytes over the network, because each fetch is its own hop;
+- the row order a storage read answers for rows sharing one value, which SQL does not fix; the clock
+  fields, which each side wrote at its own write instant. The rule that reads the parse results can
+  never fail on a clock difference, because it never reads one: that half of its name is the rule,
+  not an assertion, so no probe covers it;
+- the rules the stage-3 corpora already pin, which the run re-reads rather than pins; the other half
+  of the table rule: a class the manifest reaches but no row names is a difference nothing covers,
+  so the difference rules read it, and a probe cannot make the table rule report it alone — removing
+  the row also makes the difference itself a finding;
 - the rules that are tautologies on run data because the collector writes both sides from one
 source: the input digests, the flags, the names the run asked with, and the response name read with
 the value that response answered, which are one read on a run. They can only be shown on crafted
@@ -1544,44 +1542,43 @@ sources, and the field the timed pin's print writes as data, so every rule is a 
 rather than an assertion about a client that was never run here. `Tools/clients/parsers.py` holds
 only the read: the sections, tables, record lines, the two sentences the rules parse as sets, the
 names read in the order a record line carries them, and the routes the port registers, so the rules
-stay the readable part of the check half.
-`Tools/clients/probes.py` crafts one input per rule that violates it and asserts that the rule
-reports it alone; the baseline — the committed data — reports nothing, so each probe is
-single-firing: 19 rules, 30 crafted inputs and the baseline, so 31 cases, the performance rule
-having one for each of the five kinds of finding it reads, the route rule one for each of its two
-halves, because an input that violates one half of a rule still satisfies the other, and the rule
-that reads the run record one for each of its seven halves, on the record the run wrote here. One of
-those seven reaches two parts of the data at once, the record line and the paragraph that names the
-calls this run showed, because the half reads the record against the paragraph and this run reached
-no call outside the recorded set. Every craft changes the parsed data in memory and never a file,
-and the round hashes every file the check half reads before and after, so a craft that reached a
-file is reported. What the 19 rules read: the source each set names and its commit, the redaction as
-the placeholders the half reads rather than as values, the matrix rows against the manifest lines,
-the classes against the parity table and the output-check class against the endpoints the reference
-applies the check on, the routes the port registers against the answer each row names with the
-catch-all read as the registration line the file writes, the reference's route and dispatch sets,
-the two halves of a client that reaches one half only, the order the source declares, the login
-being first and the token coming before every call that carries it, the token half per method, the
-stream forms as the prefix and suffix sets the branch reads, the counts table against the records it
-counts, the replay records against the matrix's own column, the performance table against the run
-that answered it and the shape the document names, the rule list and the report items against what
-the check half has, the response name a client acts on against the name the response builder writes,
-and the record the client run wrote against the set, the matrix row, the response shape, the
-redaction and the paragraph the document writes for the calls this run showed. The rule that reads
-the run record has seven halves: the order column against the order the document names the calls
-this run showed, a call the set cannot name against the document naming it as shown, the answer
-against the matrix row, the answer for a call the reference records no case for against the default
-branch, the key names against the names the response shape writes, the name the redaction names for
-the credential pair, and the guarded call against the document naming it as shown. What this half
-cannot show, and is named in `docs/clients.md` rather than asserted: the clients that have not been
-run against this port here, the calling set of a client whose source cannot be read, the order a
-client reaches its calls at on a device, which the run record carries for the client run here and
-the source declares for the others, the values the calls carry, which are redacted, the app-level
-choice of which calls a library-based client makes, the guard a client applies before it sends, read
-as the bound on the list size, which no record line can show firing, the side of the bound the guard
-applies, which the record carries as names and not as values, the token half of a client that
-sends the stored value as the token, the numbers of another
-machine, and the query latency at the 100k corpus. The run half is `Scripts/client-run.sh` with
+stay the readable part of the check half. `Tools/clients/probes.py` crafts one input per rule that
+violates it and asserts that the rule reports it alone; the baseline — the committed data — reports
+nothing, so each probe is single-firing: 19 rules, 30 crafted inputs and the baseline, so 31 cases,
+the performance rule having one for each of the five kinds of finding it reads, the route rule one
+for each of its two halves, because an input that violates one half of a rule still satisfies the
+other, and the rule that reads the run record one for each of its seven halves, on the record the
+run wrote here. One of those seven reaches two parts of the data at once, the record line and the
+paragraph that names the calls this run showed, because the half reads the record against the
+paragraph and this run reached no call outside the recorded set. Every craft changes the parsed data
+in memory and never a file, and the round hashes every file the check half reads before and after,
+so a craft that reached a file is reported. What the 19 rules read: the source each set names and
+its commit, the redaction as the placeholders the half reads rather than as values, the matrix rows
+against the manifest lines, the classes against the parity table and the output-check class against
+the endpoints the reference applies the check on, the routes the port registers against the answer
+each row names with the catch-all read as the registration line the file writes, the reference's
+route and dispatch sets, the two halves of a client that reaches one half only, the order the source
+declares, the login being first and the token coming before every call that carries it, the token
+half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
+against the records it counts, the replay records against the matrix's own column, the performance
+table against the run that answered it and the shape the document names, the rule list and the
+report items against what the check half has, the response name a client acts on against the name
+the response builder writes, and the record the client run wrote against the set, the matrix row,
+the response shape, the redaction and the paragraph the document writes for the calls this run
+showed. The rule that reads the run record has seven halves: the order column against the order the
+document names the calls this run showed, a call the set cannot name against the document naming it
+as shown, the answer against the matrix row, the answer for a call the reference records no case for
+against the default branch, the key names against the names the response shape writes, the name the
+redaction names for the credential pair, and the guarded call against the document naming it as
+shown. What this half cannot show, and is named in `docs/clients.md` rather than asserted: the
+clients that have not been run against this port here, the calling set of a client whose source
+cannot be read, the order a client reaches its calls at on a device, which the run record carries
+for the client run here and the source declares for the others, the values the calls carry, which
+are redacted, the app-level choice of which calls a library-based client makes, the guard a client
+applies before it sends, read as the bound on the list size, which no record line can show firing,
+the side of the bound the guard applies, which the record carries as names and not as values, the
+token half of a client that sends the stored value as the token, the numbers of another machine, and
+the query latency at the 100k corpus. The run half is `Scripts/client-run.sh` with
 `Tools/clients/observer.py`, outside CI: the observer writes one record line per request it
 forwarded and asserts nothing, and the check half reads the record the run left behind rather than
 the processes. It is checked here by `bash -n` and by its eight guards — ten read sites, because the
@@ -1607,22 +1604,22 @@ performance half records measurements taken here rather than bounds: `Scripts/pe
 `Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
 `docs/performance.md` against the numbers the run answered, the fields its sources declare and the
 shape the document names, the timed pin's own file being read as data for that. It is not in CI, so
-`python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as
-bounds.
+`python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted
+as bounds.
 
 ## Static release build (stage 8)
 
-`Scripts/build-release.sh` is stage 8's run half for the release build, outside CI: the shell
-builds the full dependency stack for the static musl target with the Swift Static Linux SDK and
-reads the artifact rather than the build log. The CI container has no SDK installed, so the run
-half is checked here by `bash -n` and by its 13 checks. Twelve compare what the run reads against a
-value the run declares, the toolchain's own list, the installed bundle, or a committed file, and
-each was seen to fail here on such a value or by taking the file it names away: the SDK name, by a
-name the toolchain does not list; the bundle read, by the `swift-sdk.json` it names taken away, and
-the triple read, by `x86_64-unknown-linux-musl`, the name the first attempt used; the artifact path,
-by `aarch64-swift-linux-musl`, a triple the bundle declares but this run did not build; the file
-type, by a dynamically linked artifact named at the path the check reads; the three source reads, by
-the committed file each names taken away (`RivuletCore.swift`, `SchemaV1.swift`,
+`Scripts/build-release.sh` is stage 8's run half for the release build, outside CI: the shell builds
+the full dependency stack for the static musl target with the Swift Static Linux SDK and reads the
+artifact rather than the build log. The CI container has no SDK installed, so the run half is
+checked here by `bash -n` and by its 13 checks. Twelve compare what the run reads against a value
+the run declares, the toolchain's own list, the installed bundle, or a committed file, and each was
+seen to fail here on such a value or by taking the file it names away: the SDK name, by a name the
+toolchain does not list; the bundle read, by the `swift-sdk.json` it names taken away, and the
+triple read, by `x86_64-unknown-linux-musl`, the name the first attempt used; the artifact path, by
+`aarch64-swift-linux-musl`, a triple the bundle declares but this run did not build; the file type,
+by a dynamically linked artifact named at the path the check reads; the three source reads, by the
+committed file each names taken away (`RivuletCore.swift`, `SchemaV1.swift`,
 `StatusSnapshot.swift`); the version answer, against a source declaring `1.2.3`; the migration
 answer, against the name `SchemaV2` and against the answer on a database that already holds the
 migration; the key-value check, by a key renamed to `due_x` and by the values read as 0 against a
@@ -1639,14 +1636,14 @@ made each of them checkable without a rebuild.
 What the run half cannot show is named in its header: which branch the compiler takes for the two C
 reads the spike found — on the glibc CI container only the glibc branch is in scope, so the build
 itself is the check for the musl half, which is why the two shapes are named in production code
-rather than worked around in the script, in
-`Sources/RivuletCore/Reader/SystemAddressResolver.swift` and in `Sources/rivulet/main.swift`; that
-the binary runs on a machine without this toolchain, which is the clean-container smoke job stage 8
-names; the size after stripping, reported as a measurement taken on this machine; that the
-top-level `feeds` key is the feed list rather than one of the counts, which the run reads only as
-the empty array; the key order in the answer, which is not fixed, so the contract is read key by
-key rather than as one string; and that the row a migration created is the row a fetch would write,
-which the tests pin and this run cannot answer without a network.
+rather than worked around in the script, in `Sources/RivuletCore/Reader/SystemAddressResolver.swift`
+and in `Sources/rivulet/main.swift`; that the binary runs on a machine without this toolchain, which
+is the clean-container smoke job stage 8 names; the size after stripping, reported as a measurement
+taken on this machine; that the top-level `feeds` key is the feed list rather than one of the
+counts, which the run reads only as the empty array; the key order in the answer, which is not
+fixed, so the contract is read key by key rather than as one string; and that the row a migration
+created is the row a fetch would write, which the tests pin and this run cannot answer without
+a network.
 
 The two production-code sites the spike found are named once for the platforms rather than pinned,
 and what the glibc side can show is narrower than the naming suggests: `AddressResolutionTests`
@@ -1683,144 +1680,141 @@ four rules having one craft and sixteen reading more than one half — and the f
 `Tools/smoke/sources.py` so the rule list stays the readable part, with the runbook rule kept in
 `Tools/smoke/runbook.py` because the check half is at the size cap the project sets. The run records
 every command it calls as a step, which is the half the runbook rule reads as data rather than as a
-list the run declares. Four helpers keep other rules out
-of the crafts that reach them: `keep_copy_equal` reads the copy as the rows the second snapshot
-holds, `set_due` keeps the mid-round count equal to the pick, `others` takes a row the scheduling
-rule does not read as the one in flight, and `change_url` writes a url change to both reads, so a
-craft that changes the row set does not also reach the corruption rule, which compares that field
-between the two reads. The terminal half, `Tools/smoke/console_feed.py`, gives the container a
-terminal, and `Tools/smoke/stub_server.py` declares which input it holds and writes one line per
-event; neither asserts anything, so the round rules read a record rather than a process.
-What the guards read, and each was seen to fail here on: the base against the line the committed
-Dockerfile writes, by `alpine`; the artifact against the product path `Scripts/build-release.sh`
-names for the triple's arch, by `aarch64-swift-linux-musl`, a triple this run did not build, so the
-half that fired here is the file being there at all, and against the path the release script names
-by `SMOKE_ARTIFACT` set outside it; the corpus against the number of records the manifest declares,
-by 6, and against every file the manifest names being present, by taking `corpus/smoke_gamma.xml`
-away; the held delay against the stop grace, by a delay that does not outlast it, because a round
-cannot be in flight when the stop lands before the delay ends; the stop grace against the bound the
-run names, by 0; the record path against the document the check half reads, by `/tmp/other.json`;
-the ports against the two names being different, by naming one port for both, and against what the
-machine already holds, by listening on 9010, which is the half that reads the machine and fires only
-where `ss` is present; the wait against the cadence the run declares, by a wait shorter than the
-interval the first read comes at; the address policy against the name the config reads the flag by,
-the value forms the switch reads, and the address class the policy names, by the value, by the name,
-and by a target outside the refused class; the build context against the file the Dockerfile's
-`COPY` line names, by naming another name; the held file against the last record the manifest
-declares, by a file named earlier; the gap between the `add` calls against the second the value is
-stored in, by 1, because the order rule reads the values those calls recorded and the clause fixes
-none between equal values; and the credentials run's prompt count against the number of prompts the
-command declares, read from the file the check half reads it from, by feeding one value fewer. The
-guard that reads Docker itself fails only on a machine without it, which is the point of the job.
-What the 20 rules read: the base and the file the `COPY` line names against the Dockerfile and
-against the export; the artifact as the pair of digests the run recorded — the file the build left
-at the path the release script names against the copy the run put in its build context — the image's
-own layer being named as what the run does not read; the corpus as the record count, the file set
-and the digests against the manifest; the account line against the sentence the command writes for
-the name it was given; the migration answer against the name the schema file declares; the health
-answer as the path the route registers, the status and the body the route writes; the login as the
-field names the handler binds, the order the credentials command declares its prompts in, the name
-the group registers that command as, and the status its guard answers; the reader answer as the key
-set the shape writes, the header name and the first word the auth read compares, the path the group
-and the registration build, and the token the login answered with; the policy as the name the config
-read takes the flag by, the value forms the switch reads, the default the file declares, and the
-address class the policy names; the round as the record the stub wrote, read as the request and the
-answer for each input and as the point the read was taken; the order the tick's pick takes the rows
-in as the value each `add` call wrote, read back through the contract, against the order the
-manifest declares the records in and against the column the batch file names, with the pick read as
-the four conditions the builder applies and the per-host filter named as a rule the document
-declares no value for, so only the default the file declares — off — is read there; the two
-snapshots as the contract the soak documents, read key by key; the rows as one row per record the
-manifest declares, read through the url the run asked with, with the counts against the records; the
-stop as the sentence the second boot answered for the integrity rule, the row set, and the fields
-the stop does not write — the url and `enabled`, which no fetch step writes, and the two parsing-
-error fields, read as unchanged because the job the stop interrupted never reached its write; the
-scheduling as the pick the rules take at the read with the row the run names as in flight unstamped
-at that read, the stamp landing after the stop, the schedule landing after the round, and the mid-
-round count equal to the pick; the copy as the sentence the command wrote for the destination it was
-given, read against the file it wrote with no `-wal` beside it; the machine as the two reads
-compared through the label the run writes; the runbook as the commands its fenced lines call, read
-against the case the dispatch registers, the flag names each command's signature declares, the names
-the config reads, the durability value against the pragma the storage wrapper runs, the room number
-against the factor the free-space check uses, and the first record the run kept of each command the
-page names, read against the order the page gives them. Only the fenced lines are read as calls, so
-the restore
+list the run declares. Four helpers keep other rules out of the crafts that reach them:
+`keep_copy_equal` reads the copy as the rows the second snapshot holds, `set_due` keeps the
+mid-round count equal to the pick, `others` takes a row the scheduling rule does not read as the one
+in flight, and `change_url` writes a url change to both reads, so a craft that changes the row set
+does not also reach the corruption rule, which compares that field between the two reads. The
+terminal half, `Tools/smoke/console_feed.py`, gives the container a terminal, and
+`Tools/smoke/stub_server.py` declares which input it holds and writes one line per event; neither
+asserts anything, so the round rules read a record rather than a process. What the guards read, and
+each was seen to fail here on: the base against the line the committed Dockerfile writes, by
+`alpine`; the artifact against the product path `Scripts/build-release.sh` names for the triple's
+arch, by `aarch64-swift-linux-musl`, a triple this run did not build, so the half that fired here is
+the file being there at all, and against the path the release script names by `SMOKE_ARTIFACT` set
+outside it; the corpus against the number of records the manifest declares, by 6, and against every
+file the manifest names being present, by taking `corpus/smoke_gamma.xml` away; the held delay
+against the stop grace, by a delay that does not outlast it, because a round cannot be in flight
+when the stop lands before the delay ends; the stop grace against the bound the run names, by 0; the
+record path against the document the check half reads, by `/tmp/other.json`; the ports against the
+two names being different, by naming one port for both, and against what the machine already holds,
+by listening on 9010, which is the half that reads the machine and fires only where `ss` is present;
+the wait against the cadence the run declares, by a wait shorter than the interval the first read
+comes at; the address policy against the name the config reads the flag by, the value forms the
+switch reads, and the address class the policy names, by the value, by the name, and by a target
+outside the refused class; the build context against the file the Dockerfile's `COPY` line names, by
+naming another name; the held file against the last record the manifest declares, by a file named
+earlier; the gap between the `add` calls against the second the value is stored in, by 1, because
+the order rule reads the values those calls recorded and the clause fixes none between equal values;
+and the credentials run's prompt count against the number of prompts the command declares, read from
+the file the check half reads it from, by feeding one value fewer. The guard that reads Docker
+itself fails only on a machine without it, which is the point of the job. What the 20 rules read:
+the base and the file the `COPY` line names against the Dockerfile and against the export; the
+artifact as the pair of digests the run recorded — the file the build left at the path the release
+script names against the copy the run put in its build context — the image's own layer being named
+as what the run does not read; the corpus as the record count, the file set and the digests against
+the manifest; the account line against the sentence the command writes for the name it was given;
+the migration answer against the name the schema file declares; the health answer as the path the
+route registers, the status and the body the route writes; the login as the field names the handler
+binds, the order the credentials command declares its prompts in, the name the group registers that
+command as, and the status its guard answers; the reader answer as the key set the shape writes, the
+header name and the first word the auth read compares, the path the group and the registration
+build, and the token the login answered with; the policy as the name the config read takes the flag
+by, the value forms the switch reads, the default the file declares, and the address class the
+policy names; the round as the record the stub wrote, read as the request and the answer for each
+input and as the point the read was taken; the order the tick's pick takes the rows in as the value
+each `add` call wrote, read back through the contract, against the order the manifest declares the
+records in and against the column the batch file names, with the pick read as the four conditions
+the builder applies and the per-host filter named as a rule the document declares no value for, so
+only the default the file declares — off — is read there; the two snapshots as the contract the soak
+documents, read key by key; the rows as one row per record the manifest declares, read through the
+url the run asked with, with the counts against the records; the stop as the sentence the second
+boot answered for the integrity rule, the row set, and the fields the stop does not write — the url
+and `enabled`, which no fetch step writes, and the two parsing- error fields, read as unchanged
+because the job the stop interrupted never reached its write; the scheduling as the pick the rules
+take at the read with the row the run names as in flight unstamped at that read, the stamp landing
+after the stop, the schedule landing after the round, and the mid- round count equal to the pick;
+the copy as the sentence the command wrote for the destination it was given, read against the file
+it wrote with no `-wal` beside it; the machine as the two reads compared through the label the run
+writes; the runbook as the commands its fenced lines call, read against the case the dispatch
+registers, the flag names each command's signature declares, the names the config reads, the
+durability value against the pragma the storage wrapper runs, the room number against the factor the
+free-space check uses, and the first record the run kept of each command the page names, read
+against the order the page gives them. Only the fenced lines are read as calls, so the restore
 recipe, which the page writes as steps to follow rather than as commands to run, is not read as a
 call set; the order the rule compares is the order the fenced commands appear in. And the report
-against the rule list and the items the check half has.
-Two read points are what make the mid-round claim readable, and both are read as data rather than
-asserted. The first snapshot is taken at the point the stub had recorded the answers for the inputs
-the round read before the held one and the request for the held one without its answer: for that
-file every hop is held, so the answer for it lands after the read, in the round after the restart.
-The second snapshot is taken once the pipeline had written the row for the interrupted job, because
-the row is written at the end of a job and the run waits on the answer the binary gave rather than
-on a hop count. The held file must be the last record the manifest declares for the first read to be
-a read of a round that had covered the corpus before it, which is why a guard reads the held file's
-position as data. The run here wrote the rows in the order the manifest declares them, with the held
-row unstamped at the read and the mid-round `due` equal to the pick, and the stub recorded the
-request for the held file without its answer for that round — the connection the stop closed — which
-is the point the rule reads as mid-way. The order the jobs of that round ran in is named as what no
-rule reads, because the pool fixes none: an earlier run here showed the requests first arriving as
-beta, gamma, delta, alpha, epsilon, while the values the `add` calls wrote put the rows in the
-declared order, and the record committed here shows the arrivals in the declared order too, which is
-a fact about this run rather than something the rule reads. Per feed the record shows the fetch hop
-and the icon hop, which asks the feed url again, then the site root and `favicon.ico` as names the
-corpus does not hold, because the icon read takes the root hop before the file it is given.
-The credential pair the login read compares is written through `integration-credentials`, which is
-the port's own path: the reference reaches the same values only through its web form, and `create-
-admin` writes the account hash alone, so the login would have answered 401 and the reader 401 with
-no row for the auth read to find. The command reads its five prompts, and the run writes them
-through the terminal the run gives the container, because the secure read answers nothing on a pipe
-— which is what the parity harness's first live run showed. The order the rule reads is the order
-the file declares the prompts in; which prompt produced which value is named as what no document can
-say. The values the run feeds are the names the shell declares as its defaults (`smoke` and `smoke-
-password`), so the committed document carries the derivation of that pair rather than a credential.
-Twelve halves of the probe set cannot be fired by a crafted document alone, and
-`Tools/smoke/probes.py` names them: the corpus rule's missing-file half fires only by taking the
-file away, which is what the shell guard shows; the runbook rule's five halves read the page itself,
-so they fire only on a patch to the page, which is what was seen here — a command the dispatch
-registers no case for, a flag its signature does not declare, a name no config read takes, `FULL`
-where the wrapper runs `NORMAL`, and 3 where the check uses 2 — each patch reverted byte-
-identically. The command patch reached the steps half as well, because that half reads the commands
-the page names against the order the run recorded, so the steps half is named as reached there
-rather than shown alone; the order rule's clause half is read from the batch file, so the crafts for
-that rule reach the values the run recorded rather than the clause; the corruption rule has no WAL
-half to craft, because the checkpoint the process harness reads as an empty WAL is blocked by the
-write transaction the stop interrupted; and two halves of the machine rule are craftable only as the
-labels the run declares. Two more halves are craftable only through a value a committed file
-declares, so a craft cannot set the value it compares: the policy rule's default half reads the
-default the file declares, so a craft reaches it only with a value the switch reads as neither on
-nor off, and the reader rule's endpoint half reads the route registration, so a craft reaches it
-only by changing the run's word for the endpoint. The runbook rule has one half a craft can move,
-the first record the run kept of each command the page names, read against the order the page gives
-them: one craft drops a step the run did not run and another puts a step out of that order. A
-command the run called twice is read once, so the half cannot show the order of a repeat, which is
-named here as what the half reads only once. The order rule reads the values the `add` calls wrote:
-one craft puts them out of the
-declared order and another makes two of them one value. The order the jobs of the round ran in is
-not craftable, because the pool dispatch fixes none, so that half is named as a gap rather than
-asserted.
-What the report names as what no document can show — the 20 items `CANNOT_SHOW` holds, and the
-report rule compares the document against them: that the run ran at all, because it is on demand and
-not in CI; that the fetch was still in flight when the signal landed, which only the run knows; that
-the container held no toolchain beyond the file the Dockerfile writes, because a scratch base has no
-shell to list it with, so the run records the base and the file set; the wording of the lines the
-binary printed, which are the port's own; which device the console read took its values from, since
-the container has no terminal and the run gives it one through `Tools/smoke/console_feed.py`; the
-exit code the stop signal left, because a signal that never lands hangs the run rather than
-reporting a code; the WAL bytes the run recorded at the stop, which are the interrupted round's and
-are not read as the harness reads them; that the copy the backup wrote is a plain file rather than a
-database the run can open, beyond the listing the run read at the moment it looked; that the two
-machine reads came from the same machine, because the rule reads two lists rather than one list read
-twice; that the run created the containers the machine reads name; that a run which left a container
-behind would have read it in the second pass, because the run lists only what it started; that a hop
-read the same bytes as the corpus file holds, since the rule reads the record the stub wrote and the
-digest of the file; the decision the address policy answered on the round, which the rule reads only
-as the flag against the class; the value the config read answered with for the policy flag, since
-the run records the value it declared rather than the value the read normalized it to; the order the
-round's jobs ran in, which the pool fixes none of; the runbook executed on a machine that is not the
-one that wrote it, because the run here ran on the machine that built the artifact, so the rule
-reads the page against the dispatch, the signatures, the names the config reads, the pragma and the
+against the rule list and the items the check half has. Two read points are what make the mid-round
+claim readable, and both are read as data rather than asserted. The first snapshot is taken at the
+point the stub had recorded the answers for the inputs the round read before the held one and the
+request for the held one without its answer: for that file every hop is held, so the answer for it
+lands after the read, in the round after the restart. The second snapshot is taken once the pipeline
+had written the row for the interrupted job, because the row is written at the end of a job and the
+run waits on the answer the binary gave rather than on a hop count. The held file must be the last
+record the manifest declares for the first read to be a read of a round that had covered the corpus
+before it, which is why a guard reads the held file's position as data. The run here wrote the rows
+in the order the manifest declares them, with the held row unstamped at the read and the mid-round
+`due` equal to the pick, and the stub recorded the request for the held file without its answer for
+that round — the connection the stop closed — which is the point the rule reads as mid-way. The
+order the jobs of that round ran in is named as what no rule reads, because the pool fixes none: an
+earlier run here showed the requests first arriving as beta, gamma, delta, alpha, epsilon, while the
+values the `add` calls wrote put the rows in the declared order, and the record committed here shows
+the arrivals in the declared order too, which is a fact about this run rather than something the
+rule reads. Per feed the record shows the fetch hop and the icon hop, which asks the feed url again,
+then the site root and `favicon.ico` as names the corpus does not hold, because the icon read takes
+the root hop before the file it is given. The credential pair the login read compares is written
+through `integration-credentials`, which is the port's own path: the reference reaches the same
+values only through its web form, and `create- admin` writes the account hash alone, so the login
+would have answered 401 and the reader 401 with no row for the auth read to find. The command reads
+its five prompts, and the run writes them through the terminal the run gives the container, because
+the secure read answers nothing on a pipe — which is what the parity harness's first live run
+showed. The order the rule reads is the order the file declares the prompts in; which prompt
+produced which value is named as what no document can say. The values the run feeds are the names
+the shell declares as its defaults (`smoke` and `smoke- password`), so the committed document
+carries the derivation of that pair rather than a credential. Twelve halves of the probe set cannot
+be fired by a crafted document alone, and `Tools/smoke/probes.py` names them: the corpus rule's
+missing-file half fires only by taking the file away, which is what the shell guard shows; the
+runbook rule's five halves read the page itself, so they fire only on a patch to the page, which is
+what was seen here — a command the dispatch registers no case for, a flag its signature does not
+declare, a name no config read takes, `FULL` where the wrapper runs `NORMAL`, and 3 where the check
+uses 2 — each patch reverted byte- identically. The command patch reached the steps half as well,
+because that half reads the commands the page names against the order the run recorded, so the steps
+half is named as reached there rather than shown alone; the order rule's clause half is read from
+the batch file, so the crafts for that rule reach the values the run recorded rather than the
+clause; the corruption rule has no WAL half to craft, because the checkpoint the process harness
+reads as an empty WAL is blocked by the write transaction the stop interrupted; and two halves of
+the machine rule are craftable only as the labels the run declares. Two more halves are craftable
+only through a value a committed file declares, so a craft cannot set the value it compares: the
+policy rule's default half reads the default the file declares, so a craft reaches it only with a
+value the switch reads as neither on nor off, and the reader rule's endpoint half reads the route
+registration, so a craft reaches it only by changing the run's word for the endpoint. The runbook
+rule has one half a craft can move, the first record the run kept of each command the page names,
+read against the order the page gives them: one craft drops a step the run did not run and another
+puts a step out of that order. A command the run called twice is read once, so the half cannot show
+the order of a repeat, which is named here as what the half reads only once. The order rule reads
+the values the `add` calls wrote: one craft puts them out of the declared order and another makes
+two of them one value. The order the jobs of the round ran in is not craftable, because the pool
+dispatch fixes none, so that half is named as a gap rather than asserted. What the report names as
+what no document can show — the 20 items `CANNOT_SHOW` holds, and the report rule compares the
+document against them: that the run ran at all, because it is on demand and not in CI; that the
+fetch was still in flight when the signal landed, which only the run knows; that the container held
+no toolchain beyond the file the Dockerfile writes, because a scratch base has no shell to list it
+with, so the run records the base and the file set; the wording of the lines the binary printed,
+which are the port's own; which device the console read took its values from, since the container
+has no terminal and the run gives it one through `Tools/smoke/console_feed.py`; the exit code the
+stop signal left, because a signal that never lands hangs the run rather than reporting a code; the
+WAL bytes the run recorded at the stop, which are the interrupted round's and are not read as the
+harness reads them; that the copy the backup wrote is a plain file rather than a database the run
+can open, beyond the listing the run read at the moment it looked; that the two machine reads came
+from the same machine, because the rule reads two lists rather than one list read twice; that the
+run created the containers the machine reads name; that a run which left a container behind would
+have read it in the second pass, because the run lists only what it started; that a hop read the
+same bytes as the corpus file holds, since the rule reads the record the stub wrote and the digest
+of the file; the decision the address policy answered on the round, which the rule reads only as the
+flag against the class; the value the config read answered with for the policy flag, since the run
+records the value it declared rather than the value the read normalized it to; the order the round's
+jobs ran in, which the pool fixes none of; the runbook executed on a machine that is not the one
+that wrote it, because the run here ran on the machine that built the artifact, so the rule reads
+the page against the dispatch, the signatures, the names the config reads, the pragma and the
 factor, and against the first records the run kept of the commands the page names, while the stage's
 criterion is a fresh VPS; the tool the runbook names as outside the port, because no command of the
 port runs it, so the rule reads only that the page names it as external and not what a stream of it
@@ -1893,8 +1887,8 @@ single-firing by mirroring the change on the other side of a tool-versus-file re
 equal to the values the example writes, `mirror_pairs` keeps a pair list equal on both sides,
 `keep_program_line` keeps the tool line for the unit equal to what the unit writes, and
 `keep_covered` keeps the bookkeeping equal to the keys the artifacts write after the craft. The
-round hashes every file the check half reads before and after, so a craft that reached a file is
-reported.
+round hashes every file the check half reads before and after, so a craft that reached a file
+is reported.
 
 What the eight guards read, each seen to fail here on the value it names: the record path against
 the document the check half reads, by `/tmp/opencode/not-read.json`; the three committed artifacts
@@ -1922,10 +1916,9 @@ the Dockerfile names being in the build context, the unit installed and run on a
 a stop delivers, the values an operator fills in, the credential pair, the published port being free
 on the machine, the wording of the lines the tools printed, the version of each tool the run names,
 the runbook executed on a machine that is not the one that wrote it, and a value an operator
-changes.
-One thing outside this harness is named here rather than asserted: the stage criterion of a fresh
-VPS following `docs/deploy.md` cannot be closed on this machine, which is what the runbook report
-item names, and the run that wrote the committed document is the run this machine ran.
+changes. One thing outside this harness is named here rather than asserted: the stage criterion of a
+fresh VPS following `docs/deploy.md` cannot be closed on this machine, which is what the runbook
+report item names, and the run that wrote the committed document is the run this machine ran.
 
 ## DocC harness (stage 8)
 
@@ -1953,9 +1946,9 @@ register, a flag no signature declares, a name no config read takes, or a client
 no row for is a finding rather than a sentence.
 
 `Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part, and
-`Tools/docs/probes.py` crafts at least one input per rule that violates it: 30 cases over 21 rules,
-29 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
-craft here reaches more than one rule, and six rules have more than one craft because each reads
+`Tools/docs/probes.py` crafts at least one input per rule that violates it: 31 cases over 21 rules,
+30 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
+craft here reaches more than one rule, and seven rules have more than one craft because each reads
 more than one half. Every craft changes the parsed form and never a file, and the round hashes every
 file the check half reads before and after, so a craft that reached a file is reported. The shapes
 no rule compares are named as not read rather than left unread: the directive kind, the child
@@ -1973,16 +1966,15 @@ the comment attached to a declaration through its attribute lines.
 
 ## Running
 
-- `swift test` — everything (unit + integration); this is what CI runs.
-- `swift test --filter RivuletCoreTests` — unit only (fast loop).
-- `swift test --filter RivuletIntegrationTests` — integration only.
-- `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
-each of its rules can fail on the rule it names.
+- `swift test` — everything (unit + integration); this is what CI runs. `swift test --filter
+  RivuletCoreTests` — unit only (fast loop). `swift test --filter RivuletIntegrationTests` —
+  integration only. `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py
+  --probe` checks that each of its rules can fail on the rule it names.
 - `Scripts/parity.sh` — the parity run, outside CI.
   `python3 Tools/parity/probes.py` checks that each of its rules can fail on the rule it names, and
   `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the guards alone.
 - `python3 Tools/clients/replay.py` — the client matrix check half, outside CI.
-  `python3 Tools/clients/probes.py` checks that each of its 18 rules can fail on the rule it names
+  `python3 Tools/clients/probes.py` checks that each of its 19 rules can fail on the rule it names
   and that the baseline reports nothing. `Scripts/perf.sh` is its run half, outside CI too.
 - `Scripts/build-release.sh` — stage 8's static release build, outside CI.
   `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` runs its checks against an artifact already on
@@ -1997,10 +1989,10 @@ each of its rules can fail on the rule it names.
   reports nothing; its eight guards run only as part of the run, because they read the two tools and
   the files the run writes.
 - `Scripts/docs.sh` — stage 8's DocC run, outside CI, because the run half needs the tool.
-  `python3 Tools/docs/docs_check.py` reads the committed document as data and
-  `python3 Tools/docs/docs_check.py --probe` checks that each of its 21 rules can fail on the rule
-  it names and that the baseline reports nothing. The run half was seen here to fail on the values
-  its usage lines name, thirteen read sites over eight guards.
+  `python3 Tools/docs/docs_check.py` reads the committed document as data and `python3
+  Tools/docs/docs_check.py --probe` checks that each of its 21 rules can fail on the rule it names
+  and that the baseline reports nothing. The run half was seen here to fail on the values its usage
+  lines name, thirteen read sites over eight guards.
 - Heavy suites (100k-entry benchmarks, big-feed scenarios) are disabled by default and enabled by an
 `.enabled(if:)` trait gated on `RIVULET_HEAVY`; run them explicitly with `RIVULET_HEAVY=1 swift test
 --filter HeavyTests`. The reduced large-feed scenario (`LargeFeedTests`) is the one that runs in the

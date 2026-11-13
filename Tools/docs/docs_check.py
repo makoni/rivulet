@@ -1,33 +1,27 @@
 #!/usr/bin/env python3
-"""The rules the DocC check half reads over the pages the catalog writes and the answer the tool gave.
+"""The rules the DocC check half reads over the pages the catalog writes and the answer the
+tool gave.
 
 This is the DocC slice's check half: `Scripts/docs.sh` is the run half, `Tools/docs/collect.py`
-writes
-the document the run leaves behind, and this file reads that document as data rather than a build.
-It
-is not a test; it is checked by `probes.py`, which crafts at least one input per rule that violates
-it
-and asserts each craft reports its own rule alone or the rules its patch reaches. The committed
-document is the run this machine produced, and the baseline case asserts it reports nothing.
+writes the document the run leaves behind, and this file reads that document as data rather than a
+build. It is not a test; it is checked by `probes.py`, which crafts at least one input per rule that
+violates it and asserts each craft reports its own rule alone or the rules its patch reaches. The
+committed document is the run this machine produced, and the baseline case asserts it
+reports nothing.
 
 Every rule is a function over the data `parsers.py` builds: the document the run left, or the
-document
-and the committed files the run names. The pages are read as the shapes they write, so a rule that
-compares a page with a source reads the source rather than the word the page declared for it. What
-the
-rules cannot read is what `CANNOT_SHOW` names and what `docs/docc.md` writes as the report: the
-version
-line the tool answers for itself, the directive kind and the child directives the tool requires, the
-reading time each article names, and the prose of a page, which the rules read as the shapes it
-writes
-and never as the sentence.
+document and the committed files the run names. The pages are read as the shapes they write, so a
+rule that compares a page with a source reads the source rather than the word the page declared for
+it. What the rules cannot read is what `CANNOT_SHOW` names and what `docs/docc.md` writes as the
+report: the version line the tool answers for itself, the directive kind and the child directives
+the tool requires, the reading time each article names, and the prose of a page, which the rules
+read as the shapes it writes and never as the sentence.
 
 Usage, one per line:
 
 docs_check.py --probe # the probe set against the committed document
 
 docs_check.py --document docs.json # apply the rules to one run document
-
 """
 
 import argparse
@@ -61,8 +55,7 @@ CANNOT_SHOW = [
 
 # Which rule reads which shape. The coverage rule reads this bookkeeping as data, so a shape no rule
 # reads has to be named in `NOT_READ` rather than be left unread. These lines are the record lines
-# the
-# coverage rule reads as whole strings, so they are not wrapped.
+# the coverage rule reads as whole strings, so they are not wrapped.
 READS = {
     "the_document_names_the_run_that_wrote_it": ["document"],
     "the_catalog_names_the_target_the_manifest_writes": ["catalog", "targets", "page.args"],
@@ -89,11 +82,9 @@ READS = {
 }
 
 # The shapes no rule compares, named here so the coverage rule can read them as the part of the
-# pages
-# that is structure rather than a value. `page.fenced` is read through the shapes it builds - the
-# calls,
-# the names the page sets and the name-and-value pairs - so no rule compares the fenced lines
-# themselves.
+# pages that is structure rather than a value. `page.fenced` is read through the shapes it builds -
+# the calls, the names the page sets and the name-and-value pairs - so no rule compares the fenced
+# lines themselves.
 NOT_READ = ["page.fenced", "page.kind", "page.children"]
 
 
@@ -108,13 +99,22 @@ def stem(path):
 
 
 def the_document_names_the_run_that_wrote_it(data):
-    """The document as the run wrote it: the path it wrote itself at, the catalog it read, and where it wrote the build.
+    """The document as the run wrote it: the half the run names itself with, and the answer it got.
 
     The build is the part the run writes outside the repository, so a document naming a build inside
-    the
-    tree is a run that put a generated artifact where the working agreement says none may go.
+    the tree is a run that put a generated artifact where the working agreement says none may go. A
+    half the document does not carry is read as a finding here rather than as a crash, because the
+    writer leaves a document with no answer when the run read nothing, which is the shape the run
+    half's guard reads through the data writer.
     """
-    run, findings = data["document"]["run"], []
+    halves = {"run": "the half the run writes", "tool": "the half a run that read nothing leaves out"}
+    findings, document = [], data["document"]
+    for name, phrase in halves.items():
+        if document.get(name) is None:
+            findings.append(f"the document carries no {name} part, which is {phrase}")
+    if findings:
+        return findings
+    run = document["run"]
     if run["record"] != read.repo_name(read.DEFAULTS["document"]):
         findings.append(f"the document names the record as {run['record']}, not the path the check half reads it at ({read.repo_name(read.DEFAULTS['document'])})")
     if run["catalog"] != read.repo_name(read.DEFAULTS["catalog"]):
@@ -138,7 +138,9 @@ def the_catalog_names_the_target_the_manifest_writes(data):
 
 
 def the_table_of_contents_names_every_page_the_catalog_has(data):
-    """The pages read on both halves: the list the table of contents writes against the files, and the files against the list."""
+    """The pages read on both halves: the list the table of contents writes against the files, and
+    the files against the list.
+    """
     contents, findings = toc(data), []
     if contents is None:
         return ["the catalog writes no table of contents, so the pages it has are named by no list"]
@@ -153,13 +155,12 @@ def the_table_of_contents_names_every_page_the_catalog_has(data):
 
 
 def every_asset_the_table_of_contents_names_is_a_file_the_catalog_has(data):
-    """The image the tool reads, against the files the catalog has, which is the half a page cannot write.
+    """The image the tool reads, against the files the catalog has, which is the half a page
+    cannot write.
 
     The tool resolves the name `@Image` writes against the catalog's resources directory, so the
-    name is
-    read as the file the directory has, one entry per file, and the shape the rule compares is the
-    name
-    against the file's own name rather than against the path.
+    name is read as the file the directory has, one entry per file, and the shape the rule compares
+    is the name against the file's own name rather than against the path.
     """
     contents, findings = toc(data), []
     if contents is None:
@@ -174,18 +175,27 @@ def every_asset_the_table_of_contents_names_is_a_file_the_catalog_has(data):
     return findings
 
 
+def tool_answer(data):
+    """The answer the tool gave, read as the document's tool half.
+
+    A run that read nothing writes no answer, so the absence of this half is read by the rule that
+    reads the document as the run wrote it. The rules that read the answer read an answer that is
+    not there as nothing to read, which is what keeps a craft that takes the document away from the
+    run half single-firing.
+    """
+    return data["document"].get("tool") or {}
+
+
 def built_names(data):
     """The pages as the tool wrote them, read as the name each built path carries.
 
     The tool writes one page per page file at the name it reads the file as, lowercased, and one
-    landing
-    for the site at the root, which is the one built item that names no page file. The name a path
-    carries is the segment before `index.html`, so the rule compares names rather than the layout
-    the
-    tool chose for the site.
+    landing for the site at the root, which is the one built item that names no page file. The name
+    a path carries is the segment before `index.html`, so the rule compares names rather than the
+    layout the tool chose for the site.
     """
     out = []
-    for path in data["document"]["tool"]["pages"]:
+    for path in tool_answer(data).get("pages", []):
         parts = path.split("/")
         out.append(parts[-2] if len(parts) > 1 and parts[-1] == "index.html" else path)
     return sorted(out)
@@ -195,19 +205,18 @@ def the_pages_the_tool_built_are_the_pages_the_catalog_has(data):
     """The pages as the tool wrote them, read against the page files the catalog has.
 
     Both halves are read: the names the tool built against the page files, and the page files
-    against
-    those names, so a built name no page file writes and a page file the tool built no page for are both
-    findings. The landing is read as the one built item that names no page file, which is the half
-    no
-    page file can write.
+    against those names, so a built name no page file writes and a page file the tool built no page
+    for are both findings. The landing is read as the one built item that names no page file, which
+    is the half no page file can write. A document with no tool part reports nothing here, because
+    the half that is not there is read by the rule that reads the document as the run wrote it.
     """
-    contents, findings = toc(data), []
-    if contents is None:
+    contents, answer, findings = toc(data), tool_answer(data), []
+    if contents is None or not answer:
         return findings
     landing = "index.html"
     names = sorted(stem(path).lower() for path in data["pages"] if path != contents["path"])
     names.append(stem(contents["path"]).lower())
-    if landing not in data["document"]["tool"]["pages"]:
+    if landing not in answer.get("pages", []):
         findings.append("the tool wrote no landing for the site, which is the built item that names no page file")
     built = [one for one in built_names(data) if one != landing]
     if sorted(built) != names:
@@ -217,7 +226,7 @@ def the_pages_the_tool_built_are_the_pages_the_catalog_has(data):
 
 def the_tool_answered_no_finding_for_any_page(data):
     """The findings as the tool answered them, which is the half a page cannot pass by wording."""
-    findings = data["document"]["tool"]["findings"]
+    findings = tool_answer(data).get("findings", [])
     if findings:
         return [f"the tool answered {len(findings)} finding(s) for the run: {findings}"]
     return []
@@ -271,10 +280,10 @@ def the_values_the_pages_state_are_the_values_the_sources_write(data):
     """Each value a page states, against the value the source that writes it carries.
 
     The three markers are read as the sources write them: the pragma the storage wrapper runs, the
-    factor the free-space check uses, and the listener the read answers for a value it does not read. The
-    integer minimums are read as the reads carry them, so a page that states a number a read does
-    not
-    carry is a finding, and a name the source reads with a trim alone is not read here.
+    factor the free-space check uses, and the listener the read answers for a value it does not
+    read. The integer minimums are read as the reads carry them, so a page that states a number a
+    read does not carry is a finding, and a name the source reads with a trim alone is not
+    read here.
     """
     sources = {"pragma": read.code_value("storage", "synchronous"),
                "factor": read.code_value("free_space", "factor"), "listener": data["listen_default"]}
@@ -321,12 +330,12 @@ def the_clients_the_pages_name_are_the_clients_the_matrix_records(data):
 
 
 def no_page_carries_a_local_only_reference(data):
-    """The pages as they can be published: a reference that resolves only in this repository is a finding.
+    """The pages as they can be published: a reference that resolves only in this repository is
+    a finding.
 
     The first half reads an inline-code path inside the repository, which a published page cannot
     resolve. The second reads a link that is not an absolute URL, which is the shape the tool writes
-    as
-    a reference into the site rather than as a link out of it.
+    as a reference into the site rather than as a link out of it.
     """
     findings = []
     for path, one in sorted(data["pages"].items()):
@@ -374,10 +383,8 @@ def the_contents_table_names_every_document_the_docs_directory_has(data):
     """The contents table against the documents, read on both halves.
 
     The paths the table writes are read relative to the page that writes them, which is the
-    directory
-    the table names, so a row pointing at a stage file or at the working agreement is read as the
-    path
-    that page resolves.
+    directory the table names, so a row pointing at a stage file or at the working agreement is read
+    as the path that page resolves.
     """
     findings = []
     for row in data["contents"]:

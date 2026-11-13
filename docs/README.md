@@ -1,8 +1,8 @@
 # Rivulet documentation
 
 Rivulet is a lightweight, self-hosted feed reader for personal servers — a Swift port of
-[Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3) with SQLite storage,
-a CLI-first interface and no web UI.
+[Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3) with SQLite storage, a
+CLI-first interface and no web UI.
 
 ## Contents
 
@@ -33,7 +33,7 @@ criteria met, and stages 5, 7 and 8 are in progress; the MVP is stages 0–8. Se
 
 The pages a person reads are the DocC catalog next to the code,
 `Sources/RivuletCore/RivuletCore.docc/`: one table of contents, four concept articles and one
-tutorial, published as one site by the Pages job. That layer is written so it can be published as
-is — no local-only references, no TODOs — and the rule that reads it as data is what keeps the
-claims in it falsifiable: a page that names a command the dispatch does not register is a finding.
+tutorial, published as one site by the Pages job. That layer is written so it can be published as is
+— no local-only references, no TODOs — and the rule that reads it as data is what keeps the claims
+in it falsifiable: a page that names a command the dispatch does not register is a finding.
 [docc.md](docc.md) names the 21 rules, the run half, the shapes read, and what no rule reads.

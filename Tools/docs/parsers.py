@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 """The parsers the DocC check half reads the catalog, the pages and the tool answer with.
 
-Split from the rules as `Tools/clients/parsers.py` is split from the client-matrix check half: this
-file turns files into shapes and reports nothing, so the rule list stays the readable part. Every
-function here is what one rule reads, so a craft in `probes.py` changes the parsed form and never a
-file, and the round hashes every file named here before and after.
+Split from the rules the way `Tools/clients/parsers.py` is split from the client-matrix check half:
+this file turns files into shapes and reports nothing, so the rule list stays the readable part.
+Every function here is what one rule reads, so a crafted input in `probes.py` changes the parsed
+form and never a file, and the round hashes every file named here before and after.
 
-What the round reads as data: the document the run left, with the tool's answer for the catalog -
-the pages it built, the findings it answered, the program the run invoked; the catalog as the shapes
-its pages write; the sources the rules read names and values against - the manifest, the dispatch,
-the config parser, the fetcher options, the two route files, the storage wrapper, the free-space
-check, the committed example, the client matrix, the plan table, the root README, the contents
-table, the docs directory, the Swift sources, and the rule list and gap list this check half keeps.
+What the round reads as data: the document the run left, which carries the answer the DocC tool gave
+for the catalog - the pages it built, the findings it answered, and the program the run invoked; the
+catalog as the shapes its pages write; the sources the rules read the names and the values against -
+the manifest, the dispatch, the config parser, the two route files, the storage wrapper and the
+free-space check; the committed example, which is where the values the pages write are read against;
+the client matrix, which is where the client names are read against; the plan table and the root
+README, which are the two documents the stage-state rule reads; the contents table and the documents
+it names; the report document, which is where the two lists are read against the check half; and the
+Swift sources, read for the public declarations and the comment each one has.
 
-The shapes the file reads are the keys one page writes, named in `PAGE_KEYS`, together with the keys
-`build()` writes, so the coverage rule can read which rule reads which shape. The child directives,
-the directive kind and the version line the tool answers for itself are named in `docs_check.py` as
-the part no rule reads.
+The shapes this file reads are the keys one page writes, named in `PAGE_KEYS`, together with the
+keys `build()` writes, so the coverage rule can read which rule reads which shape. The child
+directives the tool requires, the directive kind, and the version line the tool answers for itself
+are named in `docs_check.py` as the part no rule reads.
 
 Usage: read by `docs_check.py`, which names the files it needs.
 """
@@ -72,8 +75,8 @@ def repo_name(path):
 
     The run records its record path and its catalog path this way, so the rule that reads them reads
     the same name on the machine that ran it and on the machine that runs the probe round; the build
-    path is recorded as the run wrote it, because it is the part of the run that is outside the
-    repository.
+    path is recorded as the run wrote it, because it is the part of the run that is outside
+    the repository.
     """
     return os.path.relpath(path, ROOT)
 
@@ -105,10 +108,15 @@ def digest(file):
 
 
 def fenced(body):
-    """The lines a page writes inside its fences, which are the lines a person runs."""
+    """The lines a page writes inside its fences, which are the lines a person runs.
+
+    A fence is read at the indentation the page writes it at, because the tool reads a fenced block
+    inside a directive with the page's own indentation, so a fence inside `@Intro` is the same shape
+    as a fence at the top level and the indentation is not part of what the fence says.
+    """
     found, inside = [], False
     for line in body.splitlines():
-        if line.startswith("```"):
+        if line.strip().startswith("```"):
             inside = not inside
         elif inside:
             found.append(line.strip())
@@ -151,15 +159,10 @@ def calls(body):
     """The commands a page calls, read from its fenced lines and its inline code.
 
     Both shapes are read, because the tool allows a step to carry only a paragraph, so a command in
-    a
-    step is inline code while a command in an article's prose can be a fenced line.
+    a step is inline code while a command in an article's prose can be a fenced line.
     """
-    out = set()
-    for line in fenced(body) + spans(body):
-        words = line.strip("`").split()
-        if words and words[0] == "rivulet":
-            out.add(line.strip("`"))
-    return sorted(out)
+    return sorted({one for one in (line.strip("`") for line in fenced(body) + spans(body))
+                   if one.split()[:1] == ["rivulet"]})
 
 
 def flags(body):
@@ -179,12 +182,16 @@ def sets(body):
 
 
 def values(body):
-    """The name-and-value pairs the fenced lines write, as the page writes them."""
+    """The name-and-value pairs the fenced lines write, as the page writes them.
+
+    The name is read as the last word before the `=`, because the page writes a fence line as
+    `export NAME=value`, and that is the name the sets shape reads and the committed example names.
+    """
     out = {}
     for line in fenced(body):
         if "=" in line:
             name, _, value = line.partition("=")
-            out[name.strip()] = value.strip()
+            out[name.split()[-1]] = value.strip()
     return out
 
 
@@ -193,8 +200,7 @@ def stated(body):
 
     A marker is read on the line that states it with the phrase `VALUE_PHRASES` names, which is the
     shape a stated value has; the first code span or the number inside parentheses on that line is
-    the
-    value. The integer minimums are read on the line that names the config name as inline code.
+    the value. The integer minimums are read on the line that names the config name as inline code.
     """
     out = {}
     for marker, phrase in VALUE_PHRASES.items():
@@ -223,10 +229,8 @@ def registered_routes():
     """The routes the port registers, read from the two files that register them.
 
     The Google Reader path is registered on the group its prefix names, the Fever path on the group
-    the
-    file writes, and the login on the application, so the prefix is read from the line the call is
-    on
-    rather than assumed for the whole file.
+    the file writes, and the login on the application, so the prefix is read from the line the call
+    is on rather than assumed for the whole file.
     """
     out = set()
     for line in text("routes").splitlines():
@@ -273,12 +277,9 @@ def matrix_clients():
 
 def section(document, name):
     """The lines of one section, stopping at the next `## ` heading."""
-    out = []
-    for line in document[document.index(name) + len(name):].splitlines():
-        if line.startswith("## "):
-            break
-        out.append(line)
-    return out
+    lines = document[document.index(name) + len(name):].splitlines()
+    stop = next((index for index, one in enumerate(lines) if one.startswith("## ")), len(lines))
+    return lines[:stop]
 
 
 def links(body):
@@ -307,10 +308,8 @@ def plan_stages():
     """The plan's stage table as rows: stage number, title, and the state part the rule reads.
 
     The document has more than one table, so the stages section is the part this rule reads. The
-    state
-    is read as the first part of the cell, because the rest of the cell names the slices the stage
-    has
-    merged, which the rule compares with nothing.
+    state is read as the first part of the cell, because the rest of the cell names the slices the
+    stage has merged, which the rule compares with nothing.
     """
     rows = []
     for line in section(text("plan"), "## Stages"):
@@ -345,8 +344,8 @@ def docs_documents():
     """The documents the docs directory has, as the directory writes them.
 
     The contents page itself is not one of them, because it is the page that names the others, so
-    the
-    rule that reads the table against the directory does not require a row naming the page it reads.
+    the rule that reads the table against the directory does not require a row naming the page
+    it reads.
     """
     return sorted(name for name in os.listdir(DEFAULTS["docs_dir"]) if name.endswith(".md")
                   and name != "README.md")
@@ -356,8 +355,7 @@ def declarations():
     """The public declarations in the Swift sources, with the comment each one has.
 
     The kinds read are the named ones; an initializer is not among them, so its comment is read by
-    no
-    rule and named as a gap in `docs_check.py`.
+    no rule and named as a gap in `docs_check.py`.
     """
     out = []
     for path, _, names in os.walk(DEFAULTS["sources"]):
@@ -377,8 +375,8 @@ def has_comment(lines, position):
     """Whether the declaration has a documentation comment, read as the comment attached to it.
 
     An attribute line belongs to the declaration rather than to the comment, so a comment separated
-    from the declaration by one is still the comment attached to it, which is what DocC attaches it
-    as.
+    from the declaration by one is still the comment attached to it, which is what DocC attaches
+    it as.
     """
     cursor = position - 1
     while cursor >= 0 and lines[cursor].strip().startswith("@"):
@@ -435,8 +433,7 @@ def listen_default():
 
 def manifest_target():
     """The target the catalog sits under, as the manifest writes the target names."""
-    parts = os.path.relpath(DEFAULTS["catalog"], os.path.join(ROOT, "Sources")).split(os.sep)
-    return parts[0]
+    return os.path.relpath(DEFAULTS["catalog"], os.path.join(ROOT, "Sources")).split(os.sep)[0]
 
 
 def targets():
@@ -472,7 +469,9 @@ def report_lists(body):
 
 
 def build():
-    """The data the rules read: the document the run left, the pages, and the files they read against."""
+    """The data the rules read: the document the run left, the pages, and the files they
+    read against.
+    """
     pages = page_shapes(None)
     data = {"document": document(), "pages": pages, "catalog": manifest_target(), "targets": targets(),
             "assets": catalog_files()[1], "commands": dispatch_commands(), "names": parser_names(),
@@ -490,11 +489,10 @@ def build():
 def shapes(data):
     """Every shape the pages and the document write, as the coverage rule reads it.
 
-    A shape is a key `build()` writes, plus the key one page writes, plus the bookkeeping the check half
-    keeps. The coverage rule reads this list as data, so a shape no rule reads has to be named in
-    `NOT_READ` rather than be left unread.
+    A shape is a key `build()` writes, plus the key one page writes, plus the bookkeeping the check
+    half keeps. The coverage rule reads this list as data, so a shape no rule reads has to be named
+    in `NOT_READ` rather than be left unread.
     """
     out = [key for key in sorted(data) if key != "shapes"]
-    out += [f"page.{key}" for key in PAGE_KEYS]
-    out += ["check.reads", "check.not_read"]
+    out += [f"page.{key}" for key in PAGE_KEYS] + ["check.reads", "check.not_read"]
     return sorted(set(out))

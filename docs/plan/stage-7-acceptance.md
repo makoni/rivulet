@@ -25,7 +25,7 @@ to the tolerance table. The seventh slice is the client matrix and the performan
 PR #63: `docs/clients.md` records the calling sets of five clients — three read from their own
 source at a named commit, two from the project's documentation because their source cannot be read
 here — and the check half reads those sets, the record files, the document and the port's own route,
-dispatch, auth and response sources as data over 18 rules, with the parsers kept apart from the
+dispatch, auth and response sources as data over 19 rules, with the parsers kept apart from the
 rules so each rule stays a function over data. No set is a capture. NewsFlash is the client run
 against this port here, through `Scripts/client-run.sh`, and the record that run wrote is read as
 data by the rule that reads it, which is the nineteenth rule. That run half and that rule are the

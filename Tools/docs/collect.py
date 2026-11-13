@@ -2,16 +2,13 @@
 """The DocC run's data reader: the catalog read as the tool read it.
 
 The run half is `Scripts/docs.sh`, which copies the catalog into the directory it ran in, runs the
-tool
-there, and calls this file. Nothing here asserts anything: the rules are in `docs_check.py`, which
-reads the document this file writes, so a run that read a different answer is falsifiable through
-the
-same round as every other rule.
+tool there, and calls this file. Nothing here asserts anything: the rules are in `docs_check.py`,
+which reads the document this file writes, so a run that read a different answer is falsifiable
+through the same round as every other rule.
 
 The document records the tool's own answer as the tool answered it: the pages it wrote, the findings
-it
-printed, and the code it answered with. The tool answers no version for its own run, so the document
-records the program the run invoked, which is read by no rule.
+it printed, and the code it answered with. The tool answers no version for its own run, so the
+document records the program the run invoked, which is read by no rule.
 """
 
 import json
@@ -37,10 +34,8 @@ def document(out, tool, answer):
     """The run's own values and the tool's answer, with nothing read off the machine.
 
     The record and catalog paths are recorded as the repository root names them, so the document
-    says
-    the same thing on the machine that ran the run as on the machine that reads it; the build path
-    is
-    recorded as the run wrote it, because the run writes it outside the repository.
+    says the same thing on the machine that ran the run as on the machine that reads it; the build
+    path is recorded as the run wrote it, because the run writes it outside the repository.
     """
     return {
         "run": {"record": read.repo_name(os.environ["docs_record"]),

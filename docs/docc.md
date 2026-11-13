@@ -2,22 +2,22 @@
 
 This is the harness that reads the DocC layer as data. The layer itself is
 `Sources/RivuletCore/RivuletCore.docc/`: one table-of-contents page, four concept articles, one
-tutorial, and the asset the table of contents names. The pages state only what a check here can
-show — the commands the dispatch registers, the flags those signatures declare, the names the
+tutorial, and the asset the table of contents names. The pages state only what a check here can show
+— the commands the dispatch registers, the flags those signatures declare, the names the
 configuration reads, the values the sources write, the routes the port registers, the clients the
-client matrix records, and the version the plan pins — so a page that names something the sources
-do not write is a finding rather than a sentence.
+client matrix records, and the version the plan pins — so a page that names something the sources do
+not write is a finding rather than a sentence.
 
 The halves are separated the way the deploy slice's are: `Scripts/docs.sh` is the run half,
-`Tools/docs/collect.py` writes the document the run leaves behind, and
-`Tools/docs/docs_check.py` is the check half, reading that document as data rather than a build.
-The reads are in `Tools/docs/parsers.py` so the rule list stays the readable part, and
-`Tools/docs/probes.py` crafts at least one input per rule that violates it: 30 cases — 29 crafts
-plus the baseline, which is asserted to report nothing — so each craft reports its own rule alone,
-with no craft reaching more than one rule through the patch it names, because every rule here reads
-the parsed form and never a file, and the round hashes every file the check half reads before and
-after. The committed `Tools/docs/docs.json` is the run this machine produced, and the CI job runs
-the round rather than the run half, which needs the tool.
+`Tools/docs/collect.py` writes the document the run leaves behind, and `Tools/docs/docs_check.py` is
+the check half, reading that document as data rather than a build. The reads are in
+`Tools/docs/parsers.py` so the rule list stays the readable part, and `Tools/docs/probes.py` crafts
+at least one input per rule that violates it: 31 cases — 30 crafts plus the baseline, which is
+asserted to report nothing — so each craft reports its own rule alone, with no craft reaching more
+than one rule through the patch it names, because every rule here reads the parsed form and never a
+file, and the round hashes every file the check half reads before and after. The committed
+`Tools/docs/docs.json` is the run this machine produced, and the CI job runs the round rather than
+the run half, which needs the tool.
 
 ## The rules this check half reads
 
@@ -43,13 +43,14 @@ the round rather than the run half, which needs the tool.
 - the_values_the_pages_state_are_the_values_the_sources_write
 - the_values_the_pages_write_are_the_values_the_example_writes
 
-Six rules read more than one half, so they have one craft for each half: the catalog rule reads the
-directory the tool reads the catalog at and the name the table of contents writes for the site; the
-table-of-contents rule reads the list against the page files and the page files against the list;
-the stated-value rule reads the pragma, the factor, the listener and the integer minimums, which are
-four kinds of value; the reference-path rule reads an inline-code path and a link; the
-contents-table rule reads the rows against the documents and the documents against the rows; and the
-report rule reads the two lists below against what the check half has.
+Seven rules read more than one half, so they have one craft for each half: the document rule reads
+the value its build path is compared with and the document read as the run wrote nothing; the catalog
+rule reads the directory the tool reads the catalog at and the name the table of contents writes for
+the site; the table-of-contents rule reads the list against the page files and the page files
+against the list; the stated-value rule reads the pragma, the factor, the listener and the integer
+minimums, which are four kinds of value; the reference-path rule reads an inline-code path and a
+link; the contents-table rule reads the rows against the documents and the documents against the
+rows; and the report rule reads the two lists below against what the check half has.
 
 ## What this harness cannot show
 
@@ -101,13 +102,12 @@ the asset, the build path, the page set, and the document.
 ## Running it
 
 ```sh
-Scripts/docs.sh                                  # the run, then the guards
-python3 Tools/docs/docs_check.py                 # the committed document as data
-python3 Tools/docs/docs_check.py --probe         # the probe round
+Scripts/docs.sh # the run, then the guards python3 Tools/docs/docs_check.py # the committed document
+as data python3 Tools/docs/docs_check.py --probe # the probe round
 ```
 
 The Pages job publishes what this harness reads: `docc convert` on the catalog, with the build
 published as the site. The job does not run the check half, which reads the committed document, so
 the round is what CI runs for this harness, and the run half stays outside CI because it needs the
-tool. The build is written to the gitignored build directory the working agreement names for a DocC
-build.
+tool. The build is written to the gitignored build directory the working agreement names for a
+DocC build.

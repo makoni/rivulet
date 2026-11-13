@@ -3,24 +3,22 @@
 
 Every craft changes the parsed form and never a file, so the round hashes every file the check half
 reads before and after and reports a craft that reached a file. The committed document is the run
-this
-machine produced, and the baseline case asserts it reports nothing, which is what makes each craft
-single-firing: a craft that reached a second rule is reported as reaching it. No craft here reaches
-more than one rule, so `REACHES` names nothing; it is the place a craft that reached two rules
-through
-one patch would be named, which is what keeps the assertion honest when a craft is added. Six rules
-have more than one craft, because each of those rules reads more than one half: the catalog rule has
-one for the directory the tool reads it as and one for the name the table of contents writes, the
-table-of-contents rule one for each half of its read, the stated-value rule one for each of the four
-kinds of value it reads, the reference-path rule one for each of its two halves, the contents-table
-rule
-one for each half, and the report rule one for each of the two lists it reads.
+this machine produced, and the baseline case asserts it reports nothing, which is what makes each
+craft single-firing: a craft that reached a second rule is reported as reaching it. No craft here
+reaches more than one rule, so `REACHES` names nothing; it is the place a craft that reached two
+rules through one patch would be named, which is what keeps the assertion honest when a craft is
+added. Seven rules have more than one craft, because each of those rules reads more than one half:
+the document rule one for the value its build path is compared with and one for the document read as
+the run wrote nothing, the catalog rule has one for the directory the tool reads it as and one for
+the name the table of contents writes, the table-of-contents rule one for each half of its read, the
+stated-value rule one for each of the four kinds of value it reads, the reference-path rule one for
+each of its two halves, the contents-table rule one for each half, and the report rule one for each
+of the two lists it reads.
 
 The shapes the coverage rule reads are the shapes the parser produces, so a craft that adds a shape
-to
-the parsed set is the only craft that can move that rule, and no other craft reaches it.
+to the parsed set is the only craft that can move that rule, and no other craft reaches it.
 
-30 cases: 29 crafted inputs plus the baseline.
+31 cases: 30 crafted inputs plus the baseline.
 
 Run it through `docs_check.py --probe`.
 """
@@ -63,8 +61,7 @@ def the_document_names_the_run_that_wrote_it(data):
 
 
 def catalog_directory(data):
-    # The directory the tool read the catalog at, read as a name the manifest writes no target for.
-    # The
+    # The directory the tool read the catalog at, read as a name the manifest writes no target for. The
     # table of contents keeps the name it writes equal to the catalog, so the second half reports
     # nothing, which is what keeps this craft single-firing.
     data["catalog"] = "Extra"
@@ -75,8 +72,7 @@ def catalog_directory(data):
 def catalog_name(data):
     # The name the table of contents writes for the site, read against the target the catalog sits
     # under. The first craft keeps the two equal and moves only the directory, so this one moves
-    # only
-    # the name.
+    # only the name.
     check.toc(data)["args"]["name"] = "RivuletCorePage"
 
 
@@ -103,10 +99,9 @@ def tool_answered_a_finding(data):
 
 
 def page_calls_an_unregistered_command(data):
-    # Only the shape the rule reads is changed: the call, not the fenced line it came from, so no
-    # other
-    # rule reads this craft. The command is one the port has no run for, which the runbook names as
-    # the
+    # Only the shape the rule reads is changed: the call, not the fenced line it came from, so
+    # no other
+    # rule reads this craft. The command is one the port has no run for, which the runbook names as the
     # recipe rather than as a command.
     page = data["pages"][one_page(data)]
     page["calls"] = sorted(set(page["calls"]) | {"rivulet restore /var/backups/rivulet.db"})
@@ -212,9 +207,19 @@ def report_names_gaps(data):
     data["report"] = data["report"].replace("\n".join("- " + one for one in gaps), "")
 
 
-def craft_page_half():
+def document_with_no_answer(data):
+    # The document read as the run wrote nothing, which the rule reports as a finding for each of the
+    # two halves instead of crashing. The rules that read the tool's answer have no answer to read
+    # here, so this craft fires the rule that reads the document alone, and it is the same shape the
+    # run half's guard reads through the data writer.
+    data["document"] = {}
+
+
+def document_half_cases():
+    """The crafts that move the document the run left, or the catalog shape it is read against."""
     return [
         ("the_document_names_the_run_that_wrote_it", the_document_names_the_run_that_wrote_it),
+        ("the_document_names_the_run_that_wrote_it", document_with_no_answer),
         ("the_catalog_names_the_target_the_manifest_writes", catalog_directory),
         ("the_catalog_names_the_target_the_manifest_writes", catalog_name),
         ("the_table_of_contents_names_every_page_the_catalog_has", table_missing_reference),
@@ -222,6 +227,12 @@ def craft_page_half():
         ("every_asset_the_table_of_contents_names_is_a_file_the_catalog_has", asset_without_file),
         ("the_pages_the_tool_built_are_the_pages_the_catalog_has", tool_built_an_extra_page),
         ("the_tool_answered_no_finding_for_any_page", tool_answered_a_finding),
+    ]
+
+
+def page_half_cases():
+    """The crafts that move one page as the rules read it, one per rule the page half fires."""
+    return [
         ("the_pages_call_only_commands_the_dispatch_registers", page_calls_an_unregistered_command),
         ("the_pages_use_only_flags_the_signatures_declare", page_uses_an_undeclared_flag),
         ("the_pages_set_only_names_the_config_reads", page_sets_a_name_no_read_takes),
@@ -229,11 +240,6 @@ def craft_page_half():
          page_writes_a_value_the_example_does_not),
         ("the_values_the_pages_state_are_the_values_the_sources_write",
          page_states_a_pragma_the_source_does_not),
-    ]
-
-
-def craft_document_half():
-    return [
         ("the_values_the_pages_state_are_the_values_the_sources_write",
          page_states_a_factor_the_check_does_not),
         ("the_values_the_pages_state_are_the_values_the_sources_write",
@@ -249,6 +255,12 @@ def craft_document_half():
         ("no_page_carries_a_local_only_reference", page_names_a_repository_path),
         ("no_page_carries_a_local_only_reference", page_links_inside_the_repository),
         ("no_page_carries_a_todo", page_carries_a_todo),
+    ]
+
+
+def sources_half_cases():
+    """The crafts that move the committed sources the rules read the pages against."""
+    return [
         ("every_public_declaration_has_a_documentation_comment", declaration_without_a_comment),
         ("the_readme_names_the_stages_as_the_plan_table_states_them",
          readme_states_a_stage_the_plan_does_not),
@@ -262,12 +274,15 @@ def craft_document_half():
     ]
 
 
-def crafts():
-    return craft_page_half() + craft_document_half()
-
-
 def cases():
-    return [("baseline", lambda data: None)] + crafts()
+    """The round, grouped by the half each craft moves: the baseline, then one craft per rule.
+
+    The grouping is what the docstring above calls the halves, so the list stays the readable part:
+    the document half is the run's own answer, the page half is one page read as the shapes it
+    writes, and the sources half is the committed files the pages are compared with.
+    """
+    return ([("baseline", lambda data: None)] + document_half_cases() + page_half_cases()
+            + sources_half_cases())
 
 
 def assert_each():

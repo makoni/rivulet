@@ -2,41 +2,31 @@
 set -euo pipefail
 
 # Stage 8 DocC run: the catalog read as the tool reads it. This is the run half of the DocC slice;
-# the
-# rules are in `Tools/docs/docs_check.py`, which reads the document this run leaves behind rather
-# than a
-# build, and `Tools/docs/collect.py` writes that document from the tool's answer. It is not a test,
-# and
-# the probe round is what CI runs; the shell is checked here by `bash -n` and by the guards below.
+# the rules are in `Tools/docs/docs_check.py`, which reads the document this run leaves behind
+# rather than a build, and `Tools/docs/collect.py` writes that document from the tool's answer. It
+# is not a test, and the probe round is what CI runs; the shell is checked here by `bash -n` and by
+# the guards below.
 
 # What the guards read, and what each can fail on: the record path against the document the check
-# half
-# reads in `Tools/docs/parsers.py`; the catalog against the path the check half reads it at; the
-# program
+# half reads in `Tools/docs/parsers.py`; the catalog against the path the check half reads it at;
+# the program
 # the run invokes against the answer it gives for the run; the copy of the catalog this run wrote
-# against
-# the bytes each committed catalog file has, which is the run being allowed to copy and not to
-# change; the
-# asset the table of contents names against the files the copy has; the build path against the
-# repository,
-# which is the half a run that writes inside the tree fails; the page files this run declares
-# against the
+# against the bytes each committed catalog file has, which is the run being allowed to copy and not
+# to change; the asset the table of contents names against the files the copy has; the build path
+# against the repository, which is the half a run that writes inside the tree fails; the page files
+# this run declares against the
 # pages the tool built for the copy; and the document this run wrote against the answer the tool
-# gave,
-# which is the half a run that never ran cannot show. The guard that reads the tool fails only on a
-# machine without it, which is the point of the publishing job; the guards that read what this run
-# wrote
-# fail only on a run. The eight guards are thirteen read sites: the record path reads one, the
-# catalog
+# gave, which is the half a run that never ran cannot show. The guard that reads the tool fails only
+# on a machine without it, which is the point of the publishing job; the guards that read what this
+# run wrote fail only on a run. The eight guards are thirteen read sites: the record path reads one,
+# the catalog
 # reads one, the tool reads one answer, the copies read seven, one for each file the copy has, the
-# asset
-# reads one, the build path reads one, the page set reads one, and the document reads one answer.
-# All
-# eight were seen to fail here, on the values the usage lines name.
+# asset reads one, the build path reads one, the page set reads one, and the document reads one
+# answer. All eight were seen to fail here, on the values the usage lines name.
 
 # This run reads the catalog and writes its build outside the repository, because the tool writes a
-# site
-# and a build inside the tree is an artifact the working agreement does not allow to be committed.
+# site and a build inside the tree is an artifact the working agreement does not allow to
+# be committed.
 
 # Usage, one guard per line, each run against the value that line names:
 
@@ -61,8 +51,7 @@ export docs_extra_byte=${docs_extra_byte:-}
 fail() { printf 'guard: %s\n' "$1"; exit 1; }
 
 # A value read through the same reader the rules use, so a guard cannot name a path or a shape the
-# check
-# half does not read. One path per line.
+# check half does not read. One path per line.
 path_of() {
     python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import parsers as read; print(read.DEFAULTS[sys.argv[2]])' "$ROOT/Tools/docs" "$1"
 }
@@ -80,10 +69,9 @@ tool_answers() {
 }
 
 # The copy keeps the catalog name the tool reads it as, because the tool reads a directory as a
-# catalog
-# only when the name carries the extension, which is the half the copy guard reads. The copy is the
-# same
-# set the check half reads: the page files and the assets, split the way the tool reads them.
+# catalog only when the name carries the extension, which is the half the copy guard reads. The copy
+# is the same set the check half reads: the page files and the assets, split the way the tool
+# reads them.
 build_copy() {
     export docs_catalog=${docs_catalog:-$(path_of catalog)}
     export docs_out=${docs_out:-$docs_work/site}
@@ -125,10 +113,8 @@ answer_guards() {
 
 # The run: the copy, the guards that read what this run declares, the tool, the guard that reads its
 # answer, then the document. The run asserts nothing about what the tool answers for the pages it
-# builds,
-# so a tool that answers nothing is a run that read nothing; the rules read the answer as data, and
-# the
-# guard that reads the document is the half a run cannot pass twice.
+# builds, so a tool that answers nothing is a run that read nothing; the rules read the answer as
+# data, and the guard that reads the document is the half a run cannot pass twice.
 build_copy
 value_guards
 "$docs_tool" convert "$docs_copy" --output-dir "$docs_out" >"$docs_work/answer.txt" 2>/dev/null
