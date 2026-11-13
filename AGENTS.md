@@ -215,9 +215,11 @@ the baseline asserted to report nothing, no craft reaching more than one rule â€
 another machine, the tool's own version, the reading time, the titles and child directives, a page's
 prose, the way a page renders, the site the pages are published on, and the symbol pages, which this
 toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads; what a
-site shows is the pages the catalog writes. The 21 public declarations that had no comment are the
-second half of the same rule, read through the comment attached to a declaration over its attribute
-lines.
+site shows is the pages the catalog writes. The same slice's publish half is PR #74, named here as
+merged: the Pages job is out of CI and the Pages site setting is off, so the report half is sixteen
+items rather than seventeen, and the item that named a pull request deployment went with the job.
+The 21 public declarations that had no comment are the second half of the same rule, read through
+the comment attached to a declaration over its attribute lines.
 
 What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
 check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
