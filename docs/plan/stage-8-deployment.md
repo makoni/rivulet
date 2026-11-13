@@ -164,3 +164,18 @@ The run half and the build half both need the tool, so they stay on demand.
 ## Exit criteria
 
 - [ ] A fresh VPS follows `docs/deploy.md` and ends with a working reader; the smoke job is green.
+
+## Backlog (style findings on the build half, from its review)
+
+- `add_markdown_link` is 78 lines, above the ~40-line aim, because the link half is one script
+  block rather than a function the way the other halves are.
+- The base guard compares the base as the value was given, while the link half trims it, so a base
+  written with a leading or a trailing slash can fail the guard although the pages carry the same
+  base.
+- The guards split the page list and the name list on whitespace, so a path or a name with a space
+  reads as more than one value.
+- The manifest guard has nothing to compare when the tool writes no manifest at all, so it can fail
+  only on a name it is given.
+- The markdown href is relative to the directory of the page, so a page served at a url with no
+  trailing slash resolves it one level short.
+- The usage header says one guard per line and its first line names the build rather than a guard.
