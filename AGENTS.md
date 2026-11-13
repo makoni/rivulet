@@ -210,19 +210,22 @@ contents table, the Swift sources and its own report document — with the run h
 at eight guards and thirteen read sites, all eight seen to fail here on the values the usage lines
 name, and the round `Tools/docs/probes.py` at 31 cases — 30 crafts plus the baseline asserted to
 report nothing, no craft reaching more than one rule — the reads being in `Tools/docs/parsers.py`.
-The sixteen report items name what no rule reads: the tool's answer for another machine, the tool's
-own version, the reading time, the titles and child directives, a page's prose, the way a page
-renders, the served site, and the symbol pages, which this toolchain cannot build because SwiftPM
-answers no plugin for the symbol graph the tool reads; the site publishes the pages the catalog
-writes. The 21 public declarations that had no comment are the second half of the same rule, read
-through the comment attached to a declaration over its attribute lines.
+The seventeen report items name what no rule reads: the tool's answer for another machine, the
+tool's own version, the reading time, the titles and child directives, a page's prose, the way a
+page renders, the served site, the deployment the Pages job creates for a pull request, and the
+symbol pages, which this toolchain cannot build because SwiftPM answers no plugin for the symbol
+graph the tool reads; the site publishes the pages the catalog writes. The 21 public declarations
+that had no comment are the second half of the same rule, read through the comment attached to a
+declaration over its attribute lines.
 
 What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
 check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
 container has no `python3`, and each round was seen to be green from a tree copied to a different
 root, which is what makes that job machine-independent; the run halves stay on demand, because they
 read a machine, a tool or a process — Docker, systemd, the terminal, the DocC tool. The Pages job
-publishes the catalog in the Swift container, where the tool is on the image.
+publishes the catalog in the Swift container, where the tool is on the image, and the deployment it
+creates shows on the branch the Pages environment names, because the policy refuses the merge ref a
+pull request builds.
 
 **Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion, the
 deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as stage 8's

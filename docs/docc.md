@@ -64,6 +64,7 @@ the rows; and the report rule reads the two lists below against what the check h
 - the titles, the chapter names and the child directives the tool requires, recorded for the reader and read by no rule
 - the way a page renders, because the tool writes files and the rules read the shapes the files write
 - the site being served at the path the publishing job names, because the job publishes and no rule reads the served answer
+- the deployment the publishing job creates for a pull request, because the Pages environment names the branch the site reads, so the job is refused for the merge ref and the deployment shows on the branch it names
 - a value a page states for a name the source reads with a trim alone, because no rule reads a value that reads as free text
 - a stage state past the first part the rule reads, because the plan table writes a state as one long cell
 - a claim about a test this round cannot run, because the rules read committed files as data and never a test

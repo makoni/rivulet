@@ -140,13 +140,13 @@ craft reaching more than one rule, and every craft changing the parsed form rath
 pages state only what a check here can show — the commands the dispatch registers, the flags the
 signatures declare, the names the config reads, the values the sources write, the routes the port
 registers, the clients the client matrix records and the version the plan pins — so a page naming
-something the sources do not write is a finding. The sixteen report items in `docs/docc.md` name the
-shapes no rule compares and what no rule can show, including the symbol pages, which this toolchain
-cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: the site
-publishes the pages the catalog writes. The 21 public declarations that had no documentation comment
-are read by the same rule, through the comment attached to a declaration over its attribute lines,
-and are now filled. - The round is what CI runs for this harness, in the probe-rounds job on the
-runner host, because the Swift container has no `python3`; the Pages job in the Swift container
+something the sources do not write is a finding. The seventeen report items in `docs/docc.md` name
+the shapes no rule compares and what no rule can show, including the symbol pages, which this
+toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: the
+site publishes the pages the catalog writes. The 21 public declarations that had no documentation
+comment are read by the same rule, through the comment attached to a declaration over its attribute
+lines, and are now filled. - The round is what CI runs for this harness, in the probe-rounds job on
+the runner host, because the Swift container has no `python3`; the Pages job in the Swift container
 builds the site with the tool and publishes what it wrote. The run half needs the tool, so it stays
 on demand.
 

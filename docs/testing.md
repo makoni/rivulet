@@ -1957,7 +1957,7 @@ directives, and the fenced lines, which are read through the shapes they build.
 The run half needs the tool, so CI runs the round, not the run; the Pages job builds the site from
 the committed catalog with `docc convert` and publishes what the tool wrote. The tool answers no
 version for its own run, so the document records the program the run invoked, which is the half no
-rule reads. What this harness cannot show is named as sixteen report items in `docs/docc.md`, and
+rule reads. What this harness cannot show is named as seventeen report items in `docs/docc.md`, and
 the same list is what `docs_check.py` keeps as `CANNOT_SHOW` and reads against the document, so the
 report is data rather than prose. The symbol pages are the item that names a gap in the toolchain
 rather than in the catalog: this toolchain's SwiftPM answers no plugin for the symbol graph the tool
