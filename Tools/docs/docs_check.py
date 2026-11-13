@@ -37,7 +37,7 @@ ROOT = read.ROOT
 CANNOT_SHOW = [
     "that the tool answer recorded here is the answer another machine answers, because the run records what this machine's tool answered and the rules read that record",
     "the version of the tool the run names, because the tool answers no version for its own run and the run records the program it invoked",
-    "a symbol page for a public declaration, because this toolchain's SwiftPM answers no plugin for the symbol graph the tool reads, so what a site shows is the pages the catalog writes",
+    "a symbol page for a public declaration, because the rule reads the catalog's files as the shapes they write and the graph the build half copies is read as the path it is at rather than as the pages it writes, so a symbol page is what the archive has and not what the harness shows",
     "that a documentation comment renders as a page, because the rule reads the sources as text and the page it renders into is read by no rule",
     "the prose of a page, which the rules read as the shapes it writes and not as the sentence, so a claim no shape carries is not a finding here",
     "a configuration name a page names in prose rather than sets, because the shape the rule reads is the assignment line a fence writes and not the sentence",

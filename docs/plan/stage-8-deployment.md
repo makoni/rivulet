@@ -146,20 +146,22 @@ pages state only what a check here can show — the commands the dispatch regist
 signatures declare, the names the config reads, the values the sources write, the routes the port
 registers, the clients the client matrix records and the version the plan pins — so a page naming
 something the sources do not write is a finding. The seventeen report items in `docs/docc.md` name
-the shapes no rule compares and what no rule can show, including the symbol pages, which this
-toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads: what a
-site shows is the pages the catalog writes. The 21 public declarations that had no documentation
-comment are read by the same rule, through the comment attached to a declaration over its attribute
-lines, and are now filled.
-- The build half `Scripts/build-docs.sh` is checked by `bash -n` and by its six guards, twenty read
-sites, each seen to fail here on the value its usage line names: the archive path, the catalog path,
-the tool, the base path, the names the markdown manifest carries, and the link each page the build
-wrote carries. It writes the archive a site is built from outside the repository, and the link stays
-hidden for a page the tool answered no markdown for, which here is every page but the tutorial.
-- The round is what CI runs for this harness, in the probe-rounds job on the runner host, because
-the Swift container has no `python3`. Publishing the pages as a site happens outside this
-repository, so no CI job here shows a served site, and no rule here reads what a web server answers.
-The run half and the build half both need the tool, so they stay on demand.
+the shapes no rule compares and what no rule can show, including the symbol pages, which the build
+half writes from the file SwiftPM's own subcommand answers for its own run and which no rule reads
+as the pages it writes. The 21 public declarations that had no documentation comment are read by the
+same rule, through the comment attached to a declaration over its attribute lines, and are now
+filled.
+- The build half `Scripts/build-docs.sh` is checked by `bash -n` and by its nine guards, thirteen
+read sites, each seen to fail here on the value its usage line names: the archive path, the
+catalog path, the tool, SwiftPM, the base, the names the markdown manifest carries, the copy
+against the file SwiftPM wrote, the module the copy names against the target the manifest writes,
+and the link each page the build wrote carries. It writes the archive a site is built from outside
+the repository, the graph being the copy of the one file for the target the manifest writes, and
+the link stays hidden for a page the build has no markdown file for, which here is the page the
+site opens first. The round is what CI runs for this harness, in the probe-rounds job on the
+runner host, because the Swift container has no `python3`. Publishing the pages as a site happens
+outside this repository, so no CI job here shows a served site, and no rule here reads what a web
+server answers. The run half and the build half both need the tool, so they stay on demand.
 
 ## Exit criteria
 
@@ -167,15 +169,9 @@ The run half and the build half both need the tool, so they stay on demand.
 
 ## Backlog (style findings on the build half, from its review)
 
-- `add_markdown_link` is 78 lines, above the ~40-line aim, because the link half is one script
+- `add_markdown_link` is 83 lines, above the ~40-line aim, because the link half is one script
   block rather than a function the way the other halves are.
-- The base guard compares the base as the value was given, while the link half trims it, so a base
-  written with a leading or a trailing slash can fail the guard although the pages carry the same
-  base.
-- The guards split the page list and the name list on whitespace, so a path or a name with a space
-  reads as more than one value.
-- The manifest guard has nothing to compare when the tool writes no manifest at all, so it can fail
-  only on a name it is given.
-- The markdown href is relative to the directory of the page, so a page served at a url with no
-  trailing slash resolves it one level short.
-- The usage header says one guard per line and its first line names the build rather than a guard.
+- The comment references in the sources are read by no rule, because a rule would have to resolve
+  them the way the tool does, which is the half that stays open here; the four the tool reported
+  as findings for a build that reads the graph were fixed at the sites they name, which is what
+  the tool's answer for the build run here shows.

@@ -10,7 +10,7 @@ extension FeedRepository {
     /// differ from the id order. The stamps are read as the row holds them, not as the
     /// schema's default, so a row that has never been fetched or scheduled answers `nil`
     /// rather than `0`. The counts are read from every row whatever its state, except
-    /// `due`, which is the pick ``dueBatch(_:options:)`` makes at the instant the caller
+    /// `due`, which is the pick ``dueBatch(now:options:)`` makes at the instant the caller
     /// names — so the rules that read a zero as a switch show up in it, and
     /// `at_error_limit` is counted only for a positive limit, because for that switch there
     /// is no filter a row could be at. Like the batch, the snapshot is not scoped to a

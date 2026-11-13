@@ -213,14 +213,15 @@ thirteen read sites, all eight seen to fail here on the values the usage lines n
 craft reaching more than one rule — the reads being in `Tools/docs/parsers.py`. The seventeen report
 items name what no rule reads: the tool's answer for another machine, the tool's own version, the
 reading time, the titles and child directives, a page's prose, the way a page renders, the archive
-the build half writes, the site the pages are published on, and the symbol pages, which this
-toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads; what a
-site shows is the pages the catalog writes. The same slice's publish half is PR #74, named here as
-merged: the Pages job is out of CI and the Pages site setting is off, and the item that named a pull
-request deployment went with the job, which left sixteen items until the archive
+the build half writes, the site the pages are published on, and the symbol pages, which the build
+half writes from the file SwiftPM's own subcommand answers for its own run and which no rule reads
+as pages, the graph being read as the path it is at. The same slice's publish half is PR #74, named
+here as merged: the Pages job is out of CI and the Pages site setting is off, and the item that
+named a pull request deployment went with the job, which left sixteen items until the archive
 `Scripts/build-docs.sh` writes took the report back to seventeen. That build half is PR #75, named
-here as merged, and is checked here by `bash -n` and by its six guards, twenty read sites, each seen
-to fail on the value its usage line names. The 21 public declarations that had
+here as merged, and is checked here by `bash -n` and by its nine guards, thirteen read sites, each
+seen to fail on the value its usage line names, the copy half being the one file for the target the
+manifest writes because a single build answers for one module. The 21 public declarations that had
 no comment are the second half of the same rule, read through the comment attached to a declaration
 over its attribute lines.
 

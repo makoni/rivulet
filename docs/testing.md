@@ -1959,13 +1959,12 @@ happens outside this repository, so no CI job here reads what a web server answe
 no version for its own run, so the document records the program the run invoked, which is the half
 no rule reads. What this harness cannot show is named as seventeen report items in `docs/docc.md`,
 and the same list is what `docs_check.py` keeps as `CANNOT_SHOW` and reads against the document, so
-the report is data rather than prose. The symbol pages are the item that names a gap in the
-toolchain rather than in the catalog: this toolchain's SwiftPM answers no plugin for the symbol
-graph the tool reads, so what a site shows is the pages the catalog writes and the rule that reads
-the sources reads the comment attached to a declaration through its attribute lines. The build half
-`Scripts/build-docs.sh` is checked here by `bash -n` and by its six guards, twenty read sites, each
-seen to fail on the value its usage line names, and the archive it writes is the report item that
-names it as read by no rule.
+the report is data rather than prose. The symbol pages are the item that names a half no rule reads:
+the graph the tool builds them from is the file SwiftPM's own subcommand answers for its own run, so
+the build half writes them here, and the rule reads that file as the path it is at rather than as
+the pages it writes. The build half `Scripts/build-docs.sh` is checked here by `bash -n` and by its
+nine guards, thirteen read sites, each seen to fail on the value its usage line names, and the
+archive it writes is the report item that names it as read by no rule.
 
 ## Running
 

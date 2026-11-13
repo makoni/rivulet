@@ -27,7 +27,7 @@ public struct OPMLHandler: Sendable {
 
     /// Reads the records and writes them, in the order the reference applies them per record.
     ///
-    /// - Throws: ``OPMLError`` for the shape, the attribute set and the rule the first record fails
+    /// - Throws: `OPMLError` for the shape, the attribute set and the rule the first record fails
     ///   on, and the storage failures the reference wraps as `opml: unable to create this feed`.
     public func importFeeds(userID: Int, data: Data) async throws {
         let records = try OPMLParser.parse(data)

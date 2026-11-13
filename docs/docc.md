@@ -56,7 +56,7 @@ the rows; and the report rule reads the two lists below against what the check h
 
 - that the tool answer recorded here is the answer another machine answers, because the run records what this machine's tool answered and the rules read that record
 - the version of the tool the run names, because the tool answers no version for its own run and the run records the program it invoked
-- a symbol page for a public declaration, because this toolchain's SwiftPM answers no plugin for the symbol graph the tool reads, so what a site shows is the pages the catalog writes
+- a symbol page for a public declaration, because the rule reads the catalog's files as the shapes they write and the graph the build half copies is read as the path it is at rather than as the pages it writes, so a symbol page is what the archive has and not what the harness shows
 - that a documentation comment renders as a page, because the rule reads the sources as text and the page it renders into is read by no rule
 - the prose of a page, which the rules read as the shapes it writes and not as the sentence, so a claim no shape carries is not a finding here
 - a configuration name a page names in prose rather than sets, because the shape the rule reads is the assignment line a fence writes and not the sentence
@@ -103,15 +103,20 @@ the asset, the build path, the page set, and the document.
 ## The build half
 
 `Scripts/build-docs.sh` is the build half: it reads the catalog at the path the check half reads it
-at and writes the archive a site is built from, outside the repository, with the markdown version of
-each page the tool answered markdown for and a link to it on every page the build wrote. The tool
-answers markdown for the tutorial alone here, so every other page the build wrote keeps the link
-hidden, and the hrefs the build computed for the routes it has a markdown file for are written into
-the page the site opens. The script is checked by `bash -n` and by its six guards, twenty read
-sites, each seen to fail here on the value the usage lines name: the archive path, the catalog path,
-the tool, the base path, the names the manifest carries, and the link each page the build wrote
-carries. No rule here reads an archive, so this half is what a person runs before publishing, and
-publishing is outside this repository.
+at, takes the symbol graph from SwiftPM's own subcommand — the tool has no plugin for the graph here
+— copies the one file for the target the manifest writes, because a single build answers for one
+module while the graph dir holds every module the manifest resolves, and writes the archive a site
+is built from, outside the repository, with a markdown link on every page the build wrote. The
+routes the build has a markdown file for are the pages the graph writes as well as the tutorial, so
+the page the site opens first keeps the link hidden rather than pointing at a file the build never
+wrote. The script is checked by `bash -n` and by its nine guards, thirteen read sites, each seen to
+fail here on the value the usage lines name: the archive path, the catalog path, the tool, SwiftPM,
+the base read as the tool writes it, the names the markdown manifest carries, the copy against the
+file SwiftPM wrote, the module the copy names against the target the manifest writes, and the link
+on each page the committed document names. No rule here reads an archive, so this half is what a
+person runs before publishing, and publishing is outside this repository. The four comment
+references the tool reported as findings for a build that reads the graph are fixed at the sites
+they name, and the tool answered nothing for the build run here.
 
 ## Running it
 

@@ -7,7 +7,7 @@ import Foundation
 /// The URL predicates the reader answers with. A value that does not parse is answered with as it
 /// was read, which is what the reference does for `Domain`, `DomainWithoutWWW` and `RootURL`.
 ///
-/// ``isAbsoluteURL`` is the only one the module publishes: the CLI applies the rule the
+/// ``isAbsoluteURL(_:)`` is the only one the module publishes: the CLI applies the rule the
 /// reference's feed validator reads, and the rule function itself takes the answer as a value so
 /// it stays pinnable as pure logic, which is what ``FeedValidation`` pins. The other predicates are
 /// the reader's own and stay inside the module.
