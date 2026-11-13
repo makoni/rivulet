@@ -1,0 +1,124 @@
+{
+  "analyze": {
+    "exit": 1,
+    "lines": [
+      "rivulet.service: Command /rivulet is not executable: No such file or directory"
+    ]
+  },
+  "cannot_show": [
+    "a value an operator changes after the run, because the rules read the files as they are committed, so a change to the file a deployment reads is not read here",
+    "that the run ran at all, because it is on demand and not in CI",
+    "the artifact the Dockerfile names being in the build context, because the run does not build and the tool resolves the name without reading the file",
+    "the credential pair, which lands through the command the runbook names, not through a name the config reads",
+    "the image being built or started, because the run reads the compose as the tool resolves it and never builds",
+    "the published port being free on the machine, because this run half reads no machine and the rule reads the pair as a value the file writes",
+    "the runbook executed on a machine that is not the one that wrote it, because the stage criterion is a fresh VPS and this run ran on the machine that built the artifact",
+    "the signal a stop delivers, because the tool reads the signal the unit names as text, and which signal a stop sends is what the unit answers on a machine that runs it",
+    "the unit installed and run on a machine, because the tool reads the file as a parse and the only finding it answers is the program path not being on this machine",
+    "the values an operator fills in, because the committed example carries placeholders and the file a deployment reads is the gitignored name",
+    "the version of each tool the run names, because the run records the line each tool answered for itself and no rule reads it",
+    "the wording of the lines the tools printed, which the rule reads as the file and the value each line names, not as the sentence"
+  ],
+  "compose": {
+    "name": "rivulet",
+    "networks": {
+      "default": {
+        "ipam": {},
+        "name": "rivulet_default"
+      }
+    },
+    "services": {
+      "rivulet": {
+        "build": {
+          "context": "/tmp/tmp.mVaOSaCZsy",
+          "dockerfile": "Dockerfile"
+        },
+        "command": [
+          "serve"
+        ],
+        "entrypoint": null,
+        "environment": {
+          "BASE_URL": "https://reader.example.com",
+          "DATABASE_URL": "/var/lib/rivulet/rivulet.db",
+          "FETCHER_ALLOW_PRIVATE_NETWORKS": "0",
+          "LISTEN_ADDR": "0.0.0.0:8080",
+          "LOG_FORMAT": "text",
+          "LOG_LEVEL": "info",
+          "POLLING_FREQUENCY": "60",
+          "POLLING_PARSING_ERROR_LIMIT": "3",
+          "RUN_MIGRATIONS": "1"
+        },
+        "image": "rivulet",
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "8080",
+            "target": 8080
+          }
+        ],
+        "restart": "on-failure",
+        "volumes": [
+          {
+            "source": "rivulet-data",
+            "target": "/var/lib/rivulet",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "rivulet-data": {
+        "name": "rivulet_rivulet-data"
+      }
+    }
+  },
+  "rules": [
+    "build_reads_the_files_the_run_copied",
+    "compose_reads_as_the_tool_read_it",
+    "every_name_the_deploy_set_writes_is_a_config_read",
+    "no_value_in_the_example_reads_as_a_credential",
+    "report_names_rules_and_gaps",
+    "the_check_half_reads_every_key_the_deploy_set_writes",
+    "the_container_starts_a_command_the_dispatch_registers",
+    "the_project_the_tool_resolved_is_the_name_the_run_declares",
+    "the_published_port_is_the_port_the_address_names",
+    "the_three_files_name_one_data_path",
+    "the_tool_read_the_unit_as_the_file_the_run_named",
+    "the_two_files_name_one_restart_policy",
+    "the_unit_names_only_signals_the_port_has_a_handler_for",
+    "the_unit_names_the_binary_the_dockerfile_writes",
+    "the_unit_runs_a_command_the_dispatch_registers",
+    "the_values_read_as_the_parser_reads_them"
+  ],
+  "run": {
+    "analyze_tool": "systemd 262 (262.1-1-arch)",
+    "compose_tool": "Docker Compose version 5.6.1",
+    "copies": {
+      "compose": "/tmp/tmp.mVaOSaCZsy/deploy/compose.yml",
+      "dockerfile": "/tmp/tmp.mVaOSaCZsy/Dockerfile",
+      "example": "/tmp/tmp.mVaOSaCZsy/.env",
+      "unit": "/tmp/tmp.mVaOSaCZsy/deploy/rivulet.service"
+    },
+    "copy_digests": {
+      "compose": "b8c54bf53dcf953449014a4f28a068bff3c9d484bb76df90d49e5ee3bdd4c736",
+      "dockerfile": "3cd7b1ad261ee9bbf1536bd18b0932bbba54f2a832c7b585d4561baef98931d2",
+      "example": "f0b25dfbf4fee4806b826c1c5e5f38e78fcf5696e7cb89fc1bb6ad762252a69c",
+      "unit": "f60f357c42280427b4120f68043e6db6acdbaed6986eed9f52899c045cd3223d"
+    },
+    "digests": {
+      "compose": "b8c54bf53dcf953449014a4f28a068bff3c9d484bb76df90d49e5ee3bdd4c736",
+      "dockerfile": "3cd7b1ad261ee9bbf1536bd18b0932bbba54f2a832c7b585d4561baef98931d2",
+      "example": "f0b25dfbf4fee4806b826c1c5e5f38e78fcf5696e7cb89fc1bb6ad762252a69c",
+      "unit": "f60f357c42280427b4120f68043e6db6acdbaed6986eed9f52899c045cd3223d"
+    },
+    "program_on_this_machine": false,
+    "project": "rivulet",
+    "unit_named": "rivulet.service",
+    "work": "/tmp/tmp.mVaOSaCZsy"
+  }
+}

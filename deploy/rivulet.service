@@ -1,0 +1,16 @@
+# Stage 8's service unit, read as data by `Tools/deploy/deploy_check.py`. The signal it names is the
+# signal the port's handler takes out of the default disposition, and the program its command names
+# is the file the image writes. Two keys here are the parts no rule reads: the description and the
+# install target, named in the check half as not read.
+
+[Unit]
+Description=Rivulet serve run
+
+[Service]
+ExecStart=/rivulet serve
+Restart=on-failure
+KillSignal=SIGTERM
+StateDirectory=rivulet
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+# Stage 8's compose file, read as data by `Tools/deploy/deploy_check.py`, which reads the tool's
+# own resolution of it against the lines this file writes, so a key here is checked against the
+# value the tool reads it as. Every env name the run resolves from the env file is a name the
+# config parser reads, and a name it does not reads as nothing, so a typo here is not an error
+# the run reports.
+services:
+  rivulet:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: rivulet
+    # The ENTRYPOINT the Dockerfile writes names the program alone, so the subcommand comes from
+    # this line, and `serve` is the command the dispatch registers.
+    command: serve
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env
+    volumes:
+      - rivulet-data:/var/lib/rivulet
+volumes:
+  rivulet-data:

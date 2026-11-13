@@ -190,19 +190,26 @@ the last piece being the automated half of stage 5, whose green run in CI is the
 closed with it. The manual client-matrix criterion is closed for the client run here and stays
 open for the four clients this machine has no device to run, which is what the report items name.
 
-**Stage 8 — Packaging & deployment** is in progress with its first slice merged (PR #67): the static
-musl build spike, which is the answer that the Static Linux SDK builds the whole dependency stack,
-so the stage's distro-linked fallback is not taken. The artifact is statically linked and runs, and
-the run half `Scripts/build-release.sh` reads the SDK name from the toolchain's own list, the triple
-from the installed bundle's own list of static targets, the artifact path the build leaves for the
-triple's arch, the file type, the version answer against the committed source, the migration answer
-against the schema file, and the `status --json` contract read as the key names the source declares,
-with the values read as 0 on the fresh database the run builds — 13 checks, 12 seen to fail on the
-value they name or by taking the file they name away, two fired by more than one craft, and the one
-craft that reaches more than one check named as reaching it. The two C reads the spike found are
-named once in production code, with the musl branch named as what no pin can show on the glibc CI
-and the exit-code site named as having no pin. Version stamping and the clean-container smoke job
-are the open parts of the stage.
+**Stage 8 — Packaging & deployment** is in progress with five slices, the fifth being this branch's
+work: the static musl build spike (PR #67), which is the answer that the Static Linux SDK builds the
+whole dependency stack, so the stage's distro-linked fallback is not taken; the version value as a
+client reads it (PR #68); the clean-container smoke job (PR #69), read as 13 guards in the run half
+and 20 rules in the check half over the document the run leaves behind; and the runbook
+`docs/deploy.md` with the rule that reads it as data (PR #70), which sits in
+`Tools/smoke/runbook.py` because the check half is at the size cap the project sets. The fifth slice
+is the three deploy artifacts read as data: `Scripts/deploy.sh` is the run half,
+`Tools/deploy/deploy_check.py` the check half over 16 rules, `Tools/deploy/parsers.py` the reads,
+and `Tools/deploy/probes.py` the 22 cases — 21 crafts plus the baseline asserted to report nothing —
+that show each rule can fail on the rule it names, two crafts being named as reaching more than one
+rule through the one patch they name. The run half is checked by `bash -n` and by its eight guards,
+fourteen read sites, eleven of which were seen to fail on the value they name, and the check half
+reads the document the run left rather than a container or a service, so the twelve report items
+name what it cannot show: no image was built or started, no unit was installed on a machine, the
+tool that read the unit read it as a parse whose only finding is the program path not being on this
+machine, and the committed example carries placeholders rather than the values an operator fills in.
+What the stage cannot close here is the criterion of a fresh VPS following the runbook, and the
+Python check halves of this stage are not run by CI, which builds and tests the Swift targets only,
+so each probe round is run by hand on the machine that has Docker and systemd.
 
 **Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion,
 the deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as
