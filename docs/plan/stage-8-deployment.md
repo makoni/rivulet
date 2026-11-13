@@ -133,8 +133,8 @@ rather than in CI because the CI container has neither Docker nor systemd.
 
 ### The documentation layer (DocC — the pages the harness reads as data)
 
-- The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept
-- articles, one tutorial and the asset the table of contents names — is read as data by 21 rules in
+- The catalog `Sources/RivuletCore/RivuletCore.docc/` — the table of contents, four concept articles
+and one tutorial and the asset the table of contents names — is read as data by 21 rules in
 `Tools/docs/docs_check.py`, with `Scripts/docs.sh` as the run half (eight guards, thirteen read
 sites, all eight seen to fail here on the values the usage lines name) and `Tools/docs/probes.py`
 crafting 31 cases over the 21 rules: 30 crafts plus the baseline asserted to report nothing, no

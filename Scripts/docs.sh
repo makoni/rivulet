@@ -15,12 +15,12 @@ set -euo pipefail
 # build path against the repository, which is the half a run that writes inside the tree fails; the
 # page files this run declares against the pages the tool built for the copy; and the document this
 # run wrote against the answer the tool gave, which is the half a run that never ran cannot show.
-# The guard that reads the tool fails only on a machine without it, which is the point of the
-# publishing job; the guards that read what this run wrote fail only on a run. The eight guards are
-# thirteen read sites: the record path reads one, the catalog reads one, the tool reads one answer,
-# the copies read seven, one for each file the copy has, the asset reads one, the build path reads
-# one, the page set reads one, and the document reads one answer. All eight were seen to fail here,
-# on the values the usage lines name.
+# The guard that reads the tool fails only on a machine without it, which is why this run stays on
+# demand rather than in CI; the guards that read what this run wrote fail only on a run. The eight
+# guards are thirteen read sites: the record path reads one, the catalog reads one, the tool reads
+# one answer, the copies read seven, one for each file the copy has, the asset reads one, the build
+# path reads one, the page set reads one, and the document reads one answer. All eight were seen to
+# fail here, on the values the usage lines name.
 
 # This run reads the catalog and writes its build outside the repository, because the tool writes a
 # site and a build inside the tree is an artifact the working agreement does not allow to

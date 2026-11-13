@@ -201,8 +201,9 @@ they name, whose check half is `Tools/deploy/deploy_check.py` over 16 rules read
 run left rather than a container or a service, whose reads are in `Tools/deploy/parsers.py`, and
 whose probe round is `Tools/deploy/probes.py` with 22 cases — 21 crafts plus the baseline asserted
 to report nothing — two crafts being named as reaching more than one rule through the one patch they
-name; and the sixth slice, merged as PR #73, is the DocC catalog published as one site (the
-documentation deliverable this agreement names for stage 8), whose check half is
+name; and the sixth slice, merged as PR #73, is the DocC catalog the harness reads as data, the
+pages a site is built from outside this repository (the documentation deliverable this agreement
+names for stage 8), whose check half is
 `Tools/docs/docs_check.py` over 21 rules reading the pages as the shapes they write against the
 sources that write the values — the manifest target, the dispatch, the config reads, the two route
 files, the storage wrapper, the free-space check, the committed example, the client matrix, the plan
@@ -214,9 +215,9 @@ the baseline asserted to report nothing, no craft reaching more than one rule �
 another machine, the tool's own version, the reading time, the titles and child directives, a page's
 prose, the way a page renders, the site the pages are published on, and the symbol pages, which this
 toolchain cannot build because SwiftPM answers no plugin for the symbol graph the tool reads; what a
-site shows is the pages the catalog writes. The 21 public
-declarations that had no comment are the second half of the same rule, read through the comment
-attached to a declaration over its attribute lines.
+site shows is the pages the catalog writes. The 21 public declarations that had no comment are the
+second half of the same rule, read through the comment attached to a declaration over its attribute
+lines.
 
 What the stage cannot close here is the criterion of a fresh VPS following the runbook. The Python
 check halves of this stage run in CI as the probe-rounds job on the runner host, because the Swift
