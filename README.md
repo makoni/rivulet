@@ -9,8 +9,8 @@ A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://gi
 > per-feed refresh pipeline with the scheduler's due-batch selection, the icon path with its resize
 > step, the client APIs (Google Reader and Fever) with the storage reads the routers run, the CLI
 > command set with the in-process cadence loop `serve` runs, and the acceptance harnesses that read
-> their own runs as data. Stage 8's documentation layer is the DocC catalog, its four articles and its
-> tutorial, published as one site by the Pages job.
+> their own runs as data. Stage 8's documentation layer is the DocC catalog, its four articles and
+> its tutorial, read as data by the harness and published as a site outside this repository.
 
 Stage states as `docs/plan/README.md`'s table states them:
 
@@ -63,8 +63,8 @@ Rivulet is CLI-first. The commands that exist so far:
 | `rivulet vacuum` | Rebuilds the database file, releasing the free pages the rows left behind |
 | `rivulet --help` | Lists all commands, including the planned ones |
 
-Every command in the table is a run: the command set is complete, `import` and `export` being the OPML
-commands of stage 5 that landed with PR #64.
+Every command in the table is a run: the command set is complete, `import` and `export` being
+the OPML commands of stage 5 that landed with PR #64.
 
 `--help` and `version` work without any configuration; every other command reads the
 configuration first and needs `DATABASE_URL`.

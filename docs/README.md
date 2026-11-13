@@ -19,7 +19,7 @@ CLI-first interface and no web UI.
 | [Client matrix](clients.md) | Calling sets of the acceptance clients, the checks for each, and what the matrix cannot show |
 | [Performance notes](performance.md) | The measured numbers, each matched to the run that produced it |
 | [Deploy runbook](deploy.md) | The steps a fresh machine follows, read as data by the runbook rule |
-| [DocC harness](docc.md) | The pages the catalog publishes, the rules that read them as data, and what no rule reads |
+| [DocC harness](docc.md) | The pages the catalog writes, the rules that read them as data, and what no rule reads |
 | [AGENTS.md](../AGENTS.md) | Working agreement for AI agents and contributors (TDD-first) |
 
 ## Plan at a glance
@@ -33,7 +33,8 @@ criteria met, and stages 5, 7 and 8 are in progress; the MVP is stages 0–8. Se
 
 The pages a person reads are the DocC catalog next to the code,
 `Sources/RivuletCore/RivuletCore.docc/`: one table of contents, four concept articles and one
-tutorial, published as one site by the Pages job. That layer is written so it can be published as is
-— no local-only references, no TODOs — and the rule that reads it as data is what keeps the claims
-in it falsifiable: a page that names a command the dispatch does not register is a finding.
+tutorial. The layer is published as a site outside this repository, so no CI job here shows a served
+site, and nothing here reads what a web server answers. That layer is written so it can be published
+as is — no local-only references, no TODOs — and the rule that reads it as data is what keeps the
+claims in it falsifiable: a page that names a command the dispatch does not register is a finding.
 [docc.md](docc.md) names the 21 rules, the run half, the shapes read, and what no rule reads.
