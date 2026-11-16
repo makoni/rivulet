@@ -37,8 +37,8 @@ set -euo pipefail
 # machine fail only on a machine, and the three that read what the run itself wrote — the pair row,
 # the entry rows, and the record being empty — fail only on a run.  Usage, one line per half the
 # guards read, each run against the value that line names. Thirteen of the fourteen halves have a
-# line; the one that does not is the observer port the machine already holds, which is seen by holding
-# the port with a listener:
+# line; the one that does not is the observer port the machine already holds, which is seen by
+# holding the port with a listener:
 #   Scripts/client-run.sh                                   # the run, then the guards
 #   CLIENT_RECORD=<a path outside the record directory the check half reads> Scripts/client-run.sh    # the record path
 #   CLIENT_NAME=<a client the matrix has no row for> Scripts/client-run.sh        # the client row
