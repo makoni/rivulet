@@ -1,7 +1,7 @@
 # Stage 5 — Client APIs & OPML
 
 **Goal:** existing native clients connect and sync; the contract mirrors the reference exactly.
-**Status:** in progress — the first two slices are merged: `create-admin` with the user rules and
+**Status:** complete — the first two slices are merged: `create-admin` with the user rules and
 the bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
 duplicate-name rules (PR #39). In the third slice the storage reads landed with PR #40, the Google
 Reader auth path with PR #41, and the contract rules the routers read with PR #42; the rules the
@@ -12,8 +12,10 @@ real socket, with the three POST write handlers — `rename-tag`, `disable-tag` 
 over the same socket with the storage read it builds on pinned as a read, and the three subscription
 endpoints merged with PR #59 over the same socket with the minimal discovery pinned as pure logic.
 Every handler the scope names has landed, so no handler item is open; the OPML slice is merged as
-PR #64, the public icon route as PR #65, and the acceptance journey as PR #66. What the stage still
-needs is the manual client run its exit criteria name.
+PR #64, the public icon route as PR #65, and the acceptance journey as PR #66. The stage's one open
+criterion, the manual client run, is closed by the two client runs stage 7 read as data: the Fever
+run shows the halves its set has, and the Google Reader run shows the add half that set has no call
+for.
 **Effort:** XL.
 **Depends on:** Stage 4.
 
@@ -220,12 +222,13 @@ needs is the manual client run its exit criteria name.
 - [x] The automated journey is green in CI. Landed as PR #66, the 14 pins of
       `AcceptanceJourneyTests` reading the chain above, green in CI on head `5335f7f`, the head
       the three review runs approved.
-- [ ] One real client connects, adds a feed and syncs against a locally running instance (manual
+- [x] One real client connects, adds a feed and syncs against a locally running instance (manual
       check; repeated with the full client matrix in stage 7). Read as one real client rather than
-      as a client by name, this is half closed: NewsFlash connects and syncs against a locally
-      served port, and the record that run wrote is read as data. The half that adds a feed stays
-      open, because the Fever calling set has no call for adding a feed, so no Fever run can show
-      it.
+      as a client by name, this is closed: NewsFlash connects and syncs against a locally served
+      port, and the record that run wrote is read as data. The half that adds a feed is not a call
+      the Fever calling set has, so no Fever run can show it, and the Google Reader run here showed
+      it: FeedFlow connected, added a feed through the call its own set names, and synced, the
+      record that run wrote being read as data too.
 
 ## Backlog
 Findings from the review runs on PR #66 that do not change behavior:

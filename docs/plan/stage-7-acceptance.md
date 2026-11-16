@@ -26,27 +26,34 @@ PR #63: `docs/clients.md` records the calling sets of five clients — three rea
 source at a named commit, two from the project's documentation because their source cannot be read
 here — and the check half reads those sets, the record files, the document and the port's own route,
 dispatch, auth and response sources as data over 19 rules, with the parsers kept apart from the
-rules so each rule stays a function over data. No set is a capture. NewsFlash is the client run
-against this port here, through `Scripts/client-run.sh`, and the record that run wrote is read as
-data by the rule that reads it, which is the nineteenth rule. That run half and that rule are the
-eighth slice, merged as PR #71: seven halves over the record the run left behind, 30 crafted inputs
-plus the baseline over 19 rules, and eight guards, ten read sites, seen to fail on the value each
-names. The manual matrix criterion is closed for that client and stays open for the four this
-machine has no device to run, which is what the report items name. The performance half records
-measurements taken here rather than bounds. **Effort:** M. **Depends on:** Stages 5–6.
+rules so each rule stays a function over data. No set is a capture. NewsFlash and FeedFlow are the
+clients run against this port here, through `Scripts/client-run.sh`, and the records those runs
+wrote are read as data by the rule that reads them, which is the nineteenth rule. That run half and
+that rule are the eighth slice, merged as PR #71: nine halves over the records the runs left behind,
+32 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, seen to fail
+on the value each names. The manual matrix criterion is closed for those two clients and stays open
+for the three this machine has no device to run, which is what the report items name. The ninth
+slice is the run half executed on a device — FeedFlow reaching the observer over the local network,
+its record being the document the check half reads — with the pin the process harness gained for the
+cadence read a serving run makes, and the `prepare` hook and the arrival read that answer a pin's
+cancellation. The performance half records measurements taken here rather than bounds. **Effort:**
+M. **Depends on:** Stages 5–6.
 
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS), FeedFlow
 (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client whose calling set
-the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add a feed from
-the client, sync read state, star, counts). Done as the half this machine can do: the calling sets
-are recorded for all five, three read from their own source at a named commit and two from
-documentation, with the setup and the checklist written for each. No set is a capture. NewsFlash is
-the client run against this port here, through the run half `Scripts/client-run.sh`, and its
-checklist is the half that run walked. The manual half stays open for the four clients this machine
-has no device to run, and the half that adds a feed stays open for the run here too, because the
-Fever set has no call for adding a feed: the row the run reads was put there by `rivulet add`.
+the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add a feed
+from the client, sync read state, star, counts). Done as the half this machine can do: the calling
+sets are recorded for all five, three read from their own source at a named commit and two from
+documentation, with the setup and the checklist written for each. No set is a capture. NewsFlash
+and FeedFlow are the clients run against this port here, through the run half `Scripts/client-
+run.sh`, and their checklists are the halves those runs walked: the Fever run walked the base
+document, the read documents and the marks, and the Google Reader run walked the login, the
+subscription list, one stream page and the add, which is the half the Fever set has no call for
+and which is why stage 5's single-client criterion is closed. The manual half stays open for the
+three clients this machine has no device to run, and the halves the two runs did not walk are
+named per client.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five
@@ -179,10 +186,11 @@ the run needs is here now, and the run executes end to end through the collector
 authenticated pair; the login half is closed as the accepted-divergence row for the path that writes
 the pair, and what is still open is the classes no corpus input can reach.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes). Closed for
-the halves one real client can show here: NewsFlash connects and syncs against a locally served port
-through `Scripts/client-run.sh`, and the record that run wrote is read as data. The four clients
-this machine has no device to run are one open half, and the feed the client adds is another,
-because the Fever set has no call for adding a feed.
-- [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
-pass found — a repeated response header name keeping the last value instead of the first the
-reference reads — is closed by this slice.
+      the halves two real clients can show here: NewsFlash connects and syncs against a locally
+      served port through `Scripts/client-run.sh`, and FeedFlow connects on a phone over the local
+      network, adds a feed through the call its own set names, and syncs — the records both runs
+      wrote are read as data. The three clients this machine has no device to run are one open half,
+      and the checklist halves the two runs did not walk are named per client. - [x] Security
+      checklist done (`docs/security.md`); no critical findings open. The one finding the pass found
+      — a repeated response header name keeping the last value instead of the first the reference
+      reads — is closed by this slice.
