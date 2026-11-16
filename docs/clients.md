@@ -36,9 +36,11 @@ run record has one for each of its ten halves — six on the record the Fever ru
 the paragraph naming its calls, one on the record the Google Reader run wrote here, one on a record
 this machine has not written, for a client whose set records no calls, and one on the names the
 round reads the record files under, which is the half that keeps the performance record, read by its
-own rule at its own path, out of the client records. One of those ten reaches two parts of the data
-at once, the record line and the paragraph that names the calls this run showed, because the half
-reads the record against the paragraph and the Fever run reached no call outside the recorded set.
+own rule at its own path, out of the client records; the craft adds a name the round does not read a
+client under, so what the round shows is the message on that name, not that the read leaves the
+other files out. One of those ten reaches two parts of the data at once, the record line and the
+paragraph that names the calls this run showed, because the half reads the record against the
+paragraph and the Fever run reached no call outside the recorded set.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -75,32 +77,32 @@ client, by a name the matrix has no row for; the host, by an address the machine
 read against the address the machine's own default route selects; the two ports, by naming the same
 port twice, and by a port the machine already holds, seen by holding the observer port with a
 listener and then the served port; the base, by the port the observer forwards to instead of its
-own, and by a path the set does not name for the client, seen for a client whose set reads the
+own, and by a path the set does not name for the client, seen for FeedFlow, whose set reads the
 Google Reader path while the base carries the Fever prefix, and by the form the set names for how
 this client builds the prefix, seen for the client whose set names that it appends the prefix
 itself, where a base carrying the prefix reaches the port with it twice — which is also what the
-default base the run builds did before the read followed that form, so the default now names the port
-alone for that client and the prefix for the clients that send the base as the whole prefix; the
-version, by a version
-the app metadata writes differently, which is the half that only exists on this machine; the pair
-row, by an empty name the command's rule refuses before the storage layer, seen on both paths
-through the column each one names; the entry rows, by the value 2 against the one row the pass
-wrote, and by a url the run wrote no row for; and the record being empty, by an empty record. The
-nine guards are twelve read sites, one failure message each: six of them read one value, the ports
-item reads three, the base reads three halves at two sites, and the entry guard reads two halves at
-one site. The usage block names twelve of the thirteen values the guards can fail on, the ports half
-that reads a port the machine already holds having no line, because that half is seen by holding the
-port with a listener. The three guards that read what the run itself wrote — the pair row, the entry
-rows, and the record being empty — fail only on a run, and the guards that read the machine fail
-only on a machine. The guards that read a value the run declares run before the record is written,
-so a guard that fires leaves the committed record alone, which is what kept it byte-identical
-through the ports demos; the guards that read what the run wrote run at the end, and their demos
-were run in a copy of the tree, which is what kept the committed record byte-identical there too. A
-stand-in client, not one of the five the matrix names, was sent to the observer in that copy to show
-that these halves read a record a run wrote rather than a record the round crafts: writing its
-record in the copy's record directory, the rule read it for the client its lines named and reported
-nothing where the stand-in agreed with the path and the names it reads, and reported the answers it
-did not agree with. The check half then reads the record the run wrote, not the processes.
+default base the run builds did before the read followed that form, so the default now names the
+port alone for that client and the prefix for the clients that send the base as the whole prefix;
+the version, by a version the file the run reads does not write, which is the half that only exists
+on this machine; the pair row, by an empty name the command's rule refuses before the storage layer,
+seen on both paths through the column each one names; the entry rows, by the value 2 against the one
+row the pass wrote, and by a url the run wrote no row for; and the record being empty, by an empty
+record. The nine guards are twelve read sites, one failure message each: six of them read one value,
+the ports item reads three, the base reads three halves at two sites, and the entry guard reads two
+halves at one site. The usage block names thirteen of the fourteen halves the guards read, one line
+each; the half it cannot name is the observer port the machine already holds, which is seen by
+holding the port with a listener, while the served-port half has a line. The three guards that read
+what the run itself wrote — the pair row, the entry rows, and the record being empty — fail only on
+a run, and the guards that read the machine fail only on a machine. The guards that read a value the
+run declares run before the record is written, so a guard that fires leaves the committed record
+alone, which is what kept it byte-identical through the ports demos; the guards that read what the
+run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
+committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
+was sent to the observer in that copy to show that these halves read a record a run wrote rather
+than a record the round crafts: writing its record in the copy's record directory, the rule read it
+for the client its lines named and reported nothing where the stand-in agreed with the path and the
+names it reads, and reported the answers it did not agree with. The check half then reads the record
+the run wrote, not the processes.
 
 The host guard is what the second run reads the machine for: the client was a phone on the local
 network, so the run declared the address the machine's own default route selects rather than

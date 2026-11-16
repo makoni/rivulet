@@ -35,10 +35,10 @@ set -euo pipefail
 # failure message each: six of them read one value, the ports item reads three, the base reads three
 # halves at two sites, and the entry guard reads two halves at one site. The guards that read the
 # machine fail only on a machine, and the three that read what the run itself wrote — the pair row,
-# the entry rows, and the record being empty — fail only on a run.  Usage, one line per value the
-# run declares that a guard can fail on, each run against the value that line names, the ports half
-# that reads a port the machine already holds having no line, being seen by holding the port with a
-# listener:
+# the entry rows, and the record being empty — fail only on a run.  Usage, one line per half the
+# guards read, each run against the value that line names. Thirteen of the fourteen halves have a
+# line; the one that does not is the observer port the machine already holds, which is seen by holding
+# the port with a listener:
 #   Scripts/client-run.sh                                   # the run, then the guards
 #   CLIENT_RECORD=<a path outside the record directory the check half reads> Scripts/client-run.sh    # the record path
 #   CLIENT_NAME=<a client the matrix has no row for> Scripts/client-run.sh        # the client row
@@ -46,8 +46,9 @@ set -euo pipefail
 #   CLIENT_OBSERVE_PORT=8099 CLIENT_TARGET_PORT=8099 Scripts/client-run.sh         # the ports
 #   CLIENT_TARGET_PORT=<a port loopback already holds, with CLIENT_HOST set to another address> Scripts/client-run.sh  # the served port, read on the address the serve half binds
 #   CLIENT_BASE=http://127.0.0.1:8098/reader/api/0 Scripts/client-run.sh           # the base, the port half
-#   CLIENT_BASE=http://127.0.0.1:8099/fever Scripts/client-run.sh                 # the base, the prefix half, for a client whose set names the Google Reader path
+#   CLIENT_NAME=FeedFlow CLIENT_BASE=http://127.0.0.1:8099/fever Scripts/client-run.sh  # the base, the prefix half, for the client whose set names the Google Reader path
 #   CLIENT_NAME=FeedFlow CLIENT_BASE=http://127.0.0.1:8099/reader/api/0 Scripts/client-run.sh  # the base, the form half, for the client whose set names that it builds the prefix itself
+#   CLIENT_VERSION=<a version the file the run reads does not write> Scripts/client-run.sh            # the version, on the half that only exists on this machine
 #   CLIENT_USER= Scripts/client-run.sh                                              # the pair row, on a name the command's rule refuses before the storage layer, read through the column each path names
 #   DECLARED_ITEMS=2 Scripts/client-run.sh                                   # the entry rows
 #   DECLARED_FEED=<a url the run wrote no row for> Scripts/client-run.sh            # the entry rows, the feed half
