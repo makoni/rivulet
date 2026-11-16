@@ -1620,7 +1620,10 @@ the record path, the client row, the host by an address the machine does not ans
 the address the machine's own default route selects, the two ports by naming the same port twice and
 by a port the machine already holds, seen by holding one port with a listener, the base by the port
 it names, by a path the set does not name for the client and by the form the set names for how the
-client builds the prefix, the version, the pair row, the entry rows, and the record being empty. The
+client builds the prefix, seen for the client whose set names that it appends the prefix itself,
+where a base carrying the prefix reaches the port with it twice, which is also what the default base
+the run builds did before the read followed that form, the default now naming the port alone for that
+client and the prefix for the clients that send the base as the whole prefix; the version, the pair row, the entry rows, and the record being empty. The
 three guards that read what the run itself wrote — the pair row, the entry rows, and the record
 being empty — fail only on a run, and the guards that read the machine fail only on a machine. The
 guards that read a value the run declares run before the record is written, so a guard that fires

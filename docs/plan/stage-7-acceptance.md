@@ -146,9 +146,11 @@ reads the record files under. The run half is checked here by `bash -n` and by i
 twelve read sites, six reading one value, three for the ports, two for the base's three halves, one
 for the entry guard's two halves, each seen to fail on the value it names: the record path, the
 client row, the host, the two ports, the base in three halves, the version, the pair row, the entry
-rows, and the record being empty. The three guards that read what the run wrote fail only on a run,
-and the guards that read the machine fail only on a machine. - `ClientSequenceReplayTests` — the
-recorded calling sets replayed against the served app over a real socket, read through
+rows, and the record being empty. The default base the run builds follows that form, so it names the
+port alone for a client whose set names that it appends the prefix, and the prefix for the clients
+that send the base as the whole prefix. The three guards that read what the run wrote fail only on a
+run, and the guards that read the machine fail only on a machine. - `ClientSequenceReplayTests` —
+the recorded calling sets replayed against the served app over a real socket, read through
 `Bundle.module` as data rather than restated: the order each set declares, which recorded call
 reaches a registered route and which reaches the catch-all answer, the two item- id forms the same
 client sends, the page size above the clamp against the value at the clamp, the token half per

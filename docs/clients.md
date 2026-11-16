@@ -78,7 +78,10 @@ listener and then the served port; the base, by the port the observer forwards t
 own, and by a path the set does not name for the client, seen for a client whose set reads the
 Google Reader path while the base carries the Fever prefix, and by the form the set names for how
 this client builds the prefix, seen for the client whose set names that it appends the prefix
-itself, where a base carrying the prefix reaches the port with it twice; the version, by a version
+itself, where a base carrying the prefix reaches the port with it twice — which is also what the
+default base the run builds did before the read followed that form, so the default now names the port
+alone for that client and the prefix for the clients that send the base as the whole prefix; the
+version, by a version
 the app metadata writes differently, which is the half that only exists on this machine; the pair
 row, by an empty name the command's rule refuses before the storage layer, seen on both paths
 through the column each one names; the entry rows, by the value 2 against the one row the pass

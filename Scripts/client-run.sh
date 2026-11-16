@@ -23,7 +23,9 @@ set -euo pipefail
 # the port half, so a base naming the port the observer forwards to is a base the run would never
 # see a request on, and the prefix half plus the form the set names for how this client builds the
 # prefix from the base, so a base carrying a path the set does not name for this client reaches the
-# root; the version the run names against the version the app's own metadata on the machine writes,
+# root, with the default base the run builds following that form so it does not reach the guard with
+# the prefix twice for a client whose set names that it appends the prefix itself; the version the
+# run names against the version the app's own metadata on the machine writes,
 # which is the half a client run on a device cannot be read against here; the pair row the run
 # wrote, read through the column the storage read names for the path the set gives this client,
 # which is the value the login compares; the entry rows the pass wrote for the feed the run declares
@@ -181,7 +183,16 @@ run_guards() {
     answers "$OBSERVE_PORT" && fail "the machine already holds the observer port $OBSERVE_PORT"
     answers "$TARGET_PORT" "$SERVE_BIND" && fail "the machine already holds the served port $TARGET_PORT"
     if [ -z "$BASE" ]; then
-        BASE="http://$HOST:$OBSERVE_PORT$(prefix_for)"
+        # The default base is the base this client would type, read as the form the set names for it:
+        # the prefix for a client that sends the base as the whole prefix, and the port alone for a
+        # client whose own resource table appends the prefix. A default that carried the prefix for
+        # that client reached the base guard with it twice, so the run failed by construction before
+        # the client sent anything, which is the half the usage line for this half shows.
+        if [ -z "$(prefix_form_for)" ]; then
+            BASE="http://$HOST:$OBSERVE_PORT$(prefix_for)"
+        else
+            BASE="http://$HOST:$OBSERVE_PORT"
+        fi
     fi
     # The base carries the host and the port the run reads, and the prefix is read as the form the
     # set names for this client: the base as typed for a client that sends it as the whole prefix,

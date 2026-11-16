@@ -182,10 +182,12 @@ Google Reader run wrote here, one on a record this machine has not written, and 
 round reads the record files under, which is the half that keeps the performance record, read by its
 own rule at its own path, out of the client records — and the run half is checked by `bash -n` and
 by its nine guards, twelve read sites, six reading one value, three for the ports, two for the
-base's three halves, one for the entry guard's two halves, each seen to fail on the value it names.
-The Google Reader record itself is the document PR #77 commits. The order half reads the order
-column rather than the position of the line, and one of the ten crafts reaches two parts of the data
-at once, the record line and the paragraph naming the calls this run showed.
+base's three halves, one for the entry guard's two halves, each seen to fail on the value it names,
+the base half being read for the default base the run builds, which follows the form the set names
+for a client that appends the prefix itself. The Google Reader record itself is the document PR #77
+commits. The order half reads the order column rather than the position of the line, and one of the
+ten crafts reaches two parts of the data at once, the record line and the paragraph naming the calls
+this run showed.
 
 The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
 harness gained for it. FeedFlow, the Google Reader client, was run against the served port through
