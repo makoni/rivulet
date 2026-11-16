@@ -176,26 +176,13 @@ value as the token, the numbers of another machine, the query latency at the 100
 version of a client run on a device, which this machine has no app metadata to read the value
 against. The eighth slice, merged as PR #71, is the run half executed here: `Scripts/client-run.sh`
 with `Tools/clients/observer.py` writes one record line per request it forwarded and asserts
-nothing, the record the run left behind is read as data by the nineteenth rule over nine halves — on
-the 26 lines the Fever run wrote, and on the 10 lines the Google Reader run wrote, whose record is
-the document this slice commits — and the run half is checked by `bash -n` and by its nine guards,
-twelve read sites, each seen to fail on the value it names. The order half reads the order column
-rather than the position of the line, and one of the nine crafts reaches two parts of the data at
-once, the record line and the paragraph naming the calls this run showed. The Swift half is
-`ClientSequenceReplayTests`, 9 pins and 10 probes, reading the same files through `Bundle.module` as
-data: the recorded order, which call reaches a registered route and which reaches the catch-all
-answer, the two item-id forms the same client sends, the page size above the clamp against the value
-at the clamp, the token half per method, the guard the merged form answers for the call with no add
-and no remove pair, the name the dispatch switch has no case for, and the prefix this port registers
-no route for; each probe was seen to fire on the rule it names, and the transport read every other
-pin runs through is pinned by `GoogleReaderAuthTests`, so no patch can show it alone. The
-performance half records measurements taken here rather than bounds: `Scripts/perf.sh` is the run
-half, `Tools/clients/perf-run.txt` is the recorded run, and the rule matches each claim in
-`docs/performance.md` to the line that produced it. What this paragraph pointed to is merged: OPML
-as PR #64 and the acceptance journey as PR #66, the last piece being the automated half of stage 5,
-whose green run in CI is the criterion that closed with it. The manual client-matrix criterion is
-closed for the two clients run here and stays open for the three clients this machine has no device
-to run, which is what the report items name.
+nothing, the records the runs left behind are read as data by the nineteenth rule in nine halves —
+six on the record the Fever run wrote, one on the paragraph naming its calls, one on the record the
+Google Reader run wrote here, and one on a record this machine has not written — and the run half is
+checked by `bash -n` and by its nine guards, twelve read sites, each seen to fail on the value it
+names. The Google Reader record itself is the document the ninth slice below commits. The order half
+reads the order column rather than the position of the line, and one of the nine crafts reaches two
+parts of the data at once, the record line and the paragraph naming the calls this run showed.
 
 The ninth slice, the one not merged yet, is the run half executed on a device and the pin the
 process harness gained for it. FeedFlow, the Google Reader client, was run against the served port

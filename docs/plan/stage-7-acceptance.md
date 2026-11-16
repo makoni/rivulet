@@ -142,11 +142,12 @@ reads before and after, so a craft that reached a file is reported. The parsers 
 `Tools/clients/parsers.py`, so the rules stay the readable part.
 - `Scripts/client-run.sh` with `Tools/clients/observer.py` — the run half of the client matrix,
 outside CI: the observer writes one record line per request it forwarded and asserts nothing, and
-the rule that reads the run record reads the record the run left behind as data in seven halves. The
-run half is checked here by `bash -n` and by its eight guards, each seen to fail on the value it
-names: the record path, the client row, the two ports, the base, the version, the pair row, the
-entry rows, and the record being empty. The two guards that read the rows the run writes fail only
-on a run, and the guards that read the machine fail only on a machine.
+the rule that reads the run record reads the records the runs left behind as data in nine halves.
+The run half is checked here by `bash -n` and by its nine guards, twelve read sites, each seen to
+fail on the value it names: the record path, the client row, the host, the two ports, the base in
+three halves, the version, the pair row, the entry rows, and the record being empty. The three
+guards that read what the run wrote fail only on a run, and the guards that read the machine fail
+only on a machine.
 - `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a
 real socket, read through `Bundle.module` as data rather than restated: the order each set declares,
 which recorded call reaches a registered route and which reaches the catch-all answer, the two
