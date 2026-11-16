@@ -34,11 +34,11 @@ that rule are the eighth slice, merged as PR #71: nine halves over the records t
 one value, three for the ports, two for the base's three halves, one for the entry guard's two
 halves, seen to fail on the value each names. The manual matrix criterion is closed for those two
 clients and stays open for the three this machine has no device to run, which is what the report
-items name. The ninth slice is the run half executed on a device — FeedFlow reaching the observer
-over the local network, its record being the document the check half reads — with the pin the
-process harness gained for the cadence read a serving run makes, and the `prepare` hook and the
-arrival read that answer a pin's cancellation. The performance half records measurements taken here
-rather than bounds. **Effort:** M. **Depends on:** Stages 5–6.
+items name. The ninth slice, merged as PR #77, is the run half executed on a device — FeedFlow
+reaching the observer over the local network, its record being the document the check half reads —
+with the pin the process harness gained for the cadence read a serving run makes, and the `prepare`
+hook and the arrival read that answer a pin's cancellation. The performance half records
+measurements taken here rather than bounds. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 

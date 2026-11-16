@@ -181,21 +181,20 @@ six on the record the Fever run wrote, one on the paragraph naming its calls, on
 Google Reader run wrote here, and one on a record this machine has not written — and the run half is
 checked by `bash -n` and by its nine guards, twelve read sites, six reading one value, three for the
 ports, two for the base's three halves, one for the entry guard's two halves, each seen to fail on
-the value it names. The Google Reader record itself is the document the ninth slice below commits.
-The order half reads the order column rather than the position of the line, and one of the nine
-crafts reaches two parts of the data at once, the record line and the paragraph naming the calls
-this run showed.
+the value it names. The Google Reader record itself is the document PR #77 commits. The order half
+reads the order column rather than the position of the line, and one of the nine crafts reaches two
+parts of the data at once, the record line and the paragraph naming the calls this run showed.
 
-The ninth slice, the one not merged yet, is the run half executed on a device and the pin the
-process harness gained for it. FeedFlow, the Google Reader client, was run against the served port
-through the observer on the address the machine's own default route selects, the phone reaching it
-over the local network, which is the half the host guard reads the machine for, and the base guard's
-third half is the prefix form, because this client builds the prefix from its own resource table
-rather than sending the base as typed. Its record is the document the check half reads: 10 lines
-with the login first and the add call, which is the half stage 5's single-client criterion kept open
-for a client that has that call, and the run showed the entry rows as the rows the pass the cadence
-loop makes during the window writes. That is the same rule the new pin in `ServeProcessTests` reads
-as the request the child makes for the feed it seeds — 11 pins across the three process suites, 4 in
+The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
+harness gained for it. FeedFlow, the Google Reader client, was run against the served port through
+the observer on the address the machine's own default route selects, the phone reaching it over the
+local network, which is the half the host guard reads the machine for, and the base guard's third
+half is the prefix form, because this client builds the prefix from its own resource table rather
+than sending the base as typed. Its record is the document the check half reads: 10 lines with the
+login first and the add call, which is the half stage 5's single-client criterion kept open for a
+client that has that call, and the run showed the entry rows as the rows the pass the cadence loop
+makes during the window writes. That is the same rule the new pin in `ServeProcessTests` reads as
+the request the child makes for the feed it seeds — 11 pins across the three process suites, 4 in
 `ServeProcessTests` — and the harness gained the `prepare` hook that seeds the child's database
 before the spawn and the arrival read that answers a pin's cancellation, so a pin whose rule can be
 answered no arrival fails at its limit instead of hanging.
