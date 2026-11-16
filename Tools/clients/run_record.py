@@ -3,7 +3,7 @@
 size cap. The run half writes one record line per request the client actually sent, so this rule
 reads the run document rather than the app: the client the record names, the order the calls
 arrived in, the call as the recorded set names it, the method, the answer the port gave, the key
-names the answer carried, and the field names the request carried. Nine halves, each with its own
+names the answer carried, and the field names the request carried. Ten halves, each with its own
 craft: the client the record names against the set that client's row records; the order the
 record carries against the order the document names the calls this run showed; a call the set
 cannot name against the document naming it as shown; the answer for a call the set names against
@@ -11,8 +11,10 @@ the matrix row; the answer for a call the reference records no case for against 
 branch, which is the dispatch word for the path that dispatches and the catch-all word for the
 path that answers on a route; the call name against the branch the merged form gives, read
 through the mark the set names that branch with; the key names read against the names the file
-writes for the path this client uses; the name the redaction names for the pair; and the guarded
-call against the document naming it as shown by this run. The order half reads the order of first
+writes for the path this client uses; the name the redaction names for the pair; the guarded call
+against the document naming it as shown by this run; and the record files the round reads, read
+as the names it reads them under, which is the half that keeps the file another rule reads at its
+own path out of the client records. The order half reads the order of first
 appearances, because one run can reach the same call more than once, and it does not read the
 run's order against the order the source declares: the document names the order a client reaches
 its calls at as shown only for the client run here, so the half compares the record with the
@@ -196,12 +198,28 @@ def record_halves(data, client, record):
     return found
 
 
+def record_name_half(data, named):
+    """The record files the round reads as client records, read as the names the round reads them
+    under. A file in the record directory that is not named as the record for a client the matrix has
+    a row for is read by another rule at its own path, which is what the performance record is, so a
+    half that read the directory as whatever sits in it would put that file in front of the halves
+    that read a client's run.
+    """
+    found = []
+    for entry in data["record_files"]:
+        if entry not in named:
+            found.append(f"{entry}: a file in the record directory read as a client record, which is "
+                         f"not the name the round reads a client the matrix has a row under")
+    return found
+
+
 def run_reads_the_record(data):
     """The rule over the run document, split into the halves each message names. The order half
     reads the calls the record reached, not the whole set, because a run can reach a part of a
     calling set, and the record is read in the order its order column names the calls.
     """
-    found = []
+    named = {set_key(row["Client"]) + ".txt" for row in data["matrix"]}
+    found = record_name_half(data, named)
     for client in sorted(data["observed"]):
         found += record_halves(data, client, data["observed"][client])
     return found

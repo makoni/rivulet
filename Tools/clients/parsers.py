@@ -301,15 +301,22 @@ def shape_keys_by_path(paths):
     }
 
 
-def observed_by_client(paths):
+def record_files(paths, named):
+    """The record directory as the half reads it: the files named as the record for a client the
+    matrix has a row under, and present in the directory. A `*.txt` that sits there without being
+    named that way is read by the rule that reads it at its own path, which is the performance
+    record, so it is not a client record read here.
+    """
+    return sorted(entry for entry in os.listdir(paths["record_dir"]) if entry in named)
+
+
+def observed_by_client(paths, named):
     """The record files as data, grouped by the client each line names. A file with no record lines
     contributes nothing, which is what a round cannot move for a client this machine has not run:
     the run wrote no record, so no half reads it.
     """
     out = {}
-    for entry in sorted(os.listdir(paths["record_dir"])):
-        if not entry.endswith(".txt"):
-            continue
+    for entry in record_files(paths, named):
         for line in observed(read(os.path.join(paths["record_dir"], entry))):
             out.setdefault(line["client"], []).append(line)
     return out
@@ -334,6 +341,10 @@ def build_matrix(paths):
     for name in sorted(os.listdir(paths["sets"])):
         if name.endswith(".json"):
             sets[name[:-5]] = json.loads(read(os.path.join(paths["sets"], name)))
+    rows = table(section(clients_doc, "## The matrix"))
+    # The record files as the round names them: one file per client, under the name it reads that
+    # client under. The file the performance rule reads at its own path is not one of these names.
+    named = {set_file_name(row["Client"]) + ".txt" for row in rows}
     data = {
         "clients": clients_doc,
         "performance": performance,
@@ -348,9 +359,10 @@ def build_matrix(paths):
         "perf_pin": read(paths["perf_pin"]),
         "port_response": read(paths["port_response"]),
         "run_records": perf_run(read(paths["run"])),
-        "observed": observed_by_client(paths),
+        "record_files": record_files(paths, named),
+        "observed": observed_by_client(paths, named),
         "shape_keys": shape_keys_by_path(paths),
-        "matrix": table(section(clients_doc, "## The matrix")),
+        "matrix": rows,
         "classes": table(section(clients_doc, "## The classes this matrix reads")),
         "counts": table(section(clients_doc, "## The counts the matrix reports")),
         "perf_table": table(section(performance, "## The numbers measured here")),
