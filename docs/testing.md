@@ -1610,20 +1610,19 @@ the version of a client run on a device, which this machine has no app metadata 
 against. The run half is `Scripts/client-run.sh` with `Tools/clients/observer.py`, outside CI: the
 observer writes one record line per request it forwarded and asserts nothing, and the check half
 reads the record the run left behind rather than the processes. It is checked here by `bash -n` and
-by its nine guards — twelve read sites, because the ports item reads the two ports against each
-other and each of them against the machine, and the base reads three halves — each seen to fail on
-the value it names: the record path, the client row, the host by an address the machine does not
-answer on, read against the address the machine's own default route selects, the two ports by naming
-the same port twice and by a port the machine already holds, seen by holding one port with a
-listener, the base by the port it names, by a path the set does not name for the client and by the
-form the set names for how the client builds the prefix, the version, the pair row, the entry rows,
-and the record being empty. The three guards that read what the run itself wrote — the pair row, the
-entry rows, and the record being empty — fail only on a run, and the guards that read the machine
-fail only on a machine. The guards that read a value the run declares run before the record is
-written, so a guard that fires leaves the committed record alone, which is what kept it untouched
-through the ports demos; the guards that read what the run wrote run at the end, and their demos
-were run in a copy of the tree, which is what kept the committed record byte-identical there too.
-The Swift half is
+by its nine guards — twelve read sites, six reading one value, three for the ports, two for the
+base's three halves, one for the entry guard's two halves — each seen to fail on the value it names:
+the record path, the client row, the host by an address the machine does not answer on, read against
+the address the machine's own default route selects, the two ports by naming the same port twice and
+by a port the machine already holds, seen by holding one port with a listener, the base by the port
+it names, by a path the set does not name for the client and by the form the set names for how the
+client builds the prefix, the version, the pair row, the entry rows, and the record being empty. The
+three guards that read what the run itself wrote — the pair row, the entry rows, and the record
+being empty — fail only on a run, and the guards that read the machine fail only on a machine. The
+guards that read a value the run declares run before the record is written, so a guard that fires
+leaves the committed record alone, which is what kept it untouched through the ports demos; the
+guards that read what the run wrote run at the end, and their demos were run in a copy of the tree,
+which is what kept the committed record byte-identical there too. The Swift half is
 `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes, reading the same
 files through `Bundle.module` as data — the recorded order, which call reaches a registered route
 and which reaches the catch-all, the two item-id forms the same client sends, the page size above
@@ -1637,8 +1636,8 @@ performance half records measurements taken here rather than bounds: `Scripts/pe
 `Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
 `docs/performance.md` against the numbers the run answered, the fields its sources declare and the
 shape the document names, the timed pin's own file being read as data for that. It is not in CI, so
-`python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted
-as bounds.
+`python3 Tools/clients/replay.py` is the check that runs it, and the numbers are not asserted as
+bounds.
 
 ## Static release build (stage 8)
 

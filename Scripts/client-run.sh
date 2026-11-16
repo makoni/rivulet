@@ -29,12 +29,14 @@ set -euo pipefail
 # which is the value the login compares; the entry rows the pass wrote for the feed the run declares
 # — for a client whose set names the add call that row is the row the client's own call writes —
 # against the value the run declares that page carries; and the record being empty, which is what a
-# check half that reads no record line cannot show. The nine guards are twelve read sites, because
-# the ports item reads the two ports against each other and each of them against the machine, and
-# the base reads three halves. The guards that read the machine fail only on a machine, and the
-# three that read what the run itself wrote — the pair row, the entry rows, and the record being
-# empty — fail only on a run.  Usage, one line per value a guard can fail on, each run against the
-# value that line names:
+# check half that reads no record line cannot show. The nine guards are twelve read sites, one
+# failure message each: six of them read one value, the ports item reads three, the base reads three
+# halves at two sites, and the entry guard reads two halves at one site. The guards that read the
+# machine fail only on a machine, and the three that read what the run itself wrote — the pair row,
+# the entry rows, and the record being empty — fail only on a run.  Usage, one line per value the
+# run declares that a guard can fail on, each run against the value that line names, the ports half
+# that reads a port the machine already holds having no line, being seen by holding the port with a
+# listener:
 #   Scripts/client-run.sh                                   # the run, then the guards
 #   CLIENT_RECORD=<a path outside the record directory the check half reads> Scripts/client-run.sh    # the record path
 #   CLIENT_NAME=<a client the matrix has no row for> Scripts/client-run.sh        # the client row

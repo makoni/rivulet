@@ -179,10 +179,12 @@ with `Tools/clients/observer.py` writes one record line per request it forwarded
 nothing, the records the runs left behind are read as data by the nineteenth rule in nine halves —
 six on the record the Fever run wrote, one on the paragraph naming its calls, one on the record the
 Google Reader run wrote here, and one on a record this machine has not written — and the run half is
-checked by `bash -n` and by its nine guards, twelve read sites, each seen to fail on the value it
-names. The Google Reader record itself is the document the ninth slice below commits. The order half
-reads the order column rather than the position of the line, and one of the nine crafts reaches two
-parts of the data at once, the record line and the paragraph naming the calls this run showed.
+checked by `bash -n` and by its nine guards, twelve read sites, six reading one value, three for the
+ports, two for the base's three halves, one for the entry guard's two halves, each seen to fail on
+the value it names. The Google Reader record itself is the document the ninth slice below commits.
+The order half reads the order column rather than the position of the line, and one of the nine
+crafts reaches two parts of the data at once, the record line and the paragraph naming the calls
+this run showed.
 
 The ninth slice, the one not merged yet, is the run half executed on a device and the pin the
 process harness gained for it. FeedFlow, the Google Reader client, was run against the served port

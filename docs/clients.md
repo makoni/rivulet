@@ -80,19 +80,21 @@ the app metadata writes differently, which is the half that only exists on this 
 row, by an empty name the command's rule refuses before the storage layer, seen on both paths
 through the column each one names; the entry rows, by the value 2 against the one row the pass
 wrote, and by a url the run wrote no row for; and the record being empty, by an empty record. The
-nine guards are twelve read sites, because the ports item reads the two ports against each other and
-each of them against the machine, and the base reads three halves. The three guards that read what
-the run itself wrote — the pair row, the entry rows, and the record being empty — fail only on a
-run, and the guards that read the machine fail only on a machine. The guards that read a value the
-run declares run before the record is written, so a guard that fires leaves the committed record
-alone, which is what kept it byte-identical through the ports demos; the guards that read what the
-run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
-committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
-was sent to the observer in that copy to show that these halves read a record a run wrote rather
-than a record the round crafts: writing its record in the copy's record directory, the rule read it
-for the client its lines named and reported nothing where the stand-in agreed with the path and the
-names it reads, and reported the answers it did not agree with. The check half then reads the record
-the run wrote, not the processes.
+nine guards are twelve read sites, one failure message each: six of them read one value, the ports
+item reads three, the base reads three halves at two sites, and the entry guard reads two halves at
+one site. The usage block names twelve of the thirteen values the guards can fail on, the ports half
+that reads a port the machine already holds having no line, because that half is seen by holding the
+port with a listener. The three guards that read what the run itself wrote — the pair row, the entry
+rows, and the record being empty — fail only on a run, and the guards that read the machine fail
+only on a machine. The guards that read a value the run declares run before the record is written,
+so a guard that fires leaves the committed record alone, which is what kept it byte-identical
+through the ports demos; the guards that read what the run wrote run at the end, and their demos
+were run in a copy of the tree, which is what kept the committed record byte-identical there too. A
+stand-in client, not one of the five the matrix names, was sent to the observer in that copy to show
+that these halves read a record a run wrote rather than a record the round crafts: writing its
+record in the copy's record directory, the rule read it for the client its lines named and reported
+nothing where the stand-in agreed with the path and the names it reads, and reported the answers it
+did not agree with. The check half then reads the record the run wrote, not the processes.
 
 The host guard is what the second run reads the machine for: the client was a phone on the local
 network, so the run declared the address the machine's own default route selects rather than
@@ -319,10 +321,10 @@ library boundary for the clients that are not run here. 14 calls. Every name the
 for is called, and two answers come from the branch it has no case for: the base document the
 request with no name gets, and `links`, which is a name the switch does not have. The key reaches
 the merged form as a multipart part, which is the read PR #61 pins. The item page is the fixed 50,
-and the `with_ids` guard is the bound on the list size the client applies before it sends: this run
-reached the call with one id, so the record carries a line for it, which is the half the bound does
-not cover, and the bound firing itself is a report item. The `HEAD` reachability check PR #61 sized
-to is not attributed to this client here: the library's own source sends POST only.
+and the `with_ids` guard is the bound on the list size the client applies before it sends: the
+record carries a line for the call, which is the half the bound does not cover, and both the bound
+firing and the size the client sent are report items. The `HEAD` reachability check PR #61 sized to
+is not attributed to this client here: the library's own source sends POST only.
 
 Setup: Settings → Sync → the Fever service, with the integration name and password; the key is the
 digest the library builds from the pair. The app sends to the base as it is typed, so the base has
@@ -338,12 +340,16 @@ The calls this run showed for NewsFlash, in the order the record says they arriv
 `fever/feeds`, `fever/unread_item_ids`, `fever/saved_item_ids`, `fever/items`,
 `fever/items/with_ids`, `fever/mark/item`, `fever/mark/feed`.
 
-The run showed four marks on one item, read, un-read, read, un-read, and the feed mark with the time
-the app sent, and it did not reach `fever/favicons`, `fever/links`, `fever/items/since_id`,
-`fever/items/max_id` or `fever/mark/group`, which are the checklist halves this run did not walk.
-The login is not a record line: it happened before the run started, when the app saved the account,
-and the first line the record carries is the first call of the first sync pass. The record carries
-26 lines over four sync passes, which is the document the rule reads as data.
+The record carries four lines for `fever/mark/item` and one for `fever/mark/feed`, which are the
+mark calls this run showed. It carries names and not values, so the four marks cannot be told apart
+as read, un-read or saved, and the item they were for is not shown either: those are halves a person
+walked, not halves a record line can show. The feed mark line is the one mark line with a name a
+value reaches as, `before` being the name the time the app sent arrives as. The record has no line
+for `fever/favicons`, `fever/links`, `fever/items/since_id`, `fever/items/max_id` or
+`fever/mark/group`, which are the checklist halves this run did not walk. The login is not a record
+line: it happened before the run started, when the app saved the account, and the first line the
+record carries is the first call of the first sync pass. The record carries 26 lines over four sync
+passes, which is the document the rule reads as data.
 
 ### lire — the Fever API and the Miniflux REST API
 

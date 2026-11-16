@@ -30,14 +30,15 @@ rules so each rule stays a function over data. No set is a capture. NewsFlash an
 clients run against this port here, through `Scripts/client-run.sh`, and the records those runs
 wrote are read as data by the rule that reads them, which is the nineteenth rule. That run half and
 that rule are the eighth slice, merged as PR #71: nine halves over the records the runs left behind,
-32 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, seen to fail
-on the value each names. The manual matrix criterion is closed for those two clients and stays open
-for the three this machine has no device to run, which is what the report items name. The ninth
-slice is the run half executed on a device — FeedFlow reaching the observer over the local network,
-its record being the document the check half reads — with the pin the process harness gained for the
-cadence read a serving run makes, and the `prepare` hook and the arrival read that answer a pin's
-cancellation. The performance half records measurements taken here rather than bounds. **Effort:**
-M. **Depends on:** Stages 5–6.
+32 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, six reading
+one value, three for the ports, two for the base's three halves, one for the entry guard's two
+halves, seen to fail on the value each names. The manual matrix criterion is closed for those two
+clients and stays open for the three this machine has no device to run, which is what the report
+items name. The ninth slice is the run half executed on a device — FeedFlow reaching the observer
+over the local network, its record being the document the check half reads — with the pin the
+process harness gained for the cadence read a serving run makes, and the `prepare` hook and the
+arrival read that answer a pin's cancellation. The performance half records measurements taken here
+rather than bounds. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
@@ -103,67 +104,63 @@ committed under `docs/`.
 
 ### Integration
 
-- Parity harness report with any behavioral deltas.
-- Large-feed scenario runnable locally and (reduced) in CI.
-- `FetcherHostileInputTests` — the hostile bodies over the stub server: the size cap counted on the
-bytes the decoder produces, a body expanding over a ratio guard accepted under the cap, the body
-read as the server sent it with decompression off, and a stream the decoder cannot finish read
-through the category the cap does not own. 4 pins and 5 probes.
-- `LargeFeedTests` — the reduced 10k-entry scenario in the default CI job: the plan the schema
-answers for the hot unread listing, the page the query is given, the relevance order at the corpus
-size, the batch the retention pass takes with the rows it leaves for the next run, and the
-wall-clock bound the read path stays inside. 5 pins and 6 probes, two of them on the page pin: the
-page size dropped from the clause, and the direction the order is read in.
-- `RepeatedResponseHeadersTests` — a response name that appears twice, read as which value the
-reference acts on: the first value wins, one name written two ways is one name, and the first
-`Location` is the hop the fetch takes. 3 pins and 2 probes.
-- The pins the checklist added to suites that already existed: the address policy running on a hop
-that took its client from the cache (`FetcherSecurityTests`, 1 pin and 1 probe); the client cache
-staying at its cap after a checkout that goes over it, and the entry the trim closing being the one
-whose expiry comes first (`FetcherClientCacheTests`, 2 pins and 2 probes); the sign `strconv.Atoi`
-reads as part of a number (`SanitizerTests`, 1 pin and 1 probe); and the entity table the
-sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1 probe).
-- The Fever parameter set the acceptance client calls, pinned as pure logic and over a real socket:
-the base document, the five read documents, the three `mark` branches and the `HEAD` reachability
-check. 32 pins and 67 probes across `FeverMultipartReadTests`, `FeverShapeTests`, `FeverAuthTests`,
+- Parity harness report with any behavioral deltas. - Large-feed scenario runnable locally and
+(reduced) in CI. - `FetcherHostileInputTests` — the hostile bodies over the stub server: the size
+cap counted on the bytes the decoder produces, a body expanding over a ratio guard accepted under
+the cap, the body read as the server sent it with decompression off, and a stream the decoder cannot
+finish read through the category the cap does not own. 4 pins and 5 probes. - `LargeFeedTests` — the
+reduced 10k-entry scenario in the default CI job: the plan the schema answers for the hot unread
+listing, the page the query is given, the relevance order at the corpus size, the batch the
+retention pass takes with the rows it leaves for the next run, and the wall-clock bound the read
+path stays inside. 5 pins and 6 probes, two of them on the page pin: the page size dropped from the
+clause, and the direction the order is read in. - `RepeatedResponseHeadersTests` — a response name
+that appears twice, read as which value the reference acts on: the first value wins, one name
+written two ways is one name, and the first `Location` is the hop the fetch takes. 3 pins and 2
+probes. - The pins the checklist added to suites that already existed: the address policy running on
+a hop that took its client from the cache (`FetcherSecurityTests`, 1 pin and 1 probe); the client
+cache staying at its cap after a checkout that goes over it, and the entry the trim closing being
+the one whose expiry comes first (`FetcherClientCacheTests`, 2 pins and 2 probes); the sign
+`strconv.Atoi` reads as part of a number (`SanitizerTests`, 1 pin and 1 probe); and the entity table
+the sanitizer's scheme check reads through (`SanitizerHostileCorpusTests`, 1 pin and 1 probe). - The
+Fever parameter set the acceptance client calls, pinned as pure logic and over a real socket: the
+base document, the five read documents, the three `mark` branches and the `HEAD` reachability check.
+32 pins and 67 probes across `FeverMultipartReadTests`, `FeverShapeTests`, `FeverAuthTests`,
 `FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests` and `FeverWriteTests`, plus the icon
 read, each seen to fail on the rule it names and to revert the file byte-identically. Three part
 rules and two value rules are read as the reference reads them rather than recorded as divergences:
 the header line with no colon, the malformed parameter, the empty filename, the publication time,
 and the negative value that answers the default. What no patch can show is named in the headers
 rather than asserted: the port's own `HEAD` registration, because Vapor forwards the method to the
-GET route, and the order the reference's icon join answers, which its statement does not order.
-- The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 rules over the
+GET route, and the order the reference's icon join answers, which its statement does not order. -
+The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 rules over the
 record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
 writes for the output-check sets, and the port's own route, dispatch, auth and response sources read
 as data, each rule shown to report its own crafted input alone and the baseline to report nothing —
 30 crafted inputs plus the baseline, so 31 cases, with the round hashing every file the check half
 reads before and after, so a craft that reached a file is reported. The parsers are in
-`Tools/clients/parsers.py`, so the rules stay the readable part.
-- `Scripts/client-run.sh` with `Tools/clients/observer.py` — the run half of the client matrix,
-outside CI: the observer writes one record line per request it forwarded and asserts nothing, and
-the rule that reads the run record reads the records the runs left behind as data in nine halves.
-The run half is checked here by `bash -n` and by its nine guards, twelve read sites, each seen to
-fail on the value it names: the record path, the client row, the host, the two ports, the base in
-three halves, the version, the pair row, the entry rows, and the record being empty. The three
-guards that read what the run wrote fail only on a run, and the guards that read the machine fail
-only on a machine.
-- `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a
-real socket, read through `Bundle.module` as data rather than restated: the order each set declares,
-which recorded call reaches a registered route and which reaches the catch-all answer, the two
-item-id forms the same client sends, the page size above the clamp against the value at the clamp,
-the token half per method, the guard the merged form answers for the call with no add and no remove
+`Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
+`Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
+record line per request it forwarded and asserts nothing, and the rule that reads the run record
+reads the records the runs left behind as data in nine halves. The run half is checked here by `bash
+-n` and by its nine guards, twelve read sites, six reading one value, three for the ports, two for
+the base's three halves, one for the entry guard's two halves, each seen to fail on the value it
+names: the record path, the client row, the host, the two ports, the base in three halves, the
+version, the pair row, the entry rows, and the record being empty. The three guards that read what
+the run wrote fail only on a run, and the guards that read the machine fail only on a machine. -
+`ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a real
+socket, read through `Bundle.module` as data rather than restated: the order each set declares,
+which recorded call reaches a registered route and which reaches the catch-all answer, the two item-
+id forms the same client sends, the page size above the clamp against the value at the clamp, the
+token half per method, the guard the merged form answers for the call with no add and no remove
 pair, the name the dispatch switch has no case for, and the prefix this port registers no route for.
-9 pins and 10 probes, each seen to fire on the rule it names and to revert the file it
-patched byte-identically.
-- `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance half,
-outside CI: the rule matches each number `docs/performance.md` names as measured here to the record
-line that produced it, and reports the five kinds of finding it reads: a claim the log does not
-carry, a field no source declares, a record line the document does not name, a shape the document
-names differently than the run answered it, and the value the table reports against the value the
-log carries.
-- Client checklist executed manually and attached to the stage status.
-- `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one run
+9 pins and 10 probes, each seen to fire on the rule it names and to revert the file it patched byte-
+identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance
+half, outside CI: the rule matches each number `docs/performance.md` names as measured here to the
+record line that produced it, and reports the five kinds of finding it reads: a claim the log does
+not carry, a field no source declares, a record line the document does not name, a shape the
+document names differently than the run answered it, and the value the table reports against the
+value the log carries. - Client checklist executed manually and attached to the stage status. -
+`Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one run
 leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline, which
 is asserted to report nothing, so each probe is single-firing. The rules were written after the
 probe set: with the rules stubbed all 19 fail, and the patch round changes what each rule reads,
