@@ -45,9 +45,12 @@ import Testing
 /// pin's limit, which is the harness rule that an unbounded wait carries a limit and that the limit
 /// counts only when the wait can answer at it — the arrival read is the read that answers the pin's
 /// cancellation, so the limit is a failure and the harness still reaches the child. The pin asserts
-/// two things — the arrival and the entry row the child wrote — and reads the signal and the exit
-/// as the events the harness documents rather than as rules of its own, so no patch can fire it on
-/// the exit code the pin above already pins. What the pin cannot show: the interval itself, since
+/// two things — the arrival and the entry row the child wrote — while its `prepare` hook asserts two
+/// more, the seed runs it names not having failed, which is the hook's own rule rather than the
+/// pin's; both are read on the pin, so a patch to the hook's reads fires the pin as well. The pin
+/// reads the signal and the exit as the events the harness documents rather than as rules of its
+/// own, so no patch can fire it on the exit code the pin above already pins. What the pin cannot
+/// show: the interval itself, since
 /// no test can watch the minute the reference's minute type gives, so the pin names its own choice
 /// of the smallest interval the config parses; that the row it reads came from the child's tick
 /// rather than from a pass the pin made itself, which is why the pin seeds no entry row and reads

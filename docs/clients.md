@@ -304,8 +304,9 @@ so it arrived while the observer was recording. It is the only line that carries
 two field names the login reads, and every line after it carries the token field name the redaction
 writes as `T`. The add is the half the Fever set has no call for, and the feed row the entry guard
 reads was written by the client's own add call rather than by this port's command. The version the
-run declared is the value the device's own package information reports, which is the half the
-version guard has no app metadata to read against here.
+run declared is a report item, not a value: for a client run on a device this machine has no app
+metadata to read the version against, so the run declares what the app reports for itself rather
+than a value a read here answered.
 
 The five calls the set names that this run did not reach are `reader/api/0/stream/contents`,
 `reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`, and the
