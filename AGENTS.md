@@ -156,10 +156,10 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — 32 crafted inputs plus the baseline over 19 rules, which is asserted to report nothing, so each
+it — 33 crafted inputs plus the baseline over 19 rules, which is asserted to report nothing, so each
 probe is single-firing, the performance rule having one for each of the five kinds it reads, the
 route rule one for each of its two halves, and the rule that reads the run record one for each of
-its nine halves — and the round hashes every file the check half reads before and after, so a craft
+its ten halves — and the round hashes every file the check half reads before and after, so a craft
 that reached a file is reported; the parsers are in `Tools/clients/parsers.py` so the rules stay the
 readable part. What no craft can show is named in the document rather than asserted: the clients
 that have not been run against this port here, the calling set of a client whose source cannot be
@@ -176,14 +176,16 @@ value as the token, the numbers of another machine, the query latency at the 100
 version of a client run on a device, which this machine has no app metadata to read the value
 against. The eighth slice, merged as PR #71, is the run half executed here: `Scripts/client-run.sh`
 with `Tools/clients/observer.py` writes one record line per request it forwarded and asserts
-nothing, the records the runs left behind are read as data by the nineteenth rule in nine halves —
+nothing, the records the runs left behind are read as data by the nineteenth rule in ten halves —
 six on the record the Fever run wrote, one on the paragraph naming its calls, one on the record the
-Google Reader run wrote here, and one on a record this machine has not written — and the run half is
-checked by `bash -n` and by its nine guards, twelve read sites, six reading one value, three for the
-ports, two for the base's three halves, one for the entry guard's two halves, each seen to fail on
-the value it names. The Google Reader record itself is the document PR #77 commits. The order half
-reads the order column rather than the position of the line, and one of the nine crafts reaches two
-parts of the data at once, the record line and the paragraph naming the calls this run showed.
+Google Reader run wrote here, one on a record this machine has not written, and one on the names the
+round reads the record files under, which is the half that keeps the performance record, read by its
+own rule at its own path, out of the client records — and the run half is checked by `bash -n` and
+by its nine guards, twelve read sites, six reading one value, three for the ports, two for the
+base's three halves, one for the entry guard's two halves, each seen to fail on the value it names.
+The Google Reader record itself is the document PR #77 commits. The order half reads the order
+column rather than the position of the line, and one of the ten crafts reaches two parts of the data
+at once, the record line and the paragraph naming the calls this run showed.
 
 The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
 harness gained for it. FeedFlow, the Google Reader client, was run against the served port through

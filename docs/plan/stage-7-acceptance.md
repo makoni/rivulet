@@ -29,8 +29,8 @@ dispatch, auth and response sources as data over 19 rules, with the parsers kept
 rules so each rule stays a function over data. No set is a capture. NewsFlash and FeedFlow are the
 clients run against this port here, through `Scripts/client-run.sh`, and the records those runs
 wrote are read as data by the rule that reads them, which is the nineteenth rule. That run half and
-that rule are the eighth slice, merged as PR #71: nine halves over the records the runs left behind,
-32 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, six reading
+that rule are the eighth slice, merged as PR #71: ten halves over the records the runs left behind,
+33 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, six reading
 one value, three for the ports, two for the base's three halves, one for the entry guard's two
 halves, seen to fail on the value each names. The manual matrix criterion is closed for those two
 clients and stays open for the three this machine has no device to run, which is what the report
@@ -141,25 +141,26 @@ reads before and after, so a craft that reached a file is reported. The parsers 
 `Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
 `Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
 record line per request it forwarded and asserts nothing, and the rule that reads the run record
-reads the records the runs left behind as data in nine halves. The run half is checked here by `bash
--n` and by its nine guards, twelve read sites, six reading one value, three for the ports, two for
-the base's three halves, one for the entry guard's two halves, each seen to fail on the value it
-names: the record path, the client row, the host, the two ports, the base in three halves, the
-version, the pair row, the entry rows, and the record being empty. The three guards that read what
-the run wrote fail only on a run, and the guards that read the machine fail only on a machine. -
-`ClientSequenceReplayTests` — the recorded calling sets replayed against the served app over a real
-socket, read through `Bundle.module` as data rather than restated: the order each set declares,
-which recorded call reaches a registered route and which reaches the catch-all answer, the two item-
-id forms the same client sends, the page size above the clamp against the value at the clamp, the
-token half per method, the guard the merged form answers for the call with no add and no remove
-pair, the name the dispatch switch has no case for, and the prefix this port registers no route for.
-9 pins and 10 probes, each seen to fire on the rule it names and to revert the file it patched byte-
-identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance
-half, outside CI: the rule matches each number `docs/performance.md` names as measured here to the
-record line that produced it, and reports the five kinds of finding it reads: a claim the log does
-not carry, a field no source declares, a record line the document does not name, a shape the
-document names differently than the run answered it, and the value the table reports against the
-value the log carries. - Client checklist executed manually and attached to the stage status. -
+reads the records the runs left behind as data in ten halves, the tenth being the names the round
+reads the record files under. The run half is checked here by `bash -n` and by its nine guards,
+twelve read sites, six reading one value, three for the ports, two for the base's three halves, one
+for the entry guard's two halves, each seen to fail on the value it names: the record path, the
+client row, the host, the two ports, the base in three halves, the version, the pair row, the entry
+rows, and the record being empty. The three guards that read what the run wrote fail only on a run,
+and the guards that read the machine fail only on a machine. - `ClientSequenceReplayTests` — the
+recorded calling sets replayed against the served app over a real socket, read through
+`Bundle.module` as data rather than restated: the order each set declares, which recorded call
+reaches a registered route and which reaches the catch-all answer, the two item- id forms the same
+client sends, the page size above the clamp against the value at the clamp, the token half per
+method, the guard the merged form answers for the call with no add and no remove pair, the name the
+dispatch switch has no case for, and the prefix this port registers no route for. 9 pins and 10
+probes, each seen to fire on the rule it names and to revert the file it patched byte- identically.
+- `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of the performance half,
+outside CI: the rule matches each number `docs/performance.md` names as measured here to the record
+line that produced it, and reports the five kinds of finding it reads: a claim the log does not
+carry, a field no source declares, a record line the document does not name, a shape the document
+names differently than the run answered it, and the value the table reports against the value the
+log carries. - Client checklist executed manually and attached to the stage status. -
 `Tools/parity/parity_check.py` with `Tools/parity/probes.py` — the 19 rules over the data one run
 leaves behind, each shown to fail on the rule it names: 21 crafted inputs plus the baseline, which
 is asserted to report nothing, so each probe is single-firing. The rules were written after the

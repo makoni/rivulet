@@ -4,22 +4,23 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 32 crafted inputs and the baseline, so 33 cases — the performance rule
+single-firing: 19 rules, 33 crafted inputs and the baseline, so 34 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
 its two halves, because an input that violates one half of a rule still satisfies the other, and
-the rule that reads the run record has one for each of its nine halves — six on the record the
+the rule that reads the run record has one for each of its ten halves — six on the record the
 Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
-run wrote here, and one on a record this machine has not written, for a client whose set records
-no calls. One of those nine reaches two parts of the data at once, the record line and the
-paragraph that names the calls this run showed, because the half reads the record against the
-paragraph and the Fever run reached no call outside the recorded set; that craft is named with
-the rule in `docs/clients.md`. The crafts change the data in memory, never the files. The round
-hashes every file the check half reads before and after, so a craft that reached a file is
-reported. The crafts that would have to change a client's own source — the bound the guard
-applies before the request is sent, and the values the records carry, which are placeholders —
-are what this half cannot show, so they are named in `docs/clients.md` rather than asserted here.
-Run it with `python3 Tools/clients/probes.py`, or through the check half with `--probe`.
-"""
+run wrote here, one on a record this machine has not written, for a client whose set records no
+calls, and one on the names the round reads the record files under, which is the half that keeps
+the performance record, read by its own rule at its own path, out of the client records. One of
+those ten reaches two parts of the data at once, the record line and the paragraph that names the
+calls this run showed, because the half reads the record against the paragraph and the Fever run
+reached no call outside the recorded set; that craft is named with the rule in `docs/clients.md`.
+The crafts change the data in memory, never the files. The round hashes every file the check half
+reads before and after, so a craft that reached a file is reported. The crafts that would have to
+change a client's own source — the bound the guard applies before the request is sent, and the
+values the records carry, which are placeholders — are what this half cannot show, so they are
+named in `docs/clients.md` rather than asserted here. Run it with `python3
+Tools/clients/probes.py`, or through the check half with `--probe`."""
 
 import hashlib
 import os
@@ -263,6 +264,12 @@ CASES = {
         # is the half the guard covers: the bound, not the call that reached the port under it.
         lambda data: data.__setitem__("clients", data["clients"].replace(
             "`fever/items/with_ids`", "`fever/links`")),
+
+        # A file in the record directory that the round does not name as a record for a client the
+        # matrix has a row under. The performance record is read by its own rule at its own path, so
+        # a half that read the directory as whatever sits in it would put that file in front of this
+        # half, which is what it did before the read named the files.
+        lambda data: data.__setitem__("record_files", sorted(data["record_files"] + ["stand-in.txt"])),
     ],
 }
 

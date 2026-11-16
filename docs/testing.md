@@ -1564,37 +1564,41 @@ only the read: the sections, tables, record lines, the two sentences the rules p
 names read in the order a record line carries them, and the routes the port registers, so the rules
 stay the readable part of the check half. `Tools/clients/probes.py` crafts one input per rule that
 violates it and asserts that the rule reports it alone; the baseline — the committed data — reports
-nothing, so each probe is single-firing: 19 rules, 32 crafted inputs and the baseline, so 33 cases,
+nothing, so each probe is single-firing: 19 rules, 33 crafted inputs and the baseline, so 34 cases,
 the performance rule having one for each of the five kinds of finding it reads, the route rule one
 for each of its two halves, because an input that violates one half of a rule still satisfies the
-other, and the rule that reads the run record one for each of its nine halves — six on the record
-the Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
-run wrote here, and one on a record this machine has not written, for a client whose set records no
-calls. One of those nine reaches two parts of the data at once, the record line and the paragraph
-that names the calls this run showed, because the half reads the record against the paragraph and
-the Fever run reached no call outside the recorded set. Every craft changes the parsed data in
-memory and never a file, and the round hashes every file the check half reads before and after, so a
-craft that reached a file is reported. What the 19 rules read: the source each set names and its
-commit, the redaction as the placeholders the half reads rather than as values, the matrix rows
-against the manifest lines, the classes against the parity table and the output-check class against
-the endpoints the reference applies the check on, the routes the port registers against the answer
-each row names with the catch-all read as the registration line the file writes, the reference's
-route and dispatch sets, the two halves of a client that reaches one half only, the order the source
-declares, the login being first and the token coming before every call that carries it, the token
-half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
-against the records it counts, the replay records against the matrix's own column, the performance
-table against the run that answered it and the shape the document names, the rule list and the
-report items against what the check half has, the response name a client acts on against the name
-the response builder writes, and the record each client run wrote against the set, the matrix row,
-the response shape, the redaction and the paragraph the document writes for the calls that run
-showed. The rule that reads the run record has nine halves: the client the record names against the
-set that client's row records, the order column against the order the document names the calls this
-run showed, a call the set cannot name against the document naming it as shown, the answer for a
-call the set names against the matrix row, the answer for a call the reference records no case for
-against the default branch, the call name against the branch the merged form gives, read through the
-mark the set names that branch with, the key names against the names the response shape writes, the
-name the redaction names for the credential pair, and the guarded call against the document naming
-it as shown. What this half cannot show, and is named in `docs/clients.md` rather than asserted: the
+other, and the rule that reads the run record one for each of its ten halves — six on the record the
+Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader run
+wrote here, one on a record this machine has not written, for a client whose set records no calls,
+and one on the names the round reads the record files under, which is the half that keeps the
+performance record, read by its own rule at its own path, out of the client records. One of those
+ten reaches two parts of the data at once, the record line and the paragraph that names the calls
+this run showed, because the half reads the record against the paragraph and the Fever run reached
+no call outside the recorded set. Every craft changes the parsed data in memory and never a file,
+and the round hashes every file the check half reads before and after, so a craft that reached a
+file is reported. What the 19 rules read: the source each set names and its commit, the redaction as
+the placeholders the half reads rather than as values, the matrix rows against the manifest lines,
+the classes against the parity table and the output-check class against the endpoints the reference
+applies the check on, the routes the port registers against the answer each row names with the
+catch-all read as the registration line the file writes, the reference's route and dispatch sets,
+the two halves of a client that reaches one half only, the order the source declares, the login
+being first and the token coming before every call that carries it, the token half per method, the
+stream forms as the prefix and suffix sets the branch reads, the counts table against the records it
+counts, the replay records against the matrix's own column, the performance table against the run
+that answered it and the shape the document names, the rule list and the report items against what
+the check half has, the response name a client acts on against the name the response builder writes,
+and the record each client run wrote against the set, the matrix row, the response shape, the
+redaction and the paragraph the document writes for the calls that run showed. The rule that reads
+the run record has ten halves: the client the record names against the set that client's row
+records, the order column against the order the document names the calls this run showed, a call the
+set cannot name against the document naming it as shown, the answer for a call the set names against
+the matrix row, the answer for a call the reference records no case for against the default branch,
+the call name against the branch the merged form gives, read through the mark the set names that
+branch with, the key names against the names the response shape writes, the name the redaction names
+for the credential pair, the guarded call against the document naming it as shown, and the record
+files the round reads, read as the names it reads them under, which is the half that keeps the
+performance record, read at its own path by the rule that reads the numbers, out of the client
+records. What this half cannot show, and is named in `docs/clients.md` rather than asserted: the
 clients that have not been run against this port here, the calling set of a client whose source
 cannot be read, the order a client reaches its calls at, which the run record carries for the two
 clients run here and the source declares for the others, the values the calls carry, which are

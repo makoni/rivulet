@@ -10,14 +10,16 @@ been run against this port here — NewsFlash, the Fever client, and FeedFlow, t
 client, both through `Scripts/client-run.sh`, the run half that reads what a real client actually
 sent — and the records those runs left behind, `Tools/clients/newsflash.txt` and
 `Tools/clients/feedflow.txt`, one file per client named as the round reads that client, are read as
-data by the rule that reads them. The manual matrix exit
-criterion of `docs/plan/stage-7-acceptance.md` is closed for these two and stays open for the three
-clients this machine cannot run. The single-client criterion of `docs/plan/stage-5-apis.md`, which
-names one real client rather than a client by name, is closed: the Fever run shows the halves its
-set has, that a client connects and syncs, and the Google Reader run shows the half that set has no
-call for, the call that adds a feed. FeedFlow was run on a phone over the local network, which is
-the half the run half reads the host guard for. The checklists below are the checks to run for a
-client that cannot be run here.
+data by the rule that reads them, which reads them under those names: the performance record that
+sits in the same directory is read by the rule that reads the numbers, at its own path, and not as a
+record for a client the matrix has a row for. The manual matrix exit criterion of
+`docs/plan/stage-7-acceptance.md` is closed for these two and stays open for the three clients this
+machine cannot run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
+client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
+client connects and syncs, and the Google Reader run shows the half that set has no call for, the
+call that adds a feed. FeedFlow was run on a phone over the local network, which is the half the run
+half reads the host guard for. The checklists below are the checks to run for a client that cannot
+be run here.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own source
@@ -27,15 +29,16 @@ includes two sentences written for the sets they name: the shape the performance
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
 and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 32 crafted inputs and the baseline, so 33 cases: the performance rule has one for
+firing — 19 rules, 33 crafted inputs and the baseline, so 34 cases: the performance rule has one for
 each of the five kinds of finding it reads, the route rule has one for each of its two halves,
 because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its nine halves — six on the record the Fever run wrote here, one on
-the paragraph naming its calls, one on the record the Google Reader run wrote here, and one on a
-record this machine has not written, for a client whose set records no calls. One of those nine
-reaches two parts of the data at once, the record line and the paragraph that names the calls this
-run showed, because the half reads the record against the paragraph and the Fever run reached no
-call outside the recorded set.
+run record has one for each of its ten halves — six on the record the Fever run wrote here, one on
+the paragraph naming its calls, one on the record the Google Reader run wrote here, one on a record
+this machine has not written, for a client whose set records no calls, and one on the names the
+round reads the record files under, which is the half that keeps the performance record, read by its
+own rule at its own path, out of the client records. One of those ten reaches two parts of the data
+at once, the record line and the paragraph that names the calls this run showed, because the half
+reads the record against the paragraph and the Fever run reached no call outside the recorded set.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
