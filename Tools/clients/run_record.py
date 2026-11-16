@@ -1,46 +1,44 @@
 #!/usr/bin/env python3
 """The rule that reads the client run as data, kept in its own file because the check half is at the
-size cap.
-
-The run half writes one record line per request the client actually sent, so this rule reads the run
-document rather than the app: the client the record names, the order the calls arrived in, the call as
-the recorded set names it, the method, the answer the port gave, the key names the answer carried, and
-the field names the request carried. Nine halves, each with its own craft: the client the record names
-against the set that client's row records; the order the record carries against the order the document
-names the calls this run showed; a call the set cannot name against the document naming it as shown;
-the answer for a call the set names against the matrix row; the answer for a call the reference records
-no case for against the default branch, which is the dispatch word for the path that dispatches and the
-catch-all word for the path that answers on a route; the call name against the branch the merged form
-gives, read through the mark the set names that branch with; the key names read against the names the
-file writes for the path this client uses; the name the redaction names for the pair; and the guarded
-call against the document naming it as shown by this run.
-
-The order half reads the order of first appearances, because one run can reach the same call more than
-once, and it does not read the run's order against the order the source declares: the document names the
-order a client reaches its calls at as shown only for the client run here, so the half compares the
-record with the order the same document names the calls this run showed, which is the half the document
-can be wrong about. The order column is the order the requests arrived at, read rather than the position
-of the line, because the line is written when the response is complete, which is not the arrival order
-when the client has more than one connection open at once.
-
-The paragraph is read for the client the record names, so a run this machine has not written a record
-for has no paragraph to read an order against, and the half reads nothing for it rather than reading the
-order of another client's run.
-
-Every half is craftable, because the record is a committed file the round reads as data: a craft changes
-the parsed record in memory and the round hashes the file before and after.
+size cap. The run half writes one record line per request the client actually sent, so this rule
+reads the run document rather than the app: the client the record names, the order the calls
+arrived in, the call as the recorded set names it, the method, the answer the port gave, the key
+names the answer carried, and the field names the request carried. Nine halves, each with its own
+craft: the client the record names against the set that client's row records; the order the
+record carries against the order the document names the calls this run showed; a call the set
+cannot name against the document naming it as shown; the answer for a call the set names against
+the matrix row; the answer for a call the reference records no case for against the default
+branch, which is the dispatch word for the path that dispatches and the catch-all word for the
+path that answers on a route; the call name against the branch the merged form gives, read
+through the mark the set names that branch with; the key names read against the names the file
+writes for the path this client uses; the name the redaction names for the pair; and the guarded
+call against the document naming it as shown by this run. The order half reads the order of first
+appearances, because one run can reach the same call more than once, and it does not read the
+run's order against the order the source declares: the document names the order a client reaches
+its calls at as shown only for the client run here, so the half compares the record with the
+order the same document names the calls this run showed, which is the half the document can be
+wrong about. The order column is the order the requests arrived at, read rather than the position
+of the line, because the line is written when the response is complete, which is not the arrival
+order when the client has more than one connection open at once. The paragraph is read for the
+client the record names, so a run this machine has not written a record for has no paragraph to
+read an order against, and the half reads nothing for it rather than reading the order of another
+client's run. Each half the round crafts is single-firing, because the record is a committed file
+the round reads as data: a craft changes the parsed record in memory and the round hashes the
+file before and after. One branch has no craft and is named here rather than probed: the one that
+reports a record naming a client the check half has no set for, which no committed record can put
+in place.
 """
 
 import parsers as read
 
 GUARD_CLASS = "client_guard"
 PARAGRAPH = "The calls this run showed for"
-# The word the default half reads for a call the reference records no case for, per path: the name the
-# dispatch switch has for the path that dispatches, and the catch-all as the matrix names it for the path
-# that answers on a route.
+# The word the default half reads for a call the reference records no case for, per path: the name
+# the dispatch switch has for the path that dispatches, and the catch-all as the matrix names it for
+# the path that answers on a route.
 DEFAULT_ANSWER = {"fever": "dispatch: default", "google-reader": "catch-all"}
-# The field the merged form gives the branch with, and the mark the set uses to name that branch as the
-# row has it.
+# The field the merged form gives the branch with, and the mark the set uses to name that branch as
+# the row has it.
 BRANCH_FIELD = "s"
 BRANCH_MARK = "#"
 
@@ -52,7 +50,8 @@ def set_key(client):
 
 
 def shown_for(data, client):
-    """The calls the document names as shown by the run for this client, in the order it names them."""
+    """The calls the document names as shown by the run for this client, in the order it names them.
+    """
     first = f"{PARAGRAPH} {client}"
     if first not in data["clients"]:
         return []
@@ -75,8 +74,8 @@ def order_half(record, shown):
 
 
 def call_half(record, calls, shown):
-    """A call the record carries that the set does not name, which has to be a call the document names
-    as shown by this run.
+    """A call the record carries that the set does not name, which has to be a call the document
+    names as shown by this run.
     """
     found = []
     for one in record:
@@ -110,13 +109,12 @@ def default_half(record, calls, default):
 
 
 def branch_half(record, calls):
-    """For a call the set names, the call name has to carry the branch the merged form gives.
-
-    The record carries names and not values, so the branch is read as the field the switch takes it from:
-    `s` is the name the merged form gives the branch this path's row has, and the set names the call with
-    that branch. The Fever path has no equivalent half, because its branch is the part of the name the
-    record already carries. The bound the client applies before it sends is the half no line can show,
-    which is the report item.
+    """For a call the set names, the call name has to carry the branch the merged form gives. The
+    record carries names and not values, so the branch is read as the field the switch takes it
+    from: `s` is the name the merged form gives the branch this path's row has, and the set names
+    the call with that branch. The Fever path has no equivalent half, because its branch is the
+    part of the name the record already carries. The bound the client applies before it sends is
+    the half no line can show, which is the report item.
     """
     found = []
     for one in record:
@@ -142,9 +140,9 @@ def key_half(record, written):
 
 
 def token_half(record, token, login):
-    """The name the redaction names for the pair, which has to be on every line the run wrote for a call
-    that carries the pair. The login is the call that reads it, so the line for it carries the pair as the
-    redaction names the fields, not as the name it reads the token with.
+    """The name the redaction names for the pair, which has to be on every line the run wrote for a
+    call that carries the pair. The login is the call that reads it, so the line for it carries
+    the pair as the redaction names the fields, not as the name it reads the token with.
     """
     found = []
     for one in record:
@@ -156,13 +154,11 @@ def token_half(record, token, login):
 
 
 def guard_half(record, guarded, shown):
-    """The call whose guard the client applies before it sends.
-
-    Read as the bound the guard is, not as a half no input reaches: the record can carry a line for the
-    guarded call when the list the client sent is below the bound, which is what this run showed, so the
-    half is that a line for it has to be a call the document names as shown by this run. The bound firing
-    is what no line can show, because the record carries names and not values, and that is the report
-    item.
+    """The call whose guard the client applies before it sends. Read as the bound the guard is, not
+    as a half no input reaches: the record can carry a line for the guarded call when the list
+    the client sent is below the bound, which is what this run showed, so the half is that a line
+    for it has to be a call the document names as shown by this run. The bound firing is what no
+    line can show, because the record carries names and not values, and that is the report item.
     """
     found = []
     for one in record:
@@ -174,7 +170,9 @@ def guard_half(record, guarded, shown):
 
 
 def record_halves(data, client, record):
-    """The halves this rule reads for one record, as the data names the client that run wrote it for."""
+    """The halves this rule reads for one record, as the data names the client that run wrote it
+    for.
+    """
     set_data = data["sets"].get(set_key(client))
     if set_data is None:
         return [f"the record names {client}, which the check half reads no set for"]
@@ -199,10 +197,9 @@ def record_halves(data, client, record):
 
 
 def run_reads_the_record(data):
-    """The rule over the run document, split into the halves each message names.
-
-    The order half reads the calls the record reached, not the whole set, because a run can reach a part
-    of a calling set, and the record is read in the order its order column names the calls.
+    """The rule over the run document, split into the halves each message names. The order half
+    reads the calls the record reached, not the whole set, because a run can reach a part of a
+    calling set, and the record is read in the order its order column names the calls.
     """
     found = []
     for client in sorted(data["observed"]):

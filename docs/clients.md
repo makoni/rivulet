@@ -51,10 +51,12 @@ agree with the set.
 
 A record line is seven parts split at `|`: the client, the order the request arrived at, the call as
 the recorded set names it, the method, the answer the port gave, the key names the answer carried in
-the order the answer wrote them, and the field names the request carried. The answer is written as
-the run saw it: the name the dispatch case answered on when the port wrote a document of this path,
-and the status when it wrote something else. The record carries no value, so the credential pair
-appears as the name the redaction names for it.
+the order the answer wrote them, and the field names the request carried, read as the transport
+chooses which side it reads, the urlencoded half running only for the methods the reference reads a
+body form for, which is the guard `FeverForm.readsBodyHalf` pins. The answer is written as the run
+saw it: the name the dispatch case answered on when the port wrote a document of this path, and the
+status when it wrote something else. The record carries no value, so the credential pair appears as
+the name the redaction names for it.
 
 The order is read as the order column, not as the position of the line, because the line is written
 when the response is complete and the client had more than one connection open at once, which the
@@ -101,11 +103,10 @@ the packets from another device is not something a guard can see.
 
 The entry guard is what the second run showed as a rule over what a run wrote rather than over what
 the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
-reads was written by the client's own add call, and the one entry row it reads was written by the
-pass the cadence loop made during the window, the run having declared a one-minute cadence and the
-pass that fetched the page the run serves having come about a minute after the server started. This
-is the same rule the pin in `ServeProcessTests` reads as the request the child makes for the feed it
-seeds.
+reads was written by the client's own add call, and the entry rows the guard read can only have come
+from the pass the cadence loop makes during the window, the run half writing none itself. The same
+rule is what the pin in `ServeProcessTests` reads as the request the child makes for the feed it
+seeds, and the seed that pin writes is a command that fetches nothing.
 
 ## The rules the comparator reads
 
@@ -300,14 +301,15 @@ version guard has no app metadata to read against here.
 
 The five calls the set names that this run did not reach are `reader/api/0/stream/contents`,
 `reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`, and the
-folder-delete half the set names as `reader/api/0/edit-tag#disable-tag`. The four stream pages came
-before the pass the cadence loop made, so there was no entry row for them to answer with, and the
-contents read is the read this client makes for the ids a page gives it, so no line for it arrived
-and there was no item to mark. `rename-tag` cannot be shown by a run whose subscription list carries
-only the default category row, and the folder-delete half is the call whose guard the client applies
-before it sends, which no record line can show firing. The run cannot show the page-size half the
-row names either, because the record carries names and not values: the 15000 the set names is read
-from the client's source, while the pages this run reached were below the clamp and at it.
+folder-delete half the set names as `reader/api/0/edit-tag#disable-tag`. The record carries no line
+for any of them, so the halves they name are not shown by this run:
+`reader/api/0/stream/items/contents` is the read this client makes for the ids a page gives it, and
+no line for it arrived, which is also why no mark or star line arrived; `rename-tag` cannot be shown
+by a run whose subscription list carries only the default category row; and the folder-delete half
+is the call whose guard the client applies before it sends, which no record line can show firing.
+The run cannot show the page-size half the row names either, because the record carries names and
+not values: the 15000 the set names is read from the client's source, and no record line carries a
+page size.
 
 ### NewsFlash — Fever API
 

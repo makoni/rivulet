@@ -42,18 +42,18 @@ M. **Depends on:** Stages 5–6.
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS), FeedFlow
-(iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client whose calling set
-the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add a feed
-from the client, sync read state, star, counts). Done as the half this machine can do: the calling
-sets are recorded for all five, three read from their own source at a named commit and two from
-documentation, with the setup and the checklist written for each. No set is a capture. NewsFlash
-and FeedFlow are the clients run against this port here, through the run half `Scripts/client-
-run.sh`, and their checklists are the halves those runs walked: the Fever run walked the base
-document, the read documents and the marks, and the Google Reader run walked the login, the
-subscription list, one stream page and the add, which is the half the Fever set has no call for
-and which is why stage 5's single-client criterion is closed. The manual half stays open for the
-three clients this machine has no device to run, and the halves the two runs did not walk are
-named per client.
+      (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client whose calling
+      set the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add a
+      feed from the client, sync read state, star, counts). Done as the half this machine can do:
+      the calling sets are recorded for all five, three read from their own source at a named commit
+      and two from documentation, with the setup and the checklist written for each. No set is a
+      capture. NewsFlash and FeedFlow are the clients run against this port here, through the run
+      half `Scripts/client-run.sh`, and their checklists are the halves those runs walked: the Fever
+      run walked the base document, the read documents and the marks, and the Google Reader run
+      walked the login, the subscription list, one stream page and the add, which is the half the
+      Fever set has no call for and which is why stage 5's single-client criterion is closed. The
+      manual half stays open for the three clients this machine has no device to run, and the halves
+      the two runs did not walk are named per client.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five
@@ -190,7 +190,7 @@ the pair, and what is still open is the classes no corpus input can reach.
       served port through `Scripts/client-run.sh`, and FeedFlow connects on a phone over the local
       network, adds a feed through the call its own set names, and syncs — the records both runs
       wrote are read as data. The three clients this machine has no device to run are one open half,
-      and the checklist halves the two runs did not walk are named per client. - [x] Security
-      checklist done (`docs/security.md`); no critical findings open. The one finding the pass found
-      — a repeated response header name keeping the last value instead of the first the reference
-      reads — is closed by this slice.
+      and the checklist halves the two runs did not walk are named per client.
+- [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
+      pass found — a repeated response header name keeping the last value instead of the first the
+      reference reads — is closed by this slice.

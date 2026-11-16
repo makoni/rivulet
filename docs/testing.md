@@ -924,21 +924,11 @@ compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the p
 green on the head are shown to fail by patching the production code, not by absence. The fourth pin
 here is the one this slice adds and was green on the head: it reads that a serving run reaches the
 cadence read for the feed the pin seeds, as the request the child makes for that feed and as the
-entry row the child wrote, the tick being the only path a serving child has that fetches. It was
-seen to fail by patching the command so the wiring is not run, which answered no request and read no
+entry row the child wrote, the tick being the only path this pin's child fetches through: the pin
+makes no request to the child, and the seed it writes is a command that fetches nothing. It was seen
+to fail by patching the command so the wiring is not run, which answered no request and read no
 entry row, and that patch reverted byte-identically; the pin seeds no entry row, so the row it reads
 can only have come from the child's own pass, and it reads the file after the child is gone.
-reports and the response a request on that port answers — a binary that bound a port of its own
-answers a different port, and the request answers as a connection failure; that the clean signal
-path exits with 0, which is the reference's clean-stop exit; and that the WAL is empty after that
-exit, which is what the run's shutdown leaves behind — a patch that skipped the shutdown left the
-file. Which part of the shutdown emptied the WAL is not the pin's rule, because a clean close
-checkpoints and removes the file on its own, and the suite names that; it is the same reason the
-maintenance pins cannot read the checkpoint. 10 pins across the three suites: 3 here, 5 in
-`ServeWiringTests`, 2 in `SystemCadenceTests`, each with a probe that patches the rule it names and
-reverts byte-identically. The red run for this PR is the absence of the seams and the wiring —
-compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the pins that were already
-green on the head are shown to fail by patching the production code, not by absence.
 
 The exit is an event the pins assume rather than assert: a patch that made the child not exit at all
 would only hang the read, so each pin asserts the content a patch can flip and carries its own time
@@ -966,11 +956,6 @@ smallest interval the config parses; that the entry row it reads came from the c
 than from a pass the pin made, which is why it seeds no entry row and reads the file after the child
 is gone; and the row half on its own, because the write it reads belongs to the pipeline, which its
 own suite pins.
-both paths, every unbounded wait carries a limit, and the line naming a port is recognized by the
-harness — the pin reads the value off it, not the wording. What the process pins cannot fail on is
-named in the suite header: that the child exits at all, which a patch can only hang until the pin's
-limit fires; which line the harness reads as the serve event and its wording; and the order the two
-paths of the decision answer on, which no in-process test can read either.
 
 ### The free-space check the `backup` run makes (`FreeSpaceCheckTests`, PR #52)
 

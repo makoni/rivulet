@@ -5,58 +5,55 @@ import Testing
 /// What the process adds, read as the events the child answers: the port the child bound to, the
 /// response on the probed port, the exit code the signal path leaves, and the WAL the run's
 /// shutdown leaves behind. The harness (`Support/SpawnedProcess.swift`) waits on events, never on a
-/// timer, and kills the child on both paths.
-///
-/// What these pins can fail on, each checked by patching the production code, rebuilding the
-/// binary, and reverting: that the built binary answers `serve` on the port the harness probed — a
-/// binary that bound a port of its own answers a different port on the serve event, and the request
-/// on the probed port answers as a connection failure; that the clean signal path exits with code
-/// 0, which is the reference's clean-stop exit (`internal/cli/daemon.go` at commit `c4d54f87`
-/// returns and `main.go` exits 1 only on an error); and that the WAL is empty after the clean exit,
-/// which is what the run's shutdown leaves behind — a patch that skipped that shutdown left a
-/// `-wal` file beside the database. These pins were green on the head before the wiring, because
-/// their rules already held there; the red run for this PR is the absence of the wiring, recorded
-/// as compile errors, so each pin here is shown to fail on the rule it names by patching the
-/// wiring, not by absence.
-///
-/// What these pins cannot fail on: that the child exits at all — a patch that made the child never
-/// exit hangs the exit pin until its time limit fires, which is the harness rule that an unbounded
-/// wait carries a limit, not an answer the child gives, so the pins assert only the content a patch
-/// can flip; a child that writes no line at all fails the pin through the harness, which answers
-/// that read with no serve event, so it is not a fact the pin assumes; which part of the shutdown
-/// emptied the WAL, because a clean close checkpoints and removes the file anyway, which is the
-/// same reason the maintenance pins cannot read it; which line the harness reads as the serve
-/// event, and the wording of the line, from which the pin reads only the port value; the choice of
-/// port itself, which is the harness rule of no fixed ports and is read only as "the child answered
-/// on exactly the probed port"; the kill on both paths, and whether the child was alive to receive
-/// the signal, which the harness guarantees for the child it spawned, so the pin reads it as its
-/// guard on the event rather than as a rule a patch to production code can flip; the order between
-/// the server's stop and the shutdown hook inside the child, which nothing in the child answers on;
-/// the wording of the lines and of the reported failures; that a signal arriving during a real
-/// interval is answered before the interval ends, since no test can watch an hour pass, so this is
-/// read as the event order (serve event, signal, exit) and recorded in `docs/parity.md`; and that
-/// every picked job is written before the exit — the in-process wiring pins read that order through
-/// the seams, while the process pin below reads only that the loop reached its read at all, as the
-/// request the stub answers, which is the one thing a process pin can read without a timed wait.
-///
-/// The pin that reads the loop being reached names its rule, its failure shape and what it cannot
-/// show. Its rule is that a serving run reaches the cadence read for the feed the pin seeds, read as
-/// the request the child makes for it, the tick being the only path a serving child has that fetches.
-/// The pin was green on the head, where that request came about a minute after the server started, and
-/// it is shown to fail on the rule it names by patching the command so the wiring is not run: the
+/// timer, and kills the child on both paths.  What these pins can fail on, each checked by patching
+/// the production code, rebuilding the binary, and reverting: that the built binary answers `serve`
+/// on the port the harness probed — a binary that bound a port of its own answers a different port
+/// on the serve event, and the request on the probed port answers as a connection failure; that the
+/// clean signal path exits with code 0, which is the reference's clean-stop exit
+/// (`internal/cli/daemon.go` at commit `c4d54f87` returns and `main.go` exits 1 only on an error);
+/// and that the WAL is empty after the clean exit, which is what the run's shutdown leaves behind —
+/// a patch that skipped that shutdown left a `-wal` file beside the database. These pins were green
+/// on the head before the wiring, because their rules already held there; the red run for this PR
+/// is the absence of the wiring, recorded as compile errors, so each pin here is shown to fail on
+/// the rule it names by patching the wiring, not by absence.  What these pins cannot fail on: that
+/// the child exits at all — a patch that made the child never exit hangs the exit pin until its
+/// time limit fires, which is the harness rule that an unbounded wait carries a limit, not an
+/// answer the child gives, so the pins assert only the content a patch can flip; a child that
+/// writes no line at all fails the pin through the harness, which answers that read with no serve
+/// event, so it is not a fact the pin assumes; which part of the shutdown emptied the WAL, because
+/// a clean close checkpoints and removes the file anyway, which is the same reason the maintenance
+/// pins cannot read it; which line the harness reads as the serve event, and the wording of the
+/// line, from which the pin reads only the port value; the choice of port itself, which is the
+/// harness rule of no fixed ports and is read only as "the child answered on exactly the probed
+/// port"; the kill on both paths, and whether the child was alive to receive the signal, which the
+/// harness guarantees for the child it spawned, so the pin reads it as its guard on the event
+/// rather than as a rule a patch to production code can flip; the order between the server's stop
+/// and the shutdown hook inside the child, which nothing in the child answers on; the wording of
+/// the lines and of the reported failures; that a signal arriving during a real interval is
+/// answered before the interval ends, since no test can watch an hour pass, so this is read as the
+/// event order (serve event, signal, exit) and recorded in `docs/parity.md`; and that every picked
+/// job is written before the exit — the in-process wiring pins read that order through the seams,
+/// while the process pin below reads only that the loop reached its read at all, as the request the
+/// stub answers, which is the one thing a process pin can read without a timed wait.  The pin that
+/// reads the loop being reached names its rule, its failure shape and what it cannot show. Its rule
+/// is that a serving run reaches the cadence read for the feed the pin seeds, read as the request
+/// the child makes for it, the tick being the only path this pin's child fetches through: the pin
+/// makes no request to the child, and the seed it writes is a command that fetches nothing. The pin
+/// was green on the head, where that request came about a minute after the server started, and it
+/// is shown to fail on the rule it names by patching the command so the wiring is not run: the
 /// child answered no request, and the patch reverted byte-identically. The failure answers at the
 /// pin's limit, which is the harness rule that an unbounded wait carries a limit and that the limit
 /// counts only when the wait can answer at it — the arrival read is the read that answers the pin's
 /// cancellation, so the limit is a failure and the harness still reaches the child. The pin asserts
-/// two things — the arrival and the entry row the child wrote — and reads the signal and the exit as
-/// the events the harness documents rather than as rules of its own, so no patch can fire it on the
-/// exit code the pin above already pins. What the pin cannot show: the interval itself, since no test
-/// can watch the minute the reference's minute type gives, so the pin names its own choice of the
-/// smallest interval the config parses; that the row it reads came from the child's tick rather than
-/// from a pass the pin made itself, which is why the pin seeds no entry row and reads the file after
-/// the child is gone; that the seed was in place before the child started, which the harness
-/// guarantees; and the row half on its own, because the write it reads belongs to the pipeline, which
-/// its own suite pins, so that reach is reasoned there.
+/// two things — the arrival and the entry row the child wrote — and reads the signal and the exit
+/// as the events the harness documents rather than as rules of its own, so no patch can fire it on
+/// the exit code the pin above already pins. What the pin cannot show: the interval itself, since
+/// no test can watch the minute the reference's minute type gives, so the pin names its own choice
+/// of the smallest interval the config parses; that the row it reads came from the child's tick
+/// rather than from a pass the pin made itself, which is why the pin seeds no entry row and reads
+/// the file after the child is gone; that the seed was in place before the child started, which the
+/// harness guarantees; and the row half on its own, because the write it reads belongs to the
+/// pipeline, which its own suite pins, so that reach is reasoned there.
 @Suite struct ServeProcessTests {
     @Test(.timeLimit(.minutes(2)))
     func theBuiltBinaryAnswersOnTheProbedPort() async throws {
@@ -110,8 +107,8 @@ import Testing
 
     @Test(.timeLimit(.minutes(2)))
     func theServingRunReachesTheCadenceReadForADueFeed() async throws {
-        // The document the pin declares for the feed it seeds. The fetch is the event the pin reads,
-        // so the shape of the body is not part of the rule.
+        // The document the pin declares for the feed it seeds. The fetch is the event the pin
+        // reads, so the shape of the body is not part of the rule.
         let feedBody = Data("""
             <?xml version="1.0" encoding="UTF-8"?>
             <rss version="2.0"><channel><title>pin feed</title><item><guid>pin-item</guid>
@@ -125,9 +122,10 @@ import Testing
                 args: { port in ["serve", "--port", "\(port)"] },
                 prepare: { child in
                     // The rows the tick takes are the ones the pin seeds, through the commands that
-                    // write them, before the child is spawned: `add` stamps the row with the instant
-                    // the command ran, which the strict due rule takes at the next pass over the
-                    // batch. The account name is the pin's own, so no other pin's seed is read here.
+                    // write them, before the child is spawned: `add` stamps the row with the
+                    // instant the command ran, which the strict due rule takes at the next pass
+                    // over the batch. The account name is the pin's own, so no other pin's seed is
+                    // read here.
                     let account = try await runCommand(databasePath: child.databasePath,
                         arguments: ["create-admin"], inputs: ["cadence-pin", "cadence-pin-password"])
                     #expect(!account.failed, "the pin's account run failed: \(account.output)")
@@ -138,16 +136,17 @@ import Testing
             ) { child in
                 _ = try await child.servePort()
 
-                // The tick is the only path a serving child has that fetches, so the request the stub
-                // answers is the loop's read. Shown to fail on that rule by patching the command so
-                // the wiring is not run: no request arrived, and the wait answered at its limit, which
-                // is the harness rule that an unbounded wait carries a limit.
+                // The tick is the only path this pin's child fetches through, so the request the
+                // stub answers is the loop's read. Shown to fail on that rule by patching the
+                // command so the wiring is not run: no request arrived, and the wait answered at
+                // its limit, which is the harness rule that an unbounded wait carries a limit.
                 let arrived = await stub.waitForArrival(for: "/feed.xml")
                 #expect(arrived, "the request the child made for the feed the pin seeded")
 
-                // The rows are read with no connection of the child's open, so the pin ends the child
-                // on the signal and reads the exit as the event the harness documents rather than as a
-                // rule of its own — the pin above pins the exit code the clean signal path leaves.
+                // The rows are read with no connection of the child's open, so the pin ends the
+                // child on the signal and reads the exit as the event the harness documents rather
+                // than as a rule of its own — the pin above pins the exit code the clean signal
+                // path leaves.
                 _ = child.send(signal: SIGTERM)
                 _ = try await child.waitExit()
 

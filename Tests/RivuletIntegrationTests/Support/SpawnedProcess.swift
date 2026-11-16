@@ -40,9 +40,8 @@ final class SpawnedProcess: @unchecked Sendable {
     /// Runs `body` with the child spawned, and guarantees the child is dead after the run. The
     /// signal path is the pins' own, so the harness only guarantees the teardown: the child is
     /// killed on the failure path, and on the success path when a pin did not read its exit.
-    ///
-    /// `prepare` runs on the pin's side of the file the child opens, before the child is spawned, so
-    /// a pin that has to put a row in place for the child to read does it while the file has no
+    /// `prepare` runs on the pin's side of the file the child opens, before the child is spawned,
+    /// so a pin that has to put a row in place for the child to read does it while the file has no
     /// connection of the child's open. A pin that seeds nothing passes nothing.
     static func withSpawnedProcess(
         env: [String: String],

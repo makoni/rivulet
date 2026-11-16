@@ -9,35 +9,32 @@ set -euo pipefail
 # requests arrived, and writes the answer as the registration the file writes for the path that
 # answers on a route, or as the name the dispatch case answered on for the path that dispatches, so
 # the record is what the run saw rather than what the matrix expected to see. The run half asserts
-# nothing about a line: the rule that reads the record is `Tools/clients/run_record.py`.
-#
-# The record is one file per client, in the record directory the check half reads, named as the round
-# reads that client, so the rule reads a record for the client its lines name.
-#
-# What the guards read, and what each can fail on: the record path against the record directory the
-# check half reads in `Tools/clients/parsers.py`, which is the half that makes a record written
-# somewhere else unreadable; the client the run names against the client the matrix has a row for;
-# the host the run writes against the address the machine answers on, which is the address a client on
-# another device reaches the observer through; the two ports against each other and against the ports
-# the machine already holds — the observer port read on the host the run declares, and the served port
-# read on the address the run's own serve half binds, because a served port bound to loopback is not a
-# port a device reaches the observer through; the base the run writes for the client in three halves —
-# the port half, so a base naming the port the observer forwards to is a base the run would never see a
-# request on, and the prefix half plus the form the set names for how this client builds the prefix
-# from the base, so a base carrying a path the set does not name for this client reaches the root; the
-# version the run names against the version the app's own metadata on the machine writes, which is the
-# half a client run on a device cannot be read against here; the pair row the run wrote, read through
-# the column the storage read names for the path the set gives this client, which is the value the
-# login compares; the entry rows the pass wrote for the feed the run declares — for a client whose set
-# names the add call that row is the row the client's own call writes — against the value the run
-# declares that page carries; and the record being empty, which is what a check half that reads no
-# record line cannot show. The nine guards are twelve read sites, because the ports item reads the two
-# ports against each other and each of them against the machine, and the base reads three halves. The
-# guards that read the machine fail only on a machine, and the three that read what the run itself
-# wrote — the pair row, the entry rows, and the record being empty — fail only on a run.
-#
-# Usage, one line per value a guard can fail on, each run against the value that line names:
-#
+# nothing about a line: the rule that reads the record is `Tools/clients/run_record.py`.  The record
+# is one file per client, in the record directory the check half reads, named as the round reads
+# that client, so the rule reads a record for the client its lines name.  What the guards read, and
+# what each can fail on: the record path against the record directory the check half reads in
+# `Tools/clients/parsers.py`, which is the half that makes a record written somewhere else
+# unreadable; the client the run names against the client the matrix has a row for; the host the run
+# writes against the address the machine answers on, which is the address a client on another device
+# reaches the observer through; the two ports against each other and against the ports the machine
+# already holds — the observer port read on the host the run declares, and the served port read on
+# the address the run's own serve half binds, because a served port bound to loopback is not a port
+# a device reaches the observer through; the base the run writes for the client in three halves —
+# the port half, so a base naming the port the observer forwards to is a base the run would never
+# see a request on, and the prefix half plus the form the set names for how this client builds the
+# prefix from the base, so a base carrying a path the set does not name for this client reaches the
+# root; the version the run names against the version the app's own metadata on the machine writes,
+# which is the half a client run on a device cannot be read against here; the pair row the run
+# wrote, read through the column the storage read names for the path the set gives this client,
+# which is the value the login compares; the entry rows the pass wrote for the feed the run declares
+# — for a client whose set names the add call that row is the row the client's own call writes —
+# against the value the run declares that page carries; and the record being empty, which is what a
+# check half that reads no record line cannot show. The nine guards are twelve read sites, because
+# the ports item reads the two ports against each other and each of them against the machine, and
+# the base reads three halves. The guards that read the machine fail only on a machine, and the
+# three that read what the run itself wrote — the pair row, the entry rows, and the record being
+# empty — fail only on a run.  Usage, one line per value a guard can fail on, each run against the
+# value that line names:
 #   Scripts/client-run.sh                                   # the run, then the guards
 #   CLIENT_RECORD=<a path outside the record directory the check half reads> Scripts/client-run.sh    # the record path
 #   CLIENT_NAME=<a client the matrix has no row for> Scripts/client-run.sh        # the client row
@@ -60,9 +57,9 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CLIENTS="$ROOT/Tools/clients"
 CLIENT_NAME=${CLIENT_NAME:-NewsFlash}
 
-# The reads the check half has, used here as the run declares the names it writes, so the record file,
-# the prefix the base carries, the add call the row comes from and the path the pair column belongs to
-# are the names the rule reads them with.
+# The reads the check half has, used here as the run declares the names it writes, so the record
+# file, the prefix the base carries, the add call the row comes from and the path the pair column
+# belongs to are the names the rule reads them with.
 record_for() {
     python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import parsers; print(parsers.record_path(sys.argv[2]))' "$CLIENTS" "$CLIENT_NAME"
 }
@@ -86,8 +83,9 @@ api_for() {
 WORK=${CLIENT_WORK:-$(mktemp -d)}
 RIVULET=${RIVULET:-$(cd "$ROOT" && swift build --show-bin-path)/rivulet}
 APP_ID=io.gitlab.news_flash.NewsFlash
-# The default form is the unset-only one, so an empty name the run declares stays empty: the command's
-# rule refuses an empty name before the storage layer, which is the value the pair guard fails on.
+# The default form is the unset-only one, so an empty name the run declares stays empty: the
+# command's rule refuses an empty name before the storage layer, which is the value the pair guard
+# fails on.
 CLIENT_USER=${CLIENT_USER-client-run}
 CLIENT_PASSWORD=${CLIENT_PASSWORD:-client-run-password}
 HOST=${CLIENT_HOST:-127.0.0.1}
@@ -95,8 +93,8 @@ RECORD=${CLIENT_RECORD:-$(record_for)}
 OBSERVE_PORT=${CLIENT_OBSERVE_PORT:-8099}
 TARGET_PORT=${CLIENT_TARGET_PORT:-8098}
 # The address the run's own serve half binds, which is the address the served port is read on: the
-# observer port is read on the host the run declares, because that is the address a device reaches the
-# observer through, while the served port answers only here.
+# observer port is read on the host the run declares, because that is the address a device reaches
+# the observer through, while the served port answers only here.
 SERVE_BIND=127.0.0.1
 RUN_SECONDS=${CLIENT_RUN_SECONDS:-180}
 POLL_INTERVAL=${CLIENT_POLLING_FREQUENCY:-10}
@@ -128,11 +126,11 @@ machine_host() {
     python3 -c 'import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("8.8.8.8", 80)); print(s.getsockname()[0])'
 }
 
-# True when something already answers on the port, read as connect_ex answering 0 for a connection it
-# can make at the address the run reads that port on: the host the run declares for the observer port,
-# and the address the run's own serve half binds for the served port. The ports guard reads this as the
-# machine already holding the port, and the wait below reads the same helper in the same sense, so both
-# sites agree with their own messages.
+# True when something already answers on the port, read as connect_ex answering 0 for a connection
+# it can make at the address the run reads that port on: the host the run declares for the observer
+# port, and the address the run's own serve half binds for the served port. The ports guard reads
+# this as the machine already holding the port, and the wait below reads the same helper in the same
+# sense, so both sites agree with their own messages.
 answers() {
     python3 -c 'import socket,sys; s = socket.socket(); sys.exit(0 if s.connect_ex((sys.argv[1], int(sys.argv[2]))) == 0 else 1)' "${2:-$HOST}" "$1"
 }
@@ -151,9 +149,9 @@ base_host_port() { printf '%s\n' "$BASE" | sed -e 's|^http://||' -e 's|/.*$||'; 
 
 base_prefix() { printf '%s\n' "$BASE" | sed -n 's|^http://[^/]*||p'; }
 
-# The prefix as the client builds it: the base as typed for a client that sends the base as the whole
-# prefix, and the base plus what the client appends for a client whose own resource table builds the
-# prefix, which is the form the set names for that client.
+# The prefix as the client builds it: the base as typed for a client that sends the base as the
+# whole prefix, and the base plus what the client appends for a client whose own resource table
+# builds the prefix, which is the form the set names for that client.
 effective_prefix() {
     if [ -z "$(prefix_form_for)" ]; then
         base_prefix
@@ -183,11 +181,12 @@ run_guards() {
     if [ -z "$BASE" ]; then
         BASE="http://$HOST:$OBSERVE_PORT$(prefix_for)"
     fi
-    # The base carries the host and the port the run reads, and the prefix is read as the form the set
-    # names for this client: the base as typed for a client that sends it as the whole prefix, and the
-    # base plus what the client appends for a client whose own resource table builds the prefix, which
-    # is the form FeedFlow's set names. A base carrying a path the set does not name for this client
-    # reaches the root, which is what the login of the first run showed as Vapor's 404.
+    # The base carries the host and the port the run reads, and the prefix is read as the form the
+    # set names for this client: the base as typed for a client that sends it as the whole prefix,
+    # and the base plus what the client appends for a client whose own resource table builds the
+    # prefix, which is the form FeedFlow's set names. A base carrying a path the set does not name
+    # for this client reaches the root, which is what the login of the first run showed as Vapor's
+    # 404.
     [ "$(base_host_port)" = "$HOST:$OBSERVE_PORT" ] ||
         fail "the base the run writes names a port the observer does not listen on"
     [ "$(effective_prefix)" = "$(prefix_for)" ] ||
@@ -204,8 +203,8 @@ pair_guard() {
 }
 
 # The feed the run declares: the page it serves carries the feed link the scan answers, so the entry
-# rows are read for that one row, whether the row came from the run's own command or from the client's
-# own add call.
+# rows are read for that one row, whether the row came from the run's own command or from the
+# client's own add call.
 DECLARED_ITEMS=${DECLARED_ITEMS:-1}
 
 entry_guard() {
@@ -213,8 +212,8 @@ entry_guard() {
     [ "$stored" = "$DECLARED_ITEMS" ] || fail "the pass wrote $stored entry rows for the feed the run declares, not the $DECLARED_ITEMS the run declares its page carries"
 }
 
-# The page the client is asked to add, and the feed page it carries: the scan reads the link the page
-# declares, so the add call reaches the write the run is there to show.
+# The page the client is asked to add, and the feed page it carries: the scan reads the link the
+# page declares, so the add call reaches the write the run is there to show.
 seed_pages() {
     {
         printf '<!doctype html><html><head><title>client page</title>'
@@ -238,10 +237,10 @@ run_guards
 : >"$RECORD"
 
 "$RIVULET" migrate
-# The port the run serves its feed page on, and the two values it declares: the page the client is asked
-# to add, and the url the row the entry guard reads holds, which is the value the scan answers for the
-# link that page declares. The device types the page url as a name; the fetch is the machine's own, which
-# is why the address policy is left on for this run.
+# The port the run serves its feed page on, and the two values it declares: the page the client is
+# asked to add, and the url the row the entry guard reads holds, which is the value the scan answers
+# for the link that page declares. The device types the page url as a name; the fetch is the
+# machine's own, which is why the address policy is left on for this run.
 STUB_PORT=${CLIENT_STUB_PORT:-$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')}
 DECLARED_PAGE=${DECLARED_PAGE:-http://$HOST:$STUB_PORT/discovery.html}
 DECLARED_FEED=${DECLARED_FEED:-http://$HOST:$STUB_PORT/feed.xml}
@@ -282,10 +281,11 @@ $CLIENT_PASSWORD"
 python3 "$CLIENTS/feed_prompts.py" "$RIVULET" integration-credentials
 pair_guard
 
-# Where the feed row comes from is read through the set: for a client whose set names the add call the
-# row has to be the row that call writes, because a row written here would put the duplicate rule in
-# front of the call the run is there to show. For a client whose set has no call that can write a row
-# the run writes it itself, so the half of the checklist that marks one item has a row to mark.
+# Where the feed row comes from is read through the set: for a client whose set names the add call
+# the row has to be the row that call writes, because a row written here would put the duplicate
+# rule in front of the call the run is there to show. For a client whose set has no call that can
+# write a row the run writes it itself, so the half of the checklist that marks one item has a row
+# to mark.
 add_call=$(add_call_for)
 if [ -z "$add_call" ]; then
     "$RIVULET" add "$DECLARED_FEED"

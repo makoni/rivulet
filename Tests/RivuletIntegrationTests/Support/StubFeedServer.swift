@@ -105,10 +105,10 @@ final class StubFeedServer: Sendable {
 
     /// Waits for one arrival and answers whether it came, answering this wait's cancellation as the
     /// cancellation it was given. A test that waits for an arrival it is sure to get has nothing to
-    /// answer at its limit; a pin whose rule may be answered no arrival — the process pin that reads
-    /// the loop's read as a request the child makes — needs its `timeLimit` to be a failure rather
-    /// than a hang, which is the harness rule that an unbounded wait carries a limit and that the
-    /// limit counts only when the wait can answer at it.
+    /// answer at its limit; a pin whose rule may be answered no arrival — the process pin that
+    /// reads the loop's read as a request the child makes — needs its `timeLimit` to be a failure
+    /// rather than a hang, which is the harness rule that an unbounded wait carries a limit and
+    /// that the limit counts only when the wait can answer at it.
     func waitForArrival(for path: String) async -> Bool {
         await arrivals.waitForArrival(for: path)
     }
