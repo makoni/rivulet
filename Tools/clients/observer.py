@@ -18,12 +18,15 @@ used, not from a prefix this half assumes, because a client can send to a path t
 no route for.
 
 The record carries no value. The values the client sends are the credential pair the app reads from
-its own settings, so the record names the field the pair reaches as the redaction names it. The part
-names are read as the port's own merged read takes them, quoted or unquoted, which is the read PR
-#61 pins. A record line is exempt from the width rule because it is one record.
+its own settings, so the record names the field the pair reaches as the redaction names it. The names
+the merged form gives are read as the transport chooses which side it reads: the pair names from the
+query, and from the body only when the body is read as a form — pair names for a urlencoded body,
+quoted or unquoted part names for a multipart one, which is the read PR #61 pins. A record line is
+exempt from the width rule because it is one record.
 
-Usage: CLIENT_RECORD=<the file the run writes> CLIENT_OBSERVE_PORT=<the port the client is pointed
-at> CLIENT_TARGET_PORT=<the port the run serves on> python3 Tools/clients/observer.py
+Usage: CLIENT_RECORD=<the file the run writes> CLIENT_NAME=<the client the run names>
+CLIENT_HOST=<the address the client was given> CLIENT_OBSERVE_PORT=<the port the client is pointed at>
+CLIENT_TARGET_PORT=<the port the run serves on> python3 Tools/clients/observer.py
 
 Read `docs/clients.md` first: the rule in `Tools/clients/run_record.py` reads the record as data.
 """
@@ -41,7 +44,24 @@ RECORD = os.environ["CLIENT_RECORD"]
 OBSERVE_PORT = int(os.environ["CLIENT_OBSERVE_PORT"])
 TARGET_PORT = int(os.environ["CLIENT_TARGET_PORT"])
 CLIENT = os.environ.get("CLIENT_NAME", "NewsFlash")
+# The address the client was given. A client on another device reaches the observer through it, so the
+# run half reads it as the value it declares for the client and binds this half on it.
+HOST = os.environ.get("CLIENT_HOST", "127.0.0.1")
 QUOTE = chr(34)
+
+# The set the check half reads for the client the run names, read through the same reader, so the record
+# names the call, the path and the pair the way the rule reads them. The path the set reads the client
+# on decides which half writes the answer: the path that dispatches names the case it answered on, and
+# the path that answers on a route names the registration the file writes, or the catch-all the matrix
+# names it with.
+SET = read.set_for(CLIENT)
+API = SET["api"]
+TOKEN = SET["redaction"]["token"]
+ROUTES = read.port_routes(read.read(read.DEFAULTS["port_routes"]))
+# The name the record writes for the pair when the transport reads the token as a header rather than as
+# a field, which is the half the redaction names and no value can show.
+TOKEN_FROM_HEADER = any(call["auth"] == "header" for call in SET["calls"])
+BRANCH_FIELD, BRANCH_MARK = "s", "#"
 
 # The names the dispatch switch reads, the item parameter names the items read takes, and the three
 # words the mark switch reads. Read as the set names them so the record and the matrix row use one
@@ -73,6 +93,18 @@ def read_pairs(source):
         else:
             names.append(one)
     return names, pairs
+
+
+def form_names(body, content_type):
+    """The names the merged form gives, read as the transport chooses which side it reads: the pair
+    names for a urlencoded body, the part names for a multipart body, and nothing for a body the
+    transport does not read as a form. No value is read here, only the names.
+    """
+    if "multipart/form-data" in content_type:
+        return part_names(body)
+    if "application/x-www-form-urlencoded" in content_type:
+        return [pair.split("=", 1)[0] for pair in body.split("&") if pair]
+    return []
 
 
 def part_names(body):
@@ -113,11 +145,19 @@ def keys_in_answer(payload):
     return list(document) if isinstance(document, dict) else []
 
 
-def answer_of(status, keys, mark):
-    """The answer the run saw: the name the dispatch case answered on, or the status when the port
-    wrote something other than a document of this path.
+def answer_of(status, method, base, keys, mark):
+    """The answer the run saw: the name the dispatch case answered on for the path that dispatches, the
+    registration the file writes for the path that answers on a route, the catch-all as the matrix names
+    it for a path this port registers no route for, and the status when the port wrote something other
+    than an answer of this path.
     """
-    if status != 200 or not keys or keys[0] not in BASE:
+    if status != 200:
+        return "status " + str(status)
+    if API == "google-reader":
+        route = next((one for one in ROUTES if one.startswith(method) and one.endswith("/" + base)),
+                     None)
+        return route or ("catch-all" if f"catch-all {method}" in ROUTES else "status " + str(status))
+    if not keys or keys[0] not in BASE:
         return "status " + str(status)
     if mark:
         return "dispatch: mark=" + mark
@@ -125,22 +165,27 @@ def answer_of(status, keys, mark):
     return "dispatch: " + named[0] if named else "dispatch: default"
 
 
-def call_of(path, names, pairs, mark):
-    """The call as the set names it, read from the path the client sent to, with the branch it
-    takes.
+def call_of(path, names, mark):
+    """The call as the set names it, read from the path the client sent to, with the branch it takes.
 
     The head name is read from the merged form, not from the bare query names, because the dispatch
-    takes `mark` from the merged read: the run sent `?api&&mark=item&as=read&id=1`, where `mark` is
-    a pair, so the call the record names for that line is the branch the switch ran on.
+    takes `mark` from the merged read: the run sent `?api&&mark=item&as=read&id=1`, where `mark` is a
+    pair, so the call the record names for that line is the branch the switch ran on. For the path that
+    answers on a route the name is the path, with the branch the merged form gives written as the set
+    names that branch.
     """
-    head = next((one for one in names + pairs if one in KEYS), None)
     base = path.split("?")[0].strip("/") or "the root"
+    if API == "google-reader":
+        return next((one for one in (call["key"] for call in SET["calls"])
+                     if BRANCH_MARK in one and one.split(BRANCH_MARK)[0] == base
+                     and BRANCH_FIELD in names), None) or base
+    head = next((one for one in names if one in KEYS), None)
     if head is None:
         return base + "/?api"
     if head == "mark":
         return base + "/mark/" + mark if mark else base + "/mark"
-    item = next((one for one in pairs if one in ITEM_PARAMS), None)
-    return base + "/" + head + "/" + item if item else base + "/" + head
+    item = next((one for one in names if one in ITEM_PARAMS), None)
+    return base + "/" + head + ("/" + item if item else "")
 
 
 def main():
@@ -173,7 +218,7 @@ def main():
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8",
                                                                                        "replace")
             names, pairs = read_pairs(query)
-            pairs = pairs + part_names(body)
+            pairs = pairs + form_names(body, self.headers.get("Content-Type", ""))
             connection = http.client.HTTPConnection("127.0.0.1", TARGET_PORT)
             connection.request(method, self.path, body.encode("utf-8"), dict(self.headers))
             response = connection.getresponse()
@@ -187,17 +232,21 @@ def main():
             self.end_headers()
             self.wfile.write(payload)
 
+            base = self.path.split("?")[0].strip("/") or "the root"
             mark = pair_value(query, "mark") or pair_value(body, "mark")
             carried = keys_in_answer(payload.decode("utf-8", "replace"))
-            line = " | ".join((CLIENT, str(order), call_of(self.path, names, pairs, mark), method,
-                               answer_of(response.status, carried, mark), " ".join(carried),
-                               " ".join(sorted(set(pairs))) or "none"))
+            fields = sorted(set(pairs))
+            if TOKEN_FROM_HEADER and "authorization" in self.headers:
+                fields = sorted(set(fields) | {TOKEN})
+            line = " | ".join((CLIENT, str(order), call_of(self.path, names + pairs, mark), method,
+                               answer_of(response.status, method, base, carried, mark),
+                               " ".join(carried), " ".join(fields) or "none"))
             with lock:
                 with open(RECORD, "a", encoding="utf-8") as handle:
                     handle.write(line + "\n")
 
-    server = ThreadingHTTPServer(("127.0.0.1", OBSERVE_PORT), Observer)
-    print(f"observing 127.0.0.1:{OBSERVE_PORT}, forwarding to 127.0.0.1:{TARGET_PORT}, "
+    server = ThreadingHTTPServer((HOST, OBSERVE_PORT), Observer)
+    print(f"observing {HOST}:{OBSERVE_PORT}, forwarding to 127.0.0.1:{TARGET_PORT}, "
           f"writing {RECORD}", file=sys.stderr)
     server.serve_forever()
 

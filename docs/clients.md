@@ -5,15 +5,19 @@ acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation when the client is closed source. No set is a capture, and one client has
-been run against this port here — NewsFlash, the Fever client, through `Scripts/client-run.sh`, the
-run half that reads what one real client actually sent — and the record that run left behind,
-`Tools/clients/client-run.txt`, is read as data by the rule that reads it. The manual matrix exit
-criterion of `docs/plan/stage-7-acceptance.md` stays open for the four clients this machine cannot
-run, and the single-client criterion of `docs/plan/stage-5-apis.md`, which names one real client
-rather than a client by name, is closed for the halves this run shows: the client connects and
-syncs here. The half that adds a feed is not a call the Fever set has, so it stays open for a client
-that has that call. The checklists below are the checks to run for a client that cannot be run here.
+project's documentation when the client is closed source. No set is a capture, and two clients have
+been run against this port here — NewsFlash, the Fever client, and FeedFlow, the Google Reader
+client, both through `Scripts/client-run.sh`, the run half that reads what a real client actually
+sent — and the records those runs left behind, `Tools/clients/newsflash.txt` and
+`Tools/clients/feedflow.txt`, one file per client named as the round reads that client, are read as
+data by the rule that reads them. The manual matrix exit
+criterion of `docs/plan/stage-7-acceptance.md` is closed for these two and stays open for the three
+clients this machine cannot run. The single-client criterion of `docs/plan/stage-5-apis.md`, which
+names one real client rather than a client by name, is closed: the Fever run shows the halves its
+set has, that a client connects and syncs, and the Google Reader run shows the half that set has no
+call for, the call that adds a feed. FeedFlow was run on a phone over the local network, which is
+the half the run half reads the host guard for. The checklists below are the checks to run for a
+client that cannot be run here.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own source
@@ -22,14 +26,16 @@ and the field the timed pin's print writes as data, with the parsers it reads th
 includes two sentences written for the sets they name: the shape the performance paragraph declares,
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
-and asserts that the rule reports it alone; the baseline reports nothing, so each probe is
-single-firing — 19 rules, 30 crafted inputs and the baseline, so 31 cases: the performance rule has
-one for each of the five kinds of finding it reads, the route rule has one for each of its two
-halves, because an input that violates one of them still satisfies the other, and the rule that
-reads the run record has one for each of its seven halves, on the record the run wrote here. One of
-those seven reaches two parts of the data at once, the record line and the paragraph that names the
-calls this run showed, because the half reads the record against the paragraph and this run reached
-no call outside the recorded set.
+and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
+firing — 19 rules, 32 crafted inputs and the baseline, so 33 cases: the performance rule has one for
+each of the five kinds of finding it reads, the route rule has one for each of its two halves,
+because an input that violates one of them still satisfies the other, and the rule that reads the
+run record has one for each of its nine halves — six on the record the Fever run wrote here, one on
+the paragraph naming its calls, one on the record the Google Reader run wrote here, and one on a
+record this machine has not written, for a client whose set records no calls. One of those nine
+reaches two parts of the data at once, the record line and the paragraph that names the calls this
+run showed, because the half reads the record against the paragraph and the Fever run reached no
+call outside the recorded set.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -59,19 +65,47 @@ the mark branch comes from the merged form, which is where the dispatch takes it
 
 What the run half reads as guards, and what each guard can fail on, is named in its header. The run
 half is not in CI, so it is checked here by `bash -n` and by its guards seen to fail on the value
-each names: the record path, by a path the check half does not read; the client, by a name the
-matrix has no row for; the two ports, by naming the same port twice, and by a port the machine
-already holds, seen by holding the observer port with a listener and then the served port; the
-base, by the port the observer forwards to instead of its own; the version, by a version the app
-metadata does not write; the pair row, by a name the run wrote no row for; the entry rows, by the
-value 2 against the one row the pass wrote; and the record being empty, by an empty record. The
-three guards that read what the run itself wrote — the pair row, the entry rows, and the record
-being empty — fail only on a run, and the guards that read the machine fail only on a machine.
-The guards that read a value the run declares run before the record is written, so a guard that
-fires leaves the committed record alone, which is what kept it byte-identical through the ports
-demos; the guard that reads the record itself runs after the run, and the demo that fires it used a
-record written outside the repo path. The check half then reads the record the run wrote, not the
-processes.
+each names: the record path, by a path outside the record directory the check half reads; the
+client, by a name the matrix has no row for; the host, by an address the machine does not answer on,
+read against the address the machine's own default route selects; the two ports, by naming the same
+port twice, and by a port the machine already holds, seen by holding the observer port with a
+listener and then the served port; the base, by the port the observer forwards to instead of its
+own, and by a path the set does not name for the client, seen for a client whose set reads the
+Google Reader path while the base carries the Fever prefix, and by the form the set names for how
+this client builds the prefix, seen for the client whose set names that it appends the prefix
+itself, where a base carrying the prefix reaches the port with it twice; the version, by a version
+the app metadata writes differently, which is the half that only exists on this machine; the pair
+row, by an empty name the command's rule refuses before the storage layer, seen on both paths
+through the column each one names; the entry rows, by the value 2 against the one row the pass
+wrote, and by a url the run wrote no row for; and the record being empty, by an empty record. The
+nine guards are twelve read sites, because the ports item reads the two ports against each other and
+each of them against the machine, and the base reads three halves. The three guards that read what
+the run itself wrote — the pair row, the entry rows, and the record being empty — fail only on a
+run, and the guards that read the machine fail only on a machine. The guards that read a value the
+run declares run before the record is written, so a guard that fires leaves the committed record
+alone, which is what kept it byte-identical through the ports demos; the guards that read what the
+run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
+committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
+was sent to the observer in that copy to show that these halves read a record a run wrote rather
+than a record the round crafts: writing its record in the copy's record directory, the rule read it
+for the client its lines named and reported nothing where the stand-in agreed with the path and the
+names it reads, and reported the answers it did not agree with. The check half then reads the record
+the run wrote, not the processes.
+
+The host guard is what the second run reads the machine for: the client was a phone on the local
+network, so the run declared the address the machine's own default route selects rather than
+loopback, and the phone reached the observer through it. A firewall rule on this machine allows the
+local network to the observer port, which is a half no guard reads: a machine that does not answer
+on the port the run declares is a guard failure, while a machine that answers on the port and drops
+the packets from another device is not something a guard can see.
+
+The entry guard is what the second run showed as a rule over what a run wrote rather than over what
+the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
+reads was written by the client's own add call, and the one entry row it reads was written by the
+pass the cadence loop made during the window, the run having declared a one-minute cadence and the
+pass that fetched the page the run serves having come about a minute after the server started. This
+is the same rule the pin in `ServeProcessTests` reads as the request the child makes for the feed it
+seeds.
 
 ## The rules the comparator reads
 
@@ -189,14 +223,17 @@ from the width rule.
 
 - the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
-- the order a client reaches its calls at on a device, which the run record carries for the client run here and the source declares for the others
+- the order a client reaches its calls at, which the run record carries for the two clients run here and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
 - the guard a client applies before it sends, read as the bound on the list size, which no record line can show firing
 - the side of the bound the guard applies, which the record carries as names and not as values
+- the answer a record line can carry for a call whose guard the client applies before it sends, which is the status the guard answers with, while the matrix row names the dispatch answer for the path
+- the part of a calling set a run did not reach, which the record carries no line for and the paragraph for that client names as the halves this run did not walk
 - the token half of a client that sends the stored value as the token, which the read compares as a token
 - the numbers of another machine, which the performance half records as measurements taken here or names as not measured here
 - the query latency at the 100k corpus, which is gated
+- the version of a client run on a device, which this machine has no app metadata to read the value against
 
 ## Client by client
 
@@ -236,12 +273,41 @@ clamp this port reads.
 
 Setup: Settings → Feeds & accounts → Accounts → the sync account for Miniflux. The password field is
 the value this client sends as the token, so for this port it has to hold the token the login answer
-carries, not the integration password.
+carries, not the integration password — unless the login runs first, which is what this run showed:
+the field held the integration pair, the login ran when the account was connected, and the login
+path writes its answer into the stored value the header is built from, so after that the header
+carries the token.
 
-Manual checklist, not executed here: log in; list subscriptions and categories; read one stream
-page; add a feed; move a feed between categories; rename a category; delete a category; mark items
-read; star an item. Record what the item list shows: on this port the item read answers the
-catch-all, so the list is empty by the reference's own rule.
+Manual checklist, walked here by the run on a phone: log in; list subscriptions and categories; read
+one stream page; add a feed, and the category write the add made on the same call the move half
+uses. It did not walk rename a category, delete a category, mark items read, or star an item, and it
+did not reach the item-content read, so the catch-all answer that row reports is not a half this run
+showed.
+
+The calls this run showed for FeedFlow, in the order the record says they arrived:
+`accounts/ClientLogin`, `reader/api/0/subscription/list`, `reader/api/0/stream/items/ids`,
+`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/subscription/edit`.
+
+The record carries 10 lines for this run: the login, the first subscription list, four stream pages,
+the token, the add, the category write, and the second subscription list. The login is a record line
+here, which the Fever run could not show: this client sends the login when the account is connected,
+so it arrived while the observer was recording. It is the only line that carries the pair, as the
+two field names the login reads, and every line after it carries the token field name the redaction
+writes as `T`. The add is the half the Fever set has no call for, and the feed row the entry guard
+reads was written by the client's own add call rather than by this port's command. The version the
+run declared is the value the device's own package information reports, which is the half the
+version guard has no app metadata to read against here.
+
+The five calls the set names that this run did not reach are `reader/api/0/stream/contents`,
+`reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`, and the
+folder-delete half the set names as `reader/api/0/edit-tag#disable-tag`. The four stream pages came
+before the pass the cadence loop made, so there was no entry row for them to answer with, and the
+contents read is the read this client makes for the ids a page gives it, so no line for it arrived
+and there was no item to mark. `rename-tag` cannot be shown by a run whose subscription list carries
+only the default category row, and the folder-delete half is the call whose guard the client applies
+before it sends, which no record line can show firing. The run cannot show the page-size half the
+row names either, because the record carries names and not values: the 15000 the set names is read
+from the client's source, while the pages this run reached were below the clamp and at it.
 
 ### NewsFlash — Fever API
 
@@ -266,9 +332,9 @@ favicons, unread and saved ids; read a page of items and the next page through `
 item read, un-read and saved; mark a feed read before a time; mark a group read; check the value for
 `id = 0` on the group branch, which is the user-wide half.
 
-The calls this run showed, in the order the record says they arrived: `fever/groups`, `fever/feeds`,
-`fever/unread_item_ids`, `fever/saved_item_ids`, `fever/items`, `fever/items/with_ids`,
-`fever/mark/item`, `fever/mark/feed`.
+The calls this run showed for NewsFlash, in the order the record says they arrived: `fever/groups`,
+`fever/feeds`, `fever/unread_item_ids`, `fever/saved_item_ids`, `fever/items`,
+`fever/items/with_ids`, `fever/mark/item`, `fever/mark/feed`.
 
 The run showed four marks on one item, read, un-read, read, un-read, and the feed mark with the time
 the app sent, and it did not reach `fever/favicons`, `fever/links`, `fever/items/since_id`,

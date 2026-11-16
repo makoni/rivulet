@@ -1,3 +1,4 @@
+import Foundation
 import Glibc
 import Testing
 
@@ -35,7 +36,27 @@ import Testing
 /// interval is answered before the interval ends, since no test can watch an hour pass, so this is
 /// read as the event order (serve event, signal, exit) and recorded in `docs/parity.md`; and that
 /// every picked job is written before the exit — the in-process wiring pins read that order through
-/// the seams, while a process pin would have to wait for the loop to run, which is a timed wait.
+/// the seams, while the process pin below reads only that the loop reached its read at all, as the
+/// request the stub answers, which is the one thing a process pin can read without a timed wait.
+///
+/// The pin that reads the loop being reached names its rule, its failure shape and what it cannot
+/// show. Its rule is that a serving run reaches the cadence read for the feed the pin seeds, read as
+/// the request the child makes for it, the tick being the only path a serving child has that fetches.
+/// The pin was green on the head, where that request came about a minute after the server started, and
+/// it is shown to fail on the rule it names by patching the command so the wiring is not run: the
+/// child answered no request, and the patch reverted byte-identically. The failure answers at the
+/// pin's limit, which is the harness rule that an unbounded wait carries a limit and that the limit
+/// counts only when the wait can answer at it — the arrival read is the read that answers the pin's
+/// cancellation, so the limit is a failure and the harness still reaches the child. The pin asserts
+/// two things — the arrival and the entry row the child wrote — and reads the signal and the exit as
+/// the events the harness documents rather than as rules of its own, so no patch can fire it on the
+/// exit code the pin above already pins. What the pin cannot show: the interval itself, since no test
+/// can watch the minute the reference's minute type gives, so the pin names its own choice of the
+/// smallest interval the config parses; that the row it reads came from the child's tick rather than
+/// from a pass the pin made itself, which is why the pin seeds no entry row and reads the file after
+/// the child is gone; that the seed was in place before the child started, which the harness
+/// guarantees; and the row half on its own, because the write it reads belongs to the pipeline, which
+/// its own suite pins, so that reach is reasoned there.
 @Suite struct ServeProcessTests {
     @Test(.timeLimit(.minutes(2)))
     func theBuiltBinaryAnswersOnTheProbedPort() async throws {
@@ -84,6 +105,60 @@ import Testing
             // checkpoints and removes the WAL on its own, so a patch that dropped only the
             // checkpoint left this pin green, and the header names that.
             #expect(child.walIsEmpty(), "the WAL the child left behind")
+        }
+    }
+
+    @Test(.timeLimit(.minutes(2)))
+    func theServingRunReachesTheCadenceReadForADueFeed() async throws {
+        // The document the pin declares for the feed it seeds. The fetch is the event the pin reads,
+        // so the shape of the body is not part of the rule.
+        let feedBody = Data("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rss version="2.0"><channel><title>pin feed</title><item><guid>pin-item</guid>
+            <title>pin item</title></item></channel></rss>
+            """.utf8)
+
+        try await FetchTestSupport.withServer(
+            behaviors: ["/feed.xml": StubFeedServer.Behavior(body: feedBody)]) { stub in
+            try await SpawnedProcess.withSpawnedProcess(
+                env: ["POLLING_FREQUENCY": "1", "FETCHER_ALLOW_PRIVATE_NETWORKS": "true"],
+                args: { port in ["serve", "--port", "\(port)"] },
+                prepare: { child in
+                    // The rows the tick takes are the ones the pin seeds, through the commands that
+                    // write them, before the child is spawned: `add` stamps the row with the instant
+                    // the command ran, which the strict due rule takes at the next pass over the
+                    // batch. The account name is the pin's own, so no other pin's seed is read here.
+                    let account = try await runCommand(databasePath: child.databasePath,
+                        arguments: ["create-admin"], inputs: ["cadence-pin", "cadence-pin-password"])
+                    #expect(!account.failed, "the pin's account run failed: \(account.output)")
+                    let seeded = try await runCommand(databasePath: child.databasePath,
+                        arguments: ["add", stub.url("/feed.xml").absoluteString, "--user", "cadence-pin"])
+                    #expect(!seeded.failed, "the pin's feed run failed: \(seeded.output)")
+                }
+            ) { child in
+                _ = try await child.servePort()
+
+                // The tick is the only path a serving child has that fetches, so the request the stub
+                // answers is the loop's read. Shown to fail on that rule by patching the command so
+                // the wiring is not run: no request arrived, and the wait answered at its limit, which
+                // is the harness rule that an unbounded wait carries a limit.
+                let arrived = await stub.waitForArrival(for: "/feed.xml")
+                #expect(arrived, "the request the child made for the feed the pin seeded")
+
+                // The rows are read with no connection of the child's open, so the pin ends the child
+                // on the signal and reads the exit as the event the harness documents rather than as a
+                // rule of its own — the pin above pins the exit code the clean signal path leaves.
+                _ = child.send(signal: SIGTERM)
+                _ = try await child.waitExit()
+
+                // The pin is not satisfied by the rows its own preparation wrote: the pin wrote the
+                // feed row, and the entry below can only have been written by the child's tick.
+                try await withMigratedStorage { database, _ in
+                    let written = try await content(at: child.databasePath, on: database, as: "served")
+                    #expect(written.entries.count == 1,
+                        "the entry the child's tick wrote for the feed the pin seeded: \(written.entries)")
+                }
+            }
         }
     }
 }

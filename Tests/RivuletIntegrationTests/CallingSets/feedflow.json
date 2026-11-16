@@ -19,6 +19,7 @@
     {
       "api": "google-reader",
       "prefix": "/reader/api/0",
+      "prefix_form": "the client appends the prefix itself, so the base holds only host and port",
       "calls_read": "read here",
       "answered_here": "served here"
     }
