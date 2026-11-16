@@ -52,10 +52,12 @@ reads, so the command surface the stage-6 criterion reads is the same set the pa
 is named as a tool outside the port, with no command of the port running it, and the page names what
 it cannot show as its own section.
 - [ ] Documentation publishing: `Scripts/build-docs.sh` writes the archive the site is built from,
-and the site itself is outside this repository and is published by hand, so no CI job here shows a
-served site; the symbol pages stay open because this toolchain answers no plugin for the symbol
-graph the tool reads.
-- [ ] Release workflow on tag.
+      and the site itself is outside this repository and is published by hand, so no CI job here
+      shows a served site. What this slice landed is the toolchain half: the symbol-graph half, PR
+      #76, reads the graph SwiftPM's own subcommand answers for its own run, which is the file the
+      symbol pages are written from, and no rule reads those pages as pages, which is the report
+      item the check half names. What stays open is the site, which this repository does not
+      publish.
 
 ## Spike result
 
