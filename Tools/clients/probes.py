@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """The probe set: one input per rule that violates it, and the assertion that the rule reports it.
-
 This is the falsifiability half of the client matrix. The rules in `replay.py` are functions over
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 30 crafted inputs and the baseline, so 31 cases — the performance rule has
-one craft for each of the five kinds of finding it reads, the route rule has one for each of its two
-halves, because an input that violates one half of a rule still satisfies the other, and the rule
-that reads the run record has one for each of its seven halves, on the record the run wrote here.
-One of those seven reaches two parts of the data at once, the record line and the paragraph that
-names the calls this run showed, because the half reads the record against the paragraph and this
-run reached no call outside the recorded set; that craft is named with the rule in
-`docs/clients.md`. The crafts change the data in memory, never the files. The round hashes every
-file the check half reads before and after, so a craft that reached a file is reported.
-
-The crafts that would have to change a client's own source — the bound the guard applies before the
-request is sent, and the values the records carry, which are placeholders — are what this half
-cannot show, so they are named in `docs/clients.md` rather than asserted here.
-
+single-firing: 19 rules, 32 crafted inputs and the baseline, so 33 cases — the performance rule
+has one craft for each of the five kinds of finding it reads, the route rule has one for each of
+its two halves, because an input that violates one half of a rule still satisfies the other, and
+the rule that reads the run record has one for each of its nine halves — six on the record the
+Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
+run wrote here, and one on a record this machine has not written, for a client whose set records
+no calls. One of those nine reaches two parts of the data at once, the record line and the
+paragraph that names the calls this run showed, because the half reads the record against the
+paragraph and the Fever run reached no call outside the recorded set; that craft is named with
+the rule in `docs/clients.md`. The crafts change the data in memory, never the files. The round
+hashes every file the check half reads before and after, so a craft that reached a file is
+reported. The crafts that would have to change a client's own source — the bound the guard
+applies before the request is sent, and the values the records carry, which are placeholders —
+are what this half cannot show, so they are named in `docs/clients.md` rather than asserted here.
 Run it with `python3 Tools/clients/probes.py`, or through the check half with `--probe`.
 """
 
@@ -34,10 +33,11 @@ import replay as check
 # The three names the base document writes, read through the same read the rule uses, so a craft
 # that adds a record line writes names the shape writes rather than restating them.
 BASE_KEYS = read.base_shape_keys(read.DEFAULTS["port_shape"])
+NEWSFLASH = "NewsFlash"
 
 
 def set_of(data, client):
-    return data["sets"][client.lower().replace(" ", "-")]
+    return data["sets"][read.set_file_name(client)]
 
 
 def call_of(data, client, key):
@@ -48,56 +48,67 @@ def row_of(data, client, call):
     return next(row for row in data["matrix"] if row["Client"] == client and row["Call"] == call)
 
 
-def line_of(data, call):
-    """The parsed record line for one call, as the run wrote it, read as the craft changes it.
+def lines_of(data, client):
+    """The parsed record lines for the record the run wrote for one client. A client this machine
+    has not run has no record, so the round reads an empty record for it, which is the half the
+    craft adds a line to.
+    """
+    return data["observed"].setdefault(client, [])
 
-    The record is the document the run left behind, so a craft changes the parsed line rather than
+
+def line_of(data, client, call):
+    """The parsed record line for one call, as the run wrote it, read as the craft changes it. The
+    record is the document the run left behind, so a craft changes the parsed line rather than
     the file, which is what the round hashes before and after.
     """
-    return next(line for line in data["observed"] if line["call"] == call)
+    return next(line for line in lines_of(data, client) if line["call"] == call)
 
 
-def add_line(data, call, answer, keys, fields):
-    """A record line the run did not write, added as the data the rule reads.
-
-    The order is the next free one, so the added line cannot move the order the half reads.
+def add_line(data, client, call, answer, keys, fields):
+    """A record line the run did not write, added as the data the rule reads. The order is the next
+    free one, so the added line cannot move the order the half reads. The rule reads a record for
+    the client its lines name, so the client named here is the half this craft reaches, and the
+    record it is added to is the record the round reads for that client.
     """
-    order = max(line["order"] for line in data["observed"]) + 1
-    data["observed"].append({"client": "NewsFlash", "order": order, "call": call, "method": "POST",
-                             "answer": answer, "keys": keys, "fields": fields})
+    order = max((line["order"] for line in lines_of(data, client)), default=0) + 1
+    lines_of(data, client).append({"client": client, "order": order, "call": call, "method": "POST",
+                                   "answer": answer, "keys": keys, "fields": fields})
 
 
 def swap_order(data, first, second):
     """Swap the order two calls carry, which is what a run that reached them the other way wrote."""
-    a, b = line_of(data, first), line_of(data, second)
+    a, b = line_of(data, NEWSFLASH, first), line_of(data, NEWSFLASH, second)
     a["order"], b["order"] = b["order"], a["order"]
 
 
 def rename_in_record_and_paragraph(data, call, name):
     """Rename one call in the record and the same name in the paragraph that names the calls this
-    run showed, because the half reads the record against the paragraph naming the call.
-
-    The craft has to reach both: the run here reached no call outside the recorded set, so a craft
+    run showed, because the half reads the record against the paragraph naming the call. The
+    craft has to reach both: the run here reached no call outside the recorded set, so a craft
     that changed only the record would also be a finding for the half that reads a call the set
     cannot name.
     """
-    line_of(data, call)["call"] = name
+    line_of(data, NEWSFLASH, call)["call"] = name
     data.__setitem__("clients", data["clients"].replace(f"`{call}`", f"`{name}`"))
 
 
 def hash_of():
-    """Every file the check half reads, hashed as the bytes the round started with.
-
-    `sets` is a directory, so its entries are hashed as the files inside it rather than as the
-    directory itself, which is the one thing here that cannot be hashed as bytes.
+    """Every file the check half reads, hashed as the bytes the round started with. `sets` is a
+    directory, so its entries are hashed as the files inside it rather than as the directory
+    itself, which is the one thing here that cannot be hashed as bytes. The record directory is
+    hashed for the record files the rule reads, not for the files that sit beside them.
     """
     out = {}
     for name in sorted(read.DEFAULTS):
         path = read.DEFAULTS[name]
         if os.path.isdir(path):
             for entry in sorted(os.listdir(path)):
-                out[f"{name}/{entry}"] = hashlib.sha256(
-                    open(os.path.join(path, entry), "rb").read()).hexdigest()
+                full = os.path.join(path, entry)
+                if os.path.isdir(full):
+                    continue
+                if name == "record_dir" and not entry.endswith(".txt"):
+                    continue
+                out[f"{name}/{entry}"] = hashlib.sha256(open(full, "rb").read()).hexdigest()
         else:
             out[name] = hashlib.sha256(open(path, "rb").read()).hexdigest()
     return out
@@ -208,8 +219,10 @@ CASES = {
         lambda data: data.__setitem__("port_response", data["port_response"].replace(
             'name: "X-Reader-Google-Bad-Token"', 'name: "X-Reader-Local-Bad-Token"')),
 
-    # The seven halves of the rule that reads the run record, one craft each, on the record the run
-    # wrote here.
+    # The nine halves of the rule that reads the run record, one craft each: six on the record the
+    # Fever run wrote here, one on the paragraph that names its calls, one on the record the Google
+    # Reader run wrote here, and one on a record this machine has not written, which is the craft
+    # that adds a line for a client whose set records no calls.
     "the_run_record_agrees_with_the_set_and_the_answer_it_names": [
         # The order the record carries, read as the order column, against the order the paragraph
         # names the calls the two have in common: the two names swap in the column.
@@ -217,22 +230,34 @@ CASES = {
 
         # A call the set cannot name, read against the paragraph naming the calls this run showed.
         # The line keeps the default answer, so the answer half is satisfied by the same input.
-        lambda data: add_line(data, "fever/folders", "dispatch: default", BASE_KEYS, ["api_key"]),
+        lambda data: add_line(data, NEWSFLASH, "fever/folders", "dispatch: default", BASE_KEYS,
+                              ["api_key"]),
 
         # The answer for a call the set names, read against the matrix row for that call.
-        lambda data: line_of(data, "fever/groups").__setitem__("answer", "dispatch: feeds"),
+        lambda data: line_of(data, NEWSFLASH, "fever/groups").__setitem__(
+            "answer", "dispatch: feeds"),
 
         # The answer for a call the reference records no case for, which has to be the default
         # branch. This craft renames the call in the record and the same name in the paragraph,
         # because the run here reached no call outside the recorded set.
         lambda data: rename_in_record_and_paragraph(data, "fever/mark/item", "fever/folders"),
 
-        # A key name the record carries that the response shape writes nowhere.
-        lambda data: line_of(data, "fever/items").__setitem__("keys", ["folders"]),
+        # The client the record names, read against the set that client's row records: a client
+        # whose set records no calls has no half to read its lines against.
+        lambda data: add_line(data, "lire", "no-call-recorded", "no route here", [], ["T"]),
+
+        # The branch the merged form gives, read through the mark the set names it with. The answer,
+        # the key name and the redaction name on this line are the values the other halves read, so
+        # the craft reaches the branch half alone.
+        lambda data: add_line(data, "FeedFlow", "reader/api/0/edit-tag", "POST /reader/api/0/edit-tag",
+                              ["itemRefs"], ["T", "s"]),
+
+        # A key name the record carries that the file writes nowhere for this path.
+        lambda data: line_of(data, NEWSFLASH, "fever/items").__setitem__("keys", ["folders"]),
 
         # The name the redaction names for the pair, taken off one line's fields.
-        lambda data: line_of(data, "fever/mark/feed").__setitem__("fields", ["as", "before", "id",
-                                                                            "mark"]),
+        lambda data: line_of(data, NEWSFLASH, "fever/mark/feed").__setitem__("fields", ["as", "before",
+                                                                                        "id", "mark"]),
 
         # The guarded call the record carries while the paragraph names another call as shown, which
         # is the half the guard covers: the bound, not the call that reached the port under it.
@@ -243,11 +268,11 @@ CASES = {
 
 
 def cases():
-    """The committed data as the baseline, and one crafted input per rule, in the order the
-    document names the rules, which is the order the round reads them in. Three rules have more
-    than one craft, because their branches cannot be shown by one input: the performance rule
-    reports five kinds of finding, the route rule reads two halves, and the rule that reads the run
-    record reads seven.
+    """The committed data as the baseline, and one crafted input per rule, in the order the document
+    names the rules, which is the order the round reads them in. Three rules have more than one
+    craft, because their branches cannot be shown by one input: the performance rule reports five
+    kinds of finding, the route rule reads two halves, and the rule that reads the run record
+    reads nine.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:

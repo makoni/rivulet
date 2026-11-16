@@ -1,0 +1,10 @@
+FeedFlow | 1 | accounts/ClientLogin | POST | POST /accounts/ClientLogin |  | Email Passwd
+FeedFlow | 2 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+FeedFlow | 3 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+FeedFlow | 4 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+FeedFlow | 5 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+FeedFlow | 6 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+FeedFlow | 7 | reader/api/0/token | GET | GET /reader/api/0/token |  | T
+FeedFlow | 8 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T output quickadd
+FeedFlow | 9 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s
+FeedFlow | 10 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output

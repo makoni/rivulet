@@ -37,19 +37,26 @@ NOT_SHOWN = [
     "matrix keeps open for them",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
-    "the order a client reaches its calls at on a device, which the run record carries for the "
-    "client run here and the source declares for the others",
+    "the order a client reaches its calls at, which the run record carries for the two clients run "
+    "here and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
     "the app-level choice of which calls a library-based client makes, which is read at the "
     "library boundary for the clients that have not been run here",
     "the guard a client applies before it sends, read as the bound on the list size, which no "
     "record line can show firing",
     "the side of the bound the guard applies, which the record carries as names and not as values",
+    "the answer a record line can carry for a call whose guard the client applies before it sends, "
+    "which is the status the guard answers with, while the matrix row names the dispatch "
+    "answer for the path",
+    "the part of a calling set a run did not reach, which the record carries no line for and the "
+    "paragraph for that client names as the halves this run did not walk",
     "the token half of a client that sends the stored value as the token, which the read compares "
     "as a token",
     "the numbers of another machine, which the performance half records as measurements taken here "
     "or names as not measured here",
     "the query latency at the 100k corpus, which is gated",
+    "the version of a client run on a device, which this machine has no app metadata to read the "
+    "value against",
 ]
 
 # The forms the stream branch reads a value with, as `docs/reference-notes.md` writes them: the two

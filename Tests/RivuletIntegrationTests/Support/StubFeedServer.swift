@@ -103,6 +103,16 @@ final class StubFeedServer: Sendable {
         await arrivals.wait(for: path)
     }
 
+    /// Waits for one arrival and answers whether it came, answering this wait's cancellation as the
+    /// cancellation it was given. A test that waits for an arrival it is sure to get has nothing to
+    /// answer at its limit; a pin whose rule may be answered no arrival — the process pin that
+    /// reads the loop's read as a request the child makes — needs its `timeLimit` to be a failure
+    /// rather than a hang, which is the harness rule that an unbounded wait carries a limit and
+    /// that the limit counts only when the wait can answer at it.
+    func waitForArrival(for path: String) async -> Bool {
+        await arrivals.waitForArrival(for: path)
+    }
+
     /// Stops the server.
     func stop() async throws {
         try await channel.close()
@@ -117,34 +127,65 @@ final class StubFeedServer: Sendable {
     private final class Arrivals: Sendable {
         private struct State {
             var paths: [String: Int] = [:]
-            var waiters: [String: [CheckedContinuation<Void, Never>]] = [:]
+            var waiters: [String: [Waiter]] = [:]
         }
 
         private let state = NIOLockedValueBox(State())
 
         func record(_ path: String) {
-            let waiters: [CheckedContinuation<Void, Never>] = state.withLockedValue { state in
+            let waiters: [Waiter] = state.withLockedValue { state in
                 state.paths[path, default: 0] += 1
                 return state.waiters.removeValue(forKey: path) ?? []
             }
             for waiter in waiters {
-                waiter.resume()
+                guard let continuation = waiter.continuation else { continue }
+                waiter.continuation = nil
+                continuation.resume(returning: true)
             }
         }
 
         func wait(for path: String) async {
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                let arrived = state.withLockedValue { state -> Bool in
-                    guard state.paths[path] ?? 0 == 0 else {
-                        return true
+            _ = await waitForArrival(for: path)
+        }
+
+        /// One arrival read, answered by an arrival or by this wait's own cancellation.
+        ///
+        /// The waiter is kept so the cancellation is known to belong to the wait it was given: a
+        /// wait that was already answered has nothing left to answer, which is the same rule the
+        /// signal seam keeps.
+        func waitForArrival(for path: String) async -> Bool {
+            let waiter = Waiter()
+
+            return await withTaskCancellationHandler {
+                let arrived = await withCheckedContinuation { (continuation:
+                    CheckedContinuation<Bool, Never>) in
+                    let counted = state.withLockedValue { state -> Bool in
+                        if state.paths[path] ?? 0 > 0 {
+                            return true
+                        }
+                        waiter.continuation = continuation
+                        state.waiters[path, default: []].append(waiter)
+                        return false
                     }
-                    state.waiters[path, default: []].append(continuation)
-                    return false
+                    if counted {
+                        continuation.resume(returning: true)
+                    }
                 }
-                if arrived {
-                    continuation.resume()
+                return arrived
+            } onCancel: {
+                let cancelled = state.withLockedValue { state -> CheckedContinuation<Bool, Never>? in
+                    guard let continuation = waiter.continuation else { return nil }
+                    waiter.continuation = nil
+                    state.waiters[path] = (state.waiters[path] ?? []).filter { $0 !== waiter }
+                    return continuation
                 }
+                cancelled?.resume(returning: false)
             }
+        }
+
+        /// One wait, with the continuation it answers, so the cancellation belongs to this wait.
+        private final class Waiter: @unchecked Sendable {
+            var continuation: CheckedContinuation<Bool, Never>?
         }
     }
 

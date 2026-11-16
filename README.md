@@ -20,7 +20,7 @@ Stage states as `docs/plan/README.md`'s table states them:
 - Stage 2 - Feed fetching: done
 - Stage 3 - Parsing & sanitization: merged
 - Stage 4 - Ingestion & scheduling: done
-- Stage 5 - Client APIs & OPML: in progress
+- Stage 5 - Client APIs & OPML: complete
 - Stage 6 - CLI & operations: criteria met
 - Stage 7 - Acceptance & hardening: in progress
 - Stage 8 - Packaging & deployment: in progress

@@ -140,12 +140,13 @@ as a class the corpus cannot reach. The seventh slice is the client matrix and t
 notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three read
 from their own source at a named commit, two from the project's documentation because their source
 cannot be read here — and the check half reads those sets, the record files, the document and the
-port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, but one
-client has been run against this port here — NewsFlash, the Fever client, through the run half
-`Scripts/client-run.sh` — so the manual matrix criterion is closed for that client and stays open
-for the four this machine has no device to run. What the 19 rules read: the source each set names
-and its commit, the redaction as the placeholders the half reads, the matrix rows against the
-manifest lines, the classes against the parity table and the output-check class against the
+port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, and two
+clients have been run against this port here, both through the run half `Scripts/client-run.sh`:
+NewsFlash, the Fever client, and FeedFlow, the Google Reader client, the second run on a phone that
+reached the observer over the local network. The manual matrix criterion is closed for both and
+stays open for the three this machine has no device to run. What the 19 rules read: the source each
+set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
+the manifest lines, the classes against the parity table and the output-check class against the
 endpoints the reference applies the check on, the routes the port registers against the answer each
 row names, with the catch-all read as the registration line the file writes, the reference's route
 and dispatch sets, the two halves of a client that reaches one half only, the order the source
@@ -155,39 +156,49 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — 30 crafted inputs plus the baseline over 19 rules, which is asserted to report nothing, so each
-probe is single-firing, the performance rule having one for each of the five kinds it reads and the
-route rule one for each of its two halves — and the round hashes every file the check half reads
-before and after, so a craft that reached a file is reported; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
-the document rather than asserted: the clients that have not been run against this port here, the
-calling set of a client whose source cannot be read, the order a client reaches its calls at on a
-device, which the run record carries for the client run here and the source declares for the others,
-the values the calls carry, which are redacted, the app-level choice of which calls a library-based
-client makes, the guard a client applies before it sends, read as the bound on the list size, which
-no record line can show firing, the side of the bound the guard applies, which the record carries as
-names and not as values, the token half of a client that sends the stored value as the token, the
-numbers of another machine, and the query latency at the 100k corpus. The eighth slice, merged as PR
-#71, is the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py` writes
-one record line per request it forwarded and asserts nothing, the record the run left behind is read
-as data by the nineteenth rule over seven halves, on the 26 lines the four sync passes wrote, and
-the run half is checked by `bash -n` and by its eight guards, ten read sites, each seen to fail on
-the value it names. The order half reads the order column rather than the position of the line, and
-one of the seven crafts reaches two parts of the data at once, the record line and the paragraph
-naming the calls this run showed. The Swift half is `ClientSequenceReplayTests`, 9 pins and 10
-probes, reading the same files through `Bundle.module` as data: the recorded order, which call
-reaches a registered route and which reaches the catch-all answer, the two item-id forms the same
-client sends, the page size above the clamp against the value at the clamp, the token half per
-method, the guard the merged form answers for the call with no add and no remove pair, the name the
-dispatch switch has no case for, and the prefix this port registers no route for; each probe was
-seen to fire on the rule it names, and the transport read every other pin runs through is pinned by
-`GoogleReaderAuthTests`, so no patch can show it alone. The performance half records measurements
-taken here rather than bounds: `Scripts/perf.sh` is the run half, `Tools/clients/perf-run.txt` is
-the recorded run, and the rule matches each claim in `docs/performance.md` to the line that produced
-it. What this paragraph pointed to is merged: OPML as PR #64 and the acceptance journey as PR #66,
-the last piece being the automated half of stage 5, whose green run in CI is the criterion that
-closed with it. The manual client-matrix criterion is closed for the client run here and stays open
-for the four clients this machine has no device to run, which is what the report items name.
+it — 32 crafted inputs plus the baseline over 19 rules, which is asserted to report nothing, so each
+probe is single-firing, the performance rule having one for each of the five kinds it reads, the
+route rule one for each of its two halves, and the rule that reads the run record one for each of
+its nine halves — and the round hashes every file the check half reads before and after, so a craft
+that reached a file is reported; the parsers are in `Tools/clients/parsers.py` so the rules stay the
+readable part. What no craft can show is named in the document rather than asserted: the clients
+that have not been run against this port here, the calling set of a client whose source cannot be
+read, the order a client reaches its calls at, which the run record carries for the two clients run
+here and the source declares for the others, the values the calls carry, which are redacted, the
+app-level choice of which calls a library-based client makes, the guard a client applies before it
+sends, read as the bound on the list size, which no record line can show firing, the side of the
+bound the guard applies, which the record carries as names and not as values, the answer a record
+line can carry for a call whose guard the client applies before it sends, which is the status the
+guard answers with while the matrix row names the dispatch answer for the path, the part of a
+calling set a run did not reach, which the record carries no line for and the paragraph for that
+client names as the halves this run did not walk, the token half of a client that sends the stored
+value as the token, the numbers of another machine, the query latency at the 100k corpus, and the
+version of a client run on a device, which this machine has no app metadata to read the value
+against. The eighth slice, merged as PR #71, is the run half executed here: `Scripts/client-run.sh`
+with `Tools/clients/observer.py` writes one record line per request it forwarded and asserts
+nothing, the records the runs left behind are read as data by the nineteenth rule in nine halves —
+six on the record the Fever run wrote, one on the paragraph naming its calls, one on the record the
+Google Reader run wrote here, and one on a record this machine has not written — and the run half is
+checked by `bash -n` and by its nine guards, twelve read sites, six reading one value, three for the
+ports, two for the base's three halves, one for the entry guard's two halves, each seen to fail on
+the value it names. The Google Reader record itself is the document the ninth slice below commits.
+The order half reads the order column rather than the position of the line, and one of the nine
+crafts reaches two parts of the data at once, the record line and the paragraph naming the calls
+this run showed.
+
+The ninth slice, the one not merged yet, is the run half executed on a device and the pin the
+process harness gained for it. FeedFlow, the Google Reader client, was run against the served port
+through the observer on the address the machine's own default route selects, the phone reaching it
+over the local network, which is the half the host guard reads the machine for, and the base guard's
+third half is the prefix form, because this client builds the prefix from its own resource table
+rather than sending the base as typed. Its record is the document the check half reads: 10 lines
+with the login first and the add call, which is the half stage 5's single-client criterion kept open
+for a client that has that call, and the run showed the entry rows as the rows the pass the cadence
+loop makes during the window writes. That is the same rule the new pin in `ServeProcessTests` reads
+as the request the child makes for the feed it seeds — 11 pins across the three process suites, 4 in
+`ServeProcessTests` — and the harness gained the `prepare` hook that seeds the child's database
+before the spawn and the arrival read that answers a pin's cancellation, so a pin whose rule can be
+answered no arrival fails at its limit instead of hanging.
 
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
@@ -350,7 +361,7 @@ open rather than the clean answer. What those headers name as unpinnable: the pr
 file, which the seam answers in place of the machine, and the connection the check opens, which no
 patch can show because the command has no other connection to read through.
 
-Stage 5 is in progress, with its first two slices merged: `create-admin` with the user rules and the
+Stage 5 is complete, with its first two slices merged: `create-admin` with the user rules and the
 bcrypt hasher (PR #38), and `integration-credentials` with the Fever token derivation and the
 duplicate-name rules (PR #39). For the second slice the join, the lowercase hex form, the parts read
 as given, the order the two duplicate checks are read in, the guard inside the rule function that an
@@ -541,9 +552,11 @@ in the same second; the wordings of the console lines and of the reported failur
 comparison, pinned by `SchedulerBatchTests`; the icon path, which has no row here because the
 fixture page carries no icon link; and the rules pinned by their own suites, which this round reads
 only through this suite, so a patch to one of them fires the pin in that suite as well, a reach
-reasoned there rather than shown here. Stage 5's one open criterion is the manual single-client
-check, repeated with the full matrix in stage 7, the Fever parameter set having merged as PR #61 and
-the minimal scan as part of PR #59.
+reasoned there rather than shown here. Stage 5's one criterion beyond the automated journey was the
+manual single-client check, repeated with the full matrix in stage 7, and it is closed by the two
+clients run against this port: the Fever run shows the halves its set has, and the Google Reader run
+shows the half that set has no call for, the call that adds a feed. The Fever parameter set merged
+as PR #61 and the minimal scan as part of PR #59.
 
 Stage 4 — Ingestion & scheduling is merged, pinned end to end (the per-feed refresh pipeline, the
 tick's due-batch selection with the bounded worker pool, both modes of `ScheduleNextCheck` with the
