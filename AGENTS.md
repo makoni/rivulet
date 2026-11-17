@@ -157,14 +157,14 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — the round answers 35 cases over 19 rules, 34 crafted inputs plus the baseline asserted to
+it — the round answers 36 cases over 19 rules, 35 crafted inputs plus the baseline asserted to
 report nothing, so each probe is single-firing, the performance rule having one for each of the five
 kinds it reads, the route rule one for each of its two halves, and the rule that reads the run
-record one for each of its eleven halves — and the round hashes every file the check half reads
-before and after, so a craft that reached a file is reported; two crafts name data the record rule
-cannot read, the redaction craft on a set for a client this machine has not run and the route rule's
-first craft on a row no record line reaches, because after the third record landed both crafts
-reported the record rule as well; the parsers are in
+record one for each of its eleven halves, which is twelve crafts — and the round hashes every file
+the check half reads before and after, so a craft that reached a file is reported; two crafts name
+data the record rule cannot read, the redaction craft on a set for a client this machine has not run
+and the route rule's first craft on a row no record line reaches, because after the third record
+landed both crafts reported the record rule as well; the parsers are in
 `Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
 the document rather than asserted: the clients that have not been run against this port here, the
 calling set of a client, whose source cannot be read, the order a client reaches its calls at, which
@@ -183,18 +183,18 @@ numbers of another machine, the query latency at the 100k corpus, and the versio
 a device, which this machine has no app metadata to read the value against. The eighth slice, merged
 as PR #71, is the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py`
 writes one record line per request it forwarded and asserts nothing, the records the runs left
-behind are read as data by the nineteenth rule in eleven halves — six on the record the Fever run
-wrote, one on the paragraph naming its calls, one on the record the Google Reader run on the phone
-wrote here, one on a record this machine has not written, one on the names the round reads the
-record files under, which PR #78 added and which keeps the performance record, read by its own rule
-at its own path, out of the client records, and one on the status a record line carries, which PR
-#79 added, read as the status the handler the route file gives this path answers, through the
-shapes its own branches write and the status each shape writes, read from the pin that pins the
-mapping. The half reads only the paths it can name a handler for, so the login route and the
-paths that answer on the catch-all or a dispatch case read nothing here. The answer half reads the
-shape answers and the status half reads the status answers, so the two together cover the answer
-status half reads the status answers, so the two together cover the answer column, which is what
-took the round to 35 cases over 19 rules. The run half is checked by `bash -n` and by its nine
+behind are read as data by the nineteenth rule in eleven halves, twelve crafts: six on the record
+the Fever run wrote, one on the paragraph naming its calls, one on the record the Google Reader run
+on the phone wrote here, the order half crafted again on the record the run on the Mac wrote, one on
+a record this machine has not written, one on the names the round reads the record files under,
+which PR #78 added and which keeps the performance record, read by its own rule at its own path, out
+of the client records, and one on the status a record line carries, which PR #79 added, read as the
+status the handler the route file gives this path answers, through the shapes its own branches write
+and the status each shape writes, read from the pin that pins the mapping. The half reads only the
+paths it can name a handler for, so the login route and the paths that answer on the catch-all or a
+dispatch case read nothing here. The answer half reads the shape answers and the status half reads
+the status answers, so the two together cover the answer column, which is what took the round to 36
+cases over 19 rules. The run half is checked by `bash -n` and by its nine
 guards, twelve read sites, six reading one value, three for the ports, two for the base's three
 halves, one for the entry guard's two halves, each seen to fail on the value it names, the base half
 the run builds, which now follows the form the set names for a client that appends the prefix
@@ -207,14 +207,19 @@ the device left, and the record PR #79 commits is the 25 lines the second walk l
 and the answer the status half reads. The third record the check half reads is the 56 lines
 NetNewsWire left on the Mac, and the walk there reached every call its set names, so the halves the
 phone run did not show are what this run showed: the folder rename, the folder delete with both
-halves of its guard, the input that left a row answering `OK` and the input that left nothing
-answering the status the handler gives for that rule, which is the case the write-handler pin
-asserts for the wording. The folder the app made in its own state exists on the port only through
-the subscription edit that put the feed in it, which is the half the record reads as the
-destination, the action and the stream together, and the version named beside the placeholder the
-run declares is the 7.2.1 the device's About box reports. The order half reads the order column
-rather than the position of the line, and one of the nine crafts from PR #71 reaches two parts of
-the data at once, the record line and the paragraph naming the calls this run showed.
+halves of its guard, the input that left a row answering the shape the write handler writes for that
+branch, which the record carries as the route name and the pin asserts as the `OK` body, and the
+input that left nothing answering the status the handler gives for that rule, which is the case the
+write-handler pin asserts for the wording. The record shows one add and one remove as the two state
+writes, so which of the two state items each carried is named as a half the record cannot show, and
+the folder the app made in its own state exists on the port only through the subscription edit that
+put the feed in it, which is the half the record reads as the destination, the action and the
+stream together, and the version named beside the placeholder the run declares is the 7.2.1 the
+device's About box reports. The order half reads the order column rather than the position of the
+line, and it reads the paragraph for a client only when the document writes it in the form the half
+names, which is why the paragraph for this client names the client, as the other two do; one of the
+twelve crafts reaches two parts of the data at once, the record line and the paragraph naming the
+calls this run showed.
 
 The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
 harness gained for it. FeedFlow, the Google Reader client, was run against the served port through

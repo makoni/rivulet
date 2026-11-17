@@ -32,23 +32,26 @@ includes two sentences written for the sets they name: the shape the performance
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
 and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 34 crafted inputs and the baseline, so 35 cases: the performance rule has one for
-each of the five kinds of finding it reads, the route rule has one for each of its two halves,
+firing — 19 rules, 35 crafted inputs and the baseline, so 36 cases: the performance rule has one
+for each of the five kinds of finding it reads, the route rule has one for each of its two halves,
 because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its eleven halves — six on the record the Fever run wrote here,
-one on the paragraph naming its calls, one on the record the Google Reader run on the phone wrote
-here, one on a record this machine has not written, for a client whose set records no calls, one on
-the names the round reads the record files under, which is the half that keeps the performance
-record, read by its own rule at its own path, out of the client records; the craft adds a name the
-round does not read a client under, so what the round shows is the message on that name, not that
-the read leaves the other files out; and one on the status a record line carries, which writes a
-status the handler for that path has no branch for. One of those eleven reaches two parts of the
-data at once, the record line and the paragraph that names the calls this run showed, because the
-half reads the record against the paragraph and the Fever run reached no call outside the recorded
-set. Two crafts have to name data this rule cannot read, which is why the redaction craft is on a
-set for a client this machine has not run and the first craft of the route rule is on a row no
-record line reaches: a change to data this rule also reads fires it alongside the rule the craft
-names, which is what the round showed here after the third record landed.
+run record has one for each of its eleven halves, which is twelve crafts: six on the record the
+Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
+run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
+one on a record this machine has not written, for a client whose set records no calls, one on the
+names the round reads the record files under, which is the half that keeps the performance record,
+read by its own rule at its own path, out of the client records; the craft adds a name the round
+does not read a client under, so what the round shows is the message on that name, not that the
+read leaves the other files out; and one on the status a record line carries, which writes a status
+the handler for that path has no branch for. The order half reads a paragraph only when the
+document writes it in the form the half names, so the craft on the Mac record works because the
+paragraph for that client names the client, as the other two do. One of the twelve crafts reaches
+two parts of the data at once, the record line and the paragraph that names the calls this run
+showed, because the half reads the record against the paragraph and the Fever run reached no call
+outside the recorded set. Two crafts have to name data this rule cannot read, which is why the
+redaction craft is on a set for a client this machine has not run and the first craft of the route
+rule is on a row no record line reaches: a change to data this rule also reads fires it alongside
+the rule the craft names, which is what the round showed here after the third record landed.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -128,10 +131,10 @@ loopback, and the phone reached the observer through it. A firewall rule on this
 local network to the observer port, which is a half no guard reads: a machine that does not answer
 on the port the run declares is a guard failure, while a machine that answers on the port and drops
 the packets from another device is not something a guard can see. The third run showed the same half
-on the port the run serves its feed page on: while that port was closed to the device, the app's own
-fetch of the page reached nothing, and the record carries no line for it, because the page fetch is
-not one of the calls the observer records; the record shows the add call arriving after the port was
-opened to the local network.
+on the port the run serves its feed page on: the record carries no line for a page fetch at all,
+because the page fetch is not one of the calls the observer records, so no line can show a packet
+the firewall dropped. What the record does show is the add call arriving after the port was
+opened to the local network, which is the run half reading the address its own guard names.
 
 The entry guard is what the second run showed as a rule over what a run wrote rather than over what
 the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
@@ -292,13 +295,15 @@ appending the endpoint path to the base it is given, which is the form the set n
 Manual checklist, walked here by the run on the Mac: log in; list the subscriptions; list the tags;
 add a feed from the client; rename a folder; delete a folder; sync a page of item ids and their
 contents; mark one item read and un-read; star and un-star; rename a subscription; remove a
-subscription. Every call the set names arrived.
+subscription. Every call the set names arrived, and the walk reached one add and one remove: the
+record carries the add action on one state-write line and the removed name on the other, so which of
+the two state items each write carried is a half the record cannot show.
 
-The calls this run showed, in the order the record says they arrived: `accounts/ClientLogin`,
-`reader/api/0/tag/list`, `reader/api/0/subscription/list`, `reader/api/0/stream/items/ids`,
-`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/subscription/edit`,
-`reader/api/0/stream/items/contents`, `reader/api/0/rename-tag`, `reader/api/0/disable-tag`,
-`reader/api/0/edit-tag`.
+The calls this run showed for NetNewsWire, in the order the record says they arrived:
+`accounts/ClientLogin`, `reader/api/0/tag/list`, `reader/api/0/subscription/list`,
+`reader/api/0/stream/items/ids`, `reader/api/0/token`, `reader/api/0/subscription/quickadd`,
+`reader/api/0/subscription/edit`, `reader/api/0/stream/items/contents`,
+`reader/api/0/rename-tag`, `reader/api/0/disable-tag`, `reader/api/0/edit-tag`.
 
 The record carries 56 lines for this run: the login, five tag lists, seven subscription lists,
 twenty-five stream pages, the token, two adds, seven subscription edits, two item-content reads, two
@@ -308,10 +313,11 @@ subscription edit that put the feed in it, which is the half the record reads as
 the action and the stream together.
 
 The two folder-delete lines read as the two halves of the same guard: the input that left a row
-answered `OK`, and the input that left nothing answered the status the handler gives for that rule,
-500, carried through the shape the error answer writes. This is the case the write-handler pin
-asserts for the wording, and here it arrived from the app's own delete-folder step, which named the
-folder that was the only category row for the pair.
+answered the shape the write handler writes for that branch, which the record carries as the route
+name and which the pin asserts as the `OK` body, and the input that left nothing answered the status
+the handler gives for that rule, 500, carried through the shape the error answer writes. This is the
+case the write-handler pin asserts for the wording, and here it arrived from the app's own
+delete-folder step, which named the folder that was the only category row for the pair.
 
 The remove-subscription half deletes the row the entry guard reads, so the walk had to add the feed
 again after it: the row the guard read was the one the second add call wrote, and the entry row the

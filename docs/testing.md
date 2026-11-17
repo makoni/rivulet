@@ -1566,28 +1566,29 @@ carries them, the routes the port registers, the handler each registration line 
 shapes each handler's own branches write, and the status each shape writes as the pin asserts it,
 so the rules stay the readable part of the check half. `Tools/clients/probes.py` crafts one input
 per rule that violates it and asserts that the rule reports it alone; the baseline — the committed
-data — reports nothing, so each probe is single-firing: 19 rules, 34 crafted inputs and the
-baseline, so 35 cases, the performance rule having one for each of the five kinds of finding it
+data — reports nothing, so each probe is single-firing: 19 rules, 35 crafted inputs and the
+baseline, so 36 cases, the performance rule having one for each of the five kinds of finding it
 reads, the route rule one for each of its two halves, because an input that violates one half of a
 rule still satisfies the other, and the rule that reads the run record one for each of its eleven
-halves — six on the record the Fever run wrote here, one on the paragraph naming its calls, one
-on the record the Google Reader run on the phone wrote here, one on a record this machine has not
-written, for a client whose set records no calls, one on the names the round reads the record files
-under, which is the half that keeps the performance record, read by its own rule at its own path,
-out of the client records, and one on the status a record line carries, which writes a status the
-handler for that path has no branch for. The status half reads only the paths it can name a handler
-for: a row whose answer is the catch-all or a dispatch case has no handler, and the login route
-writes no handler call, so those paths read nothing here, and a shape that writes no error status
-has no pair in the pin, so a record line carrying the status the text shape writes is read as a
-finding. A status line for a call the matrix has no row for is not read by this half, which is the
-half that reads the call name. One of those eleven reaches two parts of the data at once, the
-record line and the paragraph that names the calls this run showed, because the half reads the
-record against the paragraph and the Fever run reached no call outside the recorded set. Two crafts
-have to name data this rule cannot read: the redaction craft is on a set for a client this
-machine has not run, and the first craft of the route rule is on a row no record line reaches. A
-change to data this rule also reads fires it alongside the rule the craft names, which is what the
-round showed here after the third record landed, so those two crafts sit on data only one rule
-reads. Every craft changes the
+halves, which is twelve crafts: six on the record the Fever run wrote here, one on the paragraph
+naming its calls, one on the record the Google Reader run on the phone wrote here, the order half
+crafted again on the record the run on the Mac wrote, one on a record this machine has not written,
+for a client whose set records no calls, one on the names the round reads the record files under,
+which is the half that keeps the performance record, read by its own rule at its own path, out of
+the client records, and one on the status a record line carries, which writes a status the handler
+for that path has no branch for. The status half reads only the paths it can name a handler for: a
+row whose answer is the catch-all or a dispatch case has no handler, and the login route writes no
+handler call, so those paths read nothing here, and a shape that writes no error status has no pair
+in the pin, so a record line carrying the status the text shape writes is read as a finding. A
+status line for a call the matrix has no row for is not read by this half, which is the half that
+reads the call name. The order half reads a paragraph only when the document writes it in the form
+the half names, so the craft on the record the Mac run wrote works because the paragraph for that
+client names the client, as the other two do. One of the twelve crafts reaches two parts of the data
+at once, the record line and the paragraph that names the calls this run showed, because the half
+reads the record against the paragraph and the Fever run reached no call outside the recorded set.
+Two crafts have to name data this rule cannot read: the redaction craft is on a set for a client
+this machine has not run, and the first craft of the route rule is on a row no record line reaches,
+which is what the round showed here after the third record landed. Every craft changes the
 parsed data in memory and never a file, and the round hashes every file the check half reads before
 and after, so a craft that reached a file is reported. What the 19 rules read: the source each set
 names and its commit, the redaction as
