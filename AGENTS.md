@@ -149,9 +149,10 @@ client run on a phone that reached the observer over the local network, and NetN
 Reader client run on the Mac on the same network. A fourth run, Reeder Classic on the phone, walked
 the Fever half here, and its record is held as evidence outside the repository, because the set
 for that client records no calls. The manual matrix criterion is closed for the three whose
-records are read as data and for the halves the walk on Reeder Classic showed, and stays open for
-lire, which this machine has no device to run, and for Capy Reader, until a walk on the phone in
-the same network runs against it. What the 19 rules read: the source each
+records are read as data, for the halves the walk on Reeder Classic showed, and for the half the
+walk by hand on Capy Reader showed on the phone here, and stays open for lire, which this machine
+has no device to run, and for the Capy Reader items that walk did not reach. What the 19 rules
+read: the source each
 set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
 the manifest lines, the classes against the parity table and the output-check class against the
 endpoints the reference applies the check on, the routes the port registers against the answer each

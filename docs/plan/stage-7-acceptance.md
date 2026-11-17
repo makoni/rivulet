@@ -217,10 +217,12 @@ the pair, and what is still open is the classes no corpus input can reach.
       named as what the walk showed rather than as data read against a set; the add half has no
       call this client's set can be read for. Capy Reader is the free client for the same half, and
       its set is read from documentation because no rule here reads calls on a path this port
-      registers no route for, so its half is named as the whole half rather than as partial. The
-      manual half stays open for lire, which this machine has no device to run, and for Capy Reader,
-      until a walk on the phone in the same network runs against it, and for the halves each walk
-      did not reach, which are named per client.
+      registers no route for, so its half is named as the whole half rather than as partial. It was
+      walked by hand here on the phone in the same network: the walk showed the call it makes first,
+      `GET /v1/me`, answered status 404 for that path, and the app refused the account on that
+      answer, so the checklist items were not reached, and its record is evidence outside the
+      repository. The manual half stays open for lire, which this machine has no device to run, and
+      for the Capy Reader items that walk did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

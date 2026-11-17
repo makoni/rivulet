@@ -19,9 +19,10 @@ numbers, at its own path, and not as a record for a client the matrix has a row 
 Reeder Classic on the phone, walked the Fever half here, and its record is held as evidence outside
 the repository rather than read here, because the set for that client records no calls, so the rule
 reads a record file for it as a finding. The manual matrix exit criterion of
-`docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data and for the
-halves the walk on Reeder Classic showed, and stays open for lire, which this machine has no device
-to run, and for Capy Reader, until a walk by hand on the phone runs against it. The single-client
+`docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data, for the
+halves the walk on Reeder Classic showed, and for the half the walk by hand on Capy Reader showed on
+the phone here, and stays open for lire, which this machine has no device to run, and for the Capy
+Reader items that walk did not reach. The single-client
 criterion of `docs/plan/stage-5-apis.md`, which names one real
 client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
 client connects and syncs, and the Google Reader run shows the half that set has no call for, the
@@ -484,14 +485,20 @@ run half reads the base as the whole prefix; that the app builds its paths as re
 it is given is what the app's own source shows at tag `2026.11.1217`, and that read is not
 recorded as a calling set here. The run half cannot complete for this client: the column its pair
 guard reads has a case only for the two paths this half reads as data, so for this set the guard's
-read fails on the empty column name and the guard's own message is never reached. Manual checklist,
-not executed here: log in, read the feeds and the entries, mark one item read, star one item, and
-add a feed.
+read fails on the empty column name and the guard's own message is never reached, so the checklist
+was walked by hand on the Android phone in the same network.
 
-Nothing is committed for this client beyond the set and its rows: the set records no calls, so a
-record file for it is a finding rather than data, and a walk here leaves its record as evidence
-outside the repository, as the walk on Reeder Classic did. The Android phone in the same network is
-the device this client can be walked on, by hand.
+What that walk showed: the app's first call, `GET /v1/me`, arrived at the observer from the phone,
+and this port answered it with status 404, because it registers no route for that path, and the app
+read that answer as the credential check failing and did not save the account, so the items the
+checklist names — reading the feeds, reading the entries, marking one item read, starring one item,
+adding a feed — were not reached. The two key names the answer carried, `error` and `reason`,
+arrived in both orders across the requests the walk made, which is the order each answer wrote
+them in. The record the walk left is evidence outside the repository, as Reeder Classic's is,
+because a record file for a set that records no calls is a finding rather than data. The call name
+that record carries, `v1/me/?api`, is the name the read writes for a set that records no calls, not
+a call the set names, and nothing the walk reached carries a value the check half could read
+against a pair.
 
 ### Reeder Classic — Fever API
 
