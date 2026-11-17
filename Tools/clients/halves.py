@@ -20,7 +20,8 @@ def rule_partial_half(data):
                          f"{'partial' if named_as_partial else 'the whole half'}, while the "
                          f"set names {'two halves' if names_two else 'one half'}")
         if not any(half.get("note") for half in set_data["halves"]):
-            found.append(f"{name}: the partial half is named without naming the read it comes from")
+            found.append(f"{name}: the half that reaches no route is named without naming the "
+                         f"read it comes from")
     return found
 
 

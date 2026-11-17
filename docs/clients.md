@@ -464,27 +464,29 @@ prefix.
 Setup: Settings → Integrations → the Fever pair, and an API key; in the app, the URL without `/v1`
 or `/fever`. Manual checklist, not executed here: the Fever half as above, and the REST half
 recorded as not served here. The client is paid, so this machine has no run for it; the free client
-below is the one this half can walk for the same half.
+below is the one this half can walk by hand for the same half.
 
 ### Capy Reader — the Miniflux REST API
 
-Read from the project's documentation, which names Miniflux as the sync service this app uses. Its
-source is open, so the endpoints could be read from it, and they are not recorded here: the rules
-that read calls read the two paths this port registers, and this half is the third, so no rule here
-has anything to read a call on it against. The half is named as the whole half rather than as
-partial, which is what the rule that reads the shape the set names for its halves checks: the set
-names one half, so it names the shape as one.
+Read from the project's documentation: miniflux's own documentation names Capy Reader as an Android
+client for Miniflux, and the app's README names Miniflux as one of the sources the app supports,
+which is the whole fact these two sources state. Its source is open, so the endpoints could be read
+from it, and they are not recorded here: the rules that read calls read the two paths this port
+registers, and this half is the third, so no rule here has anything to read a call on it against.
+The half is named as the whole half rather than as partial, which is what the rule that reads the
+shape the set names for its halves checks: the set names one half, so it names the shape as one.
 
-Setup: the app's account screen asks for the URL and for the API key, or for the pair, and the base
-the run prints carries the prefix, because the half names no form, so the run half reads the base as
-the whole prefix. Manual checklist, not executed here: log in, read the feeds and the entries, mark
-one item read and un-read, star one item, save one item, and add a feed through the call the app
-makes for it.
+The base the run prints carries the prefix, because the half names no form, so the run half reads
+the base as the whole prefix, and the app resolves its paths against the base as it is typed, which
+its own source shows. The run half cannot run for this client: the column its pair guard reads has
+a case only for the two paths this half reads as data, and this half is the third, so the guard
+answers nothing for it. Manual checklist, not executed here: log in, read the feeds and the entries,
+mark one item read, star one item, and add a feed.
 
-Nothing is committed for this client beyond the set: the set records no calls, so a record file for
-it is a finding rather than data, and a walk here leaves its record as evidence outside the
-repository, as the walk on Reeder Classic did. The Android phone in the same network is the device
-this client can be walked on.
+Nothing is committed for this client beyond the set and its rows: the set records no calls, so a
+record file for it is a finding rather than data, and a walk here leaves its record as evidence
+outside the repository, as the walk on Reeder Classic did. The Android phone in the same network is
+the device this client can be walked on, by hand.
 
 ### Reeder Classic — Fever API
 

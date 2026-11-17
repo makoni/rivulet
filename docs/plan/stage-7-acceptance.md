@@ -146,7 +146,7 @@ The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 
 record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
 writes for the output-check sets, and the port's own route, dispatch, auth and response sources read
 as data, each rule shown to report its own crafted input alone and the baseline to report nothing —
-30 crafted inputs plus the baseline, so 31 cases, with the round hashing every file the check half
+36 crafted inputs plus the baseline, so 37 cases, with the round hashing every file the check half
 reads before and after, so a craft that reached a file is reported. The parsers are in
 `Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
 `Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
