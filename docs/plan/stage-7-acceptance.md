@@ -53,9 +53,13 @@ measurements taken here rather than bounds. **Effort:** M. **Depends on:** Stage
       walked: the Fever run walked the base document, the read documents and the marks, the Google
       Reader run on the phone walked the login, the subscription list, one stream page and the add,
       which is the half the Fever set has no call for and which is why stage 5's single-client
-      criterion is closed, and the Google Reader run on the Mac walked every call its set names. The
-      manual half stays open for the two clients this machine has no device to run, and the halves
-      the runs did not walk are named per client.
+      criterion is closed, and the Google Reader run on the Mac walked every call its set names.
+      Reeder Classic, the fifth client, was walked here on the phone for the Fever half, whose
+      record is held as evidence outside the repository, because the check half reads a record for a
+      client whose set records no calls as a finding rather than as data; the add half cannot be
+      walked for it, since the Fever set has no call that can write a feed row. The manual half
+      stays open for lire, the client this machine has no device to run, and the halves each walk
+      did not reach are named per client.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five
@@ -198,11 +202,15 @@ the run needs is here now, and the run executes end to end through the collector
 authenticated pair; the login half is closed as the accepted-divergence row for the path that writes
 the pair, and what is still open is the classes no corpus input can reach.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes). Closed for
-      the halves two real clients can show here: NewsFlash connects and syncs against a locally
-      served port through `Scripts/client-run.sh`, and FeedFlow connects on a phone over the local
-      network, adds a feed through the call its own set names, and syncs — the records both runs
-      wrote are read as data. The three clients this machine has no device to run are one open half,
-      and the checklist halves the two runs did not walk are named per client.
+      the halves the runs here read as data: NewsFlash connects and syncs against a locally served
+      port through `Scripts/client-run.sh`, FeedFlow connects on a phone over the local network,
+      adds a feed through the call its own set names, and syncs, and the run on the Mac walked every
+      call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
+      record is evidence outside the repository rather than data this half reads, so its halves are
+      named as what the walk showed rather than as data read against a set; the add half has no
+      call this client's set can be read for. The manual half stays open for lire, the client this
+      machine has no device to run, and for the halves each walk did not reach, which are named per
+      client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

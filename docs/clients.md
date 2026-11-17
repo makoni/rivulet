@@ -6,22 +6,26 @@ acceptance, and what the port answers for each of them.
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
 project's documentation when the client is closed source. No set is a capture, and three clients
-have been run against this port here — NewsFlash, the Fever client, FeedFlow, the Google Reader
-client run on a phone, and NetNewsWire, the Google Reader client run on a Mac, all through
-`Scripts/client-run.sh`, the run half that reads what a real client actually sent — and the records
-those runs left behind, `Tools/clients/newsflash.txt`, `Tools/clients/feedflow.txt` and
-`Tools/clients/netnewswire.txt`, one file per client named as the round reads that client, are read
-as data by the rule that reads them, which reads them under those names: the performance record that
-sits in the same directory is read by the rule that reads the numbers, at its own path, and not as a
-record for a client the matrix has a row for. The manual matrix exit criterion of
-`docs/plan/stage-7-acceptance.md` is closed for these three and stays open for the two clients this
-machine cannot run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
+have been run against this port here and left a record this half reads as data — NewsFlash, the
+Fever client, FeedFlow, the Google Reader client run on a phone, and NetNewsWire, the Google Reader
+run on a Mac, all through `Scripts/client-run.sh`, the run half that reads what a real client
+actually sent — and the records those runs left behind, `Tools/clients/newsflash.txt`,
+`Tools/clients/feedflow.txt` and `Tools/clients/netnewswire.txt`, one file per client named as the
+round reads that client, are read as data by the rule that reads them, which reads them under those
+names: the performance record that sits in the same directory is read by the rule that reads the
+numbers, at its own path, and not as a record for a client the matrix has a row for. A fourth run,
+Reeder Classic on the phone, walked the Fever half here, and its record is held as evidence outside
+the repository rather than read here, because the set for that client records no calls, so the rule
+reads a record file for it as a finding. The manual matrix exit criterion of
+`docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data and for the
+halves the walk on Reeder Classic showed, and stays open for lire, the client this machine has no
+device to run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
 client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
 client connects and syncs, and the Google Reader run shows the half that set has no call for, the
 call that adds a feed. FeedFlow was run on a phone over the local network, and NetNewsWire on the
 Mac on the same network, which is the half the run half reads the host guard for. The checklists
-below are the checks to run for a client, and the three for the clients run here name what each run
-showed.
+below are the checks to run for a client, and the four for the clients walked here name what each
+walk showed.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own
@@ -261,8 +265,9 @@ Each line below is one report item line, read as one whole string by the check h
 from the width rule.
 
 - the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
+- the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
-- the order a client reaches its calls at, which the run record carries for the three clients run here and the source declares for the others
+- the order a client reaches its calls at, which the run record carries for the three clients whose records the check half reads as data and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
 - the guard a client applies before it sends, read as the bound on the list size, which no record line can show firing
@@ -403,10 +408,11 @@ page size.
 
 Read from `news-flash/fever_api` `src/lib.rs` at `0.6.0`, the client library the app depends on: the
 set is the library's own, and the app's choice of which of these calls it makes is read at the
-library boundary for the clients that are not run here. 14 calls. Every name the switch has a case
-for is called, and two answers come from the branch it has no case for: the base document the
-request with no name gets, and `links`, which is a name the switch does not have. The key reaches
-the merged form as a multipart part, which is the read PR #61 pins. The item page is the fixed 50,
+library boundary for the clients this half reads no record data for. 14 calls. Every name the switch
+has a case for is called, and two answers come from the branch it has no case for: the base document
+the request with no name gets, and `links`, which is a name the switch does not have. The key
+reaches the merged form as a multipart part, which is the read PR #61 pins. The item page is the
+fixed 50,
 and the `with_ids` guard is the bound on the list size the client applies before it sends: the
 record carries a line for the call, which is the half the bound does not cover, and both the bound
 firing and the size the client sent are report items. The `HEAD` reachability check PR #61 sized to
@@ -453,8 +459,41 @@ recorded as not served here.
 ### Reeder Classic — Fever API
 
 Read from the project's documentation, which names it as Fever-compatible; the client is closed
-source, so this is the whole fact the matrix can state for it. Manual checklist, not executed here:
-the Fever half as above.
+source, so this is the whole fact the matrix can state for it. The Fever half of the checklist was
+walked here on an iPhone in the same network, through the run half, over a window of 30 minutes at
+the cadence of 1 second, with the pair the run declares. The record that walk wrote is held outside
+the repository as evidence, not committed as data: the set for this client records no calls, so the
+check half reads a record file for it as a finding, and the round read it as one while the file sat
+in the record directory.
+
+Setup: the app's Fever form asks for the address and for the pair. The address is sent as the whole
+prefix the set names for this client, and the path each line arrived on names the marker the app
+adds to it, so the form the record shows is `fever/?api`, which is what the walk showed rather than
+the form the set names.
+
+Manual checklist, walked here on the device: log in; read the base document; read groups, feeds,
+unread and saved ids; read a page of items and the next page through `since_id`; mark one item read,
+un-read and saved. Not walked here: `fever/favicons`, `fever/links`, marking a feed read before a
+time, and marking a group read, which on iOS has no app-level half for a Fever account: the walk
+saw only the folder named All holding the one feed. The value for `id = 0` on that branch is a
+value, so no line can show it either.
+
+What the walk showed, as its lines name it, in the order they arrived: the login is a line here,
+because the app wrote the account inside the window rather than before it, arriving as POST with the
+key as the name the field carries and answered by the default branch. Four sync passes carried the
+base document, `fever/feeds`, `fever/groups`, `fever/unread_item_ids` and `fever/saved_item_ids`;
+`fever/items` arrived on the first pass, `fever/items/since_id` on each of the four, and
+`fever/items/with_ids` on the last two. Seven `fever/mark/item` lines arrived for the one item the
+walk marked read, un-read and saved: the states are values, so the seven lines cannot be told apart,
+and four of them came from the app rather than from a step the walk named. The log the run kept for
+its own observer shows the second `with_ids` line arriving with an empty list, and the port answered
+the items document for it. The two end halves of the run read what the walk left: the record is
+non-empty, and the pass wrote the one entry row the run declares for the feed the run wrote.
+
+The app showed the feed the run wrote with an empty name, which is the value the row carries: the
+model names the feed title as empty until the first successful fetch fills it, and the half that
+wrote the entry rows here wrote no title. The walk on NewsFlash showed the same page with the same
+empty name, so this is what the two walks showed rather than a difference between the clients.
 
 ## What the replay half shows
 
