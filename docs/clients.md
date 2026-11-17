@@ -148,8 +148,9 @@ what the run half itself wrote: the run left the feed row to the call the set na
 the guard reads was written by the client's own add call, and the entry rows the guard read can
 only have come from the pass the cadence loop makes during the window, the run half writing none
 itself. For a client whose set names no call that can write a row, the run half writes the row
-itself, which is the half the walk on Reeder Classic showed: the row the guard reads there was
-written before the first request arrived, so the walk cannot show which write made it. The same
+itself, which is the half the run half names. On the Reeder Classic walk the row the guard reads
+is the run's own: the walk database puts it before the first request arrived, so the walk cannot
+show which write made it. The same
 rule is what the pin in `ServeProcessTests` reads as the request the child makes for the feed it
 seeds, and the seed that pin writes is a command that fetches nothing.
 
@@ -469,7 +470,7 @@ records no calls, so the check half reads a record file for it as a finding, and
 as one while the file sat in the record directory.
 
 Setup: the app's Fever form asks for the address and for the pair, and the base the run prints
-names the path the set names for this client, which is what the guard on the base reads. What the
+names the prefix the set names for this client, which is what the guard on the base reads. What the
 record names as the path is the name the observer's read gives it, not the path as it arrived: the
 base document reads as `fever/?api` because the read has no name for the query key that arrived,
 and the log shows those requests arriving as `GET /fever/?refresh`; the mark lines read as
@@ -487,18 +488,18 @@ branch is a value, so no line can show it either.
 What the walk showed, as its lines name it, in the order they arrived: line 1 is POST with the key
 as the name the field carries, answered by the default branch, and it is the first request that
 reached the observer; the pair row was written by the run's own commands before the observer
-started, so this line names the app's first read rather than a login the app made before it. Four
-sync passes carried the base document, `fever/feeds`, `fever/groups`, `fever/unread_item_ids` and
-`fever/saved_item_ids`; `fever/items` arrived on the first pass, `fever/items/since_id` on each of
-the four, and `fever/items/with_ids` on the last two. The log names five passes, so the record
-stops before the last one, and it names three `with_ids` requests, all arriving with an empty
-list, where the record carries two lines. Seven `fever/mark/item` lines arrived; the checklist
-names three steps, read, un-read and saved, so three of the seven are the steps the walk named and
-four are left by them, with nothing in either file showing which side sent them; the states are
-values, so the seven lines cannot be told apart, and no line names the item they were for. The
-evidence holds 35 record lines against 42 requests the log names, so seven forwarded requests have
-no line, which the two files cannot explain: the rule that would show it is the observer's own,
-one line per request it forwards.
+started, so this line names the app's first request rather than a login the app made before it.
+Four sync passes carried the base document, `fever/feeds`, `fever/groups`, `fever/unread_item_ids`
+and `fever/saved_item_ids`; `fever/items` arrived on the first pass, `fever/items/since_id` on
+each of the four, and `fever/items/with_ids` on the last two. The log names five passes, so the
+record stops before the last one, and it names three `with_ids` requests, all arriving with an
+empty list, where the record carries two lines. Seven `fever/mark/item` lines arrived; the
+checklist names three steps, read, un-read and saved, so three of the seven are the steps the walk
+named and four are left by them, with nothing in either file showing which side sent them; the
+states are values, so the seven lines cannot be told apart, and no line names the item they were
+for. The evidence holds 35 record lines against 42 requests the log names, so seven forwarded
+requests have no line, which the two files cannot explain: the rule that would show it is the
+observer's own, one line per request it forwards.
 
 The order named in this section is the order the record carries, and the order half reads records
 for the three clients whose records it reads as data, so the order here is what the walk left
