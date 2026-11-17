@@ -1,0 +1,56 @@
+NetNewsWire | 1 | accounts/ClientLogin | POST | POST /accounts/ClientLogin |  | Email Passwd
+NetNewsWire | 2 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+NetNewsWire | 3 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 4 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 5 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 6 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 7 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+NetNewsWire | 8 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 9 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 10 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 11 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 12 | reader/api/0/token | GET | GET /reader/api/0/token |  | T
+NetNewsWire | 13 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T quickadd
+NetNewsWire | 14 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 15 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T a ac s
+NetNewsWire | 16 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s t
+NetNewsWire | 17 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 18 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 19 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 20 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+NetNewsWire | 21 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 22 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 23 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 24 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 25 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+NetNewsWire | 26 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 27 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 28 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 29 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 30 | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | direction id title self updated items author | T i output
+NetNewsWire | 31 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s t
+NetNewsWire | 32 | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag |  | T dest s
+NetNewsWire | 33 | reader/api/0/disable-tag | POST | POST /reader/api/0/disable-tag |  | T s
+NetNewsWire | 34 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s
+NetNewsWire | 35 | reader/api/0/disable-tag | POST | status 500 | error_message | T s
+NetNewsWire | 36 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i
+NetNewsWire | 37 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T i r
+NetNewsWire | 38 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 39 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 40 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 41 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 42 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s
+NetNewsWire | 43 | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag |  | T dest s
+NetNewsWire | 44 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T quickadd
+NetNewsWire | 45 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 46 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T a ac s
+NetNewsWire | 47 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s t
+NetNewsWire | 48 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 49 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 50 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 51 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+NetNewsWire | 52 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+NetNewsWire | 53 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+NetNewsWire | 54 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+NetNewsWire | 55 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+NetNewsWire | 56 | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | direction id title self updated items author | T i output

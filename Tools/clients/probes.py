@@ -4,18 +4,19 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 34 crafted inputs and the baseline, so 35 cases — the performance rule
+single-firing: 19 rules, 35 crafted inputs and the baseline, so 36 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
-its two halves, because an input that violates one half of a rule still satisfies the other, and
-the rule that reads the run record has one for each of its eleven halves — six on the record the
-Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
-run wrote here, one on a record this machine has not written, for a client whose set records no
-calls, one on the names the round reads the record files under, which is the half that keeps the
-performance record, read by its own rule at its own path, out of the client records, and one on the
-status a record line carries for an error answer. One of those eleven reaches two parts of the data
-at once, the record line and the paragraph that names the
-calls this run showed, because the half reads the record against the paragraph and the Fever run
-reached no call outside the recorded set; that craft is named with the rule in `docs/clients.md`.
+its two halves, because an input that violates one half of a rule still satisfies the other, and the
+rule that reads the run record has one for each of its eleven halves, twelve crafts in all: six on
+the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
+Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
+record this machine has not written, for a client whose set records no calls, one on the names the
+round reads the record files under, which is the half that keeps the performance record, read by its
+own rule at its own path, out of the client records, and one on the status a record line carries for
+an error answer. One of those twelve reaches two parts of the data at once, the record line and the
+paragraph that names the calls this run showed, because the half reads the record against the
+paragraph and the Fever run reached no call outside the recorded set; that craft is named with the
+rule in `docs/clients.md`.
 The crafts change the data in memory, never the files. The round hashes every file the check half
 reads before and after, so a craft that reached a file is reported. The crafts that would have to
 change a client's own source — the bound the guard applies before the request is sent, and the
@@ -77,9 +78,9 @@ def add_line(data, client, call, answer, keys, fields):
                                    "answer": answer, "keys": keys, "fields": fields})
 
 
-def swap_order(data, first, second):
+def swap_order(data, first, second, client=NEWSFLASH):
     """Swap the order two calls carry, which is what a run that reached them the other way wrote."""
-    a, b = line_of(data, NEWSFLASH, first), line_of(data, NEWSFLASH, second)
+    a, b = line_of(data, client, first), line_of(data, client, second)
     a["order"], b["order"] = b["order"], a["order"]
 
 
@@ -121,9 +122,12 @@ CASES = {
     "sets_name_the_source_and_a_set_read_from_docs_records_no_calls":
         lambda data: set_of(data, "NetNewsWire")["source"].__setitem__("kind", "docs"),
 
-    # A value that reads as a captured response, not as the placeholder the half reads.
+    # A value that reads as a captured response, not as the placeholder the half reads. The set has
+    # to be one this machine has not run: a change to the redaction of a client whose run wrote a
+    # record is a finding for the rule that reads that record too, which is what the round showed
+    # when the third record landed.
     "sets_are_redacted":
-        lambda data: set_of(data, "NetNewsWire")["redaction"].__setitem__("token", "9f2c1a7b3e"),
+        lambda data: set_of(data, "lire")["redaction"].__setitem__("token", "9f2c1a7b3e"),
 
     # A matrix row names a class the manifest line for the same call does not.
     "matrix_names_every_call_and_the_classes_agree_with_the_manifest":
@@ -134,11 +138,13 @@ CASES = {
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row":
         lambda data: data["classes"][0].__setitem__("Read by", "docs/parity.md"),
 
-    # A row names an answer the port registers no route for. The second craft takes away the
-    # registration line the catch-all half reads, which is the other half of the same rule.
+    # A row names an answer the port registers no route for. The row has to be one the record for
+    # its client carries no line for — the same change on a row a record line reads is a finding for
+    # the rule that reads the record as well. The second craft takes away the registration line the
+    # catch-all half reads, which is the other half of the same rule.
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": [
-        lambda data: row_of(data, "NetNewsWire", "reader/api/0/token").__setitem__(
-            "This port answers", "GET /reader/api/0/token-read"),
+        lambda data: row_of(data, "FeedFlow", "reader/api/0/stream/contents").__setitem__(
+            "This port answers", "POST /reader/api/0/stream/contents-not-registered"),
         lambda data: data.__setitem__("port_routes", data["port_routes"].replace(
             'on(.GET, "**"', 'on(.GET, "**-not-registered"')),
     ],
@@ -230,6 +236,11 @@ CASES = {
         # The order the record carries, read as the order column, against the order the paragraph
         # names the calls the two have in common: the two names swap in the column.
         lambda data: swap_order(data, "fever/groups", "fever/mark/feed"),
+
+        # The same half on the record the run on the Mac wrote, which is read because the paragraph
+        # for that client is written in the form this half names. The two names swap in the column.
+        lambda data: swap_order(data, "reader/api/0/rename-tag", "reader/api/0/disable-tag",
+                                "NetNewsWire"),
 
         # A call the set cannot name, read against the paragraph naming the calls this run showed.
         # The line keeps the default answer, so the answer half is satisfied by the same input.

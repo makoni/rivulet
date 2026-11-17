@@ -37,8 +37,8 @@ NOT_SHOWN = [
     "matrix keeps open for them",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
-    "the order a client reaches its calls at, which the run record carries for the two clients run "
-    "here and the source declares for the others",
+    "the order a client reaches its calls at, which the run record carries for the three clients "
+    "run here and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
     "the app-level choice of which calls a library-based client makes, which is read at the "
     "library boundary for the clients that have not been run here",

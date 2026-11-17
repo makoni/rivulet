@@ -3,8 +3,9 @@
 size cap. The run half writes one record line per request the client actually sent, so this rule
 reads the run document rather than the app: the client the record names, the order the calls
 arrived in, the call as the recorded set names it, the method, the answer the port gave, the key
-names the answer carried, and the field names the request carried. Eleven halves, each with its own
-craft: the client the record names against the set that client's row records; the order the
+names the answer carried, and the field names the request carried. Eleven halves and twelve crafts,
+the order half crafted on two of the three records the round reads as data here: the client the
+record names against the set that client's row records; the order the record carries against the
 record carries against the order the document names the calls this run showed; a call the set
 cannot name against the document naming it as shown; the answer for a call the set names against
 the matrix row; the answer for a call the reference records no case for against the default
@@ -26,13 +27,16 @@ of the line, because the line is written when the response is complete, which is
 order when the client has more than one connection open at once. The paragraph is read for the
 client the record names, so a run this machine has not written a record for has no paragraph to
 read an order against, and the half reads nothing for it rather than reading the order of another
-client's run. Each half the round crafts is single-firing, because the record is a committed file
-the round reads as data: a craft changes the parsed record in memory and the round hashes the
-file before and after. One branch has no craft and is named here rather than probed: the one that
-reports a record naming a client the check half has no set for, which no committed record can put
-in place. The number written for each status name is this read's vocabulary, because the pin asserts
-the status name and no test asserts the number: the pair (shape, status) is read as data, the number
-is named here, and that is the half the report item names.
+client's run. The paragraph has to be written in the form this half names, so the document names the
+client in the paragraph for each run it wrote here; that form is the second branch named here rather
+than probed, because a craft that took the client name out of the paragraph leaves this half reading
+nothing. Each half the round crafts is single-firing, because the record is a committed file the
+round reads as data: a craft changes the parsed record in memory and the round hashes the file
+before and after. The first branch named rather than probed is the one that reports a record naming
+a client the check half has no set for, which no committed record can put in place. The number
+written for each status name is this read's vocabulary, because the pin asserts the status name
+and no test asserts the number: the pair (shape, status) is read as data, the number is named here,
+and that is the half the report item names.
 """
 
 import parsers as read
