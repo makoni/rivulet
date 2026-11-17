@@ -5,7 +5,9 @@ acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation when the client is closed source. No set is a capture, and three clients
+project's documentation, which is what a set is read from when the client's source cannot be read
+here, and also for Capy Reader, whose source is open but whose path this half has no rule for. No
+set is a capture, and three clients
 have been run against this port here and left a record this half reads as data — NewsFlash, the
 Fever client, FeedFlow, the Google Reader client run on a phone, and NetNewsWire, the Google Reader
 run on a Mac, all through `Scripts/client-run.sh`, the run half that reads what a real client
@@ -18,8 +20,9 @@ Reeder Classic on the phone, walked the Fever half here, and its record is held 
 the repository rather than read here, because the set for that client records no calls, so the rule
 reads a record file for it as a finding. The manual matrix exit criterion of
 `docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data and for the
-halves the walk on Reeder Classic showed, and stays open for lire, the client this machine has no
-device to run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
+halves the walk on Reeder Classic showed, and stays open for lire, which this machine has no device
+to run, and for Capy Reader, until a walk by hand on the phone runs against it. The single-client
+criterion of `docs/plan/stage-5-apis.md`, which names one real
 client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
 client connects and syncs, and the Google Reader run shows the half that set has no call for, the
 call that adds a feed. FeedFlow was run on a phone over the local network, and NetNewsWire on the
@@ -466,7 +469,7 @@ or `/fever`. Manual checklist, not executed here: the Fever half as above, and t
 recorded as not served here. The client is paid, so this machine has no run for it; the free client
 below is the one this half can walk by hand for the same half.
 
-### Capy Reader — the Miniflux REST API
+### Capy Reader — Miniflux as a supported source
 
 Read from the project's documentation: miniflux's own documentation names Capy Reader as an Android
 client for Miniflux, and the app's README names Miniflux as one of the sources the app supports,
@@ -474,14 +477,16 @@ which is the whole fact these two sources state. Its source is open, so the endp
 from it, and they are not recorded here: the rules that read calls read the two paths this port
 registers, and this half is the third, so no rule here has anything to read a call on it against.
 The half is named as the whole half rather than as partial, which is what the rule that reads the
-shape the set names for its halves checks: the set names one half, so it names the shape as one.
+shape the set names for its halves checks: the set names the shape as one.
 
-The base the run prints carries the prefix, because the half names no form, so the run half reads
-the base as the whole prefix, and the app resolves its paths against the base as it is typed, which
-its own source shows. The run half cannot run for this client: the column its pair guard reads has
-a case only for the two paths this half reads as data, and this half is the third, so the guard
-answers nothing for it. Manual checklist, not executed here: log in, read the feeds and the entries,
-mark one item read, star one item, and add a feed.
+The base the run builds for this client carries the prefix, because the half names no form, so the
+run half reads the base as the whole prefix; that the app builds its paths as relative to the base
+it is given is what the app's own source shows at tag `2026.11.1217`, and that read is not
+recorded as a calling set here. The run half cannot complete for this client: the column its pair
+guard reads has a case only for the two paths this half reads as data, so for this set the guard's
+read fails on the empty column name and the guard's own message is never reached. Manual checklist,
+not executed here: log in, read the feeds and the entries, mark one item read, star one item, and
+add a feed.
 
 Nothing is committed for this client beyond the set and its rows: the set records no calls, so a
 record file for it is a finding rather than data, and a walk here leaves its record as evidence

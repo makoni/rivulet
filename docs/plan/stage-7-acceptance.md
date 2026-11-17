@@ -148,8 +148,10 @@ writes for the output-check sets, and the port's own route, dispatch, auth and r
 as data, each rule shown to report its own crafted input alone and the baseline to report nothing —
 36 crafted inputs plus the baseline, so 37 cases, with the round hashing every file the check half
 reads before and after, so a craft that reached a file is reported. The parsers are in
-`Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
-`Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
+`Tools/clients/parsers.py`, and the rule that reads the halves is in `Tools/clients/halves.py`
+because the check half is at the size cap, so the rules stay the readable part. -
+`Scripts/client-run.sh` with `Tools/clients/observer.py` — the run half of the client matrix,
+outside CI: the observer writes one
 record line per request it forwarded and asserts nothing, and the rule that reads the run record
 reads the records the runs left behind as data in eleven halves, the tenth being the names the round
 reads the record files under, which is PR #78, merged here, and the eleventh the status a record
