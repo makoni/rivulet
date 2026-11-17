@@ -121,9 +121,12 @@ CASES = {
     "sets_name_the_source_and_a_set_read_from_docs_records_no_calls":
         lambda data: set_of(data, "NetNewsWire")["source"].__setitem__("kind", "docs"),
 
-    # A value that reads as a captured response, not as the placeholder the half reads.
+    # A value that reads as a captured response, not as the placeholder the half reads. The set has
+    # to be one this machine has not run: a change to the redaction of a client whose run wrote a
+    # record is a finding for the rule that reads that record too, which is what the round showed
+    # when the third record landed.
     "sets_are_redacted":
-        lambda data: set_of(data, "NetNewsWire")["redaction"].__setitem__("token", "9f2c1a7b3e"),
+        lambda data: set_of(data, "lire")["redaction"].__setitem__("token", "9f2c1a7b3e"),
 
     # A matrix row names a class the manifest line for the same call does not.
     "matrix_names_every_call_and_the_classes_agree_with_the_manifest":
@@ -134,11 +137,13 @@ CASES = {
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row":
         lambda data: data["classes"][0].__setitem__("Read by", "docs/parity.md"),
 
-    # A row names an answer the port registers no route for. The second craft takes away the
-    # registration line the catch-all half reads, which is the other half of the same rule.
+    # A row names an answer the port registers no route for. The row has to be one the record for
+    # its client carries no line for — the same change on a row a record line reads is a finding for
+    # the rule that reads the record as well. The second craft takes away the registration line the
+    # catch-all half reads, which is the other half of the same rule.
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": [
-        lambda data: row_of(data, "NetNewsWire", "reader/api/0/token").__setitem__(
-            "This port answers", "GET /reader/api/0/token-read"),
+        lambda data: row_of(data, "FeedFlow", "reader/api/0/stream/contents").__setitem__(
+            "This port answers", "POST /reader/api/0/stream/contents-not-registered"),
         lambda data: data.__setitem__("port_routes", data["port_routes"].replace(
             'on(.GET, "**"', 'on(.GET, "**-not-registered"')),
     ],

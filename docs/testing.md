@@ -1570,19 +1570,24 @@ data — reports nothing, so each probe is single-firing: 19 rules, 34 crafted i
 baseline, so 35 cases, the performance rule having one for each of the five kinds of finding it
 reads, the route rule one for each of its two halves, because an input that violates one half of a
 rule still satisfies the other, and the rule that reads the run record one for each of its eleven
-halves — six on the record the Fever run wrote here, one on the paragraph naming its calls, one on
-the record the Google Reader run wrote here, one on a record this machine has not written, for a
-client whose set records no calls, one on the names the round reads the record files under, which is
-the half that keeps the performance record, read by its own rule at its own path, out of the client
-records, and one on the status a record line carries, which writes a status the handler for that
-path has no branch for. The status half reads only the paths it can name a handler for: a row whose
-answer is the catch-all or a dispatch case has no handler, and the login route writes no handler
-call, so those paths read nothing here, and a shape that writes no error status has no pair in the
-pin, so a record line carrying the status the text shape writes is read as a finding. A status line
-for a call the matrix has no row for is not read by this half, which is the half that reads the call
-name. One of those eleven reaches two parts of the data at once, the record line and the paragraph
-that names the calls this run showed, because the half reads the record against the paragraph and
-the Fever run reached no call outside the recorded set. Every craft changes the
+halves — six on the record the Fever run wrote here, one on the paragraph naming its calls, one
+on the record the Google Reader run on the phone wrote here, one on a record this machine has not
+written, for a client whose set records no calls, one on the names the round reads the record files
+under, which is the half that keeps the performance record, read by its own rule at its own path,
+out of the client records, and one on the status a record line carries, which writes a status the
+handler for that path has no branch for. The status half reads only the paths it can name a handler
+for: a row whose answer is the catch-all or a dispatch case has no handler, and the login route
+writes no handler call, so those paths read nothing here, and a shape that writes no error status
+has no pair in the pin, so a record line carrying the status the text shape writes is read as a
+finding. A status line for a call the matrix has no row for is not read by this half, which is the
+half that reads the call name. One of those eleven reaches two parts of the data at once, the
+record line and the paragraph that names the calls this run showed, because the half reads the
+record against the paragraph and the Fever run reached no call outside the recorded set. Two crafts
+have to name data this rule cannot read: the redaction craft is on a set for a client this
+machine has not run, and the first craft of the route rule is on a row no record line reaches. A
+change to data this rule also reads fires it alongside the rule the craft names, which is what the
+round showed here after the third record landed, so those two crafts sit on data only one rule
+reads. Every craft changes the
 parsed data in memory and never a file, and the round hashes every file the check half reads before
 and after, so a craft that reached a file is reported. What the 19 rules read: the source each set
 names and its commit, the redaction as
@@ -1615,9 +1620,9 @@ number written for each status name is that half's vocabulary: the pin asserts t
 no test asserts the number, so the pair (shape, status) is read as data while the number is named in
 the code, which is the half the report item names. What this half cannot show, and is named in
 `docs/clients.md` rather than asserted: the clients that have not been run against this port here,
-the calling set of a client whose source cannot be read, the order a client reaches
-its calls at, which the run record carries for the two clients run here and the source declares for
-the others, the values the calls carry, which are redacted, the app-level choice of which calls a
+the calling set of a client whose source cannot be read, the order a client reaches its calls at,
+which the run record carries for the three clients run here and the source declares for the others,
+the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
 list size, which no record line can show firing, the side of the bound the guard applies, which the
 record carries as names and not as values, the answer a record line can carry for a call whose guard

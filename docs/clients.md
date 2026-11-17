@@ -5,21 +5,23 @@ acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation when the client is closed source. No set is a capture, and two clients have
-been run against this port here — NewsFlash, the Fever client, and FeedFlow, the Google Reader
-client, both through `Scripts/client-run.sh`, the run half that reads what a real client actually
-sent — and the records those runs left behind, `Tools/clients/newsflash.txt` and
-`Tools/clients/feedflow.txt`, one file per client named as the round reads that client, are read as
-data by the rule that reads them, which reads them under those names: the performance record that
+project's documentation when the client is closed source. No set is a capture, and three clients
+have been run against this port here — NewsFlash, the Fever client, FeedFlow, the Google Reader
+client run on a phone, and NetNewsWire, the Google Reader client run on a Mac, all through
+`Scripts/client-run.sh`, the run half that reads what a real client actually sent — and the records
+those runs left behind, `Tools/clients/newsflash.txt`, `Tools/clients/feedflow.txt` and
+`Tools/clients/netnewswire.txt`, one file per client named as the round reads that client, are read
+as data by the rule that reads them, which reads them under those names: the performance record that
 sits in the same directory is read by the rule that reads the numbers, at its own path, and not as a
 record for a client the matrix has a row for. The manual matrix exit criterion of
-`docs/plan/stage-7-acceptance.md` is closed for these two and stays open for the three clients this
+`docs/plan/stage-7-acceptance.md` is closed for these three and stays open for the two clients this
 machine cannot run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
 client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
 client connects and syncs, and the Google Reader run shows the half that set has no call for, the
-call that adds a feed. FeedFlow was run on a phone over the local network, which is the half the run
-half reads the host guard for. The checklists below are the checks to run for a client that cannot
-be run here.
+call that adds a feed. FeedFlow was run on a phone over the local network, and NetNewsWire on the
+Mac on the same network, which is the half the run half reads the host guard for. The checklists
+below are the checks to run for a client, and the three for the clients run here name what each run
+showed.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own
@@ -33,16 +35,20 @@ and asserts that the rule reports it alone; the baseline reports nothing, so eac
 firing — 19 rules, 34 crafted inputs and the baseline, so 35 cases: the performance rule has one for
 each of the five kinds of finding it reads, the route rule has one for each of its two halves,
 because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its eleven halves — six on the record the Fever run wrote here, one
-on the paragraph naming its calls, one on the record the Google Reader run wrote here, one on a
-record this machine has not written, for a client whose set records no calls, one on the names the
-round reads the record files under, which is the half that keeps the performance record, read by
-its own rule at its own path, out of the client records; the craft adds a name the round does not
-read a client under, so what the round shows is the message on that name, not that the read leaves
-the other files out; and one on the status a record line carries, which writes a status the handler
-for that path has no branch for. One of those eleven reaches two parts of the data at once, the
-record line and the paragraph that names the calls this run showed, because the half reads the
-record against the paragraph and the Fever run reached no call outside the recorded set.
+run record has one for each of its eleven halves — six on the record the Fever run wrote here,
+one on the paragraph naming its calls, one on the record the Google Reader run on the phone wrote
+here, one on a record this machine has not written, for a client whose set records no calls, one on
+the names the round reads the record files under, which is the half that keeps the performance
+record, read by its own rule at its own path, out of the client records; the craft adds a name the
+round does not read a client under, so what the round shows is the message on that name, not that
+the read leaves the other files out; and one on the status a record line carries, which writes a
+status the handler for that path has no branch for. One of those eleven reaches two parts of the
+data at once, the record line and the paragraph that names the calls this run showed, because the
+half reads the record against the paragraph and the Fever run reached no call outside the recorded
+set. Two crafts have to name data this rule cannot read, which is why the redaction craft is on a
+set for a client this machine has not run and the first craft of the route rule is on a row no
+record line reaches: a change to data this rule also reads fires it alongside the rule the craft
+names, which is what the round showed here after the third record landed.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -88,10 +94,13 @@ port twice, and by a port the machine already holds, seen by holding the observe
 listener and then the served port; the base, by the port the observer forwards to instead of its
 own, and by a path the set does not name for the client, seen for FeedFlow, whose set reads the
 Google Reader path while the base carries the Fever prefix, and by the form the set names for how
-this client builds the prefix, seen for the client whose set names that it appends the prefix
+this client builds the prefix, seen for the clients whose sets name that they append the prefix
 itself, where a base carrying the prefix reaches the port with it twice — which is also what the
 default base the run builds did before the read followed that form, so the default now names the
-port alone for that client and the prefix for the clients that send the base as the whole prefix;
+port alone for those clients and the prefix for the client that sends the base as the whole prefix;
+for NetNewsWire this half was seen red on the head before its set named the form, on the base its
+own source needs, which carries only host and port because every call appends the endpoint path to
+the base it is given;
 the version, by a version the file the run reads does not write, which is the half that only exists
 on this machine; the pair row, by an empty name the command's rule refuses before the storage layer,
 seen on both paths through the column each one names; the entry rows, by the value 2 against the one
@@ -118,7 +127,11 @@ network, so the run declared the address the machine's own default route selects
 loopback, and the phone reached the observer through it. A firewall rule on this machine allows the
 local network to the observer port, which is a half no guard reads: a machine that does not answer
 on the port the run declares is a guard failure, while a machine that answers on the port and drops
-the packets from another device is not something a guard can see.
+the packets from another device is not something a guard can see. The third run showed the same half
+on the port the run serves its feed page on: while that port was closed to the device, the app's own
+fetch of the page reached nothing, and the record carries no line for it, because the page fetch is
+not one of the calls the observer records; the record shows the add call arriving after the port was
+opened to the local network.
 
 The entry guard is what the second run showed as a rule over what a run wrote rather than over what
 the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
@@ -243,7 +256,7 @@ from the width rule.
 
 - the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
-- the order a client reaches its calls at, which the run record carries for the two clients run here and the source declares for the others
+- the order a client reaches its calls at, which the run record carries for the three clients run here and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
 - the guard a client applies before it sends, read as the bound on the list size, which no record line can show firing
@@ -269,13 +282,44 @@ forms: the contents call writes the hex without padding and the state call write
 `%016x` scan is what the read for `stream/items/contents` runs, so the unpadded form is reported
 there and the padded form reaches the write on `edit-tag` as the field-width rule reads it.
 
-Setup: Settings → Accounts → add an account of type "Reader API compatible", with the Google Reader
-integration credentials, not the account password. The value this client puts in the header is the
-answer the login gave, so the credentials are the integration pair.
+Setup: Settings → Accounts → add an account of type Self-hosted → FreshRSS — the UI has no "Reader
+API compatible" type, and FreshRSS is the type whose variant shares the base handling the checklist
+reads — with the Google Reader integration credentials, not the account password. The value this
+client puts in the header is the answer the login gave, so the credentials are the integration pair.
+The address the app is given carries only host and port, because its own source builds the prefix by
+appending the endpoint path to the base it is given, which is the form the set names for it.
 
-Manual checklist, not executed here: log in; list the subscriptions; list the tags; add a feed from
-the client; rename a folder; delete a folder; sync a page of item ids and their contents; mark one
-item read and un-read; star and un-star; rename a subscription; remove a subscription.
+Manual checklist, walked here by the run on the Mac: log in; list the subscriptions; list the tags;
+add a feed from the client; rename a folder; delete a folder; sync a page of item ids and their
+contents; mark one item read and un-read; star and un-star; rename a subscription; remove a
+subscription. Every call the set names arrived.
+
+The calls this run showed, in the order the record says they arrived: `accounts/ClientLogin`,
+`reader/api/0/tag/list`, `reader/api/0/subscription/list`, `reader/api/0/stream/items/ids`,
+`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/subscription/edit`,
+`reader/api/0/stream/items/contents`, `reader/api/0/rename-tag`, `reader/api/0/disable-tag`,
+`reader/api/0/edit-tag`.
+
+The record carries 56 lines for this run: the login, five tag lists, seven subscription lists,
+twenty-five stream pages, the token, two adds, seven subscription edits, two item-content reads, two
+folder renames, two folder deletes, and two state writes. Creating a folder sends nothing: the
+delegate makes the folder in its own state, so the folder exists on the port only through the
+subscription edit that put the feed in it, which is the half the record reads as the destination,
+the action and the stream together.
+
+The two folder-delete lines read as the two halves of the same guard: the input that left a row
+answered `OK`, and the input that left nothing answered the status the handler gives for that rule,
+500, carried through the shape the error answer writes. This is the case the write-handler pin
+asserts for the wording, and here it arrived from the app's own delete-folder step, which named the
+folder that was the only category row for the pair.
+
+The remove-subscription half deletes the row the entry guard reads, so the walk had to add the feed
+again after it: the row the guard read was the one the second add call wrote, and the entry row the
+one the pass the cadence loop made after it wrote.
+
+The version the run declared is a report item, not a value. The device's app reports 7.2.1, and the
+run here declares the placeholder, because this machine has no app metadata for a client run on a
+device; the half reads neither, so both are named rather than compared.
 
 ### FeedFlow — Google Reader API
 
