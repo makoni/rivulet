@@ -13,10 +13,10 @@ Google Reader run on the phone wrote here, one on the record the run on the Mac 
 record this machine has not written, for a client whose set records no calls, one on the names the
 round reads the record files under, which is the half that keeps the performance record, read by its
 own rule at its own path, out of the client records, and one on the status a record line carries for
-an error answer. One of those twelve reaches two parts of the data
-at once, the record line and the paragraph that names the
-calls this run showed, because the half reads the record against the paragraph and the Fever run
-reached no call outside the recorded set; that craft is named with the rule in `docs/clients.md`.
+an error answer. One of those twelve reaches two parts of the data at once, the record line and the
+paragraph that names the calls this run showed, because the half reads the record against the
+paragraph and the Fever run reached no call outside the recorded set; that craft is named with the
+rule in `docs/clients.md`.
 The crafts change the data in memory, never the files. The round hashes every file the check half
 reads before and after, so a craft that reached a file is reported. The crafts that would have to
 change a client's own source — the bound the guard applies before the request is sent, and the

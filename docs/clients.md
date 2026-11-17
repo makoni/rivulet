@@ -45,7 +45,9 @@ does not read a client under, so what the round shows is the message on that nam
 read leaves the other files out; and one on the status a record line carries, which writes a status
 the handler for that path has no branch for. The order half reads a paragraph only when the
 document writes it in the form the half names, so the craft on the Mac record works because the
-paragraph for that client names the client, as the other two do. One of the twelve crafts reaches
+paragraph for that client names the client, as the other two do; the form itself is the second half
+named in `Tools/clients/run_record.py` rather than probed, because a craft that took the client name
+out of the paragraph leaves this half reading nothing. One of the twelve crafts reaches two parts of
 two parts of the data at once, the record line and the paragraph that names the calls this run
 showed, because the half reads the record against the paragraph and the Fever run reached no call
 outside the recorded set. Two crafts have to name data this rule cannot read, which is why the
@@ -132,9 +134,10 @@ local network to the observer port, which is a half no guard reads: a machine th
 on the port the run declares is a guard failure, while a machine that answers on the port and drops
 the packets from another device is not something a guard can see. The third run showed the same half
 on the port the run serves its feed page on: the record carries no line for a page fetch at all,
-because the page fetch is not one of the calls the observer records, so no line can show a packet
-the firewall dropped. What the record does show is the add call arriving after the port was
-opened to the local network, which is the run half reading the address its own guard names.
+because the app's fetch of the page does not pass through the observer, which writes a line for
+every request it forwards, so no line can show a packet the firewall dropped. What the record does
+show is the add call arriving after the port was opened to the local network, which is the run half
+reading the address its own guard names.
 
 The entry guard is what the second run showed as a rule over what a run wrote rather than over what
 the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
@@ -313,11 +316,12 @@ subscription edit that put the feed in it, which is the half the record reads as
 the action and the stream together.
 
 The two folder-delete lines read as the two halves of the same guard: the input that left a row
-answered the shape the write handler writes for that branch, which the record carries as the route
-name and which the pin asserts as the `OK` body, and the input that left nothing answered the status
-the handler gives for that rule, 500, carried through the shape the error answer writes. This is the
-case the write-handler pin asserts for the wording, and here it arrived from the app's own
-delete-folder step, which named the folder that was the only category row for the pair.
+answered the status the handler writes for the branch that keeps rows, which the record carries as
+the route name and which the pin asserts as `.ok`, the `OK` body being asserted for another input on
+the same path, and the input that left nothing answered the status the handler gives for that rule,
+500, carried through the shape the error answer writes. This is the case the write-handler pin
+asserts for the wording, and here it arrived from the app's own delete-folder step, which named the
+folder that was the only category row for the pair.
 
 The remove-subscription half deletes the row the entry guard reads, so the walk had to add the feed
 again after it: the row the guard read was the one the second add call wrote, and the entry row the

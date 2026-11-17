@@ -180,7 +180,10 @@ is data while the number is the read's own vocabulary, the part of a calling set
 reach, which the record carries no line for and the paragraph for that client names as the halves
 this run did not walk, the token half of a client that sends the stored value as the token, the
 numbers of another machine, the query latency at the 100k corpus, and the version of a client run on
-a device, which this machine has no app metadata to read the value against. The eighth slice, merged
+a device, which this machine has no app metadata to read the value against. The form the paragraph
+the order half reads has to be written in is named in `Tools/clients/run_record.py` as a branch the
+round cannot show firing: a craft that took the client name out of the paragraph leaves that half
+reading nothing. The eighth slice, merged
 as PR #71, is the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py`
 writes one record line per request it forwarded and asserts nothing, the records the runs left
 behind are read as data by the nineteenth rule in eleven halves, twelve crafts: six on the record

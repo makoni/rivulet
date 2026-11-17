@@ -1583,9 +1583,11 @@ in the pin, so a record line carrying the status the text shape writes is read a
 status line for a call the matrix has no row for is not read by this half, which is the half that
 reads the call name. The order half reads a paragraph only when the document writes it in the form
 the half names, so the craft on the record the Mac run wrote works because the paragraph for that
-client names the client, as the other two do. One of the twelve crafts reaches two parts of the data
-at once, the record line and the paragraph that names the calls this run showed, because the half
-reads the record against the paragraph and the Fever run reached no call outside the recorded set.
+client names the client, as the other two do; the form itself is named as a half no craft can show,
+because a craft that took the client name out of the paragraph leaves the half reading nothing. One
+of the twelve crafts reaches two parts of the data at once, the record line and the paragraph that
+names the calls this run showed, because the half reads the record against the paragraph and the
+Fever run reached no call outside the recorded set.
 Two crafts have to name data this rule cannot read: the redaction craft is on a set for a client
 this machine has not run, and the first craft of the route rule is on a row no record line reaches,
 which is what the round showed here after the third record landed. Every craft changes the
