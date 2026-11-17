@@ -208,7 +208,8 @@ Reader record is the document the check half reads: PR #77 committed the 10 line
 the device left, and the record PR #79 commits is the 25 lines the second walk left, whose third
 `edit-tag` line carries a status answer, which is the status the handler answers a read error with
 and the answer the status half reads. The third record the check half reads is the 56 lines
-NetNewsWire left on the Mac, and the walk there reached every call its set names, so the halves the
+NetNewsWire left on the Mac, committed here as PR #80, and the walk there reached every call its
+set names, so the halves the phone run did not show are what this run showed: the folder rename, the
 phone run did not show are what this run showed: the folder rename, the folder delete with both
 halves of its guard, the input that left a row answering the shape the write handler writes for that
 branch, which the record carries as the route name and the pin asserts as the `OK` body, and the

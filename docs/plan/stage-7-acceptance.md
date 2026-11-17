@@ -142,21 +142,25 @@ reads before and after, so a craft that reached a file is reported. The parsers 
 `Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
 `Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
 record line per request it forwarded and asserts nothing, and the rule that reads the run record
-reads the records the runs left behind as data in ten halves, the tenth being the names the round
-reads the record files under, which is PR #78, merged here: the half reports a file read as a client
-record that is not named for a client the matrix has a row under, and it is what took the round to
-34 cases over 19 rules. The run half is checked here by `bash -n` and by its nine guards, twelve
-read sites, six reading one value, three for the ports, two for the base's three halves, one for the
-entry guard's two halves, each seen to fail on the value it names: the record path, the client row,
-the host, the two ports, the base in three halves, the version, the pair row, the entry rows, and
-the record being empty. The usage block names thirteen of the fourteen halves these read sites fail
-on, one line each, the observer-port half being seen by holding the port with a listener. PR #78
-also closed the default base: the run builds it as the form the set names for the client, so it
-names the port alone for a client whose set names that it appends the prefix, and the prefix for the
-clients that send the base as the whole prefix, the half having been seen red on the head before the
-read followed the form. so it names the port alone for a client whose set names that it appends the
-prefix, and the prefix for the clients that send the base as the whole prefix. The three guards that
-read what the run wrote fail only on a run, and the guards that read the machine fail only on a
+reads the records the runs left behind as data in eleven halves, the tenth being the names the round
+reads the record files under, which is PR #78, merged here, and the eleventh the status a record
+line carries, which is PR #79, read as the status the handler the route file gives this path
+answers: the tenth half reports a file read as a client record that is not named for a client the
+matrix has a row under, and the round answers 36 cases over 19 rules, twelve crafts on those eleven
+halves. The run half is checked here by `bash -n` and by its nine guards, twelve read sites, six
+reading one value, three for the ports, two for the base's three halves, one for the entry guard's
+two halves, each seen to fail on the value it names: the record path, the client row, the host, the
+two ports, the base in three halves, the version, the pair row, the entry rows, and the record being
+empty. The usage block names thirteen of the fourteen halves these read sites fail on, one line
+each, the observer-port half being seen by holding the port with a listener. PR #78 also closed the
+default base: the run builds it as the form the set names for the client, so it names the port alone
+for a client whose set names that it appends the prefix, and the prefix for the clients that send
+the base as the whole prefix, the half having been seen red on the head before the read followed the
+form, and seen red here for NetNewsWire on the base its own source needs, which carries only host
+and port because every call appends the endpoint path to the base it is given. PR #80, merged here,
+committed the 56 lines the run on the Mac left as the record the check half reads, the prefix form
+its set names for that base, and the craft for the order half on that record. The three guards that
+read what the run wrote fail only on a run,
 machine. - `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app
 over a real socket, read through `Bundle.module` as data rather than restated: the order each set
 declares, which recorded call reaches a registered route and which reaches the catch-all answer, the
