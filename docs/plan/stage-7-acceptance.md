@@ -23,8 +23,10 @@ pinned as 32 pins and 67 probes across the seven Fever suites and the icon read,
 on the rule it names and to revert the file byte-identically, with the accepted row for the empty
 list this client's deserializer refuses added to the tolerance table. The seventh slice is the
 client matrix and the performance notes, merged as PR #63: `docs/clients.md` records the calling
-sets of five clients — three read from their own source at a named commit, two from the project's
-documentation because their source cannot be read here — and the check half reads those sets, the
+sets of five clients at that PR — three read from their own source at a named commit, two from the
+project's documentation because their source cannot be read here — and PR #82, opened here, adds a
+sixth set, read from documentation although its source is open, because no rule here reads calls on
+the path that client uses. The check half reads those sets, the
 record files, the document and the port's own route, dispatch, auth and response sources as data
 over 19 rules, with the parsers kept apart from the rules so each rule stays a function over data.
 No set is a capture. NewsFlash, FeedFlow and NetNewsWire are the clients whose records this half

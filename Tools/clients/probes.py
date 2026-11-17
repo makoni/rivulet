@@ -4,10 +4,12 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 35 crafted inputs and the baseline, so 36 cases — the performance rule
+single-firing: 19 rules, 36 crafted inputs and the baseline, so 37 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
-its two halves, because an input that violates one half of a rule still satisfies the other, and the
-rule that reads the run record has one for each of its eleven halves, twelve crafts in all: six on
+its two halves, because an input that violates one half of a rule still satisfies the other, the
+rule that reads the halves the sets name has one for each of its two halves, because a one-half set
+has no other half to name, and the rule that reads the run record has one for each of its eleven
+halves, twelve crafts in all: six on
 the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
 Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
 record this machine has not written, for a client whose set records no calls, one on the names the

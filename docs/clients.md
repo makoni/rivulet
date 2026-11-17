@@ -127,7 +127,7 @@ a run, and the guards that read the machine fail only on a machine. The guards t
 run declares run before the record is written, so a guard that fires leaves the committed record
 alone, which is what kept it byte-identical through the ports demos; the guards that read what the
 run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
-committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
+committed record byte-identical there too. A stand-in client, not one of the six the matrix names,
 was sent to the observer in that copy to show that these halves read a record a run wrote rather
 than a record the round crafts: writing its record in the copy's record directory, the rule read it
 for the client its lines named and reported nothing where the stand-in agreed with the path and the

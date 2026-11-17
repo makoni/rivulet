@@ -137,9 +137,11 @@ trigger. The accepted row for the empty list this client's deserializer refuses 
 writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both sides because the
 reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
-notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three read
-from their own source at a named commit, two from the project's documentation because their source
-cannot be read here — and the check half reads those sets, the record files, the document and the
+notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients at that PR —
+three read from their own source at a named commit, two from the project's documentation because
+their source cannot be read here — and PR #82, opened here, adds a sixth set, read from
+documentation although its source is open, because no rule here reads calls on the path that client
+uses. The check half reads those sets, the record files, the document and the
 port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, and three
 clients have been run against this port here and left a record this half reads as data, all through
 the run half `Scripts/client-run.sh`: NewsFlash, the Fever client, FeedFlow, the Google Reader
@@ -148,7 +150,8 @@ Reader client run on the Mac on the same network. A fourth run, Reeder Classic o
 the Fever half here, and its record is held as evidence outside the repository, because the set
 for that client records no calls. The manual matrix criterion is closed for the three whose
 records are read as data and for the halves the walk on Reeder Classic showed, and stays open for
-lire, the client this machine has no device to run. What the 19 rules read: the source each
+lire, which this machine has no device to run, and for Capy Reader, until a walk on the phone in
+the same network runs against it. What the 19 rules read: the source each
 set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
 the manifest lines, the classes against the parity table and the output-check class against the
 endpoints the reference applies the check on, the routes the port registers against the answer each
