@@ -183,19 +183,19 @@ behind are read as data by the nineteenth rule in eleven halves — six on the r
 wrote, one on the paragraph naming its calls, one on the record the Google Reader run wrote here,
 one on a record this machine has not written, one on the names the round reads the record files
 under, which PR #78 added and which keeps the performance record, read by its own rule at its own
-path, out of the client records, and one on the status a record line carries, read as the status the
-handler the route file gives this path answers, through the shapes its own branches write and the
-status each shape writes, read from the pin that pins the mapping. The half reads only the paths it
-can name a handler for, so the login route and the paths that answer on the catch-all or a dispatch
-case read nothing here. The answer half reads the shape answers and the status half reads the status
-answers, so the two together cover the answer column, which is what took the round to 35 cases over
-19 rules. The run half is checked by `bash -n` and by its nine guards, twelve read sites, six
-reading one value, three for the ports, two for the base's three halves, one for the entry guard's
-two halves, each seen to fail on the value it names, the base half being read for the default base
+path, out of the client records, and one on the status a record line carries, which PR #79 added,
+read as the status the handler the route file gives this path answers, through the shapes its own
+branches write and the status each shape writes, read from the pin that pins the mapping. The half
+reads only the paths it can name a handler for, so the login route and the paths that answer on the
+catch-all or a dispatch case read nothing here. The answer half reads the shape answers and the
+status half reads the status answers, so the two together cover the answer column, which is what
+took the round to 35 cases over 19 rules. The run half is checked by `bash -n` and by its nine
+guards, twelve read sites, six reading one value, three for the ports, two for the base's three
+halves, one for the entry guard's two halves, each seen to fail on the value it names, the base half
 the run builds, which now follows the form the set names for a client that appends the prefix
 itself, the half having been seen red on the head before that read followed the form. The Google
 Reader record is the document the check half reads: PR #77 committed the 10 lines the first walk on
-the device left, and the record committed here is the 25 lines the second walk left, whose third
+the device left, and the record PR #79 commits is the 25 lines the second walk left, whose third
 `edit-tag` line carries a status answer, which is the status the handler answers a read error with
 and the answer the status half reads. The order half reads the order column rather than the position
 of the line, and one of the nine crafts from PR #71 reaches two parts of the data at once, the
@@ -214,9 +214,9 @@ the pass the cadence loop makes during the window writes. That is the same rule 
 three process suites, 4 in `ServeProcessTests` — and the harness gained the `prepare` hook that
 seeds the child's database before the spawn and the arrival read that answers a pin's cancellation,
 so a pin whose rule can be answered no arrival fails at its limit instead of hanging. The second
-walk on the same device, closed here, is what the committed record holds: 25 lines, the walk having
-reached the item-content read, the two shape answers `edit-tag` writes and the rename through the
-drawer, which are halves the first walk did not show.
+walk on the same device, which PR #79 commits as the record, is what the check half reads: 25 lines,
+the walk having reached the item-content read, the two shape answers `edit-tag` writes and the
+rename through the drawer, which are halves the first walk did not show.
 
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
