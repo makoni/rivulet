@@ -14,9 +14,10 @@ the code that names the routes the port registers. The rule that reads the perfo
 not read a bound: it reads what the run half answered here, and the names the performance document
 claims were measured here, and matches each claim to the recorded run.
 
-The rule that reads the client run is in `run_record.py`, because this file is at the size cap: the
-run half is `Scripts/client-run.sh`, and the rule reads the record that run left behind as data, so
-the run is falsifiable through the same round as every other rule here.
+The rule that reads the client run is in `run_record.py`, and the rule that reads the halves the
+sets name is in `halves.py`, both because this file is at the size cap: the run half is
+`Scripts/client-run.sh`, and the run rule reads the record that run left behind as data, so the run
+is falsifiable through the same round as every other rule here.
 
 The parsers are in `parsers.py`, so this file is the rules and nothing else: each rule returns the
 findings its own input causes, and no rule reads another rule's output. `probes.py` crafts one input
@@ -30,6 +31,7 @@ import re
 import sys
 
 import parsers as read
+import halves as half_rule
 import run_record as observed_rule
 
 NOT_SHOWN = [
@@ -39,6 +41,8 @@ NOT_SHOWN = [
     "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
+    "the calls of a client on the path this port registers no route for, which this half records "
+    "no calls for, because the rules that read calls read the two paths that are registered here",
     "the order a client reaches its calls at, which the run record carries for the three clients "
     "whose records the check half reads as data and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
@@ -206,19 +210,6 @@ def rule_fever_names_from_switch(data):
             found.append(f"{row['Client']}/{row['Call']}: the reference records no case for {name}")
         if f'named: "{name.split("=")[0]}"' not in data["port_fever"]:
             found.append(f"{row['Client']}/{row['Call']}: the port's switch has no case for {name}")
-    return found
-
-
-def rule_partial_half(data):
-    found = []
-    for name, set_data in data["sets"].items():
-        partial = [half for half in set_data["halves"] if half["answered_here"] == "no route here"]
-        if not partial:
-            continue
-        if len(set_data["halves"]) < 2:
-            found.append(f"{name}: the half that reaches no route is named without the other half")
-        if not any(half.get("note") for half in set_data["halves"]):
-            found.append(f"{name}: the partial half is named without naming the read it comes from")
     return found
 
 
@@ -462,7 +453,7 @@ RULES = {
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": rule_gr_reaches_a_route,
     "the_reference_answer_names_a_route_the_reference_registers": rule_reference_answer,
     "the_fever_names_are_read_from_the_dispatch_switch": rule_fever_names_from_switch,
-    "the_half_with_no_routes_here_is_named_as_partial": rule_partial_half,
+    "the_half_with_no_routes_here_is_named_as_partial": half_rule.rule_partial_half,
     "the_recorded_sequence_is_the_set_the_source_declares": rule_sequence,
     "the_login_record_is_first_and_the_token_precedes_every_call_that_needs_it": rule_login_first,
     "the_token_half_is_the_half_the_read_reads": rule_token_half,

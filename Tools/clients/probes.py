@@ -166,9 +166,14 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # The half that reaches no route is named without the read it comes from.
-    "the_half_with_no_routes_here_is_named_as_partial":
+    # Two crafts for this rule, because its two halves cannot be shown by one input: a one-half
+    # set has no other half to name, so the shape half is crafted on the set that names one half,
+    # and the note half on the set that names two.
+    "the_half_with_no_routes_here_is_named_as_partial": [
         lambda data: set_of(data, "lire")["halves"][1].pop("note"),
+        lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
+            "uses_two_halves", True),
+    ],
 
     # The recorded order is not the order the source declares.
     "the_recorded_sequence_is_the_set_the_source_declares":
@@ -297,10 +302,11 @@ CASES = {
 
 def cases():
     """The committed data as the baseline, and one crafted input per rule, in the order the document
-    names the rules, which is the order the round reads them in. Three rules have more than one
+    names the rules, which is the order the round reads them in. Four rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
-    kinds of finding, the route rule reads two halves, and the rule that reads the run record
-    reads eleven.
+    kinds of finding, the route rule reads two halves, the rule that reads the run record reads
+    eleven, and the rule that reads the half that reaches no route reads two, because a one-half set
+    has no other half to name.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:

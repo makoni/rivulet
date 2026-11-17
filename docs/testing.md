@@ -1564,13 +1564,17 @@ this half reads no record for. `Tools/clients/parsers.py` holds only the read: t
 record lines, the two sentences the rules parse as sets, the names read in the order a record line
 carries them, the routes the port registers, the handler each registration line gives its path, the
 shapes each handler's own branches write, and the status each shape writes as the pin asserts it,
-so the rules stay the readable part of the check half. `Tools/clients/probes.py` crafts one input
+so the rules stay the readable part of the check half, with the rule that reads the halves the sets
+name in `Tools/clients/halves.py` because this file is at the size cap. `Tools/clients/probes.py`
+crafts one input
 per rule that violates it and asserts that the rule reports it alone; the baseline — the committed
-data — reports nothing, so each probe is single-firing: 19 rules, 35 crafted inputs and the
-baseline, so 36 cases, the performance rule having one for each of the five kinds of finding it
+data — reports nothing, so each probe is single-firing: 19 rules, 36 crafted inputs and the
+baseline, so 37 cases, the performance rule having one for each of the five kinds of finding it
 reads, the route rule one for each of its two halves, because an input that violates one half of a
-rule still satisfies the other, and the rule that reads the run record one for each of its eleven
-halves, which is twelve crafts: six on the record the Fever run wrote here, one on the paragraph
+rule still satisfies the other, the rule that reads the half that reaches no route one for each of
+its two halves because a one-half set has no other half to name, and the rule that reads the run
+record one for each of its eleven halves, which is twelve crafts: six on the record the Fever run
+wrote here, one on the paragraph
 naming its calls, one on the record the Google Reader run on the phone wrote here, the order half
 crafted again on the record the run on the Mac wrote, one on a record this machine has not written,
 for a client whose set records no calls, one on the names the round reads the record files under,
@@ -1598,7 +1602,9 @@ the placeholders the half reads rather than as values, the matrix rows against t
 the classes against the parity table and the output-check class against the endpoints the reference
 applies the check on, the routes the port registers against the answer each row names with the
 catch-all read as the registration line the file writes, the reference's route and dispatch sets,
-the two halves of a client that reaches one half only, the order the source declares, the login
+the halves of a client whose half reaches no route, read as the shape the set names for its halves
+agreeing with the halves it names and as the note naming the read that half comes from, the order
+the source declares, the login
 being first and the token coming before every call that carries it, the token half per method, the
 stream forms as the prefix and suffix sets the branch reads, the counts table against the records it
 counts, the replay records against the matrix's own column, the performance table against the run
@@ -1625,7 +1631,9 @@ the code, which is the half the report item names. What this half cannot show, a
 `docs/clients.md` rather than asserted: the clients that have not been run against this port here,
 the record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
-of a client whose source cannot be read, the order a client reaches its calls at, which the run
+of a client whose source cannot be read, the calls of a client on the path this port registers no
+route for, which this half records no calls for, because the rules that read calls read the two
+paths that are registered here, the order a client reaches its calls at, which the run
 record carries for the three clients whose records the check half reads as data and the source
 declares for the others,
 the values the calls carry, which are redacted, the app-level choice of which calls a

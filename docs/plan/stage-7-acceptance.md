@@ -153,7 +153,7 @@ reads the records the runs left behind as data in eleven halves, the tenth being
 reads the record files under, which is PR #78, merged here, and the eleventh the status a record
 line carries, which is PR #79, read as the status the handler the route file gives this path
 answers: the tenth half reports a file read as a client record that is not named for a client the
-matrix has a row under, and the round answers 36 cases over 19 rules, twelve crafts on those eleven
+matrix has a row under, and the round answers 37 cases over 19 rules, twelve crafts on those eleven
 halves. The run half is checked here by `bash -n` and by its nine guards, twelve read sites, six
 reading one value, three for the ports, two for the base's three halves, one for the entry guard's
 two halves, each seen to fail on the value it names: the record path, the client row, the host, the
@@ -211,9 +211,12 @@ the pair, and what is still open is the classes no corpus input can reach.
       call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
       record is evidence outside the repository rather than data this half reads, so its halves are
       named as what the walk showed rather than as data read against a set; the add half has no
-      call this client's set can be read for. The manual half stays open for lire, the client this
-      machine has no device to run, and for the halves each walk did not reach, which are named per
-      client.
+      call this client's set can be read for. Capy Reader is the free client for the same half, and
+      its set is read from documentation because no rule here reads calls on a path this port
+      registers no route for, so its half is named as the whole half rather than as partial. The
+      manual half stays open for lire, which this machine has no device to run, and for Capy Reader,
+      until a walk on the phone in the same network runs against it, and for the halves each walk
+      did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

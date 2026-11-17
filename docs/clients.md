@@ -30,16 +30,19 @@ walk showed.
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own
 source, the pin that pins the response builder's status mapping, and the field the timed pin's print
-writes as data, with the parsers it reads them with in `Tools/clients/parsers.py` so the rules stay
-the readable part of the file. What it reads as data
+writes as data, with the parsers it reads them with in `Tools/clients/parsers.py`, and the rule that
+reads the halves the sets name in `Tools/clients/halves.py`, because this file is at the size cap,
+so the rules stay the readable part of the file. What it reads as data
 includes two sentences written for the sets they name: the shape the performance paragraph declares,
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
 and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 35 crafted inputs and the baseline, so 36 cases: the performance rule has one
+firing — 19 rules, 36 crafted inputs and the baseline, so 37 cases: the performance rule has one
 for each of the five kinds of finding it reads, the route rule has one for each of its two halves,
-because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its eleven halves, which is twelve crafts: six on the record the
+because an input that violates one of them still satisfies the other, the rule that reads the half
+that reaches no route has one for each of its two halves, because a one-half set has no other half
+to name, and the rule that reads the run record has one for each of its eleven halves, which is
+twelve crafts: six on the record the
 Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
 one on a record this machine has not written, for a client whose set records no calls, one on the
@@ -250,6 +253,7 @@ this document names, and that rule reports what the data says rather than what t
 | NewsFlash | fever/mark/feed | POST | dispatch: mark=feed | dispatch: mark=feed | yes | merged_form_read |
 | NewsFlash | fever/mark/group | POST | dispatch: mark=group | dispatch: mark=group | yes | merged_form_read |
 | lire | no-call-recorded | — | not read here | no route here | no: no call recorded for a closed-source client | no_route_here |
+| Capy Reader | no-call-recorded | — | not read here | no route here | no: no call recorded for the path this half reads no rules for | no_route_here |
 | Reeder Classic | no-call-recorded | — | not read here | no route here | no: no call recorded for a closed-source client | closed_source |
 
 ## The counts the matrix reports
@@ -260,6 +264,7 @@ this document names, and that rule reports what the data says rather than what t
 | FeedFlow | 11 | 10 | 1 | 11 |
 | NewsFlash | 14 | 12 | 2 | 13 |
 | lire | 0 | 0 | 0 | 0 |
+| Capy Reader | 0 | 0 | 0 | 0 |
 | Reeder Classic | 0 | 0 | 0 | 0 |
 | all clients | 36 | 33 | 3 | 35 |
 
@@ -271,6 +276,7 @@ from the width rule.
 - the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
+- the calls of a client on the path this port registers no route for, which this half records no calls for, because the rules that read calls read the two paths that are registered here
 - the order a client reaches its calls at, which the run record carries for the three clients whose records the check half reads as data and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
@@ -457,7 +463,28 @@ prefix.
 
 Setup: Settings → Integrations → the Fever pair, and an API key; in the app, the URL without `/v1`
 or `/fever`. Manual checklist, not executed here: the Fever half as above, and the REST half
-recorded as not served here.
+recorded as not served here. The client is paid, so this machine has no run for it; the free client
+below is the one this half can walk for the same half.
+
+### Capy Reader — the Miniflux REST API
+
+Read from the project's documentation, which names Miniflux as the sync service this app uses. Its
+source is open, so the endpoints could be read from it, and they are not recorded here: the rules
+that read calls read the two paths this port registers, and this half is the third, so no rule here
+has anything to read a call on it against. The half is named as the whole half rather than as
+partial, which is what the rule that reads the shape the set names for its halves checks: the set
+names one half, so it names the shape as one.
+
+Setup: the app's account screen asks for the URL and for the API key, or for the pair, and the base
+the run prints carries the prefix, because the half names no form, so the run half reads the base as
+the whole prefix. Manual checklist, not executed here: log in, read the feeds and the entries, mark
+one item read and un-read, star one item, save one item, and add a feed through the call the app
+makes for it.
+
+Nothing is committed for this client beyond the set: the set records no calls, so a record file for
+it is a finding rather than data, and a walk here leaves its record as evidence outside the
+repository, as the walk on Reeder Classic did. The Android phone in the same network is the device
+this client can be walked on.
 
 ### Reeder Classic — Fever API
 

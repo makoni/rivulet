@@ -160,19 +160,24 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — the round answers 36 cases over 19 rules, 35 crafted inputs plus the baseline asserted to
+it — the round answers 37 cases over 19 rules, 36 crafted inputs plus the baseline asserted to
 report nothing, so each probe is single-firing, the performance rule having one for each of the five
-kinds it reads, the route rule one for each of its two halves, and the rule that reads the run
-record one for each of its eleven halves, which is twelve crafts — and the round hashes every file
+kinds it reads, the route rule one for each of its two halves, the rule that reads the half that
+reaches no route one for each of its two halves, and the rule that reads the run record one for
+each of its eleven halves, which is twelve crafts — and the round hashes every file
 the check half reads before and after, so a craft that reached a file is reported; two crafts name
 data the record rule cannot read, the redaction craft on a set for a client this machine has not run
 and the route rule's first craft on a row no record line reaches, because after the third record
 landed both crafts reported the record rule as well; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
+`Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the
+halves the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What
+no craft can show is named in
 the document rather than asserted: the clients that have not been run against this port here, the
 record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
-of a client, whose source cannot be read, the order a client reaches its calls at, which the run
+of a client, whose source cannot be read, the calls of a client on the path this port registers no
+route for, which this half records no calls for, because the rules that read calls read the two
+paths that are registered here, the order a client reaches its calls at, which the run
 record carries for the three clients whose records the check half reads as data and the source
 declares for the others, the
 values the calls carry, which are redacted, the app-level choice of which calls a library-based
