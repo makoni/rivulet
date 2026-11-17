@@ -1558,25 +1558,29 @@ changing what the run reads.
 The client matrix is the half that records the calling sets of the acceptance clients, and
 `Tools/clients/replay.py` is its check half. It reads the sets, the record files, `docs/clients.md`,
 `docs/performance.md`, `docs/reference-notes.md`, the port's own route, dispatch, auth and response
-sources, and the field the timed pin's print writes as data, so every rule is a function over data
-rather than an assertion about a client that was never run here. `Tools/clients/parsers.py` holds
-only the read: the sections, tables, record lines, the two sentences the rules parse as sets, the
-names read in the order a record line carries them, and the routes the port registers, so the rules
-stay the readable part of the check half. `Tools/clients/probes.py` crafts one input per rule that
-violates it and asserts that the rule reports it alone; the baseline — the committed data — reports
-nothing, so each probe is single-firing: 19 rules, 33 crafted inputs and the baseline, so 34 cases,
-the performance rule having one for each of the five kinds of finding it reads, the route rule one
-for each of its two halves, because an input that violates one half of a rule still satisfies the
-other, and the rule that reads the run record one for each of its ten halves — six on the record the
-Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader run
-wrote here, one on a record this machine has not written, for a client whose set records no calls,
-and one on the names the round reads the record files under, which is the half that keeps the
-performance record, read by its own rule at its own path, out of the client records. One of those
-ten reaches two parts of the data at once, the record line and the paragraph that names the calls
-this run showed, because the half reads the record against the paragraph and the Fever run reached
-no call outside the recorded set. Every craft changes the parsed data in memory and never a file,
-and the round hashes every file the check half reads before and after, so a craft that reached a
-file is reported. What the 19 rules read: the source each set names and its commit, the redaction as
+sources, the pin that pins the response builder's status mapping, and the field the timed pin's
+print writes as data, so every rule is a function over data rather than an assertion about a client
+that was never run here. `Tools/clients/parsers.py` holds only the read: the sections, tables,
+record lines, the two sentences the rules parse as sets, the names read in the order a record line
+carries them, the routes the port registers, the handler each registration line gives its path, the
+shapes each handler's own branches write, and the status each shape writes as the pin asserts it,
+so the rules stay the readable part of the check half. `Tools/clients/probes.py` crafts one input
+per rule that violates it and asserts that the rule reports it alone; the baseline — the committed
+data — reports nothing, so each probe is single-firing: 19 rules, 34 crafted inputs and the
+baseline, so 35 cases, the performance rule having one for each of the five kinds of finding it
+reads, the route rule one for each of its two halves, because an input that violates one half of a
+rule still satisfies the other, and the rule that reads the run record one for each of its eleven
+halves — six on the record the Fever run wrote here, one on the paragraph naming its calls, one on
+the record the Google Reader run wrote here, one on a record this machine has not written, for a
+client whose set records no calls, one on the names the round reads the record files under, which is
+the half that keeps the performance record, read by its own rule at its own path, out of the client
+records, and one on the status a record line carries, which writes a status the handler for that
+path has no branch for. One of those eleven reaches two parts of the data at once, the record line
+and the paragraph that names the calls this run showed, because the half reads the record against
+the paragraph and the Fever run reached no call outside the recorded set. Every craft changes the
+parsed data in memory and never a file, and the round hashes every file the check half reads before
+and after, so a craft that reached a file is reported. What the 19 rules read: the source each set
+names and its commit, the redaction as
 the placeholders the half reads rather than as values, the matrix rows against the manifest lines,
 the classes against the parity table and the output-check class against the endpoints the reference
 applies the check on, the routes the port registers against the answer each row names with the
@@ -1589,34 +1593,41 @@ that answered it and the shape the document names, the rule list and the report 
 the check half has, the response name a client acts on against the name the response builder writes,
 and the record each client run wrote against the set, the matrix row, the response shape, the
 redaction and the paragraph the document writes for the calls that run showed. The rule that reads
-the run record has ten halves: the client the record names against the set that client's row
+the run record has eleven halves: the client the record names against the set that client's row
 records, the order column against the order the document names the calls this run showed, a call the
 set cannot name against the document naming it as shown, the answer for a call the set names against
 the matrix row, the answer for a call the reference records no case for against the default branch,
-the call name against the branch the merged form gives, read through the mark the set names that
-branch with, the key names against the names the response shape writes, the name the redaction names
-for the credential pair, the guarded call against the document naming it as shown, and the record
-files the round reads, read as the names it reads them under, which is the half that keeps the
-performance record, read at its own path by the rule that reads the numbers, out of the client
-records; the craft adds a name the round does not read a client under, so what the round shows is
-the message on that name, not that the read leaves the other files out. What this half cannot show,
-and is named in `docs/clients.md` rather than asserted: the clients that have not been run against
-this port here, the calling set of a client whose source cannot be read, the order a client reaches
+the status a line carries when the port wrote something other than an answer of this path, read as
+the status the handler the route file gives that path answers through the shapes its own branches
+write and the status each shape writes, the call name against the branch the merged form gives, read
+through the mark the set names that branch with, the key names against the names the response shape
+writes, the name the redaction names for the credential pair, the guarded call against the document
+naming it as shown, and the record files the round reads, read as the names it reads them under,
+which is the half that keeps the performance record, read at its own path by the rule that reads the
+numbers, out of the client records; the craft adds a name the round does not read a client under, so
+what the round shows is the message on that name, not that the read leaves the other files out. The
+number written for each status name is that half's vocabulary: the pin asserts the status name and
+no test asserts the number, so the pair (shape, status) is read as data while the number is named in
+the code, which is the half the report item names. What this half cannot show, and is named in
+`docs/clients.md` rather than asserted: the clients that have not been run against this port here,
+the calling set of a client whose source cannot be read, the order a client reaches
 its calls at, which the run record carries for the two clients run here and the source declares for
 the others, the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
 list size, which no record line can show firing, the side of the bound the guard applies, which the
 record carries as names and not as values, the answer a record line can carry for a call whose guard
-the client applies before it sends, which is the status the guard answers with while the matrix row
-names the dispatch answer for the path, the part of a calling set a run did not reach, which the
-record carries no line for and the paragraph for that client names as the halves this run did not
-walk, the token half of a client that sends the stored value as the token, the numbers of another
-machine, the query latency at the 100k corpus, and the version of a client run on a device, which
-this machine has no app metadata to read the value against. The run half is `Scripts/client-run.sh`
-with `Tools/clients/observer.py`, outside CI: the observer writes one record line per request it
-forwarded and asserts nothing, and the check half reads the record the run left behind rather than
-the processes. It is checked here by `bash -n` and by its nine guards — twelve read sites, six
-reading one value, three for the ports, two for the base's three halves, one for the entry guard's
+the client applies before it sends, read as the status the handler answers for the path rather than
+as the guard's answer, which no record line can show firing, the number this read names for each
+status name, which the pin asserts as a name and no test asserts as a number, so the pair (shape,
+status) is data while the number is the read's own vocabulary, the part of a calling set a run did
+not reach, which the record carries no line for and the paragraph for that client names as the
+halves this run did not walk, the token half of a client that sends the stored value as the token,
+the numbers of another machine, the query latency at the 100k corpus, and the version of a client
+run on a device, which this machine has no app metadata to read the value against. The run half is
+`Scripts/client-run.sh` with `Tools/clients/observer.py`, outside CI: the observer writes one record
+line per request it forwarded and asserts nothing, and the check half reads the record the run left
+behind rather than the processes. It is checked here by `bash -n` and by its nine guards — twelve
+read sites, six
 two halves — each seen to fail on the value it names: the record path, the client row, the host by
 an address the machine does not answer on, read against the address the machine's own default route
 selects, the two ports by naming the same port twice and by a port the machine already holds, seen

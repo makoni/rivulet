@@ -22,25 +22,27 @@ half reads the host guard for. The checklists below are the checks to run for a 
 be run here.
 
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
-is the check half: it reads the calling sets, the record files, this document, the port's own source
-and the field the timed pin's print writes as data, with the parsers it reads them with in
-`Tools/clients/parsers.py` so the rules stay the readable part of the file. What it reads as data
+is the check half: it reads the calling sets, the record files, this document, the port's own
+source, the pin that pins the response builder's status mapping, and the field the timed pin's print
+writes as data, with the parsers it reads them with in `Tools/clients/parsers.py` so the rules stay
+the readable part of the file. What it reads as data
 includes two sentences written for the sets they name: the shape the performance paragraph declares,
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
 and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 33 crafted inputs and the baseline, so 34 cases: the performance rule has one for
+firing — 19 rules, 34 crafted inputs and the baseline, so 35 cases: the performance rule has one for
 each of the five kinds of finding it reads, the route rule has one for each of its two halves,
 because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its ten halves — six on the record the Fever run wrote here, one on
-the paragraph naming its calls, one on the record the Google Reader run wrote here, one on a record
-this machine has not written, for a client whose set records no calls, and one on the names the
-round reads the record files under, which is the half that keeps the performance record, read by its
-own rule at its own path, out of the client records; the craft adds a name the round does not read a
-client under, so what the round shows is the message on that name, not that the read leaves the
-other files out. One of those ten reaches two parts of the data at once, the record line and the
-paragraph that names the calls this run showed, because the half reads the record against the
-paragraph and the Fever run reached no call outside the recorded set.
+run record has one for each of its eleven halves — six on the record the Fever run wrote here, one
+on the paragraph naming its calls, one on the record the Google Reader run wrote here, one on a
+record this machine has not written, for a client whose set records no calls, one on the names the
+round reads the record files under, which is the half that keeps the performance record, read by
+its own rule at its own path, out of the client records; the craft adds a name the round does not
+read a client under, so what the round shows is the message on that name, not that the read leaves
+the other files out; and one on the status a record line carries, which writes a status the handler
+for that path has no branch for. One of those eleven reaches two parts of the data at once, the
+record line and the paragraph that names the calls this run showed, because the half reads the
+record against the paragraph and the Fever run reached no call outside the recorded set.
 
 The width rule does not reach a table row, a manifest record line or a report item line, which are
 each read as one whole string. The record lines and the item lines here are exempt for that reason.
@@ -60,8 +62,11 @@ the order the answer wrote them, and the field names the request carried, read a
 chooses which side it reads, the urlencoded half running only for the methods the reference reads a
 body form for, which is the guard `FeverForm.readsBodyHalf` pins. The answer is written as the run
 saw it: the name the dispatch case answered on when the port wrote a document of this path, and the
-status when it wrote something else. The record carries no value, so the credential pair appears as
-the name the redaction names for it.
+status when it wrote something else. The shape answer is read against the matrix row; the status is
+read against the handler the route file gives the path, through the shapes its own branches write
+and the status each shape writes, so a record line carrying a status this handler has no branch for
+is a finding. The record carries no value, so the credential pair appears as the name the redaction
+names for it.
 
 The order is read as the order column, not as the position of the line, because the line is written
 when the response is complete and the client had more than one connection open at once, which the
@@ -239,7 +244,8 @@ from the width rule.
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
 - the guard a client applies before it sends, read as the bound on the list size, which no record line can show firing
 - the side of the bound the guard applies, which the record carries as names and not as values
-- the answer a record line can carry for a call whose guard the client applies before it sends, which is the status the guard answers with, while the matrix row names the dispatch answer for the path
+- the answer a record line can carry for a call whose guard the client applies before it sends, read as the status the handler answers for the path rather than as the guard's answer, which no record line can show firing
+- the number this read names for each status name, which the pin asserts as a name and no test asserts as a number, so the pair (shape, status) is data while the number is the read's own vocabulary
 - the part of a calling set a run did not reach, which the record carries no line for and the paragraph for that client names as the halves this run did not walk
 - the token half of a client that sends the stored value as the token, which the read compares as a token
 - the numbers of another machine, which the performance half records as measurements taken here or names as not measured here
@@ -290,34 +296,44 @@ path writes its answer into the stored value the header is built from, so after 
 carries the token.
 
 Manual checklist, walked here by the run on a phone: log in; list subscriptions and categories; read
-one stream page; add a feed, and the category write the add made on the same call the move half
-uses. It did not walk rename a category, delete a category, mark items read, or star an item, and it
-did not reach the item-content read, so the catch-all answer that row reports is not a half this run
-showed.
+one stream page and the item contents the ids that page gave were read for; add a feed, and the
+category write the add made on the same call the move half uses; open an item, which is the call the
+walk reached by bookmarking it; mark items read; rename a category through the drawer's rename,
+which is the call the set names for it. It did not walk delete a category, so the catch-all answer
+the row reads is not a half this run showed.
 
 The calls this run showed for FeedFlow, in the order the record says they arrived:
 `accounts/ClientLogin`, `reader/api/0/subscription/list`, `reader/api/0/stream/items/ids`,
-`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/subscription/edit`.
+`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/subscription/edit`,
+`reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`.
 
-The record carries 10 lines for this run: the login, the first subscription list, four stream pages,
-the token, the add, the category write, and the second subscription list. The login is a record line
-here, which the Fever run could not show: this client sends the login when the account is connected,
-so it arrived while the observer was recording. It is the only line that carries the pair, as the
-two field names the login reads, and every line after it carries the token field name the redaction
-writes as `T`. The add is the half the Fever set has no call for, and the feed row the entry guard
-reads was written by the client's own add call rather than by this port's command. The version the
-run declared is a report item, not a value: for a client run on a device this machine has no app
-metadata to read the version against, so the run declares what the app reports for itself rather
-than a value a read here answered.
+The record carries 25 lines for this run: the login, four subscription lists, twelve stream pages,
+the token, the add, the category write, the item-content read, three `edit-tag` lines, and the
+rename. The login is a record line here, which the Fever run could not show: this client sends the
+login when the account is connected, so it arrived while the observer was recording. It is the only
+line that carries the pair, as the two field names the login reads, and every line after it carries
+the token field name the redaction writes as `T`. The add is the half the Fever set has no call for,
+and the feed row the entry guard reads was written by the client's own add call rather than by this
+port's command; the row the entry guard read was the one the pass the cadence loop made during the
+window wrote. The version the run declared is a report item, not a value: for a client run on a
+device this machine has no app metadata to read the version against, so the run declares what the
+app reports for itself rather than a value a read here answered. The device's own package manager
+answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source the set
+is read from carries; the half reads neither, so both are named rather than compared.
 
-The five calls the set names that this run did not reach are `reader/api/0/stream/contents`,
-`reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`, and the
+Two of the three `edit-tag` lines carry the shape the handler writes, and the third is the
+mark-all-as-read call, answered `status 400`: the request carried no `i`, so the read the handler
+makes for that name failed, and the status half reads this path as the shape the handler answers a
+read error with, which is the 400. The item-content read is the read this client makes for the ids a
+page gives it, and it arrived as the sync the app made after the pass had written the entry row. The
+rename is the call the set names for `reader/api/0/rename-tag`, and it arrived from the drawer's
+rename, which is the half the first run on this device did not walk.
+
+The two calls the set names that this run did not reach are `reader/api/0/stream/contents` and the
 folder-delete half the set names as `reader/api/0/edit-tag#disable-tag`. The record carries no line
-for any of them, so the halves they name are not shown by this run:
-`reader/api/0/stream/items/contents` is the read this client makes for the ids a page gives it, and
-no line for it arrived, which is also why no mark or star line arrived; `rename-tag` cannot be shown
-by a run whose subscription list carries only the default category row; and the folder-delete half
-is the call whose guard the client applies before it sends, which no record line can show firing.
+for either: the first is the path this client's own item read sends to, which the reference has no
+route for, so the catch-all answer that row reports is not a half this run showed; the second is the
+call whose guard the client applies before it sends, which no record line can show firing.
 The run cannot show the page-size half the row names either, because the record carries names and
 not values: the 15000 the set names is read from the client's source, and no record line carries a
 page size.

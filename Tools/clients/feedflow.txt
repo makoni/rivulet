@@ -6,5 +6,20 @@ FeedFlow | 5 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/it
 FeedFlow | 6 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
 FeedFlow | 7 | reader/api/0/token | GET | GET /reader/api/0/token |  | T
 FeedFlow | 8 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T output quickadd
-FeedFlow | 9 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T ac s
+FeedFlow | 9 | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit |  | T a ac s
 FeedFlow | 10 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+FeedFlow | 11 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+FeedFlow | 12 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s xt
+FeedFlow | 13 | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | direction id title self updated items author | T i output
+FeedFlow | 14 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+FeedFlow | 15 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+FeedFlow | 16 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+FeedFlow | 17 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output
+FeedFlow | 18 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output
+FeedFlow | 19 | reader/api/0/edit-tag | POST | status 400 | error_message | T a output
+FeedFlow | 20 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+FeedFlow | 21 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s xt
+FeedFlow | 22 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n ot output s
+FeedFlow | 23 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+FeedFlow | 24 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+FeedFlow | 25 | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag |  | T dest s
