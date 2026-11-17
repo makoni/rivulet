@@ -143,10 +143,13 @@ every request it forwards, so no line can show a packet the firewall dropped. Wh
 show is the add call arriving after the port was opened to the local network, which is the run half
 reading the address its own guard names.
 
-The entry guard is what the second run showed as a rule over what a run wrote rather than over what
-the run half itself wrote: the run left the feed row to the call the set names, so the row the guard
-reads was written by the client's own add call, and the entry rows the guard read can only have come
-from the pass the cadence loop makes during the window, the run half writing none itself. The same
+The entry guard is what the second run showed as a rule over what a run wrote rather than over
+what the run half itself wrote: the run left the feed row to the call the set names, so the row
+the guard reads was written by the client's own add call, and the entry rows the guard read can
+only have come from the pass the cadence loop makes during the window, the run half writing none
+itself. For a client whose set names no call that can write a row, the run half writes the row
+itself, which is the half the walk on Reeder Classic showed: the row the guard reads there was
+written before the first request arrived, so the walk cannot show which write made it. The same
 rule is what the pin in `ServeProcessTests` reads as the request the child makes for the feed it
 seeds, and the seed that pin writes is a command that fetches nothing.
 
@@ -406,17 +409,16 @@ page size.
 
 ### NewsFlash — Fever API
 
-Read from `news-flash/fever_api` `src/lib.rs` at `0.6.0`, the client library the app depends on: the
-set is the library's own, and the app's choice of which of these calls it makes is read at the
-library boundary for the clients this half reads no record data for. 14 calls. Every name the switch
-has a case for is called, and two answers come from the branch it has no case for: the base document
-the request with no name gets, and `links`, which is a name the switch does not have. The key
-reaches the merged form as a multipart part, which is the read PR #61 pins. The item page is the
-fixed 50,
-and the `with_ids` guard is the bound on the list size the client applies before it sends: the
-record carries a line for the call, which is the half the bound does not cover, and both the bound
-firing and the size the client sent are report items. The `HEAD` reachability check PR #61 sized to
-is not attributed to this client here: the library's own source sends POST only.
+Read from `news-flash/fever_api` `src/lib.rs` at `0.6.0`, the client library the app depends on:
+the set is the library's own, and the app's choice of which of these calls it makes is read at the
+library boundary for the clients this half reads no record data for. 14 calls. Every name the
+switch has a case for is called, and two answers come from the branch it has no case for: the base
+document the request with no name gets, and `links`, which is a name the switch does not have. The
+key reaches the merged form as a multipart part, which is the read PR #61 pins. The item page is
+the fixed 50, and the `with_ids` guard is the bound on the list size the client applies before it
+sends: the record carries a line for the call, which is the half the bound does not cover, and
+both the bound firing and the size the client sent are report items. The `HEAD` reachability check
+PR #61 sized to is not attributed to this client here: the library's own source sends POST only.
 
 Setup: Settings → Sync → the Fever service, with the integration name and password; the key is the
 digest the library builds from the pair. The app sends to the base as it is typed, so the base has
@@ -460,40 +462,60 @@ recorded as not served here.
 
 Read from the project's documentation, which names it as Fever-compatible; the client is closed
 source, so this is the whole fact the matrix can state for it. The Fever half of the checklist was
-walked here on an iPhone in the same network, through the run half, over a window of 30 minutes at
-the cadence of 1 second, with the pair the run declares. The record that walk wrote is held outside
-the repository as evidence, not committed as data: the set for this client records no calls, so the
-check half reads a record file for it as a finding, and the round read it as one while the file sat
-in the record directory.
+walked here on the phone through the run half, with the pair the run declares; the window and the
+cadence are values the person gave the run, not values the record can show. The record that walk
+wrote is held outside the repository as evidence, not committed as data: the set for this client
+records no calls, so the check half reads a record file for it as a finding, and the round read it
+as one while the file sat in the record directory.
 
-Setup: the app's Fever form asks for the address and for the pair. The address is sent as the whole
-prefix the set names for this client, and the path each line arrived on names the marker the app
-adds to it, so the form the record shows is `fever/?api`, which is what the walk showed rather than
-the form the set names.
+Setup: the app's Fever form asks for the address and for the pair, and the base the run prints
+names the path the set names for this client, which is what the guard on the base reads. What the
+record names as the path is the name the observer's read gives it, not the path as it arrived: the
+base document reads as `fever/?api` because the read has no name for the query key that arrived,
+and the log shows those requests arriving as `GET /fever/?refresh`; the mark lines read as
+`fever/mark/item` from the branch the merged form gives, and the log shows them arriving as `POST
+/fever/?api` with the branch name in the body.
 
 Manual checklist, walked here on the device: log in; read the base document; read groups, feeds,
-unread and saved ids; read a page of items and the next page through `since_id`; mark one item read,
-un-read and saved. Not walked here: `fever/favicons`, `fever/links`, marking a feed read before a
-time, and marking a group read, which on iOS has no app-level half for a Fever account: the walk
-saw only the folder named All holding the one feed. The value for `id = 0` on that branch is a
-value, so no line can show it either.
+unread and saved ids; read a page of items and the next page through `since_id`; mark one item
+read, un-read and saved. Not walked here: `fever/favicons`, `fever/links`, marking a feed read
+before a time, and marking a group read, which this walk did not reach: the person walking saw
+only the folder named All holding the one feed, which is the default category the port writes for
+a new account, and the record has no line for the group call. The value for `id = 0` on that
+branch is a value, so no line can show it either.
 
-What the walk showed, as its lines name it, in the order they arrived: the login is a line here,
-because the app wrote the account inside the window rather than before it, arriving as POST with the
-key as the name the field carries and answered by the default branch. Four sync passes carried the
-base document, `fever/feeds`, `fever/groups`, `fever/unread_item_ids` and `fever/saved_item_ids`;
-`fever/items` arrived on the first pass, `fever/items/since_id` on each of the four, and
-`fever/items/with_ids` on the last two. Seven `fever/mark/item` lines arrived for the one item the
-walk marked read, un-read and saved: the states are values, so the seven lines cannot be told apart,
-and four of them came from the app rather than from a step the walk named. The log the run kept for
-its own observer shows the second `with_ids` line arriving with an empty list, and the port answered
-the items document for it. The two end halves of the run read what the walk left: the record is
-non-empty, and the pass wrote the one entry row the run declares for the feed the run wrote.
+What the walk showed, as its lines name it, in the order they arrived: line 1 is POST with the key
+as the name the field carries, answered by the default branch, and it is the first request that
+reached the observer; the pair row was written by the run's own commands before the observer
+started, so this line names the app's first read rather than a login the app made before it. Four
+sync passes carried the base document, `fever/feeds`, `fever/groups`, `fever/unread_item_ids` and
+`fever/saved_item_ids`; `fever/items` arrived on the first pass, `fever/items/since_id` on each of
+the four, and `fever/items/with_ids` on the last two. The log names five passes, so the record
+stops before the last one, and it names three `with_ids` requests, all arriving with an empty
+list, where the record carries two lines. Seven `fever/mark/item` lines arrived; the checklist
+names three steps, read, un-read and saved, so three of the seven are the steps the walk named and
+four are left by them, with nothing in either file showing which side sent them; the states are
+values, so the seven lines cannot be told apart, and no line names the item they were for. The
+evidence holds 35 record lines against 42 requests the log names, so seven forwarded requests have
+no line, which the two files cannot explain: the rule that would show it is the observer's own,
+one line per request it forwards.
 
-The app showed the feed the run wrote with an empty name, which is the value the row carries: the
-model names the feed title as empty until the first successful fetch fills it, and the half that
-wrote the entry rows here wrote no title. The walk on NewsFlash showed the same page with the same
-empty name, so this is what the two walks showed rather than a difference between the clients.
+The order named in this section is the order the record carries, and the order half reads records
+for the three clients whose records it reads as data, so the order here is what the walk left
+rather than what the rule can read for this client.
+
+The feed the run wrote carries an empty title, which is what the person walking saw as an empty
+name in the app: the write that creates the row writes an empty title, and the write that records
+a successful fetch leaves the title as the row held it, so the fetch that ran here, which
+succeeded, did not fill it. The comment on the row names the title as empty until the first
+successful fetch fills it, which is the half this walk contradicts. A record line carries names
+and not values, so an app display is not something a line can show, and the same empty name on the
+NewsFlash walk is what the person who walked it reports rather than what that record shows.
+
+The two end halves of the run were not printed: the window's process ended before its window
+closed, so nothing after the sleep ran. Read against the walk's own leftovers, the record is non-
+empty, and the walk's database holds the one entry row the run declares for the feed the run
+wrote, which the run's own pass wrote before the first request arrived.
 
 ## What the replay half shows
 

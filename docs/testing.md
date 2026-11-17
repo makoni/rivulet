@@ -1626,8 +1626,8 @@ the code, which is the half the report item names. What this half cannot show, a
 the record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
 of a client whose source cannot be read, the order a client reaches its calls at, which the run
-record carries for the three clients whose records this half reads as data and the source declares
-for the others,
+record carries for the three clients whose records the check half reads as data and the source
+declares for the others,
 the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
 list size, which no record line can show firing, the side of the bound the guard applies, which the

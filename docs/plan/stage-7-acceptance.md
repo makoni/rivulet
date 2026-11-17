@@ -1,44 +1,50 @@
 # Stage 7 — Acceptance & hardening
 
-**Goal:** prove real-world compatibility with clients and parity with Miniflux; harden the edges.
-**Status:** in progress — the first slice is the robustness work, merged (PR #55): the hostile
-bodies the fetcher cannot read as written, and the reduced 10k-entry scenario with the budgets the
-suite documents. The second slice is the security checklist, merged (PR #56): the checklist is
-`docs/security.md`, and the rules it could express as pins landed there — 8 pins and 7 probes across
-five suites, one finding closed in production code. The third slice is the parity harness, merged as
-PR #57: the comparator reads a comparison run as the pair document it leaves behind, the tolerance
-table in `docs/parity.md` is read as data, and the probe set shows each rule can fail on the rule it
-names — 19 rules, 21 crafted inputs plus the baseline. The fourth slice is merged as PR #58: the run
-half executed here for the first time, with Postgres as a container, and what it reported was the
-login half, which the run reaches and cannot pass. The fifth slice, which merged as PR #60, closes
-that half as an accepted-divergence row: the run writes the credential pair through the two paths
-the two sides have — SQL on the reference side, where the enabled flag the login read requires is
-set only by its web form, and its own console command on this side, which has no integration table
-and no flag — so what the rule can read is the answer, and the row names which path wrote the value
-as not reachable here; the run that writes one value through both paths reports nothing but the key
-set the method-mismatch row names. The sixth slice is the Fever parameter set sized to what the
-acceptance client calls, which merged as PR #61: the base document, the five read documents, the
-three `mark` branches and the `HEAD` reachability check, pinned as 32 pins and 67 probes across the
-seven Fever suites and the icon read, each seen to fail on the rule it names and to revert the file
-byte-identically, with the accepted row for the empty list this client's deserializer refuses added
-to the tolerance table. The seventh slice is the client matrix and the performance notes, merged as
-PR #63: `docs/clients.md` records the calling sets of five clients — three read from their own
-source at a named commit, two from the project's documentation because their source cannot be read
-here — and the check half reads those sets, the record files, the document and the port's own route,
-dispatch, auth and response sources as data over 19 rules, with the parsers kept apart from the
-rules so each rule stays a function over data. No set is a capture. NewsFlash and FeedFlow are the
-clients run against this port here, through `Scripts/client-run.sh`, and the records those runs
-wrote are read as data by the rule that reads them, which is the nineteenth rule. That run half and
-that rule are the eighth slice, merged as PR #71: nine halves over the records the runs left behind,
-32 crafted inputs plus the baseline over 19 rules, and nine guards, twelve read sites, six reading
-one value, three for the ports, two for the base's three halves, one for the entry guard's two
-halves, seen to fail on the value each names. The manual matrix criterion is closed for those two
-clients and stays open for the three this machine has no device to run, which is what the report
-items name. The ninth slice, merged as PR #77, is the run half executed on a device — FeedFlow
-reaching the observer over the local network, its record being the document the check half reads —
-with the pin the process harness gained for the cadence read a serving run makes, and the `prepare`
-hook and the arrival read that answer a pin's cancellation. The performance half records
-measurements taken here rather than bounds. **Effort:** M. **Depends on:** Stages 5–6.
+      **Goal:** prove real-world compatibility with clients and parity with Miniflux; harden the
+      edges. **Status:** in progress — the first slice is the robustness work, merged (PR #55):
+      the hostile bodies the fetcher cannot read as written, and the reduced 10k-entry scenario
+      with the budgets the suite documents. The second slice is the security checklist, merged (PR
+      #56): the checklist is `docs/security.md`, and the rules it could express as pins landed
+      there — 8 pins and 7 probes across five suites, one finding closed in production code. The
+      third slice is the parity harness, merged as PR #57: the comparator reads a comparison run
+      as the pair document it leaves behind, the tolerance table in `docs/parity.md` is read as
+      data, and the probe set shows each rule can fail on the rule it names — 19 rules, 21 crafted
+      inputs plus the baseline. The fourth slice is merged as PR #58: the run half executed here
+      for the first time, with Postgres as a container, and what it reported was the login half,
+      which the run reaches and cannot pass. The fifth slice, which merged as PR #60, closes that
+      half as an accepted-divergence row: the run writes the credential pair through the two paths
+      the two sides have — SQL on the reference side, where the enabled flag the login read
+      requires is set only by its web form, and its own console command on this side, which has no
+      integration table and no flag — so what the rule can read is the answer, and the row names
+      which path wrote the value as not reachable here; the run that writes one value through both
+      paths reports nothing but the key set the method-mismatch row names. The sixth slice is the
+      Fever parameter set sized to what the acceptance client calls, which merged as PR #61: the
+      base document, the five read documents, the three `mark` branches and the `HEAD`
+      reachability check, pinned as 32 pins and 67 probes across the seven Fever suites and the
+      icon read, each seen to fail on the rule it names and to revert the file byte-identically,
+      with the accepted row for the empty list this client's deserializer refuses added to the
+      tolerance table. The seventh slice is the client matrix and the performance notes, merged as
+      PR #63: `docs/clients.md` records the calling sets of five clients — three read from their
+      own source at a named commit, two from the project's documentation because their source
+      cannot be read here — and the check half reads those sets, the record files, the document
+      and the port's own route, dispatch, auth and response sources as data over 19 rules, with
+      the parsers kept apart from the rules so each rule stays a function over data. No set is a
+      capture. NewsFlash, FeedFlow and NetNewsWire are the clients whose records this half reads
+      as data, and Reeder Classic is the client walked here on the phone, whose record is held as
+      evidence outside the repository, all through the run half `Scripts/client-run.sh`; the
+      records the first three wrote are read as data by the rule that reads them, which is the
+      nineteenth rule. That run half and that rule are the eighth slice, merged as PR #71: nine
+      halves over the records the runs left behind, 32 crafted inputs plus the baseline over 19
+      rules, and nine guards, twelve read sites, six reading one value, three for the ports, two
+      for the base's three halves, one for the entry guard's two halves, seen to fail on the value
+      each names. The manual matrix criterion is closed for the three clients whose records are
+      read as data and for the halves the walk on Reeder Classic showed, and stays open for lire,
+      which is what the report items name. The ninth slice, merged as PR #77, is the run half
+      executed on a device — FeedFlow reaching the observer over the local network, its record
+      being the document the check half reads — with the pin the process harness gained for the
+      cadence read a serving run makes, and the `prepare` hook and the arrival read that answer a
+      pin's cancellation. The performance half records measurements taken here rather than bounds.
+      **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
