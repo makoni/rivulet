@@ -65,8 +65,12 @@ saw it: the name the dispatch case answered on when the port wrote a document of
 status when it wrote something else. The shape answer is read against the matrix row; the status is
 read against the handler the route file gives the path, through the shapes its own branches write
 and the status each shape writes, so a record line carrying a status this handler has no branch for
-is a finding. The record carries no value, so the credential pair appears as the name the redaction
-names for it.
+is a finding. The half reads only the paths it can name a handler for: a row whose answer is the
+catch-all or a dispatch case has no handler, and the login route writes no handler call, so those
+paths read nothing here. A shape that writes no error status, `text` or `json`, has no pair in the
+pin, so it adds nothing to the statuses a handler answers, and a record line carrying `status 200`
+is read as a finding because no pair names the status the text shape writes. The record carries no
+value, so the credential pair appears as the name the redaction names for it.
 
 The order is read as the order column, not as the position of the line, because the line is written
 when the response is complete and the client had more than one connection open at once, which the
@@ -299,8 +303,8 @@ Manual checklist, walked here by the run on a phone: log in; list subscriptions 
 one stream page and the item contents the ids that page gave were read for; add a feed, and the
 category write the add made on the same call the move half uses; open an item, which is the call the
 walk reached by bookmarking it; mark items read; rename a category through the drawer's rename,
-which is the call the set names for it. It did not walk delete a category, so the catch-all answer
-the row reads is not a half this run showed.
+which is the call the set names for it. It did not walk delete a category, so the half that row
+names is not shown by this run.
 
 The calls this run showed for FeedFlow, in the order the record says they arrived:
 `accounts/ClientLogin`, `reader/api/0/subscription/list`, `reader/api/0/stream/items/ids`,
@@ -321,13 +325,16 @@ app reports for itself rather than a value a read here answered. The device's ow
 answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source the set
 is read from carries; the half reads neither, so both are named rather than compared.
 
-Two of the three `edit-tag` lines carry the shape the handler writes, and the third is the
-mark-all-as-read call, answered `status 400`: the request carried no `i`, so the read the handler
-makes for that name failed, and the status half reads this path as the shape the handler answers a
-read error with, which is the 400. The item-content read is the read this client makes for the ids a
-page gives it, and it arrived as the sync the app made after the pass had written the entry row. The
-rename is the call the set names for `reader/api/0/rename-tag`, and it arrived from the drawer's
-rename, which is the half the first run on this device did not walk.
+Two of the three `edit-tag` lines carry the answer the matrix row names, with an empty key column,
+which is the shape this handler writes for a write that reads nothing; the third carries a status,
+with the field names `a` and `output` and no `i`, so the read the handler makes for `i` failed and
+the handler answered it with 400, which is the status the status half reads this path as answering a
+read error with. The app action that sent that request was the mark-items-read step of the
+checklist, which the record shows only as the field names the request carried. The item-content read
+is the read this client makes for the ids a page gives it, and it arrived as the sync the app made
+after the pass had written the entry row. The rename is the call the set names for
+`reader/api/0/rename-tag`, and it arrived from the drawer's rename, which is the half the first run
+on this device did not walk.
 
 The two calls the set names that this run did not reach are `reader/api/0/stream/contents` and the
 folder-delete half the set names as `reader/api/0/edit-tag#disable-tag`. The record carries no line

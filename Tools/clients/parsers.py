@@ -206,20 +206,23 @@ def route_handlers(text):
     """The handler each registration line gives the path it registers, read as the call the line
     writes. The route rule reads the same file for the registration, so the handler the status half
     reads is the one the port answers this path with, not the file the function happens to sit in.
-    The handler call is the line the registration hands to the auth wrapper, so the two are read as
-    one block, and a route that names no handler answers nothing here.
+    The handler call is the line the registration hands to the auth wrapper, so the pair is read
+    inside one block: a route whose block writes no handler call answers nothing here, and the block
+    ends at the line that closes it.
     """
     out = {}
     current = None
     for line in text.splitlines():
         match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
+        handler = re.search(r"handlers\.(\w+)\(", line)
         if match is not None:
             parts = [part.strip().strip('"') for part in match.group(2).split(",")]
             prefix = "/reader/api/0" if "protected." in line else ""
             current = f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}"
-        handler = re.search(r"handlers\.(\w+)\(", line)
-        if current is not None and handler is not None:
+        elif handler is not None and current is not None:
             out[current] = handler.group(1)
+            current = None
+        elif current is not None and line.strip() == "})":
             current = None
     return out
 

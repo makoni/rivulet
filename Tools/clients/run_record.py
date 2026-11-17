@@ -129,11 +129,13 @@ def status_half(record, rows, handlers, shapes, statuses):
     """The status a record line carries when the port wrote something other than an answer of this
     path. Read as the status the handler the route file gives this path answers, through the shapes
     its own branches write and the status each shape writes: a status this handler has no branch for
-    is a finding, which is what the craft for this half shows.
+    is a finding, which is what the craft for this half shows. A line whose call the matrix has no
+    row for is not read here, because the half that reads the call name is the one that reports it,
+    and the shape half already skips those lines as statuses.
     """
     found = []
     for one in record:
-        if not one["answer"].startswith(STATUS_PREFIX):
+        if not one["answer"].startswith(STATUS_PREFIX) or one["call"] not in rows:
             continue
         answer = rows[one["call"]]["This port answers"]
         handler = handlers.get(answer)

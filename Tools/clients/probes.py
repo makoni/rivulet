@@ -275,9 +275,10 @@ CASES = {
 
         # The status a record line carries for an error answer, read against the statuses the
         # handler the route file gives this path answers. The handler for `edit-tag` answers its
-        # read errors as 400 and 500, so 404 is the shape it has no branch for: the craft writes
-        # that status on the line this run wrote for the call.
-        lambda data: line_of(data, "FeedFlow", "reader/api/0/edit-tag").__setitem__(
+        # read errors as 400 and 500, so 404 is the shape it has no branch for: the craft moves the
+        # status on the line the run wrote as a status answer for that call.
+        lambda data: next(line for line in lines_of(data, "FeedFlow")
+                          if line["answer"].startswith("status ")).__setitem__(
             "answer", "status 404"),
     ],
 }
@@ -288,7 +289,7 @@ def cases():
     names the rules, which is the order the round reads them in. Three rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
     kinds of finding, the route rule reads two halves, and the rule that reads the run record
-    reads nine.
+    reads eleven.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:

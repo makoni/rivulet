@@ -1575,9 +1575,14 @@ the record the Google Reader run wrote here, one on a record this machine has no
 client whose set records no calls, one on the names the round reads the record files under, which is
 the half that keeps the performance record, read by its own rule at its own path, out of the client
 records, and one on the status a record line carries, which writes a status the handler for that
-path has no branch for. One of those eleven reaches two parts of the data at once, the record line
-and the paragraph that names the calls this run showed, because the half reads the record against
-the paragraph and the Fever run reached no call outside the recorded set. Every craft changes the
+path has no branch for. The status half reads only the paths it can name a handler for: a row whose
+answer is the catch-all or a dispatch case has no handler, and the login route writes no handler
+call, so those paths read nothing here, and a shape that writes no error status has no pair in the
+pin, so a record line carrying the status the text shape writes is read as a finding. A status line
+for a call the matrix has no row for is not read by this half, which is the half that reads the call
+name. One of those eleven reaches two parts of the data at once, the record line and the paragraph
+that names the calls this run showed, because the half reads the record against the paragraph and
+the Fever run reached no call outside the recorded set. Every craft changes the
 parsed data in memory and never a file, and the round hashes every file the check half reads before
 and after, so a craft that reached a file is reported. What the 19 rules read: the source each set
 names and its commit, the redaction as
@@ -1627,10 +1632,11 @@ run on a device, which this machine has no app metadata to read the value agains
 `Scripts/client-run.sh` with `Tools/clients/observer.py`, outside CI: the observer writes one record
 line per request it forwarded and asserts nothing, and the check half reads the record the run left
 behind rather than the processes. It is checked here by `bash -n` and by its nine guards — twelve
-read sites, six
-two halves — each seen to fail on the value it names: the record path, the client row, the host by
-an address the machine does not answer on, read against the address the machine's own default route
-selects, the two ports by naming the same port twice and by a port the machine already holds, seen
+read sites, six reading one value, three for the ports, two for the base's three halves, one for
+the entry guard's two halves — each seen to fail on the value it names: the record path, the client
+row, the host by an address the machine does not answer on, read against the address the machine's
+own default route selects, the two ports by naming the same port twice and by a port the machine
+already holds, seen
 by holding one port with a listener, the base by the port it names, by a path the set does not name
 for the client, seen for FeedFlow against the Fever prefix, and by the form the set names for how
 the client builds the prefix, seen for the client whose set names that it appends the prefix itself,
