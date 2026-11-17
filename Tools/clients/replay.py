@@ -35,10 +35,12 @@ import run_record as observed_rule
 NOT_SHOWN = [
     "the clients that have not been run against this port here, which is the half the manual "
     "matrix keeps open for them",
+    "the record a walk for a client whose set records no calls leaves, which the check half reads "
+    "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
     "the order a client reaches its calls at, which the run record carries for the three clients "
-    "run here and the source declares for the others",
+    "whose records the check half reads as data and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
     "the app-level choice of which calls a library-based client makes, which is read at the "
     "library boundary for the clients that have not been run here",

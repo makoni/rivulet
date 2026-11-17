@@ -1560,7 +1560,7 @@ The client matrix is the half that records the calling sets of the acceptance cl
 `docs/performance.md`, `docs/reference-notes.md`, the port's own route, dispatch, auth and response
 sources, the pin that pins the response builder's status mapping, and the field the timed pin's
 print writes as data, so every rule is a function over data rather than an assertion about a client
-that was never run here. `Tools/clients/parsers.py` holds only the read: the sections, tables,
+this half reads no record for. `Tools/clients/parsers.py` holds only the read: the sections, tables,
 record lines, the two sentences the rules parse as sets, the names read in the order a record line
 carries them, the routes the port registers, the handler each registration line gives its path, the
 shapes each handler's own branches write, and the status each shape writes as the pin asserts it,
@@ -1623,8 +1623,11 @@ number written for each status name is that half's vocabulary: the pin asserts t
 no test asserts the number, so the pair (shape, status) is read as data while the number is named in
 the code, which is the half the report item names. What this half cannot show, and is named in
 `docs/clients.md` rather than asserted: the clients that have not been run against this port here,
-the calling set of a client whose source cannot be read, the order a client reaches its calls at,
-which the run record carries for the three clients run here and the source declares for the others,
+the record a walk for a client whose set records no calls leaves, which the check half reads as a
+finding, so that walk is evidence outside the repository rather than data it reads, the calling set
+of a client whose source cannot be read, the order a client reaches its calls at, which the run
+record carries for the three clients whose records the check half reads as data and the source
+declares for the others,
 the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
 list size, which no record line can show firing, the side of the bound the guard applies, which the

@@ -141,11 +141,14 @@ notes, merged as PR #63: `docs/clients.md` records the calling sets of five clie
 from their own source at a named commit, two from the project's documentation because their source
 cannot be read here — and the check half reads those sets, the record files, the document and the
 port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, and three
-clients have been run against this port here, all through the run half `Scripts/client-run.sh`:
-NewsFlash, the Fever client, FeedFlow, the Google Reader client run on a phone that reached the
-observer over the local network, and NetNewsWire, the Google Reader client run on the Mac on the
-same network. The manual matrix criterion is closed for these three and stays open for the two this
-machine has no device to run. What the 19 rules read: the source each
+clients have been run against this port here and left a record this half reads as data, all through
+the run half `Scripts/client-run.sh`: NewsFlash, the Fever client, FeedFlow, the Google Reader
+client run on a phone that reached the observer over the local network, and NetNewsWire, the Google
+Reader client run on the Mac on the same network. A fourth run, Reeder Classic on the phone, walked
+the Fever half here, and its record is held as evidence outside the repository, because the set
+for that client records no calls. The manual matrix criterion is closed for the three whose
+records are read as data and for the halves the walk on Reeder Classic showed, and stays open for
+lire, the client this machine has no device to run. What the 19 rules read: the source each
 set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
 the manifest lines, the classes against the parity table and the output-check class against the
 endpoints the reference applies the check on, the routes the port registers against the answer each
@@ -167,8 +170,11 @@ and the route rule's first craft on a row no record line reaches, because after 
 landed both crafts reported the record rule as well; the parsers are in
 `Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
 the document rather than asserted: the clients that have not been run against this port here, the
-calling set of a client, whose source cannot be read, the order a client reaches its calls at, which
-the run record carries for the three clients run here and the source declares for the others, the
+record a walk for a client whose set records no calls leaves, which the check half reads as a
+finding, so that walk is evidence outside the repository rather than data it reads, the calling set
+of a client, whose source cannot be read, the order a client reaches its calls at, which the run
+record carries for the three clients whose records the check half reads as data and the source
+declares for the others, the
 values the calls carry, which are redacted, the app-level choice of which calls a library-based
 client makes, the guard a client applies before it sends, read as the bound on the list size, which
 no record line can show firing, the side of the bound the guard applies, which the record carries as
@@ -197,8 +203,11 @@ and the status each shape writes, read from the pin that pins the mapping. The h
 paths it can name a handler for, so the login route and the paths that answer on the catch-all or a
 dispatch case read nothing here. The answer half reads the shape answers and the status half reads
 the status answers, so the two together cover the answer column, which is what took the round to 36
-cases over 19 rules. The run half is checked by `bash -n` and by its nine
-guards, twelve read sites, six reading one value, three for the ports, two for the base's three
+cases over 19 rules. A fourth walk, Reeder Classic on the phone, is the half this rule cannot read:
+its set records no calls, so a record file for that client is a finding rather than data, and the
+record the walk left is held as evidence outside the repository. The run half is checked by
+`bash -n` and by its nine guards, twelve read sites, six reading one value, three for the ports,
+two for the base's three
 halves, one for the entry guard's two halves, each seen to fail on the value it names, the base half
 the run builds, which now follows the form the set names for a client that appends the prefix
 itself, the half having been seen red on the head before that read followed the form, and seen red
