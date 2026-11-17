@@ -40,6 +40,14 @@ DEFAULTS = {
     # auth path names the name, but the write is what a patch can change.
     "port_response": os.path.join(ROOT, "Sources", "RivuletApp", "Routes",
                                   "GoogleReaderResponse.swift"),
+    # The handlers the route file gives each path, read as the directory that writes them, so the
+    # handler a record line is read against is the one the port answers this path with.
+    "routes_dir": os.path.join(ROOT, "Sources", "RivuletApp", "Routes"),
+    # The pin that pins the response builder's status mapping, read as data for the pair (shape,
+    # status): the file that writes the shapes writes them as status names, so the pair is only
+    # written down as data on the pin's own expectation lines.
+    "status_pin": os.path.join(ROOT, "Tests", "RivuletAppTests",
+                               "GoogleReaderResponseStatusTests.swift"),
 }
 
 
@@ -192,6 +200,59 @@ def port_routes(text):
         if match is not None:
             registered.add(f"catch-all {match.group(1)}")
     return registered
+
+
+def route_handlers(text):
+    """The handler each registration line gives the path it registers, read as the call the line
+    writes. The route rule reads the same file for the registration, so the handler the status half
+    reads is the one the port answers this path with, not the file the function happens to sit in.
+    The handler call is the line the registration hands to the auth wrapper, so the pair is read
+    inside one block: a route whose block writes no handler call answers nothing here, and the block
+    ends at the line that closes it.
+    """
+    out = {}
+    current = None
+    for line in text.splitlines():
+        match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
+        handler = re.search(r"handlers\.(\w+)\(", line)
+        if match is not None:
+            parts = [part.strip().strip('"') for part in match.group(2).split(",")]
+            prefix = "/reader/api/0" if "protected." in line else ""
+            current = f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}"
+        elif handler is not None and current is not None:
+            out[current] = handler.group(1)
+            current = None
+        elif current is not None and line.strip() == "})":
+            current = None
+    return out
+
+
+def handler_shapes(paths):
+    """The response-builder shapes each handler answers with, read as the function that writes it.
+    Only the handler's own block is read, so a shape another handler answers is not read for this
+    path, which is the half that makes a status this handler has no branch for a finding.
+    """
+    out = {}
+    for name in sorted(os.listdir(paths["routes_dir"])):
+        if not name.startswith("GoogleReaderHandlers"):
+            continue
+        text = read(os.path.join(paths["routes_dir"], name))
+        for block in re.split(r"\n(?=\s*(?:private )?func )", text):
+            head = re.match(r"\s*(?:private )?func (\w+)\(", block)
+            if head is None:
+                continue
+            out[head.group(1)] = sorted({match.group(1) for match in
+                                         re.finditer(r"GoogleReaderResponse\.(\w+)\(", block)})
+    return out
+
+
+def status_names(text):
+    """The status each error shape the response builder writes, read from the pin that pins the
+    mapping: the pin names the shape and the status on one expectation line, so a patch that moved a
+    shape's status moves the pair read here.
+    """
+    return {match.group(1): match.group(2) for match in
+            re.finditer(r"GoogleReaderResponse\.(\w+)\([^)]*\)\.status == \.(\w+)", text)}
 
 
 def paragraph(text, first):
@@ -358,6 +419,9 @@ def build_matrix(paths):
         "perf_script": read(paths["perf_script"]),
         "perf_pin": read(paths["perf_pin"]),
         "port_response": read(paths["port_response"]),
+        "status_pin": read(paths["status_pin"]),
+        "route_handlers": route_handlers(read(paths["port_routes"])),
+        "handler_shapes": handler_shapes(paths),
         "run_records": perf_run(read(paths["run"])),
         "record_files": record_files(paths, named),
         "observed": observed_by_client(paths, named),

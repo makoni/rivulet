@@ -46,8 +46,11 @@ NOT_SHOWN = [
     "record line can show firing",
     "the side of the bound the guard applies, which the record carries as names and not as values",
     "the answer a record line can carry for a call whose guard the client applies before it sends, "
-    "which is the status the guard answers with, while the matrix row names the dispatch "
-    "answer for the path",
+    "read as the status the handler answers for the path rather than as the guard's answer, which "
+    "no record line can show firing",
+    "the number this read names for each status name, which the pin asserts as a name and no test "
+    "asserts as a number, so the pair (shape, status) is data while the number is the read's own "
+    "vocabulary",
     "the part of a calling set a run did not reach, which the record carries no line for and the "
     "paragraph for that client names as the halves this run did not walk",
     "the token half of a client that sends the stored value as the token, which the read compares "

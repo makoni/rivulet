@@ -3,21 +3,23 @@
 size cap. The run half writes one record line per request the client actually sent, so this rule
 reads the run document rather than the app: the client the record names, the order the calls
 arrived in, the call as the recorded set names it, the method, the answer the port gave, the key
-names the answer carried, and the field names the request carried. Ten halves, each with its own
+names the answer carried, and the field names the request carried. Eleven halves, each with its own
 craft: the client the record names against the set that client's row records; the order the
 record carries against the order the document names the calls this run showed; a call the set
 cannot name against the document naming it as shown; the answer for a call the set names against
 the matrix row; the answer for a call the reference records no case for against the default
 branch, which is the dispatch word for the path that dispatches and the catch-all word for the
-path that answers on a route; the call name against the branch the merged form gives, read
-through the mark the set names that branch with; the key names read against the names the file
-writes for the path this client uses; the name the redaction names for the pair; the guarded call
-against the document naming it as shown by this run; and the record files the round reads, read
-as the names it reads them under, which is the half that keeps the file another rule reads at its
-own path out of the client records. The order half reads the order of first
-appearances, because one run can reach the same call more than once, and it does not read the
-run's order against the order the source declares: the document names the order a client reaches
-its calls at as shown only for the client run here, so the half compares the record with the
+path that answers on a route; the status a record line carries when the port wrote something other
+than an answer of this path, read as the status the handler the route file gives this path answers,
+through the shapes its own branches write and the status each shape writes; the call name against
+the branch the merged form gives, read through the mark the set names that branch with; the key
+names read against the names the file writes for the path this client uses; the name the redaction
+names for the pair; the guarded call against the document naming it as shown by this run; and the
+record files the round reads, read as the names it reads them under, which is the half that keeps
+the file another rule reads at its own path out of the client records. The order half reads the
+order of first appearances, because one run can reach the same call more than once, and it does not
+read the run's order against the order the source declares: the document names the order a client
+reaches its calls at as shown only for the client run here, so the half compares the record with the
 order the same document names the calls this run showed, which is the half the document can be
 wrong about. The order column is the order the requests arrived at, read rather than the position
 of the line, because the line is written when the response is complete, which is not the arrival
@@ -28,7 +30,9 @@ client's run. Each half the round crafts is single-firing, because the record is
 the round reads as data: a craft changes the parsed record in memory and the round hashes the
 file before and after. One branch has no craft and is named here rather than probed: the one that
 reports a record naming a client the check half has no set for, which no committed record can put
-in place.
+in place. The number written for each status name is this read's vocabulary, because the pin asserts
+the status name and no test asserts the number: the pair (shape, status) is read as data, the number
+is named here, and that is the half the report item names.
 """
 
 import parsers as read
@@ -43,6 +47,12 @@ DEFAULT_ANSWER = {"fever": "dispatch: default", "google-reader": "catch-all"}
 # the row has it.
 BRANCH_FIELD = "s"
 BRANCH_MARK = "#"
+# The word the record writes for an answer that is not an answer of this path, and the number this
+# read names for each status name the response builder writes. The pin pairs the shape with the
+# status name as data; the number is named here because no test asserts it, and that is the half the
+# report item names.
+STATUS_PREFIX = "status "
+STATUS_NUMBER = {"badRequest": 400, "internalServerError": 500, "notFound": 404}
 
 
 def set_key(client):
@@ -88,9 +98,14 @@ def call_half(record, calls, shown):
 
 
 def answer_half(record, rows):
-    """The answer the record carries for a call the set names, read against the matrix row."""
+    """The answer the record carries for a call the set names, read against the matrix row. A line
+    whose answer is a status is not read here: the row names the answer for the path, while the
+    status is the answer the handler wrote for the read that failed, which the status half reads.
+    """
     found = []
     for one in record:
+        if one["answer"].startswith(STATUS_PREFIX):
+            continue
         if one["call"] in rows and one["answer"] != rows[one["call"]]["This port answers"]:
             found.append(f"{one['call']}: the record reads {one['answer']}, "
                          f"the matrix row names {rows[one['call']]['This port answers']}")
@@ -107,6 +122,30 @@ def default_half(record, calls, default):
             continue
         found.append(f"{one['call']}: a call the reference records no case for, answered as "
                      f"{one['answer']}, which is not the {default} half")
+    return found
+
+
+def status_half(record, rows, handlers, shapes, statuses):
+    """The status a record line carries when the port wrote something other than an answer of this
+    path. Read as the status the handler the route file gives this path answers, through the shapes
+    its own branches write and the status each shape writes: a status this handler has no branch for
+    is a finding, which is what the craft for this half shows. A line whose call the matrix has no
+    row for is not read here, because the half that reads the call name is the one that reports it,
+    and the shape half already skips those lines as statuses.
+    """
+    found = []
+    for one in record:
+        if not one["answer"].startswith(STATUS_PREFIX) or one["call"] not in rows:
+            continue
+        answer = rows[one["call"]]["This port answers"]
+        handler = handlers.get(answer)
+        if handler is None:
+            continue
+        answered = {STATUS_NUMBER[statuses[shape]] for shape in shapes.get(handler, [])
+                    if shape in statuses and statuses[shape] in STATUS_NUMBER}
+        if int(one["answer"][len(STATUS_PREFIX):]) not in answered:
+            found.append(f"{one['call']}: the record reads {one['answer']}, which is not a status "
+                         f"the handler {handler} answers ({sorted(answered)})")
     return found
 
 
@@ -191,6 +230,8 @@ def record_halves(data, client, record):
     found += call_half(record, calls, shown)
     found += answer_half(record, rows)
     found += default_half(record, calls, DEFAULT_ANSWER[set_data["api"]])
+    found += status_half(record, rows, data["route_handlers"], data["handler_shapes"],
+                         read.status_names(data["status_pin"]))
     found += branch_half(record, calls)
     found += key_half(record, data["shape_keys"][set_data["api"]])
     found += token_half(record, set_data["redaction"]["token"], login)
@@ -200,10 +241,10 @@ def record_halves(data, client, record):
 
 def record_name_half(data, named):
     """The record files the round reads as client records, read as the names the round reads them
-    under. A file in the record directory that is not named as the record for a client the matrix has
-    a row for is read by another rule at its own path, which is what the performance record is, so a
-    half that read the directory as whatever sits in it would put that file in front of the halves
-    that read a client's run.
+    under. A file in the record directory that is not named as the record for a client the matrix
+    has a row for is read by another rule at its own path, which is what the performance record is,
+    so a half that read the directory as whatever sits in it would put that file in front of the
+    halves that read a client's run.
     """
     found = []
     for entry in data["record_files"]:

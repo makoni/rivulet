@@ -4,15 +4,16 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 33 crafted inputs and the baseline, so 34 cases — the performance rule
+single-firing: 19 rules, 34 crafted inputs and the baseline, so 35 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
 its two halves, because an input that violates one half of a rule still satisfies the other, and
-the rule that reads the run record has one for each of its ten halves — six on the record the
+the rule that reads the run record has one for each of its eleven halves — six on the record the
 Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run wrote here, one on a record this machine has not written, for a client whose set records no
-calls, and one on the names the round reads the record files under, which is the half that keeps
-the performance record, read by its own rule at its own path, out of the client records. One of
-those ten reaches two parts of the data at once, the record line and the paragraph that names the
+calls, one on the names the round reads the record files under, which is the half that keeps the
+performance record, read by its own rule at its own path, out of the client records, and one on the
+status a record line carries for an error answer. One of those eleven reaches two parts of the data
+at once, the record line and the paragraph that names the
 calls this run showed, because the half reads the record against the paragraph and the Fever run
 reached no call outside the recorded set; that craft is named with the rule in `docs/clients.md`.
 The crafts change the data in memory, never the files. The round hashes every file the check half
@@ -220,10 +221,11 @@ CASES = {
         lambda data: data.__setitem__("port_response", data["port_response"].replace(
             'name: "X-Reader-Google-Bad-Token"', 'name: "X-Reader-Local-Bad-Token"')),
 
-    # The nine halves of the rule that reads the run record, one craft each: six on the record the
+    # The eleven halves of the rule that reads the run record, one craft each: six on the record the
     # Fever run wrote here, one on the paragraph that names its calls, one on the record the Google
-    # Reader run wrote here, and one on a record this machine has not written, which is the craft
-    # that adds a line for a client whose set records no calls.
+    # Reader run wrote here, one on a record this machine has not written, which is the craft that
+    # adds a line for a client whose set records no calls, one on the names the round reads the
+    # record files under, and one on the status a record line carries for an error answer.
     "the_run_record_agrees_with_the_set_and_the_answer_it_names": [
         # The order the record carries, read as the order column, against the order the paragraph
         # names the calls the two have in common: the two names swap in the column.
@@ -270,6 +272,14 @@ CASES = {
         # a half that read the directory as whatever sits in it would put that file in front of this
         # half, which is what it did before the read named the files.
         lambda data: data.__setitem__("record_files", sorted(data["record_files"] + ["stand-in.txt"])),
+
+        # The status a record line carries for an error answer, read against the statuses the
+        # handler the route file gives this path answers. The handler for `edit-tag` answers its
+        # read errors as 400 and 500, so 404 is the shape it has no branch for: the craft moves the
+        # status on the line the run wrote as a status answer for that call.
+        lambda data: next(line for line in lines_of(data, "FeedFlow")
+                          if line["answer"].startswith("status ")).__setitem__(
+            "answer", "status 404"),
     ],
 }
 
@@ -279,7 +289,7 @@ def cases():
     names the rules, which is the order the round reads them in. Three rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
     kinds of finding, the route rule reads two halves, and the rule that reads the run record
-    reads nine.
+    reads eleven.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:
