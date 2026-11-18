@@ -35,7 +35,7 @@ Rivulet aims to be a small, single-binary RSS/Atom reader for a personal server:
 - **SQLite storage** — a single database file in WAL mode with FTS5 full-text search. No external
   database service.
 - **Client APIs** — Google Reader API and Fever API, so existing native clients keep working:
-  NetNewsWire, lire, FeedFlow, Reeder Classic and friends.
+  NetNewsWire, FeedFlow, Reeder Classic and friends.
 - **CLI-first** — no web interface: `rivulet add`, `rivulet import feeds.opml`, `rivulet refresh`,
   `rivulet serve`.
 - **Built with** — [Vapor 4](https://vapor.codes),

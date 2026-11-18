@@ -1572,8 +1572,10 @@ data — reports nothing, so each probe is single-firing: 19 rules, 36 crafted i
 baseline, so 37 cases, the performance rule having one for each of the five kinds of finding it
 reads, the route rule one for each of its two halves, because an input that violates one half of a
 rule still satisfies the other, the rule that reads the half that reaches no route one for each of
-its two halves because a one-half set has no other half to name, and the rule that reads the run
-record one for each of its eleven halves, which is twelve crafts: six on the record the Fever run
+its two halves, both crafted on Capy Reader, the only set with a half that reaches no route: the
+shape half by naming the shape as two, the note half by removing that half's note, and the rule
+that reads the run record one for each of its eleven halves, which is twelve crafts: six on the
+record the Fever run
 wrote here, one on the paragraph
 naming its calls, one on the record the Google Reader run on the phone wrote here, the order half
 crafted again on the record the run on the Mac wrote, one on a record this machine has not written,
@@ -1671,14 +1673,18 @@ value the run declares run before the record is written, so a guard that fires l
 record alone, which is what kept it untouched through the ports demos; the guards that read what the
 run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
 committed record byte-identical there too. The Swift half is
-`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 10 probes, reading the same
+`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 12 probes, reading the same
 files through `Bundle.module` as data — the recorded order, which call reaches a registered route
 and which reaches the catch-all, the two item-id forms the same client sends, the page size above
 the clamp against the value at the clamp, the token half per method, the guard the merged form
 answers for the call with no add and no remove pair, the name the dispatch switch has no case for,
 and the prefix this port registers no route for. Each probe was seen to fire on the rule it names;
-the transport read is the assumption the other pins run through, so no patch can show it alone, and
-the transport rules are pinned by `GoogleReaderAuthTests`. The login half and the token half are
+the control read in the prefix pin is the answer the port gives for a path it registers a route
+for, so no patch that changes only the data can show it alone. The half the pin reads is read
+through `#require`, so a set that names no half as answering nothing here reports at the read
+rather than trapping on the index. The transport read is the
+assumption the other pins run through, so no patch can show it alone either, and the transport
+rules are pinned by `GoogleReaderAuthTests`. The login half and the token half are
 pinned as the answer they write, not as the order they happen in, which is what no pin can read. The
 performance half records measurements taken here rather than bounds: `Scripts/perf.sh` is the run,
 `Tools/clients/perf-run.txt` is the recorded run, and the rule compares the table in
