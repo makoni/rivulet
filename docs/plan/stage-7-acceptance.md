@@ -24,7 +24,7 @@ on the rule it names and to revert the file byte-identically, with the accepted 
 list this client's deserializer refuses added to the tolerance table. The seventh slice is the
 client matrix and the performance notes, merged as PR #63: `docs/clients.md` records the calling
 sets of five clients at that PR — three read from their own source at a named commit, two from the
-project's documentation because their source cannot be read here — and PR #82, opened here, adds a
+project's documentation because their source cannot be read here — and PR #82, merged here, added a
 sixth set, read from documentation although its source is open, because no rule here reads calls on
 the path that client uses. The check half reads those sets, the
 record files, the document and the port's own route, dispatch, auth and response sources as data

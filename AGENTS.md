@@ -139,7 +139,7 @@ reference builds it with `make` — is the seventeenth row of the tolerance tabl
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
 notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients at that PR —
 three read from their own source at a named commit, two from the project's documentation because
-their source cannot be read here — and PR #82, opened here, adds a sixth set, read from
+their source cannot be read here — and PR #82, merged here, added a sixth set, read from
 documentation although its source is open, because no rule here reads calls on the path that client
 uses. The check half reads those sets, the record files, the document and the
 port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, and three
