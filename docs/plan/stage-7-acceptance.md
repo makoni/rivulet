@@ -38,7 +38,8 @@ runs left behind, 32 crafted inputs plus the baseline over 19 rules, and nine gu
 sites, six reading one value, three for the ports, two for the base's three halves, one for the
 entry guard's two halves, seen to fail on the value each names. The manual matrix criterion is
 closed for the three clients whose records are read as data and for the halves the walk on Reeder
-Classic showed, and stays open for lire, which is what the report items name. The ninth slice,
+Classic and the walk by hand on Capy Reader showed here, and stays open for the items those walks
+did not reach, which is what the report items name. The ninth slice,
 merged as PR #77, is the run half executed on a device — FeedFlow reaching the observer over the
 local network, its record being the document the check half reads — with the pin the process
 harness gained for the cadence read a serving run makes, and the `prepare` hook and the arrival
@@ -47,24 +48,25 @@ than bounds. **Effort:** M. **Depends on:** Stages 5–6.
 
 ## Scope
 
-- [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), lire (iOS), FeedFlow
-      (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client whose calling
-      set the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add a
-      feed from the client, sync read state, star, counts). Done as the half this machine can do:
-      the calling sets are recorded for all five, three read from their own source at a named commit
-      and two from documentation, with the setup and the checklist written for each. No set is a
-      capture. NewsFlash, FeedFlow and NetNewsWire are the clients run against this port here,
-      through the run half `Scripts/client-run.sh`, and their checklists are the halves those runs
-      walked: the Fever run walked the base document, the read documents and the marks, the Google
-      Reader run on the phone walked the login, the subscription list, one stream page and the add,
-      which is the half the Fever set has no call for and which is why stage 5's single-client
-      criterion is closed, and the Google Reader run on the Mac walked every call its set names.
+- [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), Capy Reader (Android),
+      FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client
+      whose calling set the sixth slice was sized to — setup instructions and a manual checklist
+      (subscribe, add a feed from the client, sync read state, star, counts). Done as the half this
+      machine can do: the calling sets are recorded for all five, three read from their own source
+      at a named commit and two from documentation, with the setup and the checklist written for
+      each. No set is a capture. NewsFlash, FeedFlow and NetNewsWire are the clients run against
+      this port here, through the run half `Scripts/client-run.sh`, and their checklists are the
+      halves those runs walked: the Fever run walked the base document, the read documents and the
+      marks, the Google Reader run on the phone walked the login, the subscription list, one stream
+      page and the add, which is the half the Fever set has no call for and which is why stage 5's
+      single-client criterion is closed, and the Google Reader run on the Mac walked every call its
+      set names.
       Reeder Classic, the fifth client, was walked here on the phone for the Fever half, whose
       record is held as evidence outside the repository, because the check half reads a record for a
       client whose set records no calls as a finding rather than as data; the add half cannot be
       walked for it, since the Fever set has no call that can write a feed row. The manual half
-      stays open for lire, the client this machine has no device to run, and the halves each walk
-      did not reach are named per client.
+      stays open for the Capy Reader items the walk by hand on the phone did not reach, which are
+      named per client.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five
@@ -86,7 +88,7 @@ can be checked without a run.
 `Tests/RivuletIntegrationTests/CallingSets/` is the record both halves read — the pins through
 `Bundle.module`, the check half from disk — and `ClientSequenceReplayTests` replays the recorded
 order and the answer the matrix names for each call. Nothing was captured here, so this is the whole
-of what a pin can show: 9 pins and 10 probes, each seen to fire on the rule it names.
+of what a pin can show: 9 pins and 12 probes, each seen to fire on the rule it names.
 - [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
 a stream that inflates far past the size it is stored in, and a stream the decoder cannot finish —
 read as which limit answers, and the 10k-entry scenario with the budgets documented. The malformed
@@ -178,7 +180,7 @@ declares, which recorded call reaches a registered route and which reaches the c
 two item- id forms the same client sends, the page size above the clamp against the value at the
 clamp, the token half per method, the guard the merged form answers for the call with no add and no
 remove pair, the name the dispatch switch has no case for, and the prefix this port registers no
-route for. 9 pins and 10 probes, each seen to fire on the rule it names and to revert the file it
+route for. 9 pins and 12 probes, each seen to fire on the rule it names and to revert the file it
 patched byte- identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of
 the performance half, outside CI: the rule matches each number `docs/performance.md` names as
 measured here to the record line that produced it, and reports the five kinds of finding it reads: a
@@ -215,14 +217,15 @@ the pair, and what is still open is the classes no corpus input can reach.
       call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
       record is evidence outside the repository rather than data this half reads, so its halves are
       named as what the walk showed rather than as data read against a set; the add half has no
-      call this client's set can be read for. Capy Reader is the free client for the same half, and
+      call this client's set can be read for. Capy Reader is the client this half can walk by hand
+      on the device for the half this port registers no route for, and
       its set is read from documentation because no rule here reads calls on a path this port
       registers no route for, so its half is named as the whole half rather than as partial. It was
       walked by hand here on the phone in the same network: the walk showed the call it makes first,
       `GET /v1/me`, answered status 404 for that path, and the app refused the account on that
       answer, so the checklist items were not reached, and its record is evidence outside the
-      repository. The manual half stays open for lire, which this machine has no device to run, and
-      for the Capy Reader items that walk did not reach, which are named per client.
+      repository, which is the half the report items name. The manual half stays open for the Capy
+      Reader items that walk did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

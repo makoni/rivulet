@@ -4,7 +4,8 @@ is at the size cap. The half that reaches no route is read as partial only again
 the shape a set names for its halves has to agree with the halves it names: a set that names one
 half names that half as the whole half. The shape is read as data, so a set that names two halves
 while naming the half as the whole half reports, and so does a one-half set named as partial. Each
-half of this rule is crafted on its own input, because a one-half set has no other half to name.
+half of this rule is crafted on its own input, and both inputs are the one set with a half that
+reaches no route here.
 """
 
 

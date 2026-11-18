@@ -7,8 +7,9 @@ baseline is the committed data itself, asserted to report nothing, which is what
 single-firing: 19 rules, 36 crafted inputs and the baseline, so 37 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
 its two halves, because an input that violates one half of a rule still satisfies the other, the
-rule that reads the halves the sets name has one for each of its two halves, because a one-half set
-has no other half to name, and the rule that reads the run record has one for each of its eleven
+rule that reads the halves the sets name has one for each of its two halves, both crafted on the
+one set with a half that reaches no route here, so each reports the half its own input violates
+alone, and the rule that reads the run record has one for each of its eleven
 halves, twelve crafts in all: six on
 the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
 Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
@@ -129,7 +130,7 @@ CASES = {
     # record is a finding for the rule that reads that record too, which is what the round showed
     # when the third record landed.
     "sets_are_redacted":
-        lambda data: set_of(data, "lire")["redaction"].__setitem__("token", "9f2c1a7b3e"),
+        lambda data: set_of(data, "Capy Reader")["redaction"].__setitem__("token", "9f2c1a7b3e"),
 
     # A matrix row names a class the manifest line for the same call does not.
     "matrix_names_every_call_and_the_classes_agree_with_the_manifest":
@@ -168,13 +169,14 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # Two crafts for this rule, because its two halves cannot be shown by one input: a one-half
-    # set has no other half to name, so the shape half is crafted on the set that names one half,
-    # and the note half on the set that names two.
+    # Two crafts for this rule, because its two halves cannot be shown by one input, and both are
+    # crafted on Capy Reader, the only set with a half that reaches no route here: the shape half by
+    # naming the shape as two while the set names one half, and the note half by removing that
+    # half's note.
     "the_half_with_no_routes_here_is_named_as_partial": [
-        lambda data: set_of(data, "lire")["halves"][1].pop("note"),
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
             "uses_two_halves", True),
+        lambda data: set_of(data, "Capy Reader")["halves"][0].pop("note"),
     ],
 
     # The recorded order is not the order the source declares.
@@ -265,7 +267,7 @@ CASES = {
 
         # The client the record names, read against the set that client's row records: a client
         # whose set records no calls has no half to read its lines against.
-        lambda data: add_line(data, "lire", "no-call-recorded", "no route here", [], ["T"]),
+        lambda data: add_line(data, "Capy Reader", "no-call-recorded", "no route here", [], ["T"]),
 
         # The branch the merged form gives, read through the mark the set names it with. The answer,
         # the key name and the redaction name on this line are the values the other halves read, so
@@ -307,8 +309,8 @@ def cases():
     names the rules, which is the order the round reads them in. Four rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
     kinds of finding, the route rule reads two halves, the rule that reads the run record reads
-    eleven, and the rule that reads the half that reaches no route reads two, because a one-half set
-    has no other half to name.
+    eleven, and the rule that reads the half that reaches no route reads two, both on the one set
+    with a half that reaches no route here, so each reports the half its own input violates alone.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:

@@ -35,13 +35,14 @@
     matrix records:
 
     - NetNewsWire
-    - lire
+    - Capy Reader
     - Reeder Classic
     - FeedFlow
     - NewsFlash
 
-    Only one of them has been run against this port here, through the run half that reads what one
-    real client actually sent. The other four are read from their own source at a named commit, or
-    from the project's documentation where the client is closed source; no set is a capture.
+    Three of them have been run against this port here, through the run half that reads what one
+    real client actually sent, and two are read from the project's documentation: one because its
+    source cannot be read here, and Capy Reader although its source is open, because no rule here
+    reads calls on the path that client uses; no set is a capture.
   }
 }

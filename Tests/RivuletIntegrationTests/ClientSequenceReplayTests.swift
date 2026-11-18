@@ -7,8 +7,9 @@ import Vapor
 ///The recorded calling sets read as data and replayed against the served app over a real socket.
 ///Each pin takes one recorded call and asserts what the port answers for it: the record names the
 ///call and the value the pin reads, so a pin is the replay half of the matrix rather than a
-///restatement of the matrix's table. 9 pins and 10 probes, each seen to fail on the rule it names
-///and to revert the file byte-identically; the login half has 2 probes and every other pin has 1.
+///restatement of the matrix's table. 9 pins and 12 probes, each seen to fail on the rule it names
+///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 3, and
+///every other pin has 1.
 ///What each pin can fail on, with the input its probe crafts: - the recorded order is the order the
 ///set declares — a patch that swaps two entries of the record's own `source_order`. This is the
 ///only pin here that can fail on the record rather than on a rule, because nothing in the port
@@ -24,7 +25,9 @@ import Vapor
 ///every value by the field-width rule; - the page size above the clamp against the page size the
 ///record names at the clamp — a patch that dropped the clamp; - the path no route registers — a
 ///patch that registered it; - the dispatch name the switch has no case for — a patch that gave it a
-///case; - the prefix this port registers no route for — a patch that registered a route under it.
+///case; - the prefix this port registers no route for — a patch that registered a route under it,
+///and a patch that named its half as answered here, which the guard reports at the read rather than
+///as a trap on the index, and a patch that moved the prefix that half names.
 ///What these pins cannot show: the `>50` guard NewsFlash applies before it sends, read as the bound
 ///on the list size, which this run reached below; the bound firing is what no pin can show, because
 ///the record carries names and not values; the values the records carry, which are placeholders, so
@@ -248,19 +251,23 @@ import Vapor
     }
 
     ///The prefix this port registers no route for is the half the record names as answering nothing
-    ///here: the record names two halves for lire, and the one that reaches no route is the REST
-    ///half.
+    ///here: Capy Reader names one half, and that half is the one that reaches no route here. The
+    ///read on a path this port registers a route for is the control that shows the 404 belongs to
+    ///the prefix rather than to the port answering nothing anywhere.
     @Test func thePrefixThisPortRegistersNoRouteFor() async throws {
         try await withServedApp { _, app, base in
-            let set = try CallingSets.set("lire")
-            let partial = set.halves.filter { $0.answeredHere == "no route here" }
-            #expect(partial.count == 1 && partial[0].prefix == "/v1",
-                "the record names exactly one half as answering nothing here")
+            let set = try CallingSets.set("Capy Reader")
+            let half = try #require(set.halves.first { $0.answeredHere == "no route here" },
+                "the set names a half as answering nothing here, so there is a half to read")
 
-            let servedHalf = try await app.client.get(URI(string: base + "/fever?api_key=x"))
-            #expect(servedHalf.status != .notFound, "the half the record names as served here answers the read")
+            #expect(set.halves.count == 1 && half.prefix == "/v1",
+                "the set names one half, and its prefix is /v1, the one no route registers")
 
-            let partialHalf = try await app.client.get(URI(string: base + partial[0].prefix + "/me"))
+            let registered = try await app.client.get(URI(string: base + "/fever?api_key=x"))
+            #expect(registered.status != .notFound,
+                "a path the port registers a route for answers the read")
+
+            let partialHalf = try await app.client.get(URI(string: base + half.prefix + "/me"))
             #expect(partialHalf.status == .notFound,
                 "the prefix the record names as answering nothing here is Vapor's 404")
         }
