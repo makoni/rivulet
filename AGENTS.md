@@ -141,7 +141,7 @@ notes, merged as PR #63: `docs/clients.md` records the calling sets of five clie
 three read from their own source at a named commit, two from the project's documentation because
 their source cannot be read here — and PR #82, merged here, added a sixth set for Capy Reader, read
 from documentation although its source is open, because no rule here reads calls on the path that
-client uses. PR #83, opened here, reads the matrix with five sets again: three read from their own
+client uses. PR #83, merged here, reads the matrix with five sets again: three read from their own
 source at a named commit, and the two read from documentation are Reeder Classic, whose source
 cannot be read here, and Capy Reader. The check half reads those sets, the record files, the
 document and the port's own route, dispatch and auth sources as data over 19 rules. No set is a
