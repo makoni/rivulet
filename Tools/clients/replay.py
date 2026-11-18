@@ -35,8 +35,9 @@ import halves as half_rule
 import run_record as observed_rule
 
 NOT_SHOWN = [
-    "the clients that have not been run against this port here, which is the half the manual "
-    "matrix keeps open for them",
+    "the manual checklist as a document, which no rule reads as data: the half reads the "
+    "record lines for the three clients whose records it reads as data and the calling set "
+    "for the two read from documentation, and it reads none of the steps a checklist names",
     "the record a walk for a client whose set records no calls leaves, which the check half reads "
     "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
@@ -453,7 +454,7 @@ RULES = {
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": rule_gr_reaches_a_route,
     "the_reference_answer_names_a_route_the_reference_registers": rule_reference_answer,
     "the_fever_names_are_read_from_the_dispatch_switch": rule_fever_names_from_switch,
-    "the_half_with_no_routes_here_is_named_as_partial": half_rule.rule_partial_half,
+    "the_half_that_reaches_no_route_is_read_as_shape_and_note": half_rule.rule_shape_and_note,
     "the_recorded_sequence_is_the_set_the_source_declares": rule_sequence,
     "the_login_record_is_first_and_the_token_precedes_every_call_that_needs_it": rule_login_first,
     "the_token_half_is_the_half_the_read_reads": rule_token_half,

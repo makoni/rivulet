@@ -1550,8 +1550,8 @@ committed report is the one the harness writes from the table before the rules r
 same document a run writes from the same table;
 - what the width rule does not reach: the manifest's record lines, which are one record, the
 report's item lines, which are one item each and read as whole strings by the rule that reads the
-report, and the shell's command lines and guard messages, which cannot be broken at a word without
-changing what the run reads.
+report, the whole-string values inside the JSON records the rules read as data, and the shell's
+command lines and guard messages, which cannot be broken without changing what the run reads.
 
 ## Client matrix (stage 7)
 
@@ -1630,8 +1630,9 @@ what the round shows is the message on that name, not that the read leaves the o
 number written for each status name is that half's vocabulary: the pin asserts the status name and
 no test asserts the number, so the pair (shape, status) is read as data while the number is named in
 the code, which is the half the report item names. What this half cannot show, and is named in
-`docs/clients.md` rather than asserted: the clients that have not been run against this port here,
-the record a walk for a client whose set records no calls leaves, which the check half reads as a
+`docs/clients.md` rather than asserted: the manual checklist as a document, which no rule reads
+as data, the record a walk for a client whose set records no calls leaves, which the check half
+reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
 of a client whose source cannot be read, the calls of a client on the path this port registers no
 route for, which this half records no calls for, because the rules that read calls read the two

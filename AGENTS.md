@@ -138,8 +138,9 @@ writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both 
 reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
 notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients at that PR —
-three read from their own source at a named commit, two from the project's documentation because
-their source cannot be read here — and PR #82, merged here, added a sixth set for Capy Reader, read
+three read from their own source at a named commit, or at a named version for the one whose source
+names a version, and two from the project's documentation because their source cannot be read here —
+and PR #82, merged here, added a sixth set for Capy Reader, read
 from documentation although its source is open, because no rule here reads calls on the path that
 client uses. PR #83, merged here, reads the matrix with five sets again: three read from their own
 source at a named commit, and the two read from documentation are Reeder Classic, whose source
@@ -176,9 +177,9 @@ and the route rule's first craft on a row no record line reaches, because after 
 landed both crafts reported the record rule as well; the parsers are in
 `Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the
 halves the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What
-no craft can show is named in
-the document rather than asserted: the clients that have not been run against this port here, the
-record a walk for a client whose set records no calls leaves, which the check half reads as a
+no craft can show is named in the document rather than asserted: the manual checklist as a document,
+which no rule reads as data, the record a walk for a client whose set records no calls leaves, which
+the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
 of a client, whose source cannot be read, the calls of a client on the path this port registers no
 route for, which this half records no calls for, because the rules that read calls read the two
@@ -229,9 +230,9 @@ the device left, and the record PR #79 commits is the 25 lines the second walk l
 and the answer the status half reads. The third record the check half reads is the 56 lines
 NetNewsWire left on the Mac, committed here as PR #80, and the walk there reached every call its
 set names, so the halves the phone run did not show are what this run showed: the folder rename, the
-phone run did not show are what this run showed: the folder rename, the folder delete with both
-halves of its guard, the input that left a row answering the shape the write handler writes for that
-branch, which the record carries as the route name and the pin asserts as the `OK` body, and the
+folder delete with both halves of its guard, the input that left a row answering the shape the write
+handler writes for that branch, which the record carries as the route name and the pin asserts as
+the `OK` body, and the
 input that left nothing answering the status the handler gives for that rule, which is the case the
 write-handler pin asserts for the wording. The record shows one add and one remove as the two state
 writes, so which of the two state items each carried is named as a half the record cannot show, and
@@ -726,11 +727,12 @@ only the seams the plan requires.
 One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
 to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
-- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Four things are
+- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Five things are
 exempt because none can be broken without changing what it says: a Markdown table row; an inline
 code span longer than the width; a line the check half reads as one whole string, which is a
-manifest record line or a generated report item line; and a shell command line or a guard message,
-which the run reads as one line. Each stays whole on its own line. Code lines are single expressions
+manifest record line or a generated report item line; a value the check half reads as one whole
+string inside a JSON record; and a shell command line or a guard message, which the run reads as
+one line. Each stays whole on its own line. Code lines are single expressions
 and are not split to meet the width. A commit that only rewraps does not change behavior, so it does
 not reopen a review that already approved the words.
 - Zero warnings: the project and the test targets build clean — `swift build` and `swift build

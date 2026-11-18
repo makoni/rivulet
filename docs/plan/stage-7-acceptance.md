@@ -39,8 +39,8 @@ sites, six reading one value, three for the ports, two for the base's three halv
 entry guard's two halves, seen to fail on the value each names. The manual matrix criterion is
 closed for the three clients whose records are read as data and for the halves the walk on Reeder
 Classic and the walk by hand on Capy Reader showed here, and stays open for the items those walks
-did not reach, which is what the report items name. The ninth slice,
-merged as PR #77, is the run half executed on a device — FeedFlow reaching the observer over the
+did not reach, which is what the report items name. The ninth slice, merged as PR #77, is the run
+half executed on a device — FeedFlow reaching the observer over the
 local network, its record being the document the check half reads — with the pin the process
 harness gained for the cadence read a serving run makes, and the `prepare` hook and the arrival
 read that answer a pin's cancellation. The performance half records measurements taken here rather
@@ -53,9 +53,12 @@ than bounds. **Effort:** M. **Depends on:** Stages 5–6.
       whose calling set the sixth slice was sized to — setup instructions and a manual checklist
       (subscribe, add a feed from the client, sync read state, star, counts). Done as the half this
       machine can do: the calling sets are recorded for all five, three read from their own source
-      at a named commit and two from documentation, with the setup and the checklist written for
-      each. No set is a capture. NewsFlash, FeedFlow and NetNewsWire are the clients run against
-      this port here, through the run half `Scripts/client-run.sh`, and their checklists are the
+      at a named commit and two from documentation, with a setup paragraph and a checklist paragraph
+      for the four that have both. The Capy Reader section names the checklist items and what the
+      walk showed, and has no setup paragraph, because the run half cannot complete for it; it was
+      walked by hand here, as the other four were. No set is a capture. NewsFlash, FeedFlow and
+      NetNewsWire are the clients run against this port here, through the run half
+      `Scripts/client-run.sh`, and their checklists are the
       halves those runs walked: the Fever run walked the base document, the read documents and the
       marks, the Google Reader run on the phone walked the login, the subscription list, one stream
       page and the add, which is the half the Fever set has no call for and which is why stage 5's
@@ -220,7 +223,8 @@ the pair, and what is still open is the classes no corpus input can reach.
       call this client's set can be read for. Capy Reader is the client this half can walk by hand
       on the device for the half this port registers no route for, and
       its set is read from documentation because no rule here reads calls on a path this port
-      registers no route for, so its half is named as the whole half rather than as partial. It was
+      registers no route for, so its half is named as the whole half, which is what the rule that
+      reads the shape compares. It was
       walked by hand here on the phone in the same network: the walk showed the call it makes first,
       `GET /v1/me`, answered status 404 for that path, and the app refused the account on that
       answer, so the checklist items were not reached, and its record is evidence outside the

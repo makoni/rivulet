@@ -173,7 +173,7 @@ CASES = {
     # crafted on Capy Reader, the only set with a half that reaches no route here: the shape half by
     # naming the shape as two while the set names one half, and the note half by removing that
     # half's note.
-    "the_half_with_no_routes_here_is_named_as_partial": [
+    "the_half_that_reaches_no_route_is_read_as_shape_and_note": [
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
             "uses_two_halves", True),
         lambda data: set_of(data, "Capy Reader")["halves"][0].pop("note"),
