@@ -1,0 +1,33 @@
+{
+  "client": "Capy Reader",
+  "api": "miniflux-rest",
+  "source": {
+    "kind": "docs",
+    "project": "miniflux docs and the app's own documentation",
+    "file": "docs/apps.html and README.md",
+    "read_on": "2026-11-17",
+    "note": "the app is open source, so its source could be read; what is read here is which sync service the project's documentation names, and no call is recorded for this client because the rules that read calls read two paths, and this half is the third"
+  },
+  "redaction": {
+    "token": "T",
+    "account": "<account>",
+    "password": "<password>",
+    "feed_list": "not recorded",
+    "note": "no call is recorded for this client, so no value is redacted beyond the names the run half declares for the pair; the walk on the device leaves a record this half reads as a finding, so that record is held as evidence outside the repository"
+  },
+  "halves": [
+    {
+      "api": "miniflux-rest",
+      "prefix": "/v1",
+      "calls_read": "not read here",
+      "answered_here": "no route here",
+      "note": "the port registers no route for this half, and the set names one half, so this half is named as the whole half and not as one of two"
+    }
+  ],
+  "sequence_kind": "not read here: the order a client reaches its calls at cannot be read for a set that records no call",
+  "declared_order": [],
+  "source_order": [],
+  "calls": [],
+  "not_reached": [],
+  "runtime_shape": {"login_first": false, "token_before_T": false, "uses_two_halves": false}
+}

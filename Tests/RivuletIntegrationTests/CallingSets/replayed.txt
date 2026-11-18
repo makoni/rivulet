@@ -2,8 +2,8 @@
 # reason it cannot be replayed here. A record line is exempt from the width rule because it is one
 # record. The pins read the calling sets as data, so a pin reads the recorded order and the route the
 # matrix names for each call rather than restating either; the matrix's own column has to agree with
-# this file, which is what the rule that reads both checks. Two clients record no call, so they have
-# no line here: the rule reads them through the matrix instead.
+# this file, which is what the rule that reads both checks. Three clients record no call, so they
+# have no line here: the rule reads them through the matrix instead.
 netnewswire/accounts/ClientLogin | the login half is the one route that carries no auth wrapper
 netnewswire/reader/api/0/token | the header half, on the call that names no body pair
 netnewswire/reader/api/0/tag/list | the order the set records, and the output check on the read half

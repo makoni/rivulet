@@ -137,9 +137,11 @@ trigger. The accepted row for the empty list this client's deserializer refuses 
 writes `null` for `groups` and `favicons`, while `feeds_groups` is `[]` on both sides because the
 reference builds it with `make` — is the seventeenth row of the tolerance table and is named there
 as a class the corpus cannot reach. The seventh slice is the client matrix and the performance
-notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients — three read
-from their own source at a named commit, two from the project's documentation because their source
-cannot be read here — and the check half reads those sets, the record files, the document and the
+notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients at that PR —
+three read from their own source at a named commit, two from the project's documentation because
+their source cannot be read here — and PR #82, opened here, adds a sixth set, read from
+documentation although its source is open, because no rule here reads calls on the path that client
+uses. The check half reads those sets, the record files, the document and the
 port's own route, dispatch and auth sources as data over 19 rules. No set is a capture, and three
 clients have been run against this port here and left a record this half reads as data, all through
 the run half `Scripts/client-run.sh`: NewsFlash, the Fever client, FeedFlow, the Google Reader
@@ -147,8 +149,10 @@ client run on a phone that reached the observer over the local network, and NetN
 Reader client run on the Mac on the same network. A fourth run, Reeder Classic on the phone, walked
 the Fever half here, and its record is held as evidence outside the repository, because the set
 for that client records no calls. The manual matrix criterion is closed for the three whose
-records are read as data and for the halves the walk on Reeder Classic showed, and stays open for
-lire, the client this machine has no device to run. What the 19 rules read: the source each
+records are read as data, for the halves the walk on Reeder Classic showed, and for the half the
+walk by hand on Capy Reader showed on the phone here, and stays open for lire, which this machine
+has no device to run, and for the Capy Reader items that walk did not reach. What the 19 rules
+read: the source each
 set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
 the manifest lines, the classes against the parity table and the output-check class against the
 endpoints the reference applies the check on, the routes the port registers against the answer each
@@ -160,19 +164,24 @@ against the records it counts, the replay records against the matrix's own colum
 table against the run that answered it and the shape the document names, the rule list and the
 report items against what the check half has, and the response name a client acts on against the
 name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — the round answers 36 cases over 19 rules, 35 crafted inputs plus the baseline asserted to
+it — the round answers 37 cases over 19 rules, 36 crafted inputs plus the baseline asserted to
 report nothing, so each probe is single-firing, the performance rule having one for each of the five
-kinds it reads, the route rule one for each of its two halves, and the rule that reads the run
-record one for each of its eleven halves, which is twelve crafts — and the round hashes every file
+kinds it reads, the route rule one for each of its two halves, the rule that reads the half that
+reaches no route one for each of its two halves, and the rule that reads the run record one for
+each of its eleven halves, which is twelve crafts — and the round hashes every file
 the check half reads before and after, so a craft that reached a file is reported; two crafts name
 data the record rule cannot read, the redaction craft on a set for a client this machine has not run
 and the route rule's first craft on a row no record line reaches, because after the third record
 landed both crafts reported the record rule as well; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part. What no craft can show is named in
+`Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the
+halves the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What
+no craft can show is named in
 the document rather than asserted: the clients that have not been run against this port here, the
 record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
-of a client, whose source cannot be read, the order a client reaches its calls at, which the run
+of a client, whose source cannot be read, the calls of a client on the path this port registers no
+route for, which this half records no calls for, because the rules that read calls read the two
+paths that are registered here, the order a client reaches its calls at, which the run
 record carries for the three clients whose records the check half reads as data and the source
 declares for the others, the
 values the calls carry, which are redacted, the app-level choice of which calls a library-based

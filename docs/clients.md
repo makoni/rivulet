@@ -5,7 +5,9 @@ acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
 document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation when the client is closed source. No set is a capture, and three clients
+project's documentation, which is what a set is read from when the client's source cannot be read
+here, and also for Capy Reader, whose source is open but whose path this half has no rule for. No
+set is a capture, and three clients
 have been run against this port here and left a record this half reads as data — NewsFlash, the
 Fever client, FeedFlow, the Google Reader client run on a phone, and NetNewsWire, the Google Reader
 run on a Mac, all through `Scripts/client-run.sh`, the run half that reads what a real client
@@ -17,9 +19,11 @@ numbers, at its own path, and not as a record for a client the matrix has a row 
 Reeder Classic on the phone, walked the Fever half here, and its record is held as evidence outside
 the repository rather than read here, because the set for that client records no calls, so the rule
 reads a record file for it as a finding. The manual matrix exit criterion of
-`docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data and for the
-halves the walk on Reeder Classic showed, and stays open for lire, the client this machine has no
-device to run. The single-client criterion of `docs/plan/stage-5-apis.md`, which names one real
+`docs/plan/stage-7-acceptance.md` is closed for the three whose records are read as data, for the
+halves the walk on Reeder Classic showed, and for the half the walk by hand on Capy Reader showed on
+the phone here, and stays open for lire, which this machine has no device to run, and for the Capy
+Reader items that walk did not reach. The single-client
+criterion of `docs/plan/stage-5-apis.md`, which names one real
 client rather than a client by name, is closed: the Fever run shows the halves its set has, that a
 client connects and syncs, and the Google Reader run shows the half that set has no call for, the
 call that adds a feed. FeedFlow was run on a phone over the local network, and NetNewsWire on the
@@ -30,16 +34,19 @@ walk showed.
 The halves are separated the way the soak's and the parity harness's are. `Tools/clients/replay.py`
 is the check half: it reads the calling sets, the record files, this document, the port's own
 source, the pin that pins the response builder's status mapping, and the field the timed pin's print
-writes as data, with the parsers it reads them with in `Tools/clients/parsers.py` so the rules stay
-the readable part of the file. What it reads as data
+writes as data, with the parsers it reads them with in `Tools/clients/parsers.py`, and the rule that
+reads the halves the sets name in `Tools/clients/halves.py`, because this file is at the size cap,
+so the rules stay the readable part of the file. What it reads as data
 includes two sentences written for the sets they name: the shape the performance paragraph declares,
 and the two sets of endpoints in `docs/reference-notes.md` that the output-check class is read
 against. `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it
 and asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 35 crafted inputs and the baseline, so 36 cases: the performance rule has one
+firing — 19 rules, 36 crafted inputs and the baseline, so 37 cases: the performance rule has one
 for each of the five kinds of finding it reads, the route rule has one for each of its two halves,
-because an input that violates one of them still satisfies the other, and the rule that reads the
-run record has one for each of its eleven halves, which is twelve crafts: six on the record the
+because an input that violates one of them still satisfies the other, the rule that reads the half
+that reaches no route has one for each of its two halves, because a one-half set has no other half
+to name, and the rule that reads the run record has one for each of its eleven halves, which is
+twelve crafts: six on the record the
 Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
 one on a record this machine has not written, for a client whose set records no calls, one on the
@@ -124,7 +131,7 @@ a run, and the guards that read the machine fail only on a machine. The guards t
 run declares run before the record is written, so a guard that fires leaves the committed record
 alone, which is what kept it byte-identical through the ports demos; the guards that read what the
 run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
-committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
+committed record byte-identical there too. A stand-in client, not one of the six the matrix names,
 was sent to the observer in that copy to show that these halves read a record a run wrote rather
 than a record the round crafts: writing its record in the copy's record directory, the rule read it
 for the client its lines named and reported nothing where the stand-in agreed with the path and the
@@ -250,6 +257,7 @@ this document names, and that rule reports what the data says rather than what t
 | NewsFlash | fever/mark/feed | POST | dispatch: mark=feed | dispatch: mark=feed | yes | merged_form_read |
 | NewsFlash | fever/mark/group | POST | dispatch: mark=group | dispatch: mark=group | yes | merged_form_read |
 | lire | no-call-recorded | — | not read here | no route here | no: no call recorded for a closed-source client | no_route_here |
+| Capy Reader | no-call-recorded | — | not read here | no route here | no: no call recorded for the path this half reads no rules for | no_route_here |
 | Reeder Classic | no-call-recorded | — | not read here | no route here | no: no call recorded for a closed-source client | closed_source |
 
 ## The counts the matrix reports
@@ -260,6 +268,7 @@ this document names, and that rule reports what the data says rather than what t
 | FeedFlow | 11 | 10 | 1 | 11 |
 | NewsFlash | 14 | 12 | 2 | 13 |
 | lire | 0 | 0 | 0 | 0 |
+| Capy Reader | 0 | 0 | 0 | 0 |
 | Reeder Classic | 0 | 0 | 0 | 0 |
 | all clients | 36 | 33 | 3 | 35 |
 
@@ -271,6 +280,7 @@ from the width rule.
 - the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
+- the calls of a client on the path this port registers no route for, which this half records no calls for, because the rules that read calls read the two paths that are registered here
 - the order a client reaches its calls at, which the run record carries for the three clients whose records the check half reads as data and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the clients that have not been run here
@@ -457,7 +467,38 @@ prefix.
 
 Setup: Settings → Integrations → the Fever pair, and an API key; in the app, the URL without `/v1`
 or `/fever`. Manual checklist, not executed here: the Fever half as above, and the REST half
-recorded as not served here.
+recorded as not served here. The client is paid, so this machine has no run for it; the free client
+below is the one this half can walk by hand for the same half.
+
+### Capy Reader — Miniflux as a supported source
+
+Read from the project's documentation: miniflux's own documentation names Capy Reader as an Android
+client for Miniflux, and the app's README names Miniflux as one of the sources the app supports,
+which is the whole fact these two sources state. Its source is open, so the endpoints could be read
+from it, and they are not recorded here: the rules that read calls read the two paths this port
+registers, and this half is the third, so no rule here has anything to read a call on it against.
+The half is named as the whole half rather than as partial, which is what the rule that reads the
+shape the set names for its halves checks: the set names the shape as one.
+
+The base the run builds for this client carries the prefix, because the half names no form, so the
+run half reads the base as the whole prefix; that the app builds its paths as relative to the base
+it is given is what the app's own source shows at tag `2026.11.1217`, and that read is not
+recorded as a calling set here. The run half cannot complete for this client: the column its pair
+guard reads has a case only for the two paths this half reads as data, so for this set the guard's
+read fails on the empty column name and the guard's own message is never reached, so the checklist
+was walked by hand on the Android phone in the same network.
+
+What that walk showed: the app's first call, `GET /v1/me`, arrived at the observer from the phone,
+and this port answered it with status 404, because it registers no route for that path, and the app
+read that answer as the credential check failing and did not save the account, so the items the
+checklist names — reading the feeds, reading the entries, marking one item read, starring one item,
+adding a feed — were not reached. The two key names the answer carried, `error` and `reason`,
+arrived in both orders across the requests the walk made, which is the order each answer wrote
+them in. The record the walk left is evidence outside the repository, as Reeder Classic's is,
+because a record file for a set that records no calls is a finding rather than data. The call name
+that record carries, `v1/me/?api`, is the name the read writes for a set that records no calls, not
+a call the set names, and nothing the walk reached carries a value the check half could read
+against a pair.
 
 ### Reeder Classic — Fever API
 

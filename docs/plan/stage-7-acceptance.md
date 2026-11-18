@@ -23,8 +23,10 @@ pinned as 32 pins and 67 probes across the seven Fever suites and the icon read,
 on the rule it names and to revert the file byte-identically, with the accepted row for the empty
 list this client's deserializer refuses added to the tolerance table. The seventh slice is the
 client matrix and the performance notes, merged as PR #63: `docs/clients.md` records the calling
-sets of five clients — three read from their own source at a named commit, two from the project's
-documentation because their source cannot be read here — and the check half reads those sets, the
+sets of five clients at that PR — three read from their own source at a named commit, two from the
+project's documentation because their source cannot be read here — and PR #82, opened here, adds a
+sixth set, read from documentation although its source is open, because no rule here reads calls on
+the path that client uses. The check half reads those sets, the
 record files, the document and the port's own route, dispatch, auth and response sources as data
 over 19 rules, with the parsers kept apart from the rules so each rule stays a function over data.
 No set is a capture. NewsFlash, FeedFlow and NetNewsWire are the clients whose records this half
@@ -144,16 +146,18 @@ The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 
 record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
 writes for the output-check sets, and the port's own route, dispatch, auth and response sources read
 as data, each rule shown to report its own crafted input alone and the baseline to report nothing —
-30 crafted inputs plus the baseline, so 31 cases, with the round hashing every file the check half
+36 crafted inputs plus the baseline, so 37 cases, with the round hashing every file the check half
 reads before and after, so a craft that reached a file is reported. The parsers are in
-`Tools/clients/parsers.py`, so the rules stay the readable part. - `Scripts/client-run.sh` with
-`Tools/clients/observer.py` — the run half of the client matrix, outside CI: the observer writes one
+`Tools/clients/parsers.py`, and the rule that reads the halves is in `Tools/clients/halves.py`
+because the check half is at the size cap, so the rules stay the readable part. -
+`Scripts/client-run.sh` with `Tools/clients/observer.py` — the run half of the client matrix,
+outside CI: the observer writes one
 record line per request it forwarded and asserts nothing, and the rule that reads the run record
 reads the records the runs left behind as data in eleven halves, the tenth being the names the round
 reads the record files under, which is PR #78, merged here, and the eleventh the status a record
 line carries, which is PR #79, read as the status the handler the route file gives this path
 answers: the tenth half reports a file read as a client record that is not named for a client the
-matrix has a row under, and the round answers 36 cases over 19 rules, twelve crafts on those eleven
+matrix has a row under, and the round answers 37 cases over 19 rules, twelve crafts on those eleven
 halves. The run half is checked here by `bash -n` and by its nine guards, twelve read sites, six
 reading one value, three for the ports, two for the base's three halves, one for the entry guard's
 two halves, each seen to fail on the value it names: the record path, the client row, the host, the
@@ -211,9 +215,14 @@ the pair, and what is still open is the classes no corpus input can reach.
       call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
       record is evidence outside the repository rather than data this half reads, so its halves are
       named as what the walk showed rather than as data read against a set; the add half has no
-      call this client's set can be read for. The manual half stays open for lire, the client this
-      machine has no device to run, and for the halves each walk did not reach, which are named per
-      client.
+      call this client's set can be read for. Capy Reader is the free client for the same half, and
+      its set is read from documentation because no rule here reads calls on a path this port
+      registers no route for, so its half is named as the whole half rather than as partial. It was
+      walked by hand here on the phone in the same network: the walk showed the call it makes first,
+      `GET /v1/me`, answered status 404 for that path, and the app refused the account on that
+      answer, so the checklist items were not reached, and its record is evidence outside the
+      repository. The manual half stays open for lire, which this machine has no device to run, and
+      for the Capy Reader items that walk did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

@@ -4,10 +4,12 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 35 crafted inputs and the baseline, so 36 cases — the performance rule
+single-firing: 19 rules, 36 crafted inputs and the baseline, so 37 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
-its two halves, because an input that violates one half of a rule still satisfies the other, and the
-rule that reads the run record has one for each of its eleven halves, twelve crafts in all: six on
+its two halves, because an input that violates one half of a rule still satisfies the other, the
+rule that reads the halves the sets name has one for each of its two halves, because a one-half set
+has no other half to name, and the rule that reads the run record has one for each of its eleven
+halves, twelve crafts in all: six on
 the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
 Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
 record this machine has not written, for a client whose set records no calls, one on the names the
@@ -166,9 +168,14 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # The half that reaches no route is named without the read it comes from.
-    "the_half_with_no_routes_here_is_named_as_partial":
+    # Two crafts for this rule, because its two halves cannot be shown by one input: a one-half
+    # set has no other half to name, so the shape half is crafted on the set that names one half,
+    # and the note half on the set that names two.
+    "the_half_with_no_routes_here_is_named_as_partial": [
         lambda data: set_of(data, "lire")["halves"][1].pop("note"),
+        lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
+            "uses_two_halves", True),
+    ],
 
     # The recorded order is not the order the source declares.
     "the_recorded_sequence_is_the_set_the_source_declares":
@@ -297,10 +304,11 @@ CASES = {
 
 def cases():
     """The committed data as the baseline, and one crafted input per rule, in the order the document
-    names the rules, which is the order the round reads them in. Three rules have more than one
+    names the rules, which is the order the round reads them in. Four rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
-    kinds of finding, the route rule reads two halves, and the rule that reads the run record
-    reads eleven.
+    kinds of finding, the route rule reads two halves, the rule that reads the run record reads
+    eleven, and the rule that reads the half that reaches no route reads two, because a one-half set
+    has no other half to name.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:
