@@ -280,7 +280,7 @@ this document names, and that rule reports what the data says rather than what t
 Each line below is one report item line, read as one whole string by the check half, so it is exempt
 from the width rule.
 
-- the manual checklist as a document, which no rule reads as data: the half reads the record lines for the three clients whose records it reads as data and the calling set for the two read from documentation, and it reads none of the steps a checklist names
+- the manual checklist as a document, which no rule reads as data: the check half reads the record lines for the three clients whose records it reads as data and the calling sets for the two read from documentation, and it reads none of the steps a checklist names
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
 - the calls of a client on the path this port registers no route for, which this half records no calls for, because the rules that read calls read the two paths that are registered here
@@ -398,8 +398,9 @@ port's command; the row the entry guard read was the one the pass the cadence lo
 window wrote. The version the run declared is a report item, not a value: for a client run on a
 device this machine has no app metadata to read the version against, so the run declares what the
 app reports for itself rather than a value a read here answered. The device's own package manager
-answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source the set
-is read from carries; the half reads neither, so both are named rather than compared.
+answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source that set
+is read from names, and that set names a commit hash rather than a version; the half reads neither,
+so both are named rather than compared.
 
 Two of the three `edit-tag` lines carry the answer the matrix row names, with an empty key column,
 which is the shape this handler writes for a write that reads nothing; the third carries a status,

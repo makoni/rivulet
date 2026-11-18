@@ -56,20 +56,18 @@ than bounds. **Effort:** M. **Depends on:** Stages 5–6.
       at a named commit and two from documentation, with a setup paragraph and a checklist paragraph
       for the four that have both. The Capy Reader section names the checklist items and what the
       walk showed, and has no setup paragraph, because the run half cannot complete for it; it was
-      walked by hand here, as the other four were. No set is a capture. NewsFlash, FeedFlow and
-      NetNewsWire are the clients run against this port here, through the run half
-      `Scripts/client-run.sh`, and their checklists are the
-      halves those runs walked: the Fever run walked the base document, the read documents and the
-      marks, the Google Reader run on the phone walked the login, the subscription list, one stream
-      page and the add, which is the half the Fever set has no call for and which is why stage 5's
-      single-client criterion is closed, and the Google Reader run on the Mac walked every call its
-      set names.
-      Reeder Classic, the fifth client, was walked here on the phone for the Fever half, whose
-      record is held as evidence outside the repository, because the check half reads a record for a
-      client whose set records no calls as a finding rather than as data; the add half cannot be
-      walked for it, since the Fever set has no call that can write a feed row. The manual half
-      stays open for the Capy Reader items the walk by hand on the phone did not reach, which are
-      named per client.
+      walked by hand, while the four were walked by the run. No set is a capture. NewsFlash,
+      FeedFlow and NetNewsWire are the clients run against this port here, through the run half
+      `Scripts/client-run.sh`, and their checklists are the halves those runs walked: the Fever run
+      walked the base document, the read documents and the marks, the Google Reader run on the phone
+      walked the login, the subscription list, one stream page and the add, which is the half the
+      Fever set has no call for and which is why stage 5's single-client criterion is closed, and
+      the Google Reader run on the Mac walked every call its set names. Reeder Classic, the fifth
+      client, was walked here on the phone for the Fever half, whose record is held as evidence
+      outside the repository, because the check half reads a record for a client whose set records
+      no calls as a finding rather than as data; the add half cannot be walked for it, since the
+      Fever set has no call that can write a feed row. The manual half stays open for the Capy
+      Reader items the walk by hand on the phone did not reach, which are named per client.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five

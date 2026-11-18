@@ -6,8 +6,8 @@ comes from. Both are read as data, so a set that names the shape as two halves w
 reports, and so does a set that names the shape as one while naming two. Each half of this rule is
 crafted on its own input, and both inputs are the one set with a half that reaches no route here, so
 each craft reports the half its own input violates alone. The rule is registered in the dict
-`Tools/clients/probes.py` reads, which is `Tools/clients/replay.py`; this file holds the rule, not a
-register of its own.
+`Tools/clients/probes.py` reads, which is the dict in `Tools/clients/replay.py`; this file holds the
+rule and no register of its own.
 """
 
 

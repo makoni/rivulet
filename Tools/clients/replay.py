@@ -35,8 +35,8 @@ import halves as half_rule
 import run_record as observed_rule
 
 NOT_SHOWN = [
-    "the manual checklist as a document, which no rule reads as data: the half reads the "
-    "record lines for the three clients whose records it reads as data and the calling set "
+    "the manual checklist as a document, which no rule reads as data: the check half reads "
+    "the record lines for the three clients whose records it reads as data and the calling sets "
     "for the two read from documentation, and it reads none of the steps a checklist names",
     "the record a walk for a client whose set records no calls leaves, which the check half reads "
     "as a finding, so that walk is evidence outside the repository rather than data it reads",

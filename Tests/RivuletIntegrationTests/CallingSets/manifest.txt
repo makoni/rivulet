@@ -4,11 +4,11 @@
 # the round reads only that this file has a line for that client and that the matrix has a row for
 # it, so the class name on such a line is not read against the class table. A record line is not
 # wrapped because it is one record, so it is exempt from the width rule. The calling sets are the
-# files beside this one; the classes are the names in the class table in `docs/clients.md`, which
-# the round reads only for the one class marked as a parity class, read against the tolerance table
-# in `docs/parity.md`, while the call lines that name no class read `none`. Two clients
-# record no call: one because its source cannot be read here, and one because this half reads no
-# rules against the path that client uses. Their lines name the class that says so.
+# files beside this one; the classes are the names in the class table in `docs/clients.md`, whose
+# `Read by` column is read for every row and compared with the tolerance table in `docs/parity.md`
+# only for the row marked as a parity class, while the call lines that name no class read `none`.
+# Two clients record no call: one because its source cannot be read here, and one because this half
+# reads no rules against the path that client uses. Their lines name the class that says so.
 netnewswire/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
 netnewswire/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
 netnewswire/reader/api/0/tag/list | output_check | which endpoints apply the check, which the handler suite pins

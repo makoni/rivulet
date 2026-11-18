@@ -140,110 +140,105 @@ as a class the corpus cannot reach. The seventh slice is the client matrix and t
 notes, merged as PR #63: `docs/clients.md` records the calling sets of five clients at that PR —
 three read from their own source at a named commit, or at a named version for the one whose source
 names a version, and two from the project's documentation because their source cannot be read here —
-and PR #82, merged here, added a sixth set for Capy Reader, read
-from documentation although its source is open, because no rule here reads calls on the path that
-client uses. PR #83, merged here, reads the matrix with five sets again: three read from their own
-source at a named commit, and the two read from documentation are Reeder Classic, whose source
-cannot be read here, and Capy Reader. The check half reads those sets, the record files, the
-document and the port's own route, dispatch and auth sources as data over 19 rules. No set is a
-capture, and three clients have been run against this port here and left a record this half reads
-as data, all through the run half `Scripts/client-run.sh`: NewsFlash, the Fever client, FeedFlow,
-the Google Reader client run on a phone that reached the observer over the local network, and
-NetNewsWire, the Google Reader client run on the Mac on the same network. A fourth run, Reeder
-Classic on the phone, walked the Fever half here, and its record is held as evidence outside the
-repository, because the set for that client records no calls. The manual matrix criterion is closed
-for the three whose records are read as data, for the halves the walk on Reeder Classic showed, and
-for the half the walk by hand on Capy Reader showed on the phone here, and stays open for the Capy
-Reader items that walk did not reach. What the 19 rules read: the source each
-set names and its commit, the redaction as the placeholders the half reads, the matrix rows against
-the manifest lines, the classes against the parity table and the output-check class against the
-endpoints the reference applies the check on, the routes the port registers against the answer each
-row names, with the catch-all read as the registration line the file writes, the reference's route
-and dispatch sets, the two halves of a client that reaches one half only, the order the source
-declares, the login being first and the token coming before every call that carries it, the token
-half per method, the stream forms as the prefix and suffix sets the branch reads, the counts table
-against the records it counts, the replay records against the matrix's own column, the performance
-table against the run that answered it and the shape the document names, the rule list and the
-report items against what the check half has, and the response name a client acts on against the
-name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that violates
-it — the round answers 37 cases over 19 rules, 36 crafted inputs plus the baseline asserted to
-report nothing, so each probe is single-firing, the performance rule having one for each of the five
-kinds it reads, the route rule one for each of its two halves, the rule that reads the half that
-reaches no route one for each of its two halves, and the rule that reads the run record one for
-each of its eleven halves, which is twelve crafts — and the round hashes every file
-the check half reads before and after, so a craft that reached a file is reported; two crafts name
-data the record rule cannot read, the redaction craft on a set for a client this machine has not run
-and the route rule's first craft on a row no record line reaches, because after the third record
-landed both crafts reported the record rule as well; the parsers are in
-`Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the
-halves the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What
-no craft can show is named in the document rather than asserted: the manual checklist as a document,
-which no rule reads as data, the record a walk for a client whose set records no calls leaves, which
-the check half reads as a
-finding, so that walk is evidence outside the repository rather than data it reads, the calling set
-of a client, whose source cannot be read, the calls of a client on the path this port registers no
-route for, which this half records no calls for, because the rules that read calls read the two
-paths that are registered here, the order a client reaches its calls at, which the run
-record carries for the three clients whose records the check half reads as data and the source
-declares for the others, the
-values the calls carry, which are redacted, the app-level choice of which calls a library-based
-client makes, the guard a client applies before it sends, read as the bound on the list size, which
-no record line can show firing, the side of the bound the guard applies, which the record carries as
-names and not as values, the answer a record line can carry for a call whose guard the client
-applies before it sends, read as the status the handler answers for the path rather than as the
-guard's answer, which no record line can show firing, the number this read names for each status
-name, which the pin asserts as a name and no test asserts as a number, so the pair (shape, status)
-is data while the number is the read's own vocabulary, the part of a calling set a run did not
-reach, which the record carries no line for and the paragraph for that client names as the halves
-this run did not walk, the token half of a client that sends the stored value as the token, the
-numbers of another machine, the query latency at the 100k corpus, and the version of a client run on
-a device, which this machine has no app metadata to read the value against. The form the paragraph
-the order half reads has to be written in is named in `Tools/clients/run_record.py` as a branch the
-round cannot show firing: a craft that took the client name out of the paragraph leaves that half
-reading nothing. The eighth slice, merged
-as PR #71, is the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py`
-writes one record line per request it forwarded and asserts nothing, the records the runs left
-behind are read as data by the nineteenth rule in eleven halves, twelve crafts: six on the record
-the Fever run wrote, one on the paragraph naming its calls, one on the record the Google Reader run
-on the phone wrote here, the order half crafted again on the record the run on the Mac wrote, one on
-a record this machine has not written, one on the names the round reads the record files under,
-which PR #78 added and which keeps the performance record, read by its own rule at its own path, out
-of the client records, and one on the status a record line carries, which PR #79 added, read as the
-status the handler the route file gives this path answers, through the shapes its own branches write
-and the status each shape writes, read from the pin that pins the mapping. The half reads only the
-paths it can name a handler for, so the login route and the paths that answer on the catch-all or a
+and PR #82, merged here, added a sixth set for Capy Reader, read from documentation although its
+source is open, because no rule here reads calls on the path that client uses. PR #83, merged here,
+reads the matrix with five sets again: three read from their own source at a named commit, and the
+two read from documentation are Reeder Classic, whose source cannot be read here, and Capy Reader.
+The check half reads those sets, the record files, the document and the port's own route, dispatch
+and auth sources as data over 19 rules. No set is a capture, and three clients have been run against
+this port here and left a record this half reads as data, all through the run half
+`Scripts/client-run.sh`: NewsFlash, the Fever client, FeedFlow, the Google Reader client run on a
+phone that reached the observer over the local network, and NetNewsWire, the Google Reader client
+run on the Mac on the same network. A fourth run, Reeder Classic on the phone, walked the Fever half
+here, and its record is held as evidence outside the repository, because the set for that client
+records no calls. The manual matrix criterion is closed for the three whose records are read as
+data, for the halves the walk on Reeder Classic showed, and for the half the walk by hand on Capy
+Reader showed on the phone here, and stays open for the Capy Reader items that walk did not reach.
+What the 19 rules read: the source each set names and its commit, the redaction as the placeholders
+the half reads, the matrix rows against the manifest lines, the classes against the parity table and
+the output-check class against the endpoints the reference applies the check on, the routes the port
+registers against the answer each row names, with the catch-all read as the registration line the
+file writes, the reference's route and dispatch sets, the two halves of a client that reaches one
+half only, the order the source declares, the login being first and the token coming before every
+call that carries it, the token half per method, the stream forms as the prefix and suffix sets the
+branch reads, the counts table against the records it counts, the replay records against the
+matrix's own column, the performance table against the run that answered it and the shape the
+document names, the rule list and the report items against what the check half has, and the response
+name a client acts on against the name the response builder writes. `Tools/clients/probes.py` crafts
+one input per rule that violates it — the round answers 37 cases over 19 rules, 36 crafted inputs
+plus the baseline asserted to report nothing, so each probe is single-firing, the performance rule
+having one for each of the five kinds it reads, the route rule one for each of its two halves, the
+rule that reads the half that reaches no route one for each of its two halves, and the rule that
+reads the run record one for each of its eleven halves, which is twelve crafts — and the round
+hashes every file the check half reads before and after, so a craft that reached a file is reported;
+two crafts name data the record rule cannot read, the redaction craft on a set for a client this
+machine has not run and the route rule's first craft on a row no record line reaches, because after
+the third record landed both crafts reported the record rule as well; the parsers are in
+`Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the halves
+the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What no craft
+can show is named in the document rather than asserted: the manual checklist as a document, which no
+rule reads as data, the record a walk for a client whose set records no calls leaves, which the
+check half reads as a finding, so that walk is evidence outside the repository rather than data it
+reads, the calling set of a client, whose source cannot be read, the calls of a client on the path
+this port registers no route for, which this half records no calls for, because the rules that read
+calls read the two paths that are registered here, the order a client reaches its calls at, which
+the run record carries for the three clients whose records the check half reads as data and the
+source declares for the others, the values the calls carry, which are redacted, the app-level choice
+of which calls a library-based client makes, the guard a client applies before it sends, read as the
+bound on the list size, which no record line can show firing, the side of the bound the guard
+applies, which the record carries as names and not as values, the answer a record line can carry for
+a call whose guard the client applies before it sends, read as the status the handler answers for
+the path rather than as the guard's answer, which no record line can show firing, the number this
+read names for each status name, which the pin asserts as a name and no test asserts as a number, so
+the pair (shape, status) is data while the number is the read's own vocabulary, the part of a
+calling set a run did not reach, which the record carries no line for and the paragraph for that
+client names as the halves this run did not walk, the token half of a client that sends the stored
+value as the token, the numbers of another machine, the query latency at the 100k corpus, and the
+version of a client run on a device, which this machine has no app metadata to read the value
+against. The form the paragraph the order half reads has to be written in is named in
+`Tools/clients/run_record.py` as a branch the round cannot show firing: a craft that took the client
+name out of the paragraph leaves that half reading nothing. The eighth slice, merged as PR #71, is
+the run half executed here: `Scripts/client-run.sh` with `Tools/clients/observer.py` writes one
+record line per request it forwarded and asserts nothing, the records the runs left behind are read
+as data by the nineteenth rule in eleven halves, twelve crafts: six on the record the Fever run
+wrote, one on the paragraph naming its calls, one on the record the Google Reader run on the phone
+wrote here, the order half crafted again on the record the run on the Mac wrote, one on a record
+this machine has not written, one on the names the round reads the record files under, which PR #78
+added and which keeps the performance record, read by its own rule at its own path, out of the
+client records, and one on the status a record line carries, which PR #79 added, read as the status
+the handler the route file gives this path answers, through the shapes its own branches write and
+the status each shape writes, read from the pin that pins the mapping. The half reads only the paths
+it can name a handler for, so the login route and the paths that answer on the catch-all or a
 dispatch case read nothing here. The answer half reads the shape answers and the status half reads
 the status answers, so the two together cover the answer column, which is what took the round to 36
 cases over 19 rules. A fourth walk, Reeder Classic on the phone, is the half this rule cannot read:
 its set records no calls, so a record file for that client is a finding rather than data, and the
-record the walk left is held as evidence outside the repository. The run half is checked by
-`bash -n` and by its nine guards, twelve read sites, six reading one value, three for the ports,
-two for the base's three
-halves, one for the entry guard's two halves, each seen to fail on the value it names, the base half
-the run builds, which now follows the form the set names for a client that appends the prefix
-itself, the half having been seen red on the head before that read followed the form, and seen red
-here for NetNewsWire on the base its own source needs, which carries only host and port because
-every call appends the endpoint path to the base it is given. The Google
-Reader record is the document the check half reads: PR #77 committed the 10 lines the first walk on
-the device left, and the record PR #79 commits is the 25 lines the second walk left, whose third
+record the walk left is held as evidence outside the repository. The run half is checked by `bash
+-n` and by its nine guards, twelve read sites, six reading one value, three for the ports, two for
+the base's three halves, one for the entry guard's two halves, each seen to fail on the value it
+names, the base half the run builds, which now follows the form the set names for a client that
+appends the prefix itself, the half having been seen red on the head before that read followed the
+form, and seen red here for NetNewsWire on the base its own source needs, which carries only host
+and port because every call appends the endpoint path to the base it is given. The Google Reader
+record is the document the check half reads: PR #77 committed the 10 lines the first walk on the
+device left, and the record PR #79 commits is the 25 lines the second walk left, whose third
 `edit-tag` line carries a status answer, which is the status the handler answers a read error with
 and the answer the status half reads. The third record the check half reads is the 56 lines
-NetNewsWire left on the Mac, committed here as PR #80, and the walk there reached every call its
-set names, so the halves the phone run did not show are what this run showed: the folder rename, the
+NetNewsWire left on the Mac, committed here as PR #80, and the walk there reached every call its set
+names, so the halves the phone run did not show are what this run showed: the folder rename, the
 folder delete with both halves of its guard, the input that left a row answering the shape the write
 handler writes for that branch, which the record carries as the route name and the pin asserts as
-the `OK` body, and the
-input that left nothing answering the status the handler gives for that rule, which is the case the
-write-handler pin asserts for the wording. The record shows one add and one remove as the two state
-writes, so which of the two state items each carried is named as a half the record cannot show, and
-the folder the app made in its own state exists on the port only through the subscription edit that
-put the feed in it, which is the half the record reads as the destination, the action and the
-stream together, and the version named beside the placeholder the run declares is the 7.2.1 the
-device's About box reports. The order half reads the order column rather than the position of the
-line, and it reads the paragraph for a client only when the document writes it in the form the half
-names, which is why the paragraph for this client names the client, as the other two do; one of the
-twelve crafts reaches two parts of the data at once, the record line and the paragraph naming the
-calls this run showed.
+the `OK` body, and the input that left nothing answering the status the handler gives for that rule,
+which is the case the write-handler pin asserts for the wording. The record shows one add and one
+remove as the two state writes, so which of the two state items each carried is named as a half the
+record cannot show, and the folder the app made in its own state exists on the port only through the
+subscription edit that put the feed in it, which is the half the record reads as the destination,
+the action and the stream together, and the version named beside the placeholder the run declares is
+the 7.2.1 the device's About box reports. The order half reads the order column rather than the
+position of the line, and it reads the paragraph for a client only when the document writes it in
+the form the half names, which is why the paragraph for this client names the client, as the other
+two do; one of the twelve crafts reaches two parts of the data at once, the record line and the
+paragraph naming the calls this run showed.
 
 The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
 harness gained for it. FeedFlow, the Google Reader client, was run against the served port through
