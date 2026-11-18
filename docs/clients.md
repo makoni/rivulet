@@ -4,10 +4,11 @@ This is the client matrix of stage 7. It records the calling sets of the clients
 acceptance, and what the port answers for each of them.
 
 Every set here is read from a source, not captured. A calling set is one of two things, and the
-document names which one it is for every set: a client's own source at a named commit, or the
-project's documentation, which is what a set is read from when the client's source cannot be read
-here, and also for Capy Reader, whose source is open but whose path this half has no rule for. No
-set is a capture, and three clients
+document names which one it is for every set: a client's own source at a named commit, or at a
+named version for the one whose source names a version, or the project's documentation, which is
+what a set is read from when the client's source cannot be read here, and also for Capy Reader,
+whose source is open but whose path this half has no rule for. No set is a capture, and three
+clients
 have been run against this port here and left a record this half reads as data — NewsFlash, the
 Fever client, FeedFlow, the Google Reader client run on a phone, and NetNewsWire, the Google Reader
 run on a Mac, all through `Scripts/client-run.sh`, the run half that reads what a real client
@@ -45,9 +46,8 @@ for each of the five kinds of finding it reads, the route rule has one for each 
 because an input that violates one of them still satisfies the other, the rule that reads the half
 that reaches no route has one for each of its two halves, both crafted on the one set with such a
 half, so each reports the half its own input violates alone, and the rule that reads the run record
-has one for each of its eleven halves, which is
-twelve crafts: six on the record the
-Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
+has one for each of its eleven halves, which is twelve crafts: six on the record the Fever run
+wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
 one on a record this machine has not written, for a client whose set records no calls, one on the
 names the round reads the record files under, which is the half that keeps the performance record,
@@ -59,15 +59,16 @@ document writes it in the form the half names, so the craft on the Mac record wo
 paragraph for that client names the client, as the other two do; the form itself is the second half
 named in `Tools/clients/run_record.py` rather than probed, because a craft that took the client name
 out of the paragraph leaves this half reading nothing. One of the twelve crafts reaches two parts of
-two parts of the data at once, the record line and the paragraph that names the calls this run
+the data at once, the record line and the paragraph that names the calls this run
 showed, because the half reads the record against the paragraph and the Fever run reached no call
 outside the recorded set. Two crafts have to name data this rule cannot read, which is why the
 redaction craft is on a set for a client this machine has not run and the first craft of the route
 rule is on a row no record line reaches: a change to data this rule also reads fires it alongside
 the rule the craft names, which is what the round showed here after the third record landed.
 
-The width rule does not reach a table row, a manifest record line or a report item line, which are
-each read as one whole string. The record lines and the item lines here are exempt for that reason.
+The width rule does not reach a table row, a manifest record line, a report item line or a
+whole-string value inside a JSON record, each of which is read as one whole string. The record
+lines, the item lines and the values inside the set files here are exempt for that reason.
 
 ## The run half
 
@@ -92,7 +93,11 @@ catch-all or a dispatch case has no handler, and the login route writes no handl
 paths read nothing here. A shape that writes no error status, `text` or `json`, has no pair in the
 pin, so it adds nothing to the statuses a handler answers, and a record line carrying `status 200`
 is read as a finding because no pair names the status the text shape writes. The record carries no
-value, so the credential pair appears as the name the redaction names for it.
+value, so the credential pair appears as the name the redaction names for it. The name the half
+allows for the token is one of two, and the sets name different ones: the two documentation-read
+sets name `T` for Capy Reader and `api_key` for Reeder Classic, on two different paths, and of the
+three run records two name `T` and one names `api_key`. Which name an app sends is not read here,
+because no call is recorded for either documentation-read set.
 
 The order is read as the order column, not as the position of the line, because the line is written
 when the response is complete and the client had more than one connection open at once, which the
@@ -171,7 +176,7 @@ seeds, and the seed that pin writes is a command that fetches nothing.
 - `a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all`
 - `the_reference_answer_names_a_route_the_reference_registers`
 - `the_fever_names_are_read_from_the_dispatch_switch`
-- `the_half_with_no_routes_here_is_named_as_partial`
+- `the_half_that_reaches_no_route_is_read_as_shape_and_note`
 - `the_recorded_sequence_is_the_set_the_source_declares`
 - `the_login_record_is_first_and_the_token_precedes_every_call_that_needs_it`
 - `the_token_half_is_the_half_the_read_reads`
@@ -275,7 +280,7 @@ this document names, and that rule reports what the data says rather than what t
 Each line below is one report item line, read as one whole string by the check half, so it is exempt
 from the width rule.
 
-- the clients that have not been run against this port here, which is the half the manual matrix keeps open for them
+- the manual checklist as a document, which no rule reads as data: the check half reads the record lines for the three clients whose records it reads as data and the calling sets for the two read from documentation, and it reads none of the steps a checklist names
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
 - the calls of a client on the path this port registers no route for, which this half records no calls for, because the rules that read calls read the two paths that are registered here
@@ -393,8 +398,9 @@ port's command; the row the entry guard read was the one the pass the cadence lo
 window wrote. The version the run declared is a report item, not a value: for a client run on a
 device this machine has no app metadata to read the version against, so the run declares what the
 app reports for itself rather than a value a read here answered. The device's own package manager
-answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source the set
-is read from carries; the half reads neither, so both are named rather than compared.
+answers 1.20.0 for the app, while the run declared 6.0.2, which is the version the source that set
+is read from names, and that set names a commit hash rather than a version; the half reads neither,
+so both are named rather than compared.
 
 Two of the three `edit-tag` lines carry the answer the matrix row names, with an empty key column,
 which is the shape this handler writes for a write that reads nothing; the third carries a status,
@@ -461,8 +467,8 @@ client for Miniflux, and the app's README names Miniflux as one of the sources t
 which is the whole fact these two sources state. Its source is open, so the endpoints could be read
 from it, and they are not recorded here: the rules that read calls read the two paths this port
 registers, and this half is the third, so no rule here has anything to read a call on it against.
-The half is named as the whole half rather than as partial, which is what the rule that reads the
-shape the set names for its halves checks: the set names the shape as one. The pin that reads the
+The half is named as the whole half, which is what the rule that reads the shape the set names for
+its halves compares: the set names the shape as one half. The pin that reads the
 prefix this port registers no route for reads this set, so the 404 that pin asserts is the answer
 this half gets.
 
