@@ -21,10 +21,17 @@ import Testing
 ///
 /// Two patches reach more than one pin: the patch for the name fires this suite's basic pin as
 /// well, because the pair is read from the value this read answers for `Authorization`; and the
-/// patch that answers something for a name the request does not carry fires every pin that reads
-/// the basic half, because those pins' requests carry no `X-Auth-Token` and reach the pair through
-/// this read. Two patches fire the same line of the basic pin — the one for the alphabet and the
-/// one for the trim — because both change how the second space is read.
+/// patch that answers something for a name the request does not carry fires its own line plus the
+/// five `RestV1AuthTests` pins whose request reaches the basic half, because those requests carry
+/// no `X-Auth-Token` and reach the pair through this read. Two patches fire the same line of the
+/// basic pin — the one for the alphabet and the one for the trim — because both change how the
+/// second space is read.
+///
+/// What they cannot fail on: the length guard for a value shorter than the prefix, which no patch
+/// can show as an answer — taken away, the read traps on the short value before it can answer
+/// anything, so the line that reads such a value as not read cannot flip; and the padding that is
+/// not at the end of the value, which is an error on both sides, so no input tells the two readings
+/// apart.
 ///
 @Suite struct RestV1HeadersTests {
     @Test func theNameIsReadWhateverCaseItComesInAndTheFirstValueWins() {

@@ -25,11 +25,11 @@ import Testing
 /// key read's column fires the three pins that read that read plus `RestV1AuthTests`' pin for the
 /// request that reaches the key half, whose token matches no row once the read looks at the other
 /// column; the patch that drops the match condition fires the pins that read which account the read
-/// answers and which column and which side of the compare it uses; the write patches for the
-/// description, for the last use and for the token fire `CreateApiKeyTests`' row pin too, because
-/// the command writes through the same rule, and the fixed-token patch also fires this suite's pin
-/// for no key row, because that pin's control row is written through the create.
-///
+/// answers and which column the compare uses; the write patches for the description and for the
+/// last use fire `CreateApiKeyTests`' row pin too, because the command writes through the same
+/// rule; and the fixed-token patch fires this suite's pin for no key row as well, because that
+/// pin's control row is written through the create, while it cannot fire the command's row pin,
+/// which reads the value the run printed against the row the run wrote.
 /// What they cannot fail on: the join as a join, which this schema makes the same answer — `ON
 /// DELETE CASCADE` with foreign keys enforced, so the patch that read `api_keys.user_id` instead
 /// answers the same account, and the pin is falsifiable only on which account the read answers; the

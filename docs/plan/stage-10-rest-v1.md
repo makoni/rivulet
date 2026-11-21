@@ -82,25 +82,12 @@ a shape this stage pins.
 
 ## Slices
 
-1. [x] The `api_keys` table, the read, the `create-api-key` command, and the two halves of the auth
-read, open as PR #86: 23 pins and 42 probes across six suites — 2 and 3 for the description rules as
-pure logic, 2 and 5 for the token generator, 5 and 12 for the two storage reads and the write, 2 and
-11 for the header block, 7 and 7 for the two halves of the auth read, and 5 and 4 for the command
-run. Forty probes are seen to fail on the rule they name and two are recorded as not biting: the
-patch that reads the join as the key row's own account, which this schema answers the same way, so
-the pin reads which account the read answers and the join as a join is named as not falsifiable; and
-the patch that takes the length guard away, which traps on a value shorter than the prefix instead
-of answering differently, so the line that reads such a value as not read cannot flip. Sixteen
-probes reach more than one pin, which the headers name: the patch that answers something for a name
-the request does not carry reaches six, the guard for an empty token value and the character-class
-patch reach five each, the column patch for the key read and the patch that wrote before the rules
-reach four each, and eleven reach the pin they name plus one other. more than one pin, which the
-headers name: the guard for an empty token value and the character-class patch reach five each, the
-patch that answers something for a name the request does not carry reaches six, the column patch for
-the key read and the patch that wrote before the rules reach four each, and seven reach the pin they
-name plus one other. What the headers name as unpinnable is the same list `AGENTS.md`'s stage-10
-paragraph carries, and the two rules named as not falsifiable are the join as a join and the length
-guard.
+Sixteen probes reach more than one pin, which the headers name: the patch that answers something for
+a name the request does not carry reaches six, the guard for an empty token value and the
+character-class patch reach five each, the column patch for the key read and the patch that wrote
+before the rules reach four each, and eleven reach the pin they name plus one other. What the
+headers name as unpinnable is the same list `AGENTS.md`'s stage-10 paragraph carries, and the two
+rules named as not falsifiable are the join as a join and the length guard.
 
 ## Exit criteria
 

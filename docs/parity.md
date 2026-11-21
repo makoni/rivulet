@@ -944,14 +944,15 @@ same bytes differs from the reference's. The pins can fail on which bytes the ch
 over, and cannot fail on which checksum function is used. No Go toolchain on this machine, so the
 reference's values cannot be produced here; the closure is deferred to `Tools/parity` (stage 7).
 - Go's base64 decoder reads the value in groups of four characters, so a final group shorter than
-four is an error (`YQ`), while a group that carries its padding is read (`YQ==`, `YWJ=`).
-`Data(base64Encoded:)` reads `YQ==` but not `YQ=` or `YWJ=`, and it reads padding that comes after
-complete groups (`YWxpY2U6cGFz==`) where Go reports an error. So two forms differ: the one-character
-padding form is read there and not here, and the padding-after-complete-groups form is read here and
-not there. No case on this path reads either form, so the difference is recorded rather than pinned.
-Go also skips CR and LF inside the value, which cannot reach this path: the tokenizer turns a CR in
-an attribute value into a LF, and the `.` production the port reproduces excludes LF, so the decoder
-never sees either.
+four is an error (`YQ`), and so is padding that begins a group where the data has already formed
+complete ones (`YWxpY2U6cGFz==`). `Data(base64Encoded:)` reads a complete padded group the same way
+(`YQ==`, `YWJ=`) and refuses a short final group, but it reads padding that comes after complete
+groups where Go reports an error, so one form differs: `YWxpY2U6cGFz==` is read here and is an error
+there. No case on this path, the icon data-URL read, reads that form, so the difference is recorded
+rather than pinned here, and the api-key path reads it, which is the stage-10 row. Go also skips CR
+and LF inside the value, which cannot reach this path: the tokenizer turns a CR in an attribute
+value into a LF, and the `.` production the port reproduces excludes LF, so the decoder never sees
+either.
 - The reference reports these failures as messages and logs each step of the discovery. RivuletCore
 has no logging layer, so the data-URL failures are typed cases and the pins compare the case, not
 the wording.
