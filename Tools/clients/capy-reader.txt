@@ -1,0 +1,25 @@
+Capy Reader | 1 | accounts/ClientLogin | POST | POST /accounts/ClientLogin |  | Email Passwd
+Capy Reader | 2 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+Capy Reader | 3 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+Capy Reader | 4 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+Capy Reader | 5 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+Capy Reader | 6 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+Capy Reader | 7 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+Capy Reader | 8 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+Capy Reader | 9 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+Capy Reader | 10 | reader/api/0/token | GET | GET /reader/api/0/token |  | T
+Capy Reader | 11 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T output quickadd
+Capy Reader | 12 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+Capy Reader | 13 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+Capy Reader | 14 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+Capy Reader | 15 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+Capy Reader | 16 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
+Capy Reader | 17 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
+Capy Reader | 18 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
+Capy Reader | 19 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
+Capy Reader | 20 | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | direction id title self updated items author | T i output
+Capy Reader | 21 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output
+Capy Reader | 22 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T i output r
+Capy Reader | 23 | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag |  | T dest s
+Capy Reader | 24 | reader/api/0/disable-tag | POST | status 500 | error_message | T s
+Capy Reader | 25 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output

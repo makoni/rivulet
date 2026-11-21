@@ -128,9 +128,10 @@ CASES = {
     # A value that reads as a captured response, not as the placeholder the half reads. The set has
     # to be one this machine has not run: a change to the redaction of a client whose run wrote a
     # record is a finding for the rule that reads that record too, which is what the round showed
-    # when the third record landed.
+    # when the third record landed. The client run here is Capy Reader now, so this craft is on the
+    # set this machine cannot run: the closed-source one.
     "sets_are_redacted":
-        lambda data: set_of(data, "Capy Reader")["redaction"].__setitem__("token", "9f2c1a7b3e"),
+        lambda data: set_of(data, "Reeder Classic")["redaction"].__setitem__("token", "9f2c1a7b3e"),
 
     # A matrix row names a class the manifest line for the same call does not.
     "matrix_names_every_call_and_the_classes_agree_with_the_manifest":
@@ -170,13 +171,14 @@ CASES = {
             'named: "groups"', 'named: "groupz"')),
 
     # Two crafts for this rule, because its two halves cannot be shown by one input, and both are
-    # crafted on Capy Reader, the only set with a half that reaches no route here: the shape half by
-    # naming the shape as two while the set names one half, and the note half by removing that
-    # half's note.
+    # crafted on Capy Reader, the only set with a half that reaches no route here. That set names
+    # two halves now, so the shape half is crafted by naming the shape as one while the set names
+    # two, and the note half by taking the note off the half that reaches no route rather than off
+    # the half the calls are read on.
     "the_half_that_reaches_no_route_is_read_as_shape_and_note": [
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
-            "uses_two_halves", True),
-        lambda data: set_of(data, "Capy Reader")["halves"][0].pop("note"),
+            "uses_two_halves", False),
+        lambda data: set_of(data, "Capy Reader")["halves"][1].pop("note"),
     ],
 
     # The recorded order is not the order the source declares.
@@ -266,8 +268,9 @@ CASES = {
         lambda data: rename_in_record_and_paragraph(data, "fever/mark/item", "fever/folders"),
 
         # The client the record names, read against the set that client's row records: a client
-        # whose set records no calls has no half to read its lines against.
-        lambda data: add_line(data, "Capy Reader", "no-call-recorded", "no route here", [], ["T"]),
+        # whose set records no calls has no half to read its lines against. Capy Reader has a record
+        # now, so this craft is on the client this machine cannot run: the closed-source one.
+        lambda data: add_line(data, "Reeder Classic", "no-call-recorded", "no route here", [], ["T"]),
 
         # The branch the merged form gives, read through the mark the set names it with. The answer,
         # the key name and the redaction name on this line are the values the other halves read, so

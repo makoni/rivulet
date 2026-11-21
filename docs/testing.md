@@ -1572,7 +1572,8 @@ and the baseline, so 37 cases, the performance rule having one for each of the f
 it reads, the route rule one for each of its two halves, because an input that violates one half of
 a rule still satisfies the other, the rule that reads the half that reaches no route one for each of
 its two halves, both crafted on Capy Reader, the only set with a half that reaches no route: the
-shape half by naming the shape as two, the note half by removing that half's note, and the rule that
+shape half by naming the shape as one while the set names two, the note half by taking the note off
+the half that reaches no route rather than off the half its calls are read on, and the rule that
 reads the run record one for each of its eleven halves, which is twelve crafts: six on the record
 the Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
@@ -1586,96 +1587,100 @@ shape that writes no error status has no pair in the pin, so a record line carry
 text shape writes is read as a finding. A status line for a call the matrix has no row for is not
 read by this half, which is the half that reads the call name. The order half reads a paragraph only
 when the document writes it in the form the half names, so the craft on the record the Mac run wrote
-works because the paragraph for that client names the client, as the other two do; the form itself
+works because the paragraph for that client names the client, as the other three do; the form itself
 is named as a half no craft can show, because a craft that took the client name out of the paragraph
 leaves the half reading nothing. One of the twelve crafts reaches two parts of the data at once, the
 record line and the paragraph that names the calls this run showed, because the half reads the
 record against the paragraph and the Fever run reached no call outside the recorded set. Two crafts
 have to name data this rule cannot read: the redaction craft is on a set for a client this machine
-has not run, and the first craft of the route rule is on a row no record line reaches, which is what
-the round showed here after the third record landed. Every craft changes the parsed data in memory
-and never a file, and the round hashes every file the check half reads before and after, so a craft
-that reached a file is reported. What the 19 rules read: the source each set names and its commit,
-the redaction as the placeholders the half reads rather than as values, the matrix rows against the
-manifest lines, the classes against the parity table and the output-check class against the
-endpoints the reference applies the check on, the routes the port registers against the answer each
-row names with the catch-all read as the registration line the file writes, the reference's route
-and dispatch sets, the halves of a client whose half reaches no route, read as the shape the set
-names for its halves agreeing with the halves it names and as the note naming the read that half
-comes from, the order the source declares, the login being first and the token coming before every
-call that carries it, the token half per method, the stream forms as the prefix and suffix sets the
-branch reads, the counts table against the records it counts, the replay records against the
-matrix's own column, the performance table against the run that answered it and the shape the
-document names, the rule list and the report items against what the check half has, the response
-name a client acts on against the name the response builder writes, and the record each client run
-wrote against the set, the matrix row, the response shape, the redaction and the paragraph the
-document writes for the calls that run showed. The rule that reads the run record has eleven halves:
-the client the record names against the set that client's row records, the order column against the
-order the document names the calls this run showed, a call the set cannot name against the document
-naming it as shown, the answer for a call the set names against the matrix row, the answer for a
-call the reference records no case for against the default branch, the status a line carries when
-the port wrote something other than an answer of this path, read as the status the handler the route
-file gives that path answers through the shapes its own branches write and the status each shape
-writes, the call name against the branch the merged form gives, read through the mark the set names
-that branch with, the key names against the names the response shape writes, the name the redaction
-names for the credential pair, the guarded call against the document naming it as shown, and the
-record files the round reads, read as the names it reads them under, which is the half that keeps
-the performance record, read at its own path by the rule that reads the numbers, out of the client
-records; the craft adds a name the round does not read a client under, so what the round shows is
-the message on that name, not that the read leaves the other files out. The number written for each
-status name is that half's vocabulary: the pin asserts the status name and no test asserts the
-number, so the pair (shape, status) is read as data while the number is named in the code, which is
-the half the report item names. What this half cannot show, and is named in `docs/clients.md` rather
-than asserted: the manual checklist as a document, which no rule reads as data, the record a walk
-for a client whose set records no calls leaves, which the check half reads as a finding, so that
-walk is evidence outside the repository rather than data it reads, the calling set of a client whose
-source cannot be read, the calls of a client on the path this port registers no route for, which
-this half records no calls for, because the rules that read calls read the two paths that are
-registered here, the order a client reaches its calls at, which the run record carries for the three
-clients whose records the check half reads as data and the source declares for the others, the
-values the calls carry, which are redacted, the app-level choice of which calls a library-based
-client makes, the guard a client applies before it sends, read as the bound on the list size, which
-no record line can show firing, the side of the bound the guard applies, which the record carries as
-names and not as values, the answer a record line can carry for a call whose guard the client
-applies before it sends, read as the status the handler answers for the path rather than as the
-guard's answer, which no record line can show firing, the number this read names for each status
-name, which the pin asserts as a name and no test asserts as a number, so the pair (shape, status)
-is data while the number is the read's own vocabulary, the part of a calling set a run did not
-reach, which the record carries no line for and the paragraph for that client names as the halves
-this run did not walk, the token half of a client that sends the stored value as the token, the
-numbers of another machine, the query latency at the 100k corpus, and the version of a client run on
-a device, which this machine has no app metadata to read the value against. The run half is
-`Scripts/client-run.sh` with `Tools/clients/observer.py`, outside CI: the observer writes one record
-line per request it forwarded and asserts nothing, and the check half reads the record the run left
-behind rather than the processes. It is checked here by `bash -n` and by its nine guards — twelve
-read sites, six reading one value, three for the ports, two for the base's three halves, one for the
-entry guard's two halves — each seen to fail on the value it names: the record path, the client row,
-the host by an address the machine does not answer on, read against the address the machine's own
-default route selects, the two ports by naming the same port twice and by a port the machine already
-holds, seen by holding one port with a listener, the base by the port it names, by a path the set
-does not name for the client, seen for FeedFlow against the Fever prefix, and by the form the set
-names for how the client builds the prefix, seen for the client whose set names that it appends the
-prefix itself, where a base carrying the prefix reaches the port with it twice, which is also what
-the default base the run builds did before the read followed that form, the default now naming the
-port alone for that client and the prefix for the clients that send the base as the whole prefix;
-the version by a version the file the run reads does not write, the pair row, the entry rows, and
-the record being empty. The usage block names thirteen of the fourteen halves these read sites fail
-on, one line each, the observer-port half being seen by holding the port with a listener. The three
-guards that read what the run itself wrote — the pair row, the entry rows, and the record being
-empty — fail only on a run, and the guards that read the machine fail only on a machine. The guards
-that read a value the run declares run before the record is written, so a guard that fires leaves
-the committed record alone, which is what kept it untouched through the ports demos; the guards that
-read what the run wrote run at the end, and their demos were run in a copy of the tree, which is
-what kept the committed record byte-identical there too. The Swift half is
-`Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and 12 probes, reading the same
-files through `Bundle.module` as data — the recorded order, which call reaches a registered route
-and which reaches the catch-all, the two item-id forms the same client sends, the page size above
-the clamp against the value at the clamp, the token half per method, the guard the merged form
-answers for the call with no add and no remove pair, the name the dispatch switch has no case for,
-and the prefix this port registers no route for. Each probe was seen to fire on the rule it names;
-the control read in the prefix pin is the answer the port gives for a path it registers a route for,
-so no patch that changes only the data can show it alone. The half the pin reads is read through
-`#require`, so a set that names no half as answering nothing here reports at the read rather than
+has not run, which is the closed-source one now that the Capy Reader run wrote a record, and the
+first craft of the route rule is on a row no record line reaches, which is what the round showed
+here after the third record landed. Every craft changes the parsed data in memory and never a file,
+and the round hashes every file the check half reads before and after, so a craft that reached a
+file is reported. What the 19 rules read: the source each set names and its commit, the redaction as
+the placeholders the half reads rather than as values, the matrix rows against the manifest lines,
+the classes against the parity table and the output-check class against the endpoints the reference
+applies the check on, the routes the port registers against the answer each row names with the
+catch-all read as the registration line the file writes, the reference's route and dispatch sets,
+the halves of a client whose half reaches no route, read as the shape the set names for its halves
+agreeing with the halves it names and as the note naming the read that half comes from, the order
+the source declares, the login being first and the token coming before every call that carries it,
+the token half per method, the stream forms as the prefix and suffix sets the branch reads, the
+counts table against the records it counts, the replay records against the matrix's own column, the
+performance table against the run that answered it and the shape the document names, the rule list
+and the report items against what the check half has, the response name a client acts on against the
+name the response builder writes, and the record each client run wrote against the set, the matrix
+row, the response shape, the redaction and the paragraph the document writes for the calls that run
+showed. The rule that reads the run record has eleven halves: the client the record names against
+the set that client's row records, the order column against the order the document names the calls
+this run showed, a call the set cannot name against the document naming it as shown, the answer for
+a call the set names against the matrix row, the answer for a call the reference records no case for
+against the default branch, the status a line carries when the port wrote something other than an
+answer of this path, read as the status the handler the route file gives that path answers through
+the shapes its own branches write and the status each shape writes, the call name against the branch
+the merged form gives, read through the mark the set names that branch with, the key names against
+the names the response shape writes, the name the redaction names for the credential pair, the
+guarded call against the document naming it as shown, and the record files the round reads, read as
+the names it reads them under, which is the half that keeps the performance record, read at its own
+path by the rule that reads the numbers, out of the client records; the craft adds a name the round
+does not read a client under, so what the round shows is the message on that name, not that the read
+leaves the other files out. The number written for each status name is that half's vocabulary: the
+pin asserts the status name and no test asserts the number, so the pair (shape, status) is read as
+data while the number is named in the code, which is the half the report item names. What this half
+cannot show, and is named in `docs/clients.md` rather than asserted: the manual checklist as a
+document, which no rule reads as data, the record a walk for a client whose set records no calls
+leaves, which the check half reads as a finding, so that walk is evidence outside the repository
+rather than data it reads, the calling set of a client whose source cannot be read, the calls of a
+client on the path this port registers no route for, which this half records no calls for, because
+the rules that read calls read the two paths that are registered here, the order a client reaches
+its calls at, which the run record carries for the four clients whose records the check half reads
+as data and the source declares for the others, the pin that reads a class reading the value on the
+set its own code names, so that for the client whose calls no pin sends the classes on its rows are
+read by the comparator as names against the manifest while the pins read that set as the order its
+call graph names, the auth half and the halves, the values the calls carry, which are redacted, the
+app-level choice of which calls a library-based client makes, the guard a client applies before it
+sends, read as the bound on the list size, which no record line can show firing, the side of the
+bound the guard applies, which the record carries as names and not as values, the answer a record
+line can carry for a call whose guard the client applies before it sends, read as the status the
+handler answers for the path rather than as the guard's answer, which no record line can show
+firing, the number this read names for each status name, which the pin asserts as a name and no test
+asserts as a number, so the pair (shape, status) is data while the number is the read's own
+vocabulary, the part of a calling set a run did not reach, which the record carries no line for and
+the paragraph for that client names as the halves this run did not walk, the token half of a client
+that sends the stored value as the token, the numbers of another machine, the query latency at the
+100k corpus, and the version of a client run on a device, which this machine has no app metadata to
+read the value against. The run half is `Scripts/client-run.sh` with `Tools/clients/observer.py`,
+outside CI: the observer writes one record line per request it forwarded and asserts nothing, and
+the check half reads the record the run left behind rather than the processes. It is checked here by
+`bash -n` and by its nine guards — twelve read sites, six reading one value, three for the ports,
+two for the base's three halves, one for the entry guard's two halves — each seen to fail on the
+value it names: the record path, the client row, the host by an address the machine does not answer
+on, read against the address the machine's own default route selects, the two ports by naming the
+same port twice and by a port the machine already holds, seen by holding one port with a listener,
+the base by the port it names, by a path the set does not name for the client, seen for FeedFlow
+against the Fever prefix, and by the form the set names for how the client builds the prefix, seen
+for the client whose set names that it appends the prefix itself, where a base carrying the prefix
+reaches the port with it twice, which is also what the default base the run builds did before the
+read followed that form, the default now naming the port alone for that client and the prefix for
+the clients that send the base as the whole prefix; the version by a version the file the run reads
+does not write, the pair row, the entry rows, and the record being empty. The usage block names
+thirteen of the fourteen halves these read sites fail on, one line each, the observer-port half
+being seen by holding the port with a listener. The three guards that read what the run itself wrote
+— the pair row, the entry rows, and the record being empty — fail only on a run, and the guards that
+read the machine fail only on a machine. The guards that read a value the run declares run before
+the record is written, so a guard that fires leaves the committed record alone, which is what kept
+it untouched through the ports demos; the guards that read what the run wrote run at the end, and
+their demos were run in a copy of the tree, which is what kept the committed record byte-identical
+there too. The Swift half is `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and
+12 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
+reaches a registered route and which reaches the catch-all, the two item-id forms the same client
+sends, the page size above the clamp against the value at the clamp, the token half per method, the
+guard the merged form answers for the call with no add and no remove pair, the name the dispatch
+switch has no case for, and the prefix this port registers no route for. Each probe was seen to fire
+on the rule it names; the control read in the prefix pin is the answer the port gives for a path of
+the half the set names as read here, so no patch that changes only the data can show it alone. Both
+halves the pin reads are read through `#require`: the half that reaches no route and the half that
+is read here, so a set that names no half as answering nothing here reports at the read rather than
 trapping on the index. The transport read is the assumption the other pins run through, so no patch
 can show it alone either, and the transport rules are pinned by `GoogleReaderAuthTests`. The login
 half and the token half are pinned as the answer they write, not as the order they happen in, which

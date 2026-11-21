@@ -1,33 +1,169 @@
 {
   "client": "Capy Reader",
-  "api": "miniflux-rest",
+  "api": "google-reader",
   "source": {
-    "kind": "docs",
-    "project": "miniflux docs and the app's own documentation",
-    "file": "docs/apps.html and README.md",
-    "read_on": "2026-11-17",
-    "note": "the app is open source, so its source could be read; what is read here is which sync service the project's documentation names, and no call is recorded for this client because the rules that read calls read two paths, and this half is the third"
+    "kind": "source",
+    "project": "jocmp/capyreader",
+    "file": "readerclient/src/main/java/com/jocmp/readerclient/GoogleReader.kt",
+    "commit": "d936956c114b58053c8cdd058fa0efe5aa403eb0",
+    "read_on": "2026-11-21"
   },
   "redaction": {
     "token": "T",
     "account": "<account>",
     "password": "<password>",
     "feed_list": "not recorded",
-    "note": "no call is recorded for this client, so no value is redacted beyond the names the run half declares for the pair; the walk on the device leaves a record this half reads as a finding, so that record is held as evidence outside the repository"
+    "note": "no value here is a captured response: the records name the field names the client's own source sends"
   },
   "halves": [
+    {
+      "api": "google-reader",
+      "prefix": "/reader/api/0",
+      "prefix_form": "the client appends the prefix itself, so the base holds only host and port",
+      "calls_read": "read here",
+      "answered_here": "served here"
+    },
     {
       "api": "miniflux-rest",
       "prefix": "/v1",
       "calls_read": "not read here",
       "answered_here": "no route here",
-      "note": "the port registers no route for this half, and the set names one half, so this half is named as the whole half and not as one of two"
+      "note": "the app's own source declares this half as a second source, and the rules that read calls read the two paths this port registers, so this half is the third and nothing on it is read as data"
     }
   ],
-  "sequence_kind": "not read here: the order a client reaches its calls at cannot be read for a set that records no call",
-  "declared_order": [],
-  "source_order": [],
-  "calls": [],
-  "not_reached": [],
-  "runtime_shape": {"login_first": false, "token_before_T": false, "uses_two_halves": false}
+  "sequence_kind": "the order its own call graph reaches them in, because the token is fetched on the first write that carries it and kept afterwards",
+  "declared_order": [
+    "reader/api/0/subscription/list",
+    "reader/api/0/tag/list",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/edit-tag",
+    "reader/api/0/rename-tag",
+    "reader/api/0/disable-tag",
+    "reader/api/0/subscription/quickadd",
+    "reader/api/0/subscription/edit",
+    "accounts/ClientLogin",
+    "reader/api/0/token"
+  ],
+  "source_order": [
+    "accounts/ClientLogin",
+    "reader/api/0/subscription/list",
+    "reader/api/0/tag/list",
+    "reader/api/0/stream/items/ids",
+    "reader/api/0/token",
+    "reader/api/0/stream/items/contents",
+    "reader/api/0/edit-tag",
+    "reader/api/0/rename-tag",
+    "reader/api/0/disable-tag",
+    "reader/api/0/subscription/quickadd",
+    "reader/api/0/subscription/edit"
+  ],
+  "calls": [
+    {
+      "key": "accounts/ClientLogin",
+      "method": "POST",
+      "auth": "none",
+      "names": ["Email", "Passwd"],
+      "reads": "the plain-text shape, because no output name is sent",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/list",
+      "method": "GET",
+      "auth": "header",
+      "names": ["output"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/tag/list",
+      "method": "GET",
+      "auth": "header",
+      "names": ["output"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/items/ids",
+      "method": "GET",
+      "auth": "header",
+      "names": ["s", "ot", "c", "n", "xt", "output"],
+      "streams": [
+        "user/-/state/com.google/reading-list",
+        "user/-/state/com.google/starred",
+        "user/-/state/com.google/read",
+        "user/-/label/<name>",
+        "feed/<feed id>"
+      ],
+      "page_size": "10000",
+      "note": "the stream value is the id the subscription answer carries for a feed, and the label form is the one the app builds for a saved search, while a folder reaches the reading-list form",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/stream/items/contents",
+      "method": "POST",
+      "auth": "form",
+      "names": ["i", "T", "output"],
+      "id_form": "padded"
+    },
+    {
+      "key": "reader/api/0/edit-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["i", "T", "a", "r", "output"],
+      "streams": [
+        "user/-/state/com.google/read",
+        "user/-/state/com.google/starred",
+        "user/-/label/<saved search>"
+      ],
+      "note": "the output pair reaches the read through the URL query, because the body has no output part",
+      "id_form": "padded"
+    },
+    {
+      "key": "reader/api/0/rename-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "dest", "T"],
+      "streams": ["user/-/label/<name>"],
+      "note": "the destination is the title the read takes as a category name, not a stream form, so this call records one stream value",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/disable-tag",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "T"],
+      "streams": ["user/-/label/<name>"],
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/quickadd",
+      "method": "POST",
+      "auth": "form",
+      "names": ["quickadd", "T", "output"],
+      "note": "the whole pair is the body, so quickadd reaches the merged form through the body rather than the query",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/subscription/edit",
+      "method": "POST",
+      "auth": "form",
+      "names": ["s", "ac", "a", "t", "T"],
+      "streams": ["feed/<feed id>"],
+      "note": "the source declares no remove value for this call, and `a` is the category row the read takes as an id rather than a stream value, so this call records one stream form",
+      "id_form": "none"
+    },
+    {
+      "key": "reader/api/0/token",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "reads": "the token is fetched by the wrapper on the first write that carries it, and refetched when the answer carries the bad-token name",
+      "id_form": "none"
+    }
+  ],
+  "not_reached": ["reader/api/0/user-info", "reader/api/0/mark-all-as-read"],
+  "runtime_shape": {
+    "login_first": true,
+    "token_before_T": true,
+    "uses_two_halves": true
+  }
 }

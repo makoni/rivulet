@@ -7,8 +7,9 @@
 # files beside this one; the classes are the names in the class table in `docs/clients.md`, whose
 # `Read by` column is read for every row and compared with the tolerance table in `docs/parity.md`
 # only for the row marked as a parity class, while the call lines that name no class read `none`.
-# Two clients record no call: one because its source cannot be read here, and one because this half
-# reads no rules against the path that client uses. Their lines name the class that says so.
+# One client records no call, because its source cannot be read here; its line names the class that
+# says so. Capy Reader has a calling set now, read from the app's own source, so its calls have lines
+# and its second half, the path this port registers no route for, does not.
 netnewswire/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
 netnewswire/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
 netnewswire/reader/api/0/tag/list | output_check | which endpoints apply the check, which the handler suite pins
@@ -45,7 +46,17 @@ newsflash/fever/saved_item_ids | none | the order the id list answers in, which 
 newsflash/fever/mark/item | merged_form_read | the guard that a value at or below zero answers before the response builder
 newsflash/fever/mark/feed | merged_form_read | the time the read uses
 newsflash/fever/mark/group | merged_form_read | the user-wide half of the branch, which ignores the time it is given
-capy-reader/no-call-recorded | no_route_here | the client on the path this half reads no rules against, so no call is recorded for it
+capy-reader/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
+capy-reader/reader/api/0/subscription/list | none | the values the six fields carry, which no rule compares
+capy-reader/reader/api/0/tag/list | output_check | which endpoints apply the check, which the handler suite pins
+capy-reader/reader/api/0/stream/items/ids | page_size | the clamp, which a value below it cannot show
+capy-reader/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
+capy-reader/reader/api/0/stream/items/contents | item_id_forms | the padding, which the read keeps as it read it
+capy-reader/reader/api/0/edit-tag | merged_form_read | the order the two reads answer in
+capy-reader/reader/api/0/rename-tag | stream_forms | the guard that an empty destination answers, which this run's rename carried a destination for
+capy-reader/reader/api/0/disable-tag | stream_forms | the localized strings the reference writes
+capy-reader/reader/api/0/subscription/quickadd | minimal_scan | the discovery half this port does not have
+capy-reader/reader/api/0/subscription/edit | none | the call this run did not reach, so the record carries no line for it
 reeder-classic/no-call-recorded | closed_source | the calling set of a closed-source client, which this matrix cannot read
 # The name FeedFlow acts on for the token half is the response name the port writes for an
 # unauthenticated request on this path; it is not a call, so it has no record line, and the rule

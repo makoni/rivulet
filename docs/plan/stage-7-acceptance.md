@@ -217,17 +217,18 @@ the pair, and what is still open is the classes no corpus input can reach.
       adds a feed through the call its own set names, and syncs, and the run on the Mac walked every
       call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
       record is evidence outside the repository rather than data this half reads, so its halves are
-      named as what the walk showed rather than as data read against a set; the add half has no
-      call this client's set can be read for. Capy Reader is the client this half can walk by hand
-      on the device for the half this port registers no route for, and
-      its set is read from documentation because no rule here reads calls on a path this port
-      registers no route for, so its half is named as the whole half, which is what the rule that
-      reads the shape compares. It was
-      walked by hand here on the phone in the same network: the walk showed the call it makes first,
-      `GET /v1/me`, answered status 404 for that path, and the app refused the account on that
-      answer, so the checklist items were not reached, and its record is evidence outside the
-      repository, which is the half the report items name. The manual half stays open for the Capy
-      Reader items that walk did not reach, which are named per client.
+      named as what the walk showed rather than as data read against a set; the add half has no call
+      this client's set can be read for. Capy Reader is the client this half can walk by hand on the
+      device for the half this port registers no route for, and its set is read from the app's own
+      source at the commit its tag names, which puts its calls on the path this half registers
+      routes for, so the run half completes for it here: the column its pair guard reads has a case
+      for that path, and the record this run wrote is read as data. The walk by hand on the phone
+      showed the call the app makes first, `GET /v1/me`, answered status 404 for that path, and the
+      app refused the account on that answer, so nothing on that half was reached, and its record is
+      evidence outside the repository, which is the half the report items name. The manual half
+      stays open for the Capy Reader item this run carried no record line for, renaming a
+      subscription, and for the Capy Reader half this port registers no route for, which are named
+      per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.
