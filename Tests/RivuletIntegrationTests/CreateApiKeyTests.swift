@@ -6,36 +6,30 @@ import Testing
 import RivuletApp
 @testable import RivuletCore
 
-/// `rivulet create-api-key <description>` — the account the run resolves, the two rules the
-/// reference's validator applies, the row written with the token the port's own generator answers,
-/// and the value printed. The reference has this path only as its web form
-/// (`internal/ui/api_key_create.go` at `c4d54f87`), so the command shape and the wording of its
-/// lines are the port's own, recorded in `docs/parity.md`; what is traced to the reference is what
-/// that handler does with the values it is given: the rule order, the write, and the account the
-/// request carries — which here is the account the command resolves, because a command line has no
-/// session to read one from.
+/// The command as a run, over the in-process console: the account it resolves, the rules it applies
+/// in the reference's order, the row it writes, and the line it prints. The rules are the
+/// `ApiKeyValidation` pair pinned by `ApiKeyValidationTests`, the write is the one pinned by
+/// `ApiKeyRepositoryTests`, and the account is the lookup pinned by `UserRepositoryTests`; what
+/// this suite reads is what the run does with those answers.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting: the row being
-/// written as the command derived it — the token the generator answered and the description as the
-/// run read it, which a patch that lowercased the description before writing or that wrote a fixed
-/// token fails on — the run printing the value it stored, which a patch that printed the
-/// description instead fails on; a description that fails the rule ending the run with nothing
-/// written, which a patch that wrote before the rules fails on; the account the run resolves
-/// reaching the write, which a patch that wrote for a different account fails on; and the migration
-/// flag gating this command, which a patch that migrated regardless of it fails on — that pin reads
-/// the schema each run leaves behind, on a file the run itself opens. The patch that wrote before
-/// the rules fires the pins that read the row, the printed value and the account as well, because
-/// the runs those pins make write a row whatever the description is and then report the duplicate
-/// rule; each other patch fires only the pin it names.
+/// What these pins can fail on, each checked by patching the rule and reverting: the row as the run
+/// derived it, which the three write patches reach through the repository pin as well; the line
+/// printing the value it stored rather than the description; that a description failing a rule ends
+/// the run writing nothing, which a patch that wrote before the rules fails on — that patch fires
+/// the row, the printed value and the account pins too, because the runs those pins make write a
+/// row whatever the description is and then report the duplicate rule; the account the run
+/// resolves, which a patch that wrote for another account fails on; and the flag gating the
+/// migrations, which a patch that migrated whatever the flag says fails on — that pin reads the
+/// schema each run leaves behind, on a file the run itself opens. The character-class patch named
+/// in `ApiKeyValidationTests` fires the row, the printed value and the account pins here too,
+/// because the run applies the rules through that same function.
 ///
-/// What they cannot fail on: the order the guard and the duplicate read run in, which is the rule
-/// `ApiKeyValidationTests` pins as the answer of the rule function — both paths write nothing, so
-/// what a command run can show is the outcome, not which of the two produced it; the wording of the
-/// lines and of the reported failures, which are the port's own; the single-row limit of the
-/// duplicate read; the web form's session and redirect, which this port has no piece for; the
-/// `unique (user_id, description)` index, which no patch can reach because the rule is the schema;
-/// and the value of a single generated token, which the pins read as the shape the generator writes
-/// rather than as one answer.
+/// What they cannot fail on: the shape of the command line and the wording of what the run prints,
+/// which are the port's own path, recorded in `docs/parity.md`; the reference trimming the
+/// description in its form, which no input here reads; the console seam itself, which the harness
+/// pins; the ids the run assigns, which the pins read through SQL because the pool does not fix the
+/// order the writes land in; and the wordings of the storage failures this suite cannot trigger.
+///
 @Suite struct CreateApiKeyTests {
     init() {
         TestLogging.bootstrapOnce()

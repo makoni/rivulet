@@ -5,13 +5,11 @@ import Testing
 @testable import RivuletApp
 @testable import RivuletCore
 
-/// The two halves of the read every request of this path runs through before it reaches a route:
-/// `validateAPIKeyAuth` and `validateBasicAuth` from `internal/api/middleware.go` at commit
-/// `c4d54f87` (Apache-2.0), pinned as the decision each half answers. The storage read the token
-/// half runs is pinned by `ApiKeyRepositoryTests`, the name lookup by `UserRepositoryTests`, and
-/// the header block by `RestV1HeadersTests`; what the transport writes for these answers — the
-/// status each one gets, the JSON error document, and the `WWW-Authenticate` value the basic half
-/// writes before its guards — is the route half.
+/// The decision the auth read answers, pinned as the branch it takes: the key half and the basic
+/// half, in the reference's order, each read through the storage layer on a real file. The header
+/// block the read runs on is pinned by `RestV1HeadersTests`; what the transport writes for these
+/// answers — the status each one gets, the JSON error document, and the `WWW-Authenticate` value
+/// the basic half writes before its guards — is the route half.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: the guard that an
 /// empty header value is not read against the storage layer at all, which a patch that read the
@@ -23,12 +21,14 @@ import Testing
 /// running on the account column rather than on the Google Reader column, which a patch that read
 /// the other column fails on; the name being read lowercase, as the account lookup reads it, which
 /// a patch that compared it as given fails on; and the two branches the failure rules name, which a
-/// patch that answered one rule for both inputs fails on. The guard patch for the token value fires
-/// every pin that reads the basic half, because with the guard away the request is read against the
-/// key table whatever it carries; the order patch fires the pin that reads the failure rule for a
-/// request that carries no key row, because that pin's request reaches only the basic half; the
-/// patch for the name reaches `UserRepositoryTests`, whose own pin pins the lookup itself; each
-/// other patch fires only the pin it names.
+/// patch that answered one rule for both inputs fails on.
+///
+/// Three patches reach more than one pin: the guard patch for the token value fires every pin whose
+/// request reaches the basic half, because with the guard away the request is read against the key
+/// table whatever it carries; the order patch fires the pin that reads the failure rule for a
+/// request that carries no key row, because that pin's request reaches only the basic half; and the
+/// patch for the name reaches `UserRepositoryTests`, whose own pin pins the lookup itself. The
+/// order pin's request carries a token, so the guard patch does not change what it answers.
 ///
 /// What they cannot fail on: the answer a client would tell apart for the two branches that share
 /// one status upstream — a name with no row and a name whose stored hash does not match are both
@@ -38,8 +38,10 @@ import Testing
 /// constant-time form of the compare, which is upstream's timing half and which no test reads; the
 /// dummy comparison upstream runs for a name with no row, which has no piece here; the single-row
 /// limit of the key read; the storage failure the middleware answers with the 500 shape, which this
-/// suite cannot trigger; and the `SetLastLogin` and `SetAPIKeyUsedTimestamp` writes the reference
-/// makes after its read passes, which have no column here, so there is nothing to pin.
+/// suite cannot trigger; and the writes the reference makes after its read passes, `SetLastLogin`
+/// having no column here and `SetAPIKeyUsedTimestamp` having the column but no piece that writes
+/// it, so there is nothing to pin.
+///
 @Suite struct RestV1AuthTests {
     @Test func anEmptyTokenValueIsNotReadAgainstTheStorageLayer() async throws {
         try await withMigratedStorage { _, storage in

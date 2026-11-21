@@ -2,35 +2,30 @@ import Foundation
 import Testing
 @testable import RivuletApp
 
-/// The header block as Go's `net/http` reads it for this path: `Header.Get` for one name, and
-/// `Request.BasicAuth` for the value it reads at `Authorization` (Apache-2.0 reference behavior,
-/// `parseBasicAuth`). The read is pinned here as pure logic; the half that uses it to decide which
-/// answer a request gets is pinned by `RestV1AuthTests`, and the status and the `WWW-Authenticate`
-/// value the transport writes for that answer belong to the route half.
+/// The header block the auth read runs on: the name read as `textproto` canonicalizes it, the first
+/// value of the name kept, and the pair `parseBasicAuth` reads from the value this read answers for
+/// `Authorization`. The rules are pinned as pure logic, with no transport, so what the transport
+/// writes for these answers — the status each one gets, the JSON error document, and the
+/// `WWW-Authenticate` value the basic half writes before its guards — is the route half.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting: the name being
-/// read whatever case it comes in, which a patch that compared the name case-sensitively fails on;
-/// the first value winning for a name the request carries twice, which a patch that took the last
-/// value fails on, with the two cases of the same name counting as one name; a name the request
-/// does not carry answering the empty value, which is what the guard reads; the prefix being
-/// compared case-insensitively, which a patch that compared it as written fails on; a value shorter
-/// than the prefix, which is not read; the whole rest after the prefix being the value read, so a
-/// second space is part of it and fails the decode; a character the alphabet does not have, which
-/// fails the read; a decoded value with no colon, which is not read; the pair being split at the
-/// first colon; and the last quantum shorter than four characters being read as this read's decoder
-/// reads it, which a patch that applied the reference's group-length rule fails on. The case patch
-/// for the name fires the basic pin as well, because the basic half reads its value through the
-/// same read; each other patch fires only the line it names.
+/// What these pins can fail on, each checked by patching the rule and reverting: the name read
+/// case-insensitively, which a patch that compared it as written fails on, and the first value of
+/// the name being the one kept, which a patch that took the last fails on; that a name the request
+/// does not carry answers the empty value, which a patch that answered something else fails on; the
+/// prefix compared case-insensitively; the whole rest of the value being what is decoded; a
+/// character outside the alphabet ending the read, which a patch that filtered such characters out
+/// fails on; the pair split at the first colon; a decoded value with no colon not being read; a
+/// value that does not end at a group boundary being read as this read's decoder reads it; and the
+/// two newlines inside the value being skipped, which a patch that stopped filtering them fails on,
+/// because this read's decoder refuses a value that carries one.
 ///
-/// What they cannot fail on: the reference's answer for the quantum rule this read has as the
-/// port's own, recorded in `docs/parity.md` — a pin can read what this read answers for a last
-/// quantum shorter than four characters, but the reference's answer for the same input is not data
-/// this suite has; for a value whose padding is not at the end both sides answer nothing, so no
-/// input tells the two readings apart; the canonical form of a name written with a lowercase letter
-/// after a dash, which Go's `textproto` fixes and this read does not, and which changes nothing for
-/// the two names this path reads; and the character set the decoded value is read as, which Go
-/// reads as bytes and Swift as a String — an invalid UTF-8 sequence would be a value that matches
-/// no stored name here, so the difference cannot be reached.
+/// Two patches reach more than one pin: the patch for the name fires this suite's basic pin as
+/// well, because the pair is read from the value this read answers for `Authorization`; and the
+/// patch that answers something for a name the request does not carry fires every pin that reads
+/// the basic half, because those pins' requests carry no `X-Auth-Token` and reach the pair through
+/// this read. Two patches fire the same line of the basic pin — the one for the alphabet and the
+/// one for the trim — because both change how the second space is read.
+///
 @Suite struct RestV1HeadersTests {
     @Test func theNameIsReadWhateverCaseItComesInAndTheFirstValueWins() {
         #expect(RestV1Headers(lines: [("X-Auth-Token", "first"), ("x-auth-token", "second")])
@@ -69,9 +64,9 @@ import Testing
         #expect(!RestV1Headers(lines: [("Authorization", "Basic YWxpY2U=")])
             .basicCredentials().read, "no colon in the decoded value")
 
-        // The last quantum shorter than four characters is read as this read's decoder reads it,
-        // which is the port's own rule: the reference reports such a value as an error, which is
-        // the parity row, so what the pin can read is the pair this read answers.
+        // The value that does not end at a group boundary is read as this read's decoder reads it,
+        // which is the port's own rule: the reference reports it as an error, which is the parity
+        // row, so what this line can read is the pair the port answers.
         let partial = RestV1Headers(lines: [("Authorization", "Basic YWxpY2U6cGFz==")])
             .basicCredentials()
         #expect(partial.read && partial.name == "alice" && partial.password == "pas",
@@ -81,6 +76,14 @@ import Testing
         // the read answers nothing: the two readings are not told apart by any input.
         #expect(!RestV1Headers(lines: [("Authorization", "Basic YWxpY2U6cGFz=cw==")])
             .basicCredentials().read, "padding not at the end")
+
+        // The two newlines inside the value are the characters Go's decoder skips, and this read
+        // skips them too: with the filter taken away the value is not in the alphabet and the pair
+        // is not read, which is what this line can fail on.
+        let newlines = RestV1Headers(lines: [("Authorization", "Basic YWxpY2U6cGFz\r\ncw==")])
+            .basicCredentials()
+        #expect(newlines.read && newlines.name == "alice" && newlines.password == "pass",
+            "a CR and an LF inside the value are skipped")
 
         // The empty pair is read, which is what lets the guard read it as an empty value before the
         // storage layer is read at all.

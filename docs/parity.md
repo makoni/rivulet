@@ -943,12 +943,15 @@ uses SHA-256, the function it already has for the entry identity, so the stored 
 same bytes differs from the reference's. The pins can fail on which bytes the checksum is taken
 over, and cannot fail on which checksum function is used. No Go toolchain on this machine, so the
 reference's values cannot be produced here; the closure is deferred to `Tools/parity` (stage 7).
-- Go's base64 decoder accepts a value whose last quantum is not padded — two or three characters
-left — while Swift's `Data(base64Encoded:)` refuses it, so such a value is an error here. Go also
-skips CR and LF inside the value, which cannot reach this path: the tokenizer turns a CR in an
-attribute value into a LF, and the `.` production the port reproduces excludes LF, so the decoder
-never sees either. No case here reads the unpadded case, so the difference is recorded rather than
-pinned.
+- Go's base64 decoder reads the value in groups of four characters, so a final group shorter than
+four is an error (`YQ`), while a group that carries its padding is read (`YQ==`, `YWJ=`).
+`Data(base64Encoded:)` reads `YQ==` but not `YQ=` or `YWJ=`, and it reads padding that comes after
+complete groups (`YWxpY2U6cGFz==`) where Go reports an error. So two forms differ: the one-character
+padding form is read there and not here, and the padding-after-complete-groups form is read here and
+not there. No case on this path reads either form, so the difference is recorded rather than pinned.
+Go also skips CR and LF inside the value, which cannot reach this path: the tokenizer turns a CR in
+an attribute value into a LF, and the `.` production the port reproduces excludes LF, so the decoder
+never sees either.
 - The reference reports these failures as messages and logs each step of the discovery. RivuletCore
 has no logging layer, so the data-URL failures are typed cases and the pins compare the case, not
 the wording.
@@ -1599,11 +1602,17 @@ run prints, and the run printing the value it stored are the port's own; what is
 reference is the rule order, the write, and the account the request carries — for a command line
 that is the account the command resolves, because there is no session to read one from.
 
-- The base64 quantum rule: Go reports a value whose last quantum is shorter than four characters as
-an error even when the padding is at the end, where this read decodes it, so `Basic YWxpY2U6cGFz==`
-answers the pair `alice` and `pas` here and is not read at all there. For a value whose padding is
-not at the end both sides answer nothing, so no input tells the two readings apart; the pin reads
-what this read answers, which is the port's rule.
+- The description reaches the write as the command line gave it. The reference trims the spaces
+around the description in its form (`strings.TrimSpace`) before the write runs, so a value with
+spaces around it is stored without them there and with them here. No pin reads that case, so the
+difference is recorded rather than asserted.
+
+- The base64 group rule: Go reads the value in groups of four characters and reports an error when
+it does not end at a group boundary, so `Basic YWxpY2U6cGFz==` — twelve data characters and then two
+padding characters that begin a group — is not read there, where this read decodes the three
+complete groups and answers `alice` and `pas`. A value with padding inside a group (`Basic
+YWxpY2U6cGFz=cw==`) is an error on both sides, so no input tells the two readings apart, and the pin
+reads what this read answers, which is the port's rule.
 
 - The order between the compare and the account read: upstream reads the stored hash, compares, and
 then reads the row, and this port answers both from one read, so no input can tell the two orders

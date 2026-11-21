@@ -12,32 +12,34 @@ import Testing
 /// key read answers, which a patch that answered the first account for any token fails on; that the
 /// key read compares the token as read, which a patch that lowercased the value it was given fails
 /// on, and that it looks at the token column, which a patch that read the description column fails
-/// on; that it answers nothing when no row matches; that the duplicate read lowercases both sides —
-/// the pin has one input for each side, so the patch that dropped the stored side fires only the
-/// stored-side line and the one that dropped the given side fires only the given-side line — that
-/// it is per user, which a patch that counted a row of another user fails on, and that it looks at
-/// the description column, which a patch that read the token column fails on; that `create` writes
-/// the description as it is given, which a patch that lowercased it before writing fails on, and
-/// writes nothing for the last use, which a patch that stamped the write instant fails on. The two
-/// column patches and the three write patches reach more than one pin, because pins share a read or
-/// a write: the patch for the key read's column fires the three pins that read that read, and
-/// `RestV1AuthTests`' pin for the request that reaches the key half, whose token matches no row
-/// once the read looks at the other column; the patch for the duplicate read's column fires only
-/// the pin it names, as does each half of the lowercase rule. The write patches for the description
-/// and for the last use fire `CreateApiKeyTests`' row pin too, because the command writes through
-/// the same rule, and the fixed-token patch fires the pin that reads nothing for no key row,
-/// because that pin's control row is written through the create.
+/// on; that the duplicate read lowercases both sides — the pin has one input for each side, so the
+/// patch that dropped the stored side fires only the stored-side line and the one that dropped the
+/// given side fires only the given-side line — that it is per user, which a patch that counted a
+/// row of another user fails on, and that it looks at the description column, which a patch that
+/// read the token column fails on; that `create` writes the description as it is given, which a
+/// patch that lowercased it before writing fails on, writes nothing for the last use, which a patch
+/// that stamped the write instant fails on, and writes the token the caller gave it, which a patch
+/// that wrote a fixed value fails on.
 ///
-/// What they cannot fail on: the join as a join — on this schema the foreign key makes the key
-/// row's account and the row the join reaches the same row, so a patch that read the key table and
-/// then the account answers the same thing, and a key row with no account behind it cannot be built
-/// here because the schema writes `ON DELETE CASCADE`; the single-row limit of either read, which
-/// no patch can tell from a read that fetched every match, so the repository comment states it; the
-/// row the read answers when two keys belong to one account, which SQL does not order; the clock
-/// fields, which are write instants and are read as the shape they hold rather than as the instant;
-/// the `timestamp with time zone` type the reference's columns carry, which this port's schema
-/// writes as Unix seconds, recorded in `docs/parity.md`; and the wording of the storage failures
-/// this suite cannot trigger.
+/// Five patches reach more than one pin, because pins share a read or a write: the patch for the
+/// key read's column fires the three pins that read that read plus `RestV1AuthTests`' pin for the
+/// request that reaches the key half, whose token matches no row once the read looks at the other
+/// column; the patch that drops the match condition fires the pins that read which account the read
+/// answers and which column and which side of the compare it uses; the write patches for the
+/// description, for the last use and for the token fire `CreateApiKeyTests`' row pin too, because
+/// the command writes through the same rule, and the fixed-token patch also fires this suite's pin
+/// for no key row, because that pin's control row is written through the create.
+///
+/// What they cannot fail on: the join as a join, which this schema makes the same answer — `ON
+/// DELETE CASCADE` with foreign keys enforced, so the patch that read `api_keys.user_id` instead
+/// answers the same account, and the pin is falsifiable only on which account the read answers; the
+/// pin for no key row, whose line reads the absence before its control row is written, so the patch
+/// that drops the match condition has no row there to answer and fires only the control line
+/// through the patches named above; the single-row limit of the read, which no patch can tell from
+/// a read that fetched every match; the order two keys of one account answer, which SQL does not
+/// fix; the clock fields, read as the shape they hold; and the `timestamp with time zone` type,
+/// which this port writes as Unix seconds.
+///
 @Suite struct ApiKeyRepositoryTests {
     @Test func theKeyReadAnswersTheAccountTheKeyBelongsTo() async throws {
         try await withMigratedStorage { _, storage in

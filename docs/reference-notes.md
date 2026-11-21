@@ -798,7 +798,9 @@ Semantics:
 - `CreateAPIKey` writes the description as submitted, with no `LOWER`, and stamps nothing for the
   last use. `last_used_at` is written by `SetAPIKeyUsedTimestamp`, which the request path calls
   after its read passes; this port has no piece that calls it, so a new row is written with nothing
-  there. The schema has `token text not null unique` and `unique (user_id, description)`.
+  there. The schema has `token text not null unique` and `unique (user_id, description)`. The value
+  reaches that write through `internal/ui/form/api_key.go`, which trims the spaces around the
+  description before the read runs, so what the form stores is the trimmed value.
 - `UserByAPIKey` reads the account through `INNER JOIN api_keys ON api_keys.user_id = u.id`, with
   the token compared as read — no `LOWER`, unlike the account-name lookup.
 - The reference puts a key in the table only through its web form (`internal/ui/api_key_create.go`),
@@ -811,12 +813,12 @@ Semantics:
   goes on to the basic half; a value is read against the key table, no row answers the JSON 401, and
   a read that fails answers the JSON 500 shape. After the read passes the middleware writes
   `SetLastLogin` and `SetAPIKeyUsedTimestamp`.
-- The basic half is skipped when the request is already authenticated, writes `WWW-Authenticate: sic
-  realm="Restricted"` before its guards, answers the JSON 401 when `BasicAuth` did not read the lue
-  or when the name or the password is empty, and compares the password with the stored bcrypt sh
-  read for the lowercased name. `CheckPassword` reads the hash, compares, and then reads the w; for
-  a name with no row it runs a dummy comparison so the timing is the same, which has no
-  piece here.
+- The basic half is skipped when the request is already authenticated, writes `WWW-Authenticate`
+  with the value `Basic realm="Restricted"` before its guards, answers the JSON 401 when `BasicAuth`
+  did not read the value or when the name or the password is empty, and compares the password with
+  the stored bcrypt hash read for the lowercased name. `CheckPassword` reads the hash, compares, and
+  then reads the row; for a name with no row it runs a dummy comparison so the timing is the same,
+  which has no piece here.
 - `parseBasicAuth` compares the prefix with `ascii.EqualFold` — ASCII letters only, which is
   narrower than a Unicode fold — decodes the whole rest of the value, skips only CR and LF inside
   it, and splits the decoded value at the first colon; a value with no colon is the half that

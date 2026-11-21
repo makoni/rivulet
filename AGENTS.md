@@ -265,24 +265,30 @@ rename through the drawer, which are halves the first walk did not show.
 `minifluxclient` declares, and is worked here while the stage 7 file keeps its `/v1` half open; the
 plan's working agreement allows the redirect.
 
-Its first slice merged as PR #86: the `api_keys` table, its two reads, the `create-api-key` command
-and the two halves of the auth read — 21 pins and 35 probes over six suites: 2 and 3 pin the
-description rules as pure logic, 2 and 3 the token generator, 5 and 11 the two storage reads and the
-write, 2 and 7 the header block, 7 and 7 the two halves of the auth read as the decision each
-answers, and 5 and 4 the command run. Twelve probes reach more than one pin, which the headers name:
-the guard for an empty token value and the character-class patch reach five each, the column patch
-for the key read and the patch that wrote before the rules reach four each, and eight reach the pin
-they name plus one other. One probe is recorded as not biting: reading the join as the key row's own
-account answers the same thing on this schema, so the pin reads which account the read answers and
-the join as a join is named as not falsifiable. What those headers name as unpinnable: the
-reference's answer for the base64 quantum rule, which this port has as its own and `docs/parity.md`
-records as a divergence; the single-row limit of either read; the row two keys of one account
-answer, which SQL does not order; the clock fields, read as the shape they hold; the `timestamp with
-time zone` type, which this port writes as Unix seconds; the constant-time form of the compare and
-the dummy compare upstream runs for a name with no row; the order between the compare and the row
-read, which one read serves here; the `SetLastLogin` and `SetAPIKeyUsedTimestamp` writes, which have
-no column here; the locale wording of the two rules; the command's shape and its wording, which are
-the port's own path; and the wordings of the storage failures these suites cannot trigger.
+Its first slice is open as PR #86: the `api_keys` table, its two reads, the `create-api-key` command
+and the two halves of the auth read — 23 pins and 42 probes over six suites: 2 and 3 pin the
+description rules as pure logic, 2 and 5 the token generator, 5 and 12 the two storage reads and the
+write, 2 and 11 the header block, 7 and 7 the two halves of the auth read as the decision each
+answers, and 5 and 4 the command run. Forty probes are seen to fail on the rule they name and two
+are recorded as not biting: the patch that reads the join as the key row's own account, which this
+schema answers the same way, and the patch that takes the length guard away, which traps on a value
+shorter than the prefix instead of answering differently. Sixteen probes reach more than one pin,
+which the headers name: the patch that answers something for a name the request does not carry
+reaches six, the guard for an empty token value and the character-class patch reach five each, the
+column patch for the key read and the patch that wrote before the rules reach four each, and eleven
+reach the pin they name plus one other. more than one pin, which the headers name: the guard for an
+empty token value and the character-class patch reach five each, the patch that answers something
+for a name the request does not carry reaches six, the column patch for the key read and the patch
+that wrote before the rules reach four each, and seven reach the pin they name plus one other. What
+those headers name as unpinnable: the reference's answer for the base64 group rule, which this port
+has as its own and `docs/parity.md` records as a divergence; the single-row limit of either read;
+the row two keys of one account answer, which SQL does not order; the clock fields, read as the
+shape they hold; the `timestamp with time zone` type, which this port writes as Unix seconds; the
+constant-time form of the compare and the dummy compare upstream runs for a name with no row; the
+order between the compare and the row read, which one read serves here; the `SetLastLogin` write,
+which has no column here, and `SetAPIKeyUsedTimestamp`, whose column is on the schema but has no
+piece that writes it; the locale wording of the two rules; the command's shape and its wording,
+which are the port's own path; and the wordings of the storage failures these suites cannot trigger.
 
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
