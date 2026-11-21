@@ -25,7 +25,7 @@ Stage states as `docs/plan/README.md`'s table states them:
 - Stage 7 - Acceptance & hardening: in progress
 - Stage 8 - Packaging & deployment: in progress
 - Stage 9 - Post-MVP backlog: backlog
-- Stage 10 - Miniflux REST v1 subset: scheduled
+- Stage 10 - Miniflux REST v1 subset: in progress
 
 ## What it will be
 

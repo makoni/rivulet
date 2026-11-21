@@ -48,6 +48,17 @@ public struct SchemaV1: AsyncMigration {
         )
         """,
         """
+        CREATE TABLE api_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+            token TEXT NOT NULL UNIQUE,
+            description TEXT NOT NULL,
+            last_used_at INTEGER,
+            created_at INTEGER NOT NULL,
+            UNIQUE (user_id, description)
+        )
+        """,
+        """
         CREATE TABLE categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -180,6 +191,7 @@ public struct SchemaV1: AsyncMigration {
         "DROP TABLE feeds",
         "DROP TABLE icons",
         "DROP TABLE categories",
+        "DROP TABLE api_keys",
         "DROP TABLE users",
     ]
 }

@@ -784,6 +784,45 @@ Semantics:
   the
   acceptance client's reachability check sends.
 
+## Api keys and the auth read (`internal/api/middleware.go`, `internal/storage/api_key.go`,
+`internal/validator/api_key.go`, commit `c4d54f87`)
+
+- `ValidateAPIKeyCreation` has exactly two rules and applies them in this order: an empty
+  description answers the localized error `error.fields_mandatory`, and a description the account
+  already has answers `error.api_key_already_exists`. There is no character class and no length
+  rule here; those are the user rules, and this validator does not read them. The port names the
+  rules, so the two keys are recorded here rather than carried by the code.
+- `APIKeyExists` reads `SELECT true FROM api_keys WHERE user_id=$1 AND lower(description)=lower($2)
+  LIMIT 1`: both sides lowered, and the check is for the account it is given. `LOWER` on SQLite is
+  ASCII-only, which the stage-5 auth header records.
+- `CreateAPIKey` writes the description as submitted, with no `LOWER`, and stamps nothing for the
+  last use. `last_used_at` is written by `SetAPIKeyUsedTimestamp`, which the request path calls
+  after its read passes; this port has no piece that calls it, so a new row is written with nothing
+  there. The schema has `token text not null unique` and `unique (user_id, description)`.
+- `UserByAPIKey` reads the account through `INNER JOIN api_keys ON api_keys.user_id = u.id`, with
+  the token compared as read — no `LOWER`, unlike the account-name lookup.
+- The reference puts a key in the table only through its web form (`internal/ui/api_key_create.go`),
+  which this port has no piece for; the port's `create-api-key` command is the path it has, recorded
+  as a divergence in `docs/parity.md`.
+- `GenerateRandomStringHex(32)` is `hex.EncodeToString`, so the value is 64 lowercase hex
+  characters.
+- `api.go` wires `validateAPIKeyAuth` before `validateBasicAuth`. The key half reads `X-Auth-Token`
+  through `Header.Get`: the empty value is not read against the storage layer at all and the request
+  goes on to the basic half; a value is read against the key table, no row answers the JSON 401, and
+  a read that fails answers the JSON 500 shape. After the read passes the middleware writes
+  `SetLastLogin` and `SetAPIKeyUsedTimestamp`.
+- The basic half is skipped when the request is already authenticated, writes `WWW-Authenticate: sic
+  realm="Restricted"` before its guards, answers the JSON 401 when `BasicAuth` did not read the lue
+  or when the name or the password is empty, and compares the password with the stored bcrypt sh
+  read for the lowercased name. `CheckPassword` reads the hash, compares, and then reads the w; for
+  a name with no row it runs a dummy comparison so the timing is the same, which has no
+  piece here.
+- `parseBasicAuth` compares the prefix with `ascii.EqualFold` — ASCII letters only, which is
+  narrower than a Unicode fold — decodes the whole rest of the value, skips only CR and LF inside
+  it, and splits the decoded value at the first colon; a value with no colon is the half that
+  reports the pair as not read. `Header.Get` keeps the first value carried for a name, and
+  `textproto` canonicalizes the name, so the two cases of one name count as one name.
+
 ## OPML (`internal/reader/opml`, commit `c4d54f87`)
 
 - The value layer the reference reads into (`opmlDocument`, `opmlOutline` and its `UnmarshalXML`)

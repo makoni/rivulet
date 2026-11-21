@@ -5,6 +5,11 @@ consumer appears". The consumer appeared: Capy Reader's `minifluxclient`, read a
 records for that client, declares 24 endpoints, and the walk on the phone reached the first of them
 (`GET /v1/me`) and got the 404 this port answers for a path it registers no route for.
 
+**Status:** in progress. The first slice — the `api_keys` table, its two reads, the `create-api-key`
+command, and the two halves of the auth read — is merged as PR #86, pinned as 21 pins and 35 probes
+over six suites. The route half, the response shapes, the entry read, and the check half gaining the
+third path are the slices that follow.
+
 ## Scope
 
 The endpoints that client declares, and no others:
@@ -46,9 +51,13 @@ compared with the stored bcrypt hash, and the row is read after the compare, as 
 The constant-time form of the compare and the single-row limit of the read are named as unpinnable,
 as the stage-5 auth header names them.
 
-The response builder's names for this path, and the JSON error shape `{"error": {"message": ...}}`,
-are the shapes the walk saw on the 404, so the read is the same builder the Google Reader path pins,
-with the shape it writes for this path named as data.
+The error shape this path answers with is `{"error_message": ...}`, which is the reference's
+`generateJSONError` and the shape the Google Reader path already pins: `JSONUnauthorized` and
+`JSONNotFound` build it through the same builder, so this path reads that builder rather than a
+shape of its own. The body the Capy walk saw, `{"error": {"message": "resource not found"}}`, is
+Vapor's own shape for a path this port registers no route for, not the shape the reference answers
+for an error a handler names, so it belongs to the route-mismatch row of `docs/parity.md` and is not
+a shape this stage pins.
 
 ## Test plan
 
@@ -73,23 +82,38 @@ with the shape it writes for this path named as data.
 
 ## Slices
 
-1. The `api_keys` table, the read, the `create-api-key` command, and the two halves of the auth
-   read.
-2. The route registration and the response shapes for this path, with `GET /v1/me`.
-3. The entry read: the query builder with the params in scope, the pagination half, and the three
-   entry pages.
-4. The writes: `PUT /v1/entries` with the status and starred rules, and
-   `PUT /v1/entries/{id}/bookmark`.
-5. The feeds: the listing, the one-row read, the create with the fetch, the update, the delete, the
-   refresh call, and mark-all-as-read.
-6. The categories: the listing with the counts half, the one-row read, the create, the update, the
-   delete, and the category feeds.
-7. `GET /v1/integrations/status`, read as the answer for a port with no integration configured.
-8. The check half gaining the third path: `Tools/clients/parsers.py` reads the v1 route file for the
-   route rule, `Tools/clients/run_record.py` names the answer for a call the reference records no
-   case for on this path, the two crafts of the rule that reads the halves move to an input the
-   craft creates rather than to the committed set, and the report item that says no rule reads calls
-   on a path this port registers no route for changes with it. Its own PR, with its own three runs.
+1. [x] The `api_keys` table, the read, the `create-api-key` command, and the two halves of the auth
+read, merged as PR #86: 21 pins and 35 probes across six suites — 2 and 3 for the description rules
+as pure logic, 2 and 3 for the token generator, 5 and 11 for the two storage reads and the write, 2
+and 7 for the header block, 7 and 7 for the two halves of the auth read, and 5 and 4 for the command
+run. Twelve probes reach more than one pin, which the headers name: the guard for an empty token
+value and the character-class patch reach five each, the column patch for the key read and the patch
+that wrote before the rules reach four each, and eight reach the pin they name plus one other. One
+probe is recorded as not biting: the patch that reads the join as the key row's own account answers
+the same thing on this schema, so the pin reads which account the read answers, and the join as a
+join is named in the header as not falsifiable. What the headers name as unpinnable is the
+reference's answer for the base64 quantum rule, which this port has as its own and which
+`docs/parity.md` records as a divergence; the single-row limit of either read; the row two keys of
+one account answer, which SQL does not order; the clock fields, read as the shape they hold; the
+`timestamp with time zone` type, which this port writes as Unix seconds; the constant-time form of
+the compare and the dummy compare upstream runs for a name with no row; the order between the
+compare and the row read, which one read serves here; the `SetLastLogin` and
+`SetAPIKeyUsedTimestamp` writes, which have no column here; the locale wording of the two rules; the
+command's shape and wording, which are the port's own path; and the wordings of the storage failures
+these suites cannot trigger. The status and the `WWW-Authenticate` value the transport writes for
+these answers stay with the route half, which is slice 2. 2. The route registration and the response
+shapes for this path, with `GET /v1/me`. 3. The entry read: the query builder with the params in
+scope, the pagination half, and the three entry pages. 4. The writes: `PUT /v1/entries` with the
+status and starred rules, and `PUT /v1/entries/{id}/bookmark`. 5. The feeds: the listing, the
+one-row read, the create with the fetch, the update, the delete, the refresh call, and
+mark-all-as-read. 6. The categories: the listing with the counts half, the one-row read, the create,
+the update, the delete, and the category feeds. 7. `GET /v1/integrations/status`, read as the answer
+for a port with no integration configured. 8. The check half gaining the third path:
+`Tools/clients/parsers.py` reads the v1 route file for the route rule, `Tools/clients/run_record.py`
+names the answer for a call the reference records no case for on this path, the two crafts of the
+rule that reads the halves move to an input the craft creates rather than to the committed set, and
+the report item that says no rule reads calls on a path this port registers no route for changes
+with it. Its own PR, with its own three runs.
 
 ## Exit criteria
 

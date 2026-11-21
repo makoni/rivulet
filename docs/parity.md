@@ -1580,3 +1580,38 @@ port has one value — the committed constant — so the pin reads it as data.
 | The value a build stamps | `LD_FLAGS` sets `Version`, and the package falls back to `2.3.x-dev` when nothing was stamped | the committed constant is the value, so the build cannot change it and there is no unstamped build to compare | No pin can read a value the build cannot carry; the pin reads the committed constant as data |
 | Commit and build date | `vcs.revision` — the first 8 characters when the value is at least 8, otherwise the whole value — and `vcs.time`, each with the fallback wording `Unknown (built outside VCS)` | none: SwiftPM carries no VCS build info, and Swift's compiler flag carries a name rather than a value, while the reference's value comes from a linker flag, so the build has nothing to stamp and no rule to read | Unported, so nothing to pin; the port's command has no commit or date half |
 | The version command | `-version` prints the version alone, and `-info` prints version, commit, build date, Go version, compiler, arch and OS | `rivulet version` prints `rivulet <version>` as one line, and there is no info command | The port's own wording, pinned by `CommandLineTests`; the reference's info command is not ported |
+
+## REST v1 api keys (stage 10)
+
+**Known differences.** The reference's behavior on this path is recorded in
+`docs/reference-notes.md`; what follows is where the port reads it differently, and each line is
+what a run showed.
+
+- The token generator: the reference reads its bytes through `crypto/rand`, this port through the
+standard library's system generator, which is the cryptographically secure one on this platform. The
+pins read the shape the generator writes — 32 bytes as 64 lowercase hex characters — and that two
+calls answer different values, which is the weakest form of a rule a test can state about
+randomness.
+
+- `create-api-key` is the port's own path: the reference puts a key in the table only through its
+web form, which this port has no piece for. The shape of the command line, the wording of what the
+run prints, and the run printing the value it stored are the port's own; what is traced to the
+reference is the rule order, the write, and the account the request carries — for a command line
+that is the account the command resolves, because there is no session to read one from.
+
+- The base64 quantum rule: Go reports a value whose last quantum is shorter than four characters as
+an error even when the padding is at the end, where this read decodes it, so `Basic YWxpY2U6cGFz==`
+answers the pair `alice` and `pas` here and is not read at all there. For a value whose padding is
+not at the end both sides answer nothing, so no input tells the two readings apart; the pin reads
+what this read answers, which is the port's rule.
+
+- The order between the compare and the account read: upstream reads the stored hash, compares, and
+then reads the row, and this port answers both from one read, so no input can tell the two orders
+apart, and the dummy comparison upstream runs for a name with no row has no piece here.
+
+- The names the auth read reports are the port's own, because upstream answers one status for
+several of them, so the pins read which branch fired rather than an answer a client could tell
+apart.
+
+- `last_used_at` is a schema column with no write in this slice: the reference stamps it on its
+request path, which this port has no piece for, so a new row is written with nothing there.
