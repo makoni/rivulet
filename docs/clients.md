@@ -493,13 +493,16 @@ set names the order as the order its own call graph reaches them in rather than 
 the login is first, and the token call comes after the reads that use the login's answer, so it is
 not first. The app writes the header on every request through its own interceptor and the `T` pair
 on the writes, so the set names the header half for the reads and the form half for the writes,
-which is the half the read takes per method. The login reads the plain-text shape, because the
-source declares no `output` pair for it. `n` is `10_000`, above the clamp. The item ids are the
-padded form on both calls that carry them, because the app writes an id with `%016x`, so this client
-has no unpadded form to report. On the three POST calls that declare `output` at all — the
-item-content read, the state write and the add — the pair reaches the read through the URL query,
-because the source writes the other names as body fields and `output` as a query pair; the four POST
-calls that declare no `output` reach the read's default shape.
+which is the half the read takes per method; the login carries no `T` pair, so its auth half is
+none, although the header goes on that request too. `n` is `10_000`, above the clamp. The item ids
+are the padded form on both calls that carry them, because the app writes an id with `%016x`, so
+this client has no unpadded form to report. Three of the seven POST declarations carry `output` as a
+URL query pair — the item-content read, the state write and the add — which is the side the merged
+read takes it from, the other names being body fields. The login reads `output` through its own read
+and answers the text shape for a value that is not `json`, which is what this client sends: nothing.
+The reference applies the output check on four endpoints, one of them a POST, so the three POST
+write paths that carry no `output` reach no output read at all and write the text shape whatever is
+sent.
 
 The run half completes for this client: the column its pair guard reads has a case for this path,
 and the base it builds carries only host and port, which is the form the set names. The version the
