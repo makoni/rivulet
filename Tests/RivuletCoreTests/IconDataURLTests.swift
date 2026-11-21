@@ -18,10 +18,12 @@ import Testing
 ///
 /// What they cannot fail on: the checksum function itself, which is the port's SHA-256 and not the
 /// reference's `HashFromBytes` (FNV-128a), recorded in `docs/parity.md` and pinned as a value by
-/// `HashTests` for the entry path; the reference's error wording, which this port keeps as
-/// typed cases; the `data:` prefix as a rule of its own, because a value that does not start
-/// with it fails on the same shape check as a mediatype that is not an image; and Go's base64
-/// decoder accepting a value whose last quantum is not padded, which this port refuses.
+/// `HashTests` for the entry path; the reference's error wording, which this port keeps as typed
+/// cases; the `data:` prefix as a rule of its own, because a value that does not start with it
+/// fails on the same shape check as a mediatype that is not an image; and the group rule of Go's
+/// decoder, which this port answers the same way for every form the pins read — a final group
+/// shorter than four is an error on both sides — so the one differing form, padding that comes
+/// after complete groups, cannot be shown here and is recorded in `docs/parity.md`.
 @Suite struct IconDataURLTests {
     @Test func base64EncodingIsDecoded() throws {
         // Ported from `TestParseImageDataURL`. The content is the decoded bytes, and the

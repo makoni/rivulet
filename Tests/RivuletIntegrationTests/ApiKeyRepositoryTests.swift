@@ -29,7 +29,9 @@ import Testing
 /// last use fire `CreateApiKeyTests`' row pin too, because the command writes through the same
 /// rule; and the fixed-token patch fires this suite's pin for no key row as well, because that
 /// pin's control row is written through the create, while it cannot fire the command's row pin,
-/// which reads the value the run printed against the row the run wrote.
+/// which reads the token as the shape the generator writes and a fixed value of that shape still
+/// answers.
+///
 /// What they cannot fail on: the join as a join, which this schema makes the same answer — `ON
 /// DELETE CASCADE` with foreign keys enforced, so the patch that read `api_keys.user_id` instead
 /// answers the same account, and the pin is falsifiable only on which account the read answers; the

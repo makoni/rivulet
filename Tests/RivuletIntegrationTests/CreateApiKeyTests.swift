@@ -13,7 +13,9 @@ import RivuletApp
 /// this suite reads is what the run does with those answers.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting: the row as the run
-/// derived it, which the three write patches reach through the repository pin as well; the line
+/// derived it, which the two write patches named in `ApiKeyRepositoryTests` — the description and
+/// the last use — reach here as well, while the fixed-token patch cannot, because this pin reads
+/// the token as the shape the generator writes and a fixed value of that shape answers it; the line
 /// printing the value it stored rather than the description; that a description failing a rule ends
 /// the run writing nothing, which a patch that wrote before the rules fails on — that patch fires
 /// the row, the printed value and the account pins too, because the runs those pins make write a
