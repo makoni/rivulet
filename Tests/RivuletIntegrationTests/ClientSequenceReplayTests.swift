@@ -85,9 +85,8 @@ import Vapor
             try await requests.seed(storage, name: name, storedHash: storedHash)
 
             let login = try CallingSets.set("NetNewsWire").call("accounts/ClientLogin")
-            # expect(login?.names == ["Email", "Passwd"], "the record names the fields the login
-            # reads") expect(login?.auth == "none", "the record names the login half as carrying no
-            # token")
+            #expect(login?.names == ["Email", "Passwd"], "the record names the fields the login reads")
+            #expect(login?.auth == "none", "the record names the login half as carrying no token")
 
             // A pair with no `=` is a name with an empty value, which the guard answers before
             // any value is read: the shape is the guard's own, which is what this route gives
@@ -130,8 +129,7 @@ import Vapor
             // nothing.
             let postReadByHeader = try await requests.post("/reader/api/0/edit-tag", raw: "",
                 header: "GoogleLogin auth=\(token)")
-            # expect(postReadByHeader.status == .unauthorized, "a POST reads the form half, not the
-            # header half")
+            #expect(postReadByHeader.status == .unauthorized, "a POST reads the form half, not the header half")
 
             let postReadByForm = try await requests.post("/reader/api/0/edit-tag",
                 form: ["T": token, "i": "1", "a": "user/-/state/com.google/starred"])
@@ -148,13 +146,11 @@ import Vapor
             let token = GoogleReaderToken.derive(username: name, storedHash: storedHash)
 
             let call = try CallingSets.set("FeedFlow").call("reader/api/0/edit-tag#disable-tag")
-            # expect(call?.names == ["s", "T"], "the record names the pair the client sends, with no
-            # add or remove")
+            #expect(call?.names == ["s", "T"], "the record names the pair the client sends, with no add or remove")
 
             let response = try await requests.post("/reader/api/0/edit-tag",
                 form: ["T": token, "s": "user/-/label/notes"])
-            # expect(response.status == .internalServerError, "the guard is what answers for this
-            # call")
+            #expect(response.status == .internalServerError, "the guard is what answers for this call")
 
             // The wording is the guard's own, and it is the answer the handler builds for it: the
             // read that reports a form it cannot parse answers 401 before the guard, so this is the
@@ -183,14 +179,12 @@ import Vapor
 
             let padded = try await requests.post("/reader/api/0/edit-tag",
                 form: ["T": token, "i": "00000000000004d2", "a": "user/-/state/com.google/starred"])
-            # expect(padded.status == .ok, "the padded value reaches the write as the field-width
-            # rule reads it")
+            #expect(padded.status == .ok, "the padded value reaches the write as the field-width rule reads it")
 
             let unpadded = try await requests.post("/reader/api/0/stream/items/contents",
                 form: ["T": token, "i": "4d2", "output": "json"])
-            # expect(unpadded.status == .badRequest, "the unpadded value is not the value the read
-            # can answer") expect(try requests.body(of: unpadded) ==
-            # GoogleReaderResponse.errorDocument(
+            #expect(unpadded.status == .badRequest, "the unpadded value is not the value the read can answer")
+            #expect(try requests.body(of: unpadded) == GoogleReaderResponse.errorDocument(
                 "googlereader: failed to parse item ID 4d2: failed to parse decimal item ID 4d2: "
                     + "strconv.ParseInt: parsing \"4d2\": invalid syntax").written(),
                 "the read reports the value it was given as the decimal read, not as the hex scan")
@@ -204,11 +198,9 @@ import Vapor
     @Test func thePageSizeAboveTheClampAgainstTheValueAtTheClamp() throws {
         let above = try CallingSets.set("FeedFlow").call("reader/api/0/stream/items/ids")?.pageSize
         let at = try CallingSets.set("NetNewsWire").call("reader/api/0/stream/items/ids")?.pageSize
-        # expect(above == "15000" && at == "1000", "the records name the two page sizes the pins
-        # read")
+        #expect(above == "15000" && at == "1000", "the records name the two page sizes the pins read")
 
-        # expect(EntryQuery(userID: 1, limit: Int(above ?? "0")).effectiveLimit ==
-        # EntryQuery.maximumLimit,
+        #expect(EntryQuery(userID: 1, limit: Int(above ?? "0")).effectiveLimit == EntryQuery.maximumLimit,
             "the value above the clamp reaches the storage layer as the clamp")
         #expect(EntryQuery(userID: 1, limit: Int(at ?? "0")).effectiveLimit == 1000,
             "the value at the clamp is the value the read answered, not the clamp reading it as above itself")
@@ -227,9 +219,8 @@ import Vapor
 
             let answer = try await requests.get("/reader/api/0/stream/contents?output=json",
                 header: "GoogleLogin auth=\(token)")
-            # expect(try requests.body(of: answer) == "[]", "the catch-all answer is what this path
-            # gives") expect(try requests.body(of: try await
-            # requests.get("/reader/api/0/tag/list?output=json",
+            #expect(try requests.body(of: answer) == "[]", "the catch-all answer is what this path gives")
+            #expect(try requests.body(of: try await requests.get("/reader/api/0/tag/list?output=json",
                 header: "GoogleLogin auth=\(token)")) != "[]",
                 "a path the port registers answers its own handler, not the catch-all")
         }
@@ -260,12 +251,12 @@ import Vapor
     }
 
     ///The prefix this port registers no route for is the half the record names as answering nothing
-    ///here: Capy Reader names two halves now, and the one that reaches no route here is the
-    ///Miniflux half, while the other half is the one its calls are read on. The read on a path of
-    ///that other half is the control that shows the 404 belongs to the prefix rather than to the
-    ///port answering nothing anywhere, which is the half of this pin that can fail on a patch; the
-    ///note the rule reads is crafted by a probe, because a pin reads the set as data and cannot
-    ///read a note as an expectation.
+    ///here: Capy Reader names two halves now, the Miniflux half being the one that reaches no
+    ///route, while the other half is the one its calls are read on. The read on a path of that
+    ///other half is the control that shows the 404 belongs to the prefix rather than to the port
+    ///answering nothing anywhere, which is the half of this pin that can fail on a patch; the note
+    ///the rule reads is crafted by a probe, because a pin reads the set as data and cannot read a
+    ///note as an expectation.
     @Test func thePrefixThisPortRegistersNoRouteFor() async throws {
         try await withServedApp { _, app, base in
             let set = try CallingSets.set("Capy Reader")

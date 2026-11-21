@@ -20,9 +20,9 @@ run, Reeder Classic on the phone, walked the Fever half here, and its record is 
 outside the repository rather than read here, because the set for that client records no calls, so
 the rule reads a record file for it as a finding. The manual matrix exit criterion of
 `docs/plan/stage-7-acceptance.md` is closed for the four whose records are read as data, for the
-halves the walk on Reeder Classic showed, and for the Capy Reader item this run did not reach, which
-is renaming a subscription, the call the record carries no line for; it stays open for the Capy
-Reader half this port registers no route for, which no rule here reads calls against. The
+halves the walk on Reeder Classic showed, and for every Capy Reader item this run reached; it stays
+open for the Capy Reader item the record carries no line for, renaming a subscription, and for the
+Capy Reader half this port registers no route for, which no rule here reads calls against. The
 single-client criterion of `docs/plan/stage-5-apis.md`, which names one real client rather than a
 client by name, is closed: the Fever run shows the halves its set has, that a client connects and
 syncs, and the Google Reader run shows the half that set has no call for, the call that adds a feed.
@@ -491,21 +491,24 @@ carries only host and port. And the token is fetched by the wrapper on the first
 it and kept afterwards, and refetched when the answer carries the bad-token name, which is why the
 set names the order as the order its own call graph reaches them in rather than as the file order:
 the login is first, and the token call comes after the reads that use the login's answer, so it is
-not first. The app sends the token in the header for the reads and as the `T` pair for the writes,
+not first. The app writes the header on every request through its own interceptor and the `T` pair
+on the writes, so the set names the header half for the reads and the form half for the writes,
 which is the half the read takes per method. The login reads the plain-text shape, because the
 source declares no `output` pair for it. `n` is `10_000`, above the clamp. The item ids are the
 padded form on both calls that carry them, because the app writes an id with `%016x`, so this client
-has no unpadded form to report. On the four POST calls `output` reaches the read through the URL
-query, because the source writes the pair as body fields and `output` as a query pair.
+has no unpadded form to report. On the three POST calls that declare `output` at all — the
+item-content read, the state write and the add — the pair reaches the read through the URL query,
+because the source writes the other names as body fields and `output` as a query pair; the four POST
+calls that declare no `output` reach the read's default shape.
 
 The run half completes for this client: the column its pair guard reads has a case for this path,
 and the base it builds carries only host and port, which is the form the set names. The version the
 run declares is a value this machine has no app metadata to read against, which is the report item.
 The earlier walk by hand could not pass that guard, because the set named the third path, for which
 the guard has no case; the record that walk left is evidence outside the repository, as Reeder
-Classic's is. What it showed was the app's first call, `GET /v1/me`, answering the 404 the prefix
-pin asserts for that prefix, which the app read as the credential check failing, so no call of the
-checklist was reached on that path.
+Classic's is. What it showed was the first call that walk made, `GET /v1/me`, on the half this port
+registers no route for, answering the 404 the prefix pin asserts for that prefix, which the app read
+as the credential check failing, so no call of the checklist was reached on that path.
 
 Manual checklist, walked here by the run on the phone: log in; list the subscriptions; list the
 tags; read a page of item ids and their contents; add a feed from the client; mark one item read;
@@ -523,18 +526,21 @@ The record carries 25 lines for this run: the login, four subscription lists, th
 stream pages, the token, one add, one item-content read, three state writes, one folder rename and
 one folder delete. The three state writes read as the two branches of the same read: two carried the
 add name and one the remove name, and the record carries names rather than values, so which state
-item each carried is the half no line can show. The folder rename carried the label form as the
-source value and a title as the destination, which is the part the read takes as a category name.
-The folder delete answered the status the handler gives for the rule that keeps at least one
-category, which is the answer the reference gives for that rule as well, so this line is not a
-divergence: the write-handler pin asserts the storage rule and its wording over a socket, and the
-record carries the status as the handler answers it.
+item each carried is the half no line can show. The rename line names `s` and `dest`; the source
+declares both as the label form, so both reach the read's stream branch, and the write takes `dest`
+as the name that branch gives after the prefix is trimmed. No line can show what either value was,
+the record carrying names. The folder delete answered the status the handler gives for the rule that
+keeps at least one category, which is the answer the reference gives for that rule as well, so this
+line is not a divergence: the write-handler pin asserts the storage rule and its wording over a
+socket, and the record carries the status as the handler answers it.
 
 For this client the pins read the set as data and send no request as the client does: the order pin
 reads the order its own call graph names, the token pin reads the auth half for every call every set
 records, and the prefix pin reads the two halves, the control read on a path of the half this port
 serves being what shows the 404 belongs to the prefix. So the classes on this client's rows are read
-by the comparator as names against the manifest, which is what the report items name.
+by the comparator as names against the manifest, which is what the report items name, and the
+`Replayed here: yes` on the row for `subscription/edit` is that pin reading the set, not a line the
+run wrote: the record carries no line for that call.
 
 ### Reeder Classic — Fever API
 
@@ -579,7 +585,7 @@ requests have no line, which the two files cannot explain: the rule that would s
 observer's own, one line per request it forwards.
 
 The order named in this section is the order the record carries, and the order half reads records
-for the three clients whose records it reads as data, so the order here is what the walk left
+for the four clients whose records it reads as data, so the order here is what the walk left
 rather than what the rule can read for this client.
 
 The feed the run wrote carries an empty title, which is what the person walking saw as an empty

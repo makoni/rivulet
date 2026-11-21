@@ -122,8 +122,8 @@
       "method": "POST",
       "auth": "form",
       "names": ["s", "dest", "T"],
-      "streams": ["user/-/label/<name>"],
-      "note": "the destination is the title the read takes as a category name, not a stream form, so this call records one stream value",
+      "streams": ["user/-/label/<folder title>", "user/-/label/<new title>"],
+      "note": "both fields are the label form the app builds, so this call records two stream values, and `dest` reaches the read through the same branch as `s`",
       "id_form": "none"
     },
     {
@@ -139,7 +139,7 @@
       "method": "POST",
       "auth": "form",
       "names": ["quickadd", "T", "output"],
-      "note": "the whole pair is the body, so quickadd reaches the merged form through the body rather than the query",
+      "note": "`quickadd` is the body field the merged read takes, while `output` is declared as a URL query pair, so the two names reach the read through different halves",
       "id_form": "none"
     },
     {
@@ -147,8 +147,8 @@
       "method": "POST",
       "auth": "form",
       "names": ["s", "ac", "a", "t", "T"],
-      "streams": ["feed/<feed id>"],
-      "note": "the source declares no remove value for this call, and `a` is the category row the read takes as an id rather than a stream value, so this call records one stream form",
+      "streams": ["feed/<feed id>", "user/-/label/<folder title>"],
+      "note": "the source declares no remove value for this call, and `a` is the label form the app builds for the folder title, so this call records two stream values",
       "id_form": "none"
     },
     {

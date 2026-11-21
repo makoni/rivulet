@@ -145,8 +145,8 @@ source is open, because no rule here reads calls on the path that client uses. P
 reads the matrix with five sets again: three read from their own source at a named commit, and the
 two read from documentation are Reeder Classic, whose source cannot be read here, and Capy Reader.
 This slice reads Capy Reader's set from the app's own source at the commit its tag names, which
-takes the matrix to five sets read from a source, Reeder Classic being the only one read from
-documentation, and the counts to 47 calls over five clients. The check half reads those sets, the
+takes the matrix to four sets read from a source and one from documentation, Reeder Classic being
+that one, and the counts to 47 calls over five clients. The check half reads those sets, the
 record files, the document and the port's own route, dispatch and auth sources as data over 19
 rules. No set is a capture, and four clients have been run against this port here and left a record
 this half reads as data, all through the run half `Scripts/client-run.sh`: NewsFlash, the Fever
@@ -186,7 +186,7 @@ finding, so that walk is evidence outside the repository rather than data it rea
 of a client, whose source cannot be read, the calls of a client on the path this port registers no
 route for, which this half records no calls for, because the rules that read calls read the two
 paths that are registered here, the order a client reaches its calls at, which the run record
-carries for the three clients whose records the check half reads as data and the source declares for
+carries for the four clients whose records the check half reads as data and the source declares for
 the others, the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
 list size, which no record line can show firing, the side of the bound the guard applies, which the

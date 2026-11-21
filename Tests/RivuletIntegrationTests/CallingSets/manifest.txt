@@ -53,7 +53,7 @@ capy-reader/reader/api/0/stream/items/ids | page_size | the clamp, which a value
 capy-reader/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
 capy-reader/reader/api/0/stream/items/contents | item_id_forms | the padding, which the read keeps as it read it
 capy-reader/reader/api/0/edit-tag | merged_form_read | the order the two reads answer in
-capy-reader/reader/api/0/rename-tag | stream_forms | the guard that an empty destination answers, which this run's rename carried a destination for
+capy-reader/reader/api/0/rename-tag | stream_forms | the guard that an empty destination answers, which no record line can show firing
 capy-reader/reader/api/0/disable-tag | stream_forms | the localized strings the reference writes
 capy-reader/reader/api/0/subscription/quickadd | minimal_scan | the discovery half this port does not have
 capy-reader/reader/api/0/subscription/edit | none | the call this run did not reach, so the record carries no line for it
