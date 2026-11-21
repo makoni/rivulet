@@ -261,6 +261,10 @@ walk on the same device, which PR #79 commits as the record, is what the check h
 the walk having reached the item-content read, the two shape answers `edit-tag` writes and the
 rename through the drawer, which are halves the first walk did not show.
 
+**Stage 10 — Miniflux REST v1 subset** is the stage-9 item scheduled on the calls Capy Reader's
+`minifluxclient` declares, and is worked here while the stage 7 file keeps its `/v1` half open; the
+plan's working agreement allows the redirect.
+
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
 the stage's distro-linked fallback is not taken; the version value as a client reads it (PR #68);

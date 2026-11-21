@@ -10,7 +10,8 @@ When an item is scheduled, split it into a proper stage plan with scope, tests a
 - **Advanced feed discovery**: beyond the minimal `<link rel="alternate">` scan used by
   `quickadd` (e.g., common feed paths).
 - **OPML import from URL**; scheduled OPML sync.
-- **REST v1 subset** and API keys (`X-Auth-Token`) — only if a real consumer appears.
+- **REST v1 subset** and API keys (`X-Auth-Token`) — scheduled as stage 10, on the calls the real
+  consumer that appeared declares: [stage 10](stage-10-rest-v1.md).
 - **OIDC auth**; **multi-user** (per-user data isolation is already designed into the schema).
 - **Search improvements**: query operators, saved searches.
 - **Adaptive scheduling**: tune intervals from observed feed update frequency (an explicit
