@@ -2,8 +2,22 @@
 # reason it cannot be replayed here. A record line is exempt from the width rule because it is one
 # record. The pins read the calling sets as data, so a pin reads the recorded order and the route
 # the matrix names for each call rather than restating either; the matrix's own column has to agree
-# with this file, which is what the rule that reads both checks. Two clients record no call, so they
-# have no line here: the rule reads them through the matrix instead.
+# with this file, which is what the rule that reads both checks. One client records no call, so it has
+# no line here: the rule reads it through the matrix instead. For Capy Reader the lines name the pin
+# that reads this set as data, because no pin sends a request as this client does: the order pin reads
+# the order its own call graph names, the token pin reads the auth half for every call every set
+# records, and the pins that replay a call over a socket name the client whose record they read.
+capy-reader/accounts/ClientLogin | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/subscription/list | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/tag/list | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/stream/items/ids | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/token | the order pin, and the auth half the token pin reads for every call every set records
+capy-reader/reader/api/0/stream/items/contents | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/edit-tag | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/rename-tag | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/disable-tag | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/subscription/quickadd | the order pin, on the order its own call graph reaches them in
+capy-reader/reader/api/0/subscription/edit | the order pin, on the order its own call graph reaches them in
 netnewswire/accounts/ClientLogin | the login half is the one route that carries no auth wrapper
 netnewswire/reader/api/0/token | the header half, on the call that names no body pair
 netnewswire/reader/api/0/tag/list | the order the set records, and the output check on the read half

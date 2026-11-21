@@ -36,19 +36,19 @@ import run_record as observed_rule
 
 NOT_SHOWN = [
     "the manual checklist as a document, which no rule reads as data: the check half reads "
-    "the record lines for the three clients whose records it reads as data and the calling sets "
-    "for the two read from documentation, and it reads none of the steps a checklist names",
+    "the record lines for the four clients whose records it reads as data and the calling set "
+    "for the one read from documentation, and it reads none of the steps a checklist names",
     "the record a walk for a client whose set records no calls leaves, which the check half reads "
     "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
     "the calls of a client on the path this port registers no route for, which this half records "
     "no calls for, because the rules that read calls read the two paths that are registered here",
-    "the order a client reaches its calls at, which the run record carries for the three clients "
+    "the order a client reaches its calls at, which the run record carries for the four clients "
     "whose records the check half reads as data and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
     "the app-level choice of which calls a library-based client makes, which is read at the "
-    "library boundary for the clients that have not been run here",
+    "library boundary for the client whose set is read from documentation",
     "the guard a client applies before it sends, read as the bound on the list size, which no "
     "record line can show firing",
     "the side of the bound the guard applies, which the record carries as names and not as values",
@@ -60,6 +60,10 @@ NOT_SHOWN = [
     "vocabulary",
     "the part of a calling set a run did not reach, which the record carries no line for and the "
     "paragraph for that client names as the halves this run did not walk",
+    "the pin that reads a class reads the value on the set its own code names, so for the client "
+    "whose calls no pin sends, the classes on its rows are read by the comparator as names against "
+    "the manifest, and the pins read that set as the order its call graph names, the auth half and "
+    "the halves",
     "the token half of a client that sends the stored value as the token, which the read compares "
     "as a token",
     "the numbers of another machine, which the performance half records as measurements taken here "
@@ -157,12 +161,13 @@ def rule_gr_reaches_a_route(data):
     """The answer each row names has to be a route the file registers, or the catch-all the same
     file registers as `on(.GET, "**")`. Both halves are read as data, so a patch that removes
     either can be reported: one craft names a route the file does not register, the other removes
-    the registration line for the catch-all the row answers on."""
+    the registration line for the catch-all the row answers on. A row whose class names the set as
+    one this half cannot read names no route, so the class is what skips it."""
     found = []
     registered = read.port_routes(data["port_routes"])
     for row in data["matrix"]:
         answer = row["This port answers"]
-        if row["Class"] in {"no_route_here", "closed_source"} or answer.startswith("dispatch:"):
+        if row["Class"] == "closed_source" or answer.startswith("dispatch:"):
             continue
         if answer == "catch-all":
             if f"catch-all {row['Method']}" not in registered:

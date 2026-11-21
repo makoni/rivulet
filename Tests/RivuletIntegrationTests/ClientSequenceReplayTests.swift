@@ -251,21 +251,26 @@ import Vapor
     }
 
     ///The prefix this port registers no route for is the half the record names as answering nothing
-    ///here: Capy Reader names one half, and that half is the one that reaches no route here. The
-    ///read on a path this port registers a route for is the control that shows the 404 belongs to
-    ///the prefix rather than to the port answering nothing anywhere.
+    ///here: Capy Reader names two halves now, the Miniflux half being the one that reaches no
+    ///route, while the other half is the one its calls are read on. The read on a path of that
+    ///other half is the control that shows the 404 belongs to the prefix rather than to the port
+    ///answering nothing anywhere, which is the half of this pin that can fail on a patch; the note
+    ///the rule reads is crafted by a probe, because a pin reads the set as data and cannot read a
+    ///note as an expectation.
     @Test func thePrefixThisPortRegistersNoRouteFor() async throws {
         try await withServedApp { _, app, base in
             let set = try CallingSets.set("Capy Reader")
             let half = try #require(set.halves.first { $0.answeredHere == "no route here" },
                 "the set names a half as answering nothing here, so there is a half to read")
+            let readHalf = try #require(set.halves.first { $0.answeredHere == "served here" },
+                "the set names the other half as read here, so the control has a path to read")
 
-            #expect(set.halves.count == 1 && half.prefix == "/v1",
-                "the set names one half, and its prefix is /v1, the one no route registers")
+            #expect(set.halves.count == 2 && half.prefix == "/v1",
+                "the set names two halves, and the one that reaches no route here is /v1")
 
-            let registered = try await app.client.get(URI(string: base + "/fever?api_key=x"))
-            #expect(registered.status != .notFound,
-                "a path the port registers a route for answers the read")
+            let readHere = try await app.client.get(URI(string: base + readHalf.prefix + "/tag/list"))
+            #expect(readHere.status != .notFound,
+                "a path of the half the record names as read here answers the read")
 
             let partialHalf = try await app.client.get(URI(string: base + half.prefix + "/me"))
             #expect(partialHalf.status == .notFound,
