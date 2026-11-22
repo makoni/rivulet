@@ -9,8 +9,9 @@ import RivuletCore
 /// The two halves run in the reference's order, which `RestV1AuthTests` pins: the key half first,
 /// and the basic half only when the key half read nothing. Upstream's `IsAuthenticated` guard is
 /// the answer the first half already gives, so it is not repeated here. The `WWW-Authenticate`
-/// value the basic half writes before its guards, and the status each answer gets, belong to the
-/// transport half, which pins them over a socket.
+/// name the reference's basic half writes before its guards is written here by the response half,
+/// and both that name's rule and the status each answer gets are pinned as pure logic by
+/// `RestV1ResponseTests`.
 struct RestV1Auth: Sendable {
     private let storage: SQLiteStorage
     private let hasher: BcryptHasher

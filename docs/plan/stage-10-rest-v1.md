@@ -7,8 +7,19 @@ records for that client, declares 24 endpoints, and the walk on the phone reache
 
 **Status:** in progress. The first slice — the `api_keys` table, its two reads, the `create-api-key`
 command, and the two halves of the auth read — is merged as PR #86, pinned as 23 pins and 42 probes
-over six suites. The route half, the response shapes, the entry read, and the check half gaining the
-third path are the slices that follow.
+over six suites. The second slice is worked as its own pull request and is the answer the read
+gives, pinned as pure logic, together with the document shape: the status each rule answers with,
+the document the shared builder writes with the reference's wording for a guard and the rule name
+for a failure the port names, the `WWW-Authenticate` name written for every request that reaches the
+reference's basic half and not for one the key half answered, the three CORS names written before
+the read runs, the three names the builder writes with its content type, and the three-field account
+document — 6 pins and 19 probes over two suites: 5 pins and 15 probes pin the answer as pure logic
+and 1 pin and 4 probes pin the document shape. Eighteen probes fire on the rule they name and one is
+recorded as not biting, the patch that changed the `WWW-Authenticate` realm, which no pin here reads
+as a value. Seventeen probes reach the pin they name alone and one reaches two pins. The route
+registration and the pins that read an answer over a socket are the slice that also gives the client
+check half the third path, so the stage-7 pin that reads this prefix as answering nothing here stays
+as it is.
 
 ## Scope
 
@@ -54,10 +65,11 @@ as the stage-5 auth header names them.
 The error shape this path answers with is `{"error_message": ...}`, which is the reference's
 `generateJSONError` and the shape the Google Reader path already pins: `JSONUnauthorized` and
 `JSONNotFound` build it through the same builder, so this path reads that builder rather than a
-shape of its own. The body the Capy walk saw, `{"error": {"message": "resource not found"}}`, is
-Vapor's own shape for a path this port registers no route for, not the shape the reference answers
-for an error a handler names, so it belongs to the route-mismatch row of `docs/parity.md` and is not
-a shape this stage pins.
+shape of its own. What a run here showed for a path this port registers no route for is Vapor's own
+shape, read over the socket as `{"error":true,"reason":"Not Found"}` with `application/json;
+charset=utf-8`, the router's answer rather than the reference's error document; the body the walk on
+the phone recorded, `{"error": {"message": "resource not found"}}`, is read by no rule here as data,
+so the stage names the shape the run showed, and `docs/parity.md` records the two sides.
 
 ## Test plan
 
@@ -67,27 +79,40 @@ a shape this stage pins.
   the params Capy names (`status`, `offset`, `limit`, `order`, `direction`, `before`, `after`,
   `before_entry_id`, `after_entry_id`, `starred`, `search`, `category_id`, `changed_after`), and the
   document shapes with the key sets the models write.
-- Integration, over a real socket: the two halves of the auth read, the route registration with the
+- Integration, over a real socket, the two halves of the auth read, the route registration with the
   most specific pattern winning, the status each answer writes for the guards, and each endpoint's
-  answer read against the row the storage layer answered.
-- The parity harness gains the v1 requests for the calls in scope, and the tolerance table gains a
-  row for every document field the port's schema has no column for — the user fields upstream
-  carries (theme, language, timezone, entry_direction, entries_per_page, keyboard_shortcuts,
-  show_reading_time, last_login_at), the api-key fields, and the entry fields built from the clock.
-  Each is a row before it is a finding, so the comparator reports nothing for it.
-- The client matrix gains the calls the set records on the third path: Capy Reader's set keeps the
-  Google Reader half as the half its calls are read on, and the Miniflux half gains the calls a run
-  on the phone writes with the account configured as a Miniflux source, which is a run half on the
-  machine, not a rule.
+  answer read against the row the storage layer answered. The socket half is not pinned by this
+  slice: no route on this path is registered, so a request reaches the router's answer before any
+  read runs, and the stage-7 pin that reads this prefix as answering nothing here is green on this
+  head, which the run that showed these pins also showed.
 
 ## Slices
 
-Sixteen probes reach more than one pin, which the headers name: the patch that answers something for
-a name the request does not carry reaches six, the guard for an empty token value and the
-character-class patch reach five each, the column patch for the key read and the patch that wrote
-before the rules reach four each, and eleven reach the pin they name plus one other. What the
-headers name as unpinnable is the same list `AGENTS.md`'s stage-10 paragraph carries, and the two
-rules named as not falsifiable are the join as a join and the length guard.
+In the first slice, sixteen of its 42 probes reach more than one pin, which the headers name: the
+patch that answers something for a name the request does not carry reaches six, the guard for an
+empty token value and the character-class patch reach five each, the column patch for the key read
+and the patch that wrote before the rules reach four each, and eleven reach the pin they name plus
+one other. What the headers name as unpinnable is the same list `AGENTS.md`'s stage-10 paragraph
+carries, and the two rules named as not falsifiable are the join as a join and the length guard.
+
+The second slice, worked as this pull request, pins the answer as pure logic and the document shape:
+the status each rule of the read answers with, the document the shared builder writes, the rule that
+decides whether `WWW-Authenticate` is written, the three CORS names, the three names the builder
+writes with its content type, and the three fields the schema has columns for. Fifteen of its 19
+probes reach the answer suite and four the shape suite; eighteen fire, seventeen reach the pin they
+name alone, one reaches two pins (the patch that classified the storage rules as the guard shape,
+which fires on the status pin and on the document pin), and one fires nothing: the patch that
+changed the realm, because the suite reads the rule that decides whether the name is written and not
+the value it carries. The three CORS names are each shown by a patch that dropped that one name and
+fired on its own assertion, and the content type is shown by a patch that wrote the framework's
+charset. What those headers name as not pinnable is the value of that name, the reference's wording
+for a storage failure the suite cannot trigger, the `Vary` name above the compression threshold, the
+28 fields the schema has no column for, and the 404 the handler answers for a row its own read does
+not find. The route registration, the row the read hands the handler, the pattern keeping the method
+it names, and the answer the router gives for a path no pattern registers are pinned by the slice
+that registers the route, which is the slice that can read this path as data: the client check half
+reads calls only on the two paths it names, so until it gains the third route file the half that
+reaches no route stays as the set records it.
 
 ## Exit criteria
 
