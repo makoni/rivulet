@@ -2,8 +2,8 @@
 
 /// What the read answers for one request, before the transport turns it into a response.
 ///
-/// The response shapes and the status each answer gets belong to the route half, which pins them
-/// over a socket; this is the decision the pins read as data.
+/// The response shapes and the status each answer gets are pinned as pure logic by
+/// `RestV1ResponseTests`; this is the decision the pins read as data.
 enum RestV1AuthOutcome: Equatable, Sendable {
     /// The half read found the account, and the handler is given the row id, which is what
     /// `request.UserID` answers upstream.

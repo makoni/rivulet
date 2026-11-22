@@ -1625,3 +1625,39 @@ apart.
 
 - `last_used_at` is a schema column with no write in this slice: the reference stamps it on its
 request path, which this port has no piece for, so a new row is written with nothing there.
+
+## REST v1 routes and the account document (stage 10)
+
+**Known differences.** The reference's behavior on this path is recorded in
+`docs/reference-notes.md`; what follows is where the port reads it differently, and each line is
+what a run showed or what the reference's code declares.
+
+- The account document: the reference writes the 31 fields its model struct declares for the row it
+read, one of the 32 being `Password`, which carries the tag `json:"-"` so that it is not written
+there either. This port writes the three its schema has columns for — `id`, `username`, `is_admin` —
+in the order the struct declares them, which is what the shape pin reads as the bytes the writer
+answers.
+
+- The other 28 are fields no rule here reads as data: the tolerance table names no row for them and
+the client matrix names no class for the account document, so the harness reads nothing here and
+they are recorded as prose. A row for them is what the harness would read as data, and it comes with
+the slice that gains the third path file.
+
+- The answer for a path this port registers no route for, which is where the walk on the phone
+ended: the reference runs its auth chain before its mux, so an unauthenticated request for such a
+path answers the guard's 401, and a request that passed the guards answers the mux's 404 as text.
+This port answers Vapor's router answer before any read runs, and runs here showed that answer as
+`{"error":true,"reason":"Not Found"}` with `application/json; charset=utf-8`, the router's own shape
+rather than the reference's error document. The two keys of that answer were written in both orders
+for the same request across runs, so the order the responder writes them in is not fixed and no pin
+can read it. The body the walk recorded, `{"error": {"message": "resource not found"}}`, is read by
+no rule here as data, so the stage file names the shape the runs showed rather than the walk's body.
+This slice registers no route on that prefix, so nothing in this pull request pins this port's side
+of the two answers; the pins that read them over a socket are the slice that registers the route,
+which is also the slice that can give the client check half the third path file.
+
+- A method the pattern does not register: the reference answers 405 only for a request that passed
+its guards, because its read runs before the mux, so an unauthenticated request for this path
+answers the guard's 401 there. This port answers the router's 404 for both, which is the row above
+read through the method. No pin in this pull request asserts it, because the route rule reads only
+the two path files it names.

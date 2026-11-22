@@ -824,6 +824,23 @@ Semantics:
   it, and splits the decoded value at the first colon; a value with no colon is the half that
   reports the pair as not read. `Header.Get` keeps the first value carried for a name, and
   `textproto` canonicalizes the name, so the two cases of one name count as one name.
+- `withCORSHeaders` is the outer half of the chain, so it runs before both auth halves, and the
+  three names it writes are on the answer a guard gives: `Access-Control-Allow-Origin` `*`,
+  `Access-Control-Allow-Methods` `GET, POST, PUT, DELETE, OPTIONS`, and
+  `Access-Control-Allow-Headers` `X-Auth-Token, Authorization, Content-Type, Accept`.
+  `Access-Control-Max-Age` `3600` is written only on the request whose method is `OPTIONS`, which
+  that half answers itself with no body.
+- `validateBasicAuth` writes `WWW-Authenticate: Basic realm="Restricted"` after the check that the
+  request is already authenticated, and before its two guards, so the name is on the answer for
+  every request that reaches that half, including one that passed it. A request the key half
+  answered does not reach it, and the key half writes nothing.
+- `currentUserHandler` reads the row by the id the request carries and answers the document for
+  it; the model struct declares 32 fields, one of them (`Password`) carrying the tag `json:"-"`, so
+  the answer carries 31, and the order the document writes them in is the order the struct
+  declares them in.
+- The mux answers 405 for a method its pattern does not register, and 404 as text for a path it
+  has no pattern for, both after the auth chain has run, so an unauthenticated request for one of
+  those paths answers the guard's 401 first.
 
 ## OPML (`internal/reader/opml`, commit `c4d54f87`)
 

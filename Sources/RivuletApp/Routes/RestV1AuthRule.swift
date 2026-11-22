@@ -29,4 +29,13 @@ enum RestV1AuthRule: String, CaseIterable, Sendable {
 
     /// The same answer for the account read.
     case userReadFailed
+
+    /// Which answer the reference's builder writes for this rule: the guard rules answer the 401
+    /// shape, and the two rules a failing read reports answer the 500 shape.
+    var answersServerError: Bool {
+        switch self {
+        case .apiKeyReadFailed, .userReadFailed: return true
+        default: return false
+        }
+    }
 }

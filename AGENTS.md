@@ -287,6 +287,24 @@ which has no column here, and `SetAPIKeyUsedTimestamp`, whose column is on the s
 piece that writes it; the locale wording of the two rules; the command's shape and its wording,
 which are the port's own path; and the wordings of the storage failures these suites cannot trigger.
 
+Its second slice is worked as its own pull request, pinning the answer the read gives as pure logic
+and the document shape: the status each rule answers with, the document the shared builder writes
+with the reference's wording for a guard and the rule name for a failure the port names, the
+`WWW-Authenticate` name written for every request that reaches the basic half and not for one the
+key half answered, the three CORS names written before the read runs so that a guard answer carries
+them, the three names the builder writes with its content type, and the three-field account document
+for `GET /v1/me` — 6 pins and 19 probes over two suites: 5 pins and 15 probes pin the answer as pure
+logic and 1 pin and 4 probes pin the document shape. Eighteen probes fire on the rule they name and
+one is recorded as not biting, the patch that changed the realm, because the pins read the rule that
+decides whether the name is written and not the value it carries. Seventeen probes reach the pin
+they name alone and one reaches two pins. What those headers name as unpinnable: the value of that
+name, the reference's wording for a storage failure this suite cannot trigger, the `Vary` name above
+the compression threshold, the 28 fields the schema has no column for, and the 404 the handler
+answers for a row its own read does not find. The route registration, the row the read hands the
+handler, the pattern keeping the method it names, and the answer the router gives for a path no
+pattern registers are the slice that also gives the client check half the third path it cannot read
+yet.
+
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
 the stage's distro-linked fallback is not taken; the version value as a client reads it (PR #68);
