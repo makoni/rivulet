@@ -7,19 +7,14 @@ records for that client, declares 24 endpoints, and the walk on the phone reache
 
 **Status:** in progress. The first slice — the `api_keys` table, its two reads, the `create-api-key`
 command, and the two halves of the auth read — is merged as PR #86, pinned as 23 pins and 42 probes
-over six suites. The second slice is worked as its own pull request and is the answer the read
-gives, pinned as pure logic, together with the document shape: the status each rule answers with,
-the document the shared builder writes with the reference's wording for a guard and the rule name
-for a failure the port names, the `WWW-Authenticate` name written for every request that reaches the
-reference's basic half and not for one the key half answered, the three CORS names written before
-the read runs, the three names the builder writes with its content type, and the three-field account
-document — 6 pins and 19 probes over two suites: 5 pins and 15 probes pin the answer as pure logic
-and 1 pin and 4 probes pin the document shape. Eighteen probes fire on the rule they name and one is
-recorded as not biting, the patch that changed the `WWW-Authenticate` realm, which no pin here reads
-as a value. Seventeen probes reach the pin they name alone and one reaches two pins. The route
-registration and the pins that read an answer over a socket are the slice that also gives the client
-check half the third path, so the stage-7 pin that reads this prefix as answering nothing here stays
-as it is.
+over six suites. The second slice, the answer the read gives as pure logic together with the
+document shape, is merged as PR #87, pinned as 6 pins and 19 probes over two suites: 5 pins and 15
+probes pin the answer as pure logic and 1 pin and 4 probes pin the document shape. Eighteen probes
+fire on the rule they name and one is recorded as not biting, the patch that changed the
+`WWW-Authenticate` realm, which no pin here reads as a value. Seventeen probes reach the pin they
+name alone and one reaches two pins. The route registration and the pins that read an answer over a
+socket are the third slice, worked with the client check half gaining the third path, which is what
+lets the stage-7 pin for this prefix read the route rather than the router's answer.
 
 ## Scope
 
@@ -73,18 +68,18 @@ so the stage names the shape the run showed, and `docs/parity.md` records the tw
 
 ## Test plan
 
-- Pure logic: the token read (the empty value, the header name, the compare), the route parameter
+- - Pure logic: the token read (the empty value, the header name, the compare), the route parameter
   read as the reference reads it (`RouteInt64Param` answers 0 for a value it cannot read), the JSON
   body read, the validators for a category title and for a description, the entry query builder with
   the params Capy names (`status`, `offset`, `limit`, `order`, `direction`, `before`, `after`,
   `before_entry_id`, `after_entry_id`, `starred`, `search`, `category_id`, `changed_after`), and the
-  document shapes with the key sets the models write.
-- Integration, over a real socket, the two halves of the auth read, the route registration with the
-  most specific pattern winning, the status each answer writes for the guards, and each endpoint's
-  answer read against the row the storage layer answered. The socket half is not pinned by this
-  slice: no route on this path is registered, so a request reaches the router's answer before any
-  read runs, and the stage-7 pin that reads this prefix as answering nothing here is green on this
-  head, which the run that showed these pins also showed.
+  document shapes with the key sets the models write. - Integration, over a real socket, the two
+  halves of the auth read, the route registration with the most specific pattern winning, the status
+  each answer writes for the guards, and each endpoint's answer read against the row the storage
+  layer answered. The socket half is not pinned by the second slice: no route on this path is
+  registered by it, so a request reaches the router's answer before any read runs, and the stage-7
+  pin that reads this prefix as answering nothing here was green on the run that showed these pins,
+  which is what the third slice changes.
 
 ## Slices
 
@@ -95,24 +90,24 @@ and the patch that wrote before the rules reach four each, and eleven reach the 
 one other. What the headers name as unpinnable is the same list `AGENTS.md`'s stage-10 paragraph
 carries, and the two rules named as not falsifiable are the join as a join and the length guard.
 
-The second slice, worked as this pull request, pins the answer as pure logic and the document shape:
-the status each rule of the read answers with, the document the shared builder writes, the rule that
-decides whether `WWW-Authenticate` is written, the three CORS names, the three names the builder
-writes with its content type, and the three fields the schema has columns for. Fifteen of its 19
-probes reach the answer suite and four the shape suite; eighteen fire, seventeen reach the pin they
-name alone, one reaches two pins (the patch that classified the storage rules as the guard shape,
-which fires on the status pin and on the document pin), and one fires nothing: the patch that
-changed the realm, because the suite reads the rule that decides whether the name is written and not
-the value it carries. The three CORS names are each shown by a patch that dropped that one name and
-fired on its own assertion, and the content type is shown by a patch that wrote the framework's
-charset. What those headers name as not pinnable is the value of that name, the reference's wording
-for a storage failure the suite cannot trigger, the `Vary` name above the compression threshold, the
-28 fields the schema has no column for, and the 404 the handler answers for a row its own read does
-not find. The route registration, the row the read hands the handler, the pattern keeping the method
-it names, and the answer the router gives for a path no pattern registers are pinned by the slice
-that registers the route, which is the slice that can read this path as data: the client check half
-reads calls only on the two paths it names, so until it gains the third route file the half that
-reaches no route stays as the set records it.
+The second slice, merged as PR #87, pins the answer as pure logic and the document shape: the status
+each rule of the read answers with, the document the shared builder writes, the rule that decides
+whether `WWW-Authenticate` is written, the three CORS names, the three names the builder writes with
+its content type, and the three fields the schema has columns for. Fifteen of its 19 probes reach
+the answer suite and four the shape suite; eighteen fire, seventeen reach the pin they name alone,
+one reaches two pins (the patch that classified the storage rules as the guard shape, which fires on
+the status pin and on the document pin), and one fires nothing: the patch that changed the realm,
+because the suite reads the rule that decides whether the name is written and not the value it
+carries. The three CORS names are each shown by a patch that dropped that one name and fired on its
+own assertion, and the content type is shown by a patch that wrote the framework's charset. What
+those headers name as not pinnable is the value of that name, the reference's wording for a storage
+failure the suite cannot trigger, the `Vary` name above the compression threshold, the 28 fields the
+schema has no column for, and the 404 the handler answers for a row its own read does not find. The
+route registration, the row the read hands the handler, the pattern keeping the method it names, and
+the answer the router gives for a path no pattern registers are pinned by the third slice, which is
+the slice that registers the route and the one that can read this path as data: the client check
+half reads calls only on the two paths it names, so until it gains the third route file the half
+that reaches no route stays as the set records it.
 
 ## Exit criteria
 

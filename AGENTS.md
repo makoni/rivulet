@@ -287,9 +287,9 @@ which has no column here, and `SetAPIKeyUsedTimestamp`, whose column is on the s
 piece that writes it; the locale wording of the two rules; the command's shape and its wording,
 which are the port's own path; and the wordings of the storage failures these suites cannot trigger.
 
-Its second slice is worked as its own pull request, pinning the answer the read gives as pure logic
-and the document shape: the status each rule answers with, the document the shared builder writes
-with the reference's wording for a guard and the rule name for a failure the port names, the
+Its second slice is merged as PR #87, pinning the answer the read gives as pure logic and the
+document shape: the status each rule answers with, the document the shared builder writes with the
+reference's wording for a guard and the rule name for a failure the port names, the
 `WWW-Authenticate` name written for every request that reaches the basic half and not for one the
 key half answered, the three CORS names written before the read runs so that a guard answer carries
 them, the three names the builder writes with its content type, and the three-field account document
