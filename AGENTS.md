@@ -265,8 +265,8 @@ rename through the drawer, which are halves the first walk did not show.
 `minifluxclient` declares, and is worked here while the stage 7 file keeps its `/v1` half open; the
 plan's working agreement allows the redirect.
 
-Its first slice is open as PR #86: the `api_keys` table, its two reads, the `create-api-key` command
-and the two halves of the auth read — 23 pins and 42 probes over six suites: 2 and 3 pin the
+Its first slice is merged as PR #86: the `api_keys` table, its two reads, the `create-api-key`
+command and the two halves of the auth read — 23 pins and 42 probes over six suites: 2 and 3 pin the
 description rules as pure logic, 2 and 5 the token generator, 5 and 12 the two storage reads and the
 write, 2 and 11 the header block, 7 and 7 the two halves of the auth read as the decision each
 answers, and 5 and 4 the command run. Forty probes are seen to fail on the rule they name and two

@@ -6,7 +6,7 @@ records for that client, declares 24 endpoints, and the walk on the phone reache
 (`GET /v1/me`) and got the 404 this port answers for a path it registers no route for.
 
 **Status:** in progress. The first slice — the `api_keys` table, its two reads, the `create-api-key`
-command, and the two halves of the auth read — is open as PR #86, pinned as 23 pins and 42 probes
+command, and the two halves of the auth read — is merged as PR #86, pinned as 23 pins and 42 probes
 over six suites. The route half, the response shapes, the entry read, and the check half gaining the
 third path are the slices that follow.
 
