@@ -5,10 +5,10 @@ import RivuletCore
 /// The Rivulet command-line interface.
 ///
 /// The command set is the whole final CLI surface now: `serve`, `migrate`, `version`, `refresh`,
-/// `status`, `create-admin`, `integration-credentials`, the feed commands `add`, `remove` and
-/// `list`, the maintenance commands `backup` and `vacuum`, and the OPML commands `import` and
-/// `export` all work, so no registered placeholder is left. The last two planned entries were
-/// `import` and `export`; what those runs do is pinned by `OPMLCommandTests`.
+/// `status`, `create-admin`, `integration-credentials`, `create-api-key`, the feed commands `add`,
+/// `remove` and `list`, the maintenance commands `backup` and `vacuum`, and the OPML commands
+/// `import` and `export` all work, so no registered placeholder is left. The last two planned
+/// entries were `import` and `export`; what those runs do is pinned by `OPMLCommandTests`.
 public enum RivuletCLI {
     /// Runs the command named by `arguments`.
     ///
@@ -54,6 +54,7 @@ public enum RivuletCLI {
         commands.use(Version(), as: "version")
         commands.use(CreateAdmin(environment: environment), as: "create-admin")
         commands.use(IntegrationCredentials(environment: environment), as: "integration-credentials")
+        commands.use(CreateApiKey(environment: environment), as: "create-api-key")
         commands.use(Refresh(environment: environment), as: "refresh")
         commands.use(Status(environment: environment), as: "status")
         commands.use(Add(environment: environment), as: "add")
