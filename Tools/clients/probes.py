@@ -170,12 +170,12 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # Three crafts for this rule, one for each of its three halves, all crafted on Capy Reader, the
-    # only set that names more than one half. The shape half is crafted by naming the shape as one
-    # while the set names two, the note half by taking the note off the half whose calls are not
-    # read as data rather than off the half the calls are read on, and the registrations half by
-    # taking the registration line out of the third route file, which is the half that reads that
-    # file as data.
+    # Three crafts for this rule, one for each of its three halves. The shape half and the note half
+    # are crafted on Capy Reader, the only set that names more than one half: the shape half by
+    # naming the shape as one while the set names two, the note half by taking the note off the half
+    # whose calls are not read as data rather than off the half the calls are read on. The
+    # registrations half is crafted on the parsed registrations, by taking the registration line out
+    # of the third route file, which is the half that reads that file as data.
     "the_halves_are_read_as_shape_note_and_registrations": [
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
             "uses_two_halves", False),

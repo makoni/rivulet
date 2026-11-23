@@ -22,18 +22,23 @@ import Vapor
 ///each firing on its own assertion here and on the pure CORS pin, and the fourth assertion, the
 ///name the reference writes only on its OPTIONS branch, is shown by a patch that wrote it here; -
 ///the content type — a patch that wrote the framework's charset; - the key order the struct
-///declares — a patch that swapped two of them, which reaches the row pin and the pure shape pin; -
-///the method the pattern registers — a patch that registered the same path for another method,
-///which fires on this pin alone. What these pins cannot show: the single-row limit of the key read;
-///the constant-time form of the password compare; the wording of a storage failure this suite
-///cannot trigger; the 404 the handler answers for a row its own read does not find, because the
-///read that reaches the handler has already found the row; the `Vary` name the reference writes
-///only above its compression threshold; the order the two keys of the router's answer are written
-///in, which was not fixed across runs; and the reference's 405 for a method the pattern does not
-///register, which this port answers with the router's 404, recorded as a divergence in
-///`docs/parity.md`. The value of the realm is shown here, which is the half the pure suite of PR
-///#87 named as not pinnable because it read the rule that decides whether the name is written
-///rather than the value it carries: the patch that changed the value fires on this suite alone.
+///declares — a patch that swapped two of them, which fires on its own assertion here and reaches
+///the row pin and the pure shape pin; - the method the pattern registers — a patch that
+///registered the same path for another method, which fires on this pin alone. What these pins
+///cannot show: the single-row limit of the key read; the constant-time form of the password
+///compare; the wording of a storage failure this suite cannot trigger; the 404 the handler answers
+///for a row its own read does not find, because the read that reaches the handler has already found
+///the row; the `Vary` name the reference writes only above its compression threshold; the order the
+///two keys of the router's answer are written in, which was not fixed across runs; and the
+///reference's 405 for a method the pattern does not register, which this port answers with the
+///router's 404, recorded as a divergence in `docs/parity.md`. The value of the realm is shown here,
+///which is the half the pure suite of PR #87 named as not pinnable because it read the rule that
+///decides whether the name is written rather than the value it carries: the patch that changed the
+///value fires on this suite alone. The wording the guard answer carries is read here on the body,
+///but no probe in this round crafts it: the patch for the wording is the one
+///`RestV1ResponseTests` names, and it fires there on that suite's own wording assertions, so the
+///assertion here is falsifiable through the same rule rather than shown to fail by a patch run
+///against this suite.
 @Suite struct RestV1RouteTests {
     init() {
         TestLogging.bootstrapOnce()

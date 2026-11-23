@@ -1567,14 +1567,16 @@ shapes each handler's own branches write, and the status each shape writes as th
 the rules stay the readable part of the check half, with the rule that reads the halves the sets
 name in `Tools/clients/halves.py` because this file is at the size cap. `Tools/clients/probes.py`
 crafts one input per rule that violates it and asserts that the rule reports it alone; the baseline
-— the committed data — reports nothing, so each probe is single-firing: 19 rules, 36 crafted inputs
-and the baseline, so 37 cases, the performance rule having one for each of the five kinds of finding
+— the committed data — reports nothing, so each probe is single-firing: 19 rules, 37 crafted inputs
+and the baseline, so 38 cases, the performance rule having one for each of the five kinds of finding
 it reads, the route rule one for each of its two halves, because an input that violates one half of
-a rule still satisfies the other, the rule that reads the half that reaches no route one for each of
-its two halves, both crafted on Capy Reader, the only set with a half that reaches no route: the
-shape half by naming the shape as one while the set names two, the note half by taking the note off
-the half that reaches no route rather than off the half its calls are read on, and the rule that
-reads the run record one for each of its eleven halves, which is twelve crafts: six on the record
+a rule still satisfies the other, the rule that reads the halves the sets name one for each of its
+three halves — the shape half by naming the shape as one while the set names two, the note half by
+taking the note off the half whose calls are not read as data rather than off the half its calls are
+read on, both on Capy Reader, the only set that names more than one half, and the registrations half
+by taking the registration line out of the third route file, which is the half that reads that file
+as data — and the rule that reads the run record one for each of its eleven halves, which is twelve
+crafts: six on the record
 the Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
 one on a record this machine has not written, for a client whose set records no calls, one on the
@@ -1631,8 +1633,9 @@ cannot show, and is named in `docs/clients.md` rather than asserted: the manual 
 document, which no rule reads as data, the record a walk for a client whose set records no calls
 leaves, which the check half reads as a finding, so that walk is evidence outside the repository
 rather than data it reads, the calling set of a client whose source cannot be read, the calls of a
-client on the path this port registers no route for, which this half records no calls for, because
-the rules that read calls read the two paths that are registered here, the order a client reaches
+client on the third path, which this half records no calls for because no run here left a record
+line on it, so the half is read as the prefix the port registers one route on and not as calls,
+the order a client reaches
 its calls at, which the run record carries for the four clients whose records the check half reads
 as data and the source declares for the others, the pin that reads a class reading the value on the
 set its own code names, so that for the client whose calls no pin sends the classes on its rows are
@@ -1672,16 +1675,19 @@ the record is written, so a guard that fires leaves the committed record alone, 
 it untouched through the ports demos; the guards that read what the run wrote run at the end, and
 their demos were run in a copy of the tree, which is what kept the committed record byte-identical
 there too. The Swift half is `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and
-12 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
+11 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
 reaches a registered route and which reaches the catch-all, the two item-id forms the same client
 sends, the page size above the clamp against the value at the clamp, the token half per method, the
 guard the merged form answers for the call with no add and no remove pair, the name the dispatch
-switch has no case for, and the prefix this port registers no route for. Each probe was seen to fire
-on the rule it names; the control read in the prefix pin is the answer the port gives for a path of
-the half the set names as read here, so no patch that changes only the data can show it alone. Both
-halves the pin reads are read through `#require`: the half that reaches no route and the half that
-is read here, so a set that names no half as answering nothing here reports at the read rather than
-trapping on the index. The transport read is the assumption the other pins run through, so no patch
+switch has no case for, and the half whose calls are not read as data, which is the prefix the port
+registers one route on. Each probe was seen to fire on the rule it names; the pin for this half
+reads the two answers the port gives, the read's answer for the path the pattern registers and the
+router's answer for a path on the same prefix with no pattern. The pin for this half has two probes:
+the patch that took the registration out of the route file fires the assertion for the registered
+path, and the patch that moved the prefix the half names fires that assertion and the one for the
+prefix. The half the pin reads is
+read through `#require`, so a set that names no half whose calls are not read as data reports at the
+read rather than trapping on the index. The transport read is the assumption the other pins run
 can show it alone either, and the transport rules are pinned by `GoogleReaderAuthTests`. The login
 half and the token half are pinned as the answer they write, not as the order they happen in, which
 is what no pin can read. The performance half records measurements taken here rather than bounds:
@@ -2030,9 +2036,9 @@ register, a flag no signature declares, a name no config read takes, or a client
 no row for is a finding rather than a sentence.
 
 `Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part, and
-`Tools/docs/probes.py` crafts at least one input per rule that violates it: 31 cases over 21 rules,
-30 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
-craft here reaches more than one rule, and seven rules have more than one craft because each reads
+`Tools/docs/probes.py` crafts at least one input per rule that violates it: 32 cases over 21 rules,
+31 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
+craft here reaches more than one rule, and eight rules have more than one craft because each reads
 more than one half. Every craft changes the parsed form and never a file, and the round hashes every
 file the check half reads before and after, so a craft that reached a file is reported. The shapes
 no rule compares are named as not read rather than left unread: the directive kind, the child

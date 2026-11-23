@@ -11,7 +11,9 @@ import Testing
 /// here; the hash not being written, which a patch that wrote the model's hash column fires here;
 /// and the two value rules, a boolean written as `true` or `false` and a number written as a
 /// number, which a patch that wrote either as a string fires here. Four patches reached this suite
-/// and all four fired here alone.
+/// and all four fired here alone in the round that showed these pins; the patch for the key order
+/// also fires on the route suite's pins for the document as bytes and for the row the read
+/// hands the handler, which is the round of the third slice.
 ///
 /// What this pin cannot fail on: the reference's other fields, which this port's schema has no
 /// column for. Its struct declares 32 fields and one of them is not written at all, so the answer

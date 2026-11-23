@@ -9,7 +9,8 @@
 # only for the row marked as a parity class, while the call lines that name no class read `none`.
 # One client records no call, because its source cannot be read here; its line names the class that
 # says so. Capy Reader has a calling set now, read from the app's own source, so its calls have lines
-# and its second half, the path this port registers no route for, does not.
+# and its second half, the half whose calls are not read as data, has no line here because no run
+# left a record line on that path.
 netnewswire/accounts/ClientLogin | login_shape | the JSON half, which this client does not ask for
 netnewswire/reader/api/0/token | token_transport | the value the read compares, which the server builds from the stored hash
 netnewswire/reader/api/0/tag/list | output_check | which endpoints apply the check, which the handler suite pins

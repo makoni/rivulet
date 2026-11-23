@@ -1662,4 +1662,8 @@ answer, which is the half the reference does not answer because its chain runs b
 its guards, because its read runs before the mux, so an unauthenticated request for this path
 answers the guard's 401 there. This port answers the router's 404 for both, which is the row above
 read through the method. The pin for this path asserts the port's side over a socket, on a POST for
-the registered path, and the route rule reads the three files that register the routes.
+the registered path, and the DocC check half's rule that reads the routes the pages name against the
+registrations reads the three files that write them. The reference answers 204 for an `OPTIONS` on a
+registered path, with the `Access-Control-Max-Age` name the CORS read writes for that method; this
+port has no route for `OPTIONS`, so the router's answer reaches it first, and the pin for that name
+reads the pure rule that writes nothing for the method it pins, not the answer over a socket.

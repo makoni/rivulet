@@ -44,8 +44,9 @@ asserts that the rule reports it alone; the baseline reports nothing, so each pr
 firing — 19 rules, 37 crafted inputs and the baseline, so 38 cases: the performance rule has one for
 each of the five kinds of finding it reads, the route rule has one for each of its two halves,
 because an input that violates one of them still satisfies the other, the rule that reads the halves
-the sets name has one for each of its three halves, all crafted on the one set that names more than
-one half, so each reports the half its own input violates alone, and the rule that reads the run
+the sets name has one for each of its three halves, two crafted on the one set that names more than
+one half and one on the parsed registrations for the third route file, so each reports the half its
+own input violates alone, and the rule that reads the run
 record has one for each of its eleven halves, which is twelve crafts: six on the record the Fever
 run wrote here, one on the paragraph naming its calls, one on the record the Google Reader run on
 the phone wrote here, the order half crafted again on the record the run on the Mac wrote, one on a
@@ -608,7 +609,7 @@ wrote, which the run's own pass wrote before the first request arrived.
 
 `Tests/RivuletIntegrationTests/ClientSequenceReplayTests` replays the recorded calls against the
 served app over a real socket, and reads the calling sets as data rather than restating them. 9 pins
-and 12 probes: the recorded order for each set, which recorded call reaches a registered route and
+and 11 probes: the recorded order for each set, which recorded call reaches a registered route and
 which reaches the catch-all answer, the two forms of the same item id the same client sends, the
 page size above the clamp against the page size below it, the token half per method, the guard the
 merged form answers for the call with no add and no remove pair, the name the dispatch switch has no

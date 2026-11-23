@@ -7,8 +7,9 @@ for its halves has to agree with the halves it names, and a half whose calls are
 has to name the read it comes from. All three halves are read as data, so a patch that took the
 registration out of the third file reports, and so does a set that names the shape as one while
 naming two halves, and a set that names a half whose calls are not read as data without naming the
-read it comes from. Each half is crafted on its own input, and all three inputs are the one set
-that names more than one half, so each craft reports the half its own input violates alone. The
+read it comes from. Each half is crafted on its own input: two on the one set that names more than
+one half, and one on the parsed registrations read from the third route file, so each craft reports
+the half its own input violates alone. The
 rule is registered in the dict `Tools/clients/probes.py` reads, which is the dict in
 `Tools/clients/replay.py`; this file holds the rule and no register of its own.
 """

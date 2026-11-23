@@ -121,15 +121,15 @@ router's answer for a path on the same prefix with no pattern.
 The third slice pins the route over a real socket: the path the pattern registers, the row the read
 hands the handler, the status the guard answers, the names the answer carries, the document as
 bytes, and the method the pattern registers. Every one of its 13 probes fires on the pin it names.
-The patch for the path the pattern registers fires on 11 assertions across the 8 pins, because
-every pin here reads an answer that reaches the router once the registration is renamed, except the
-pin for the method, which reads an answer the router gives either way, and it reaches the pin for
-this prefix in `ClientSequenceReplayTests`. The round ran the four suites together, so the patches
-for the guard status, the two halves of the name rule, the three CORS names, the content type and
-the key order fire on the pure pins that read the same rules as well. The patch that changed the
-realm value, which PR #87 recorded as not biting, fires on the route suite alone, and the patch for
-the method fires on the pin for the method alone.
-
+The patch for the path the pattern registers fires on 10 assertions across the 8 pins, because
+every pin here reads an answer that reaches the router once the registration is renamed, except
+the pin for the method, which reads an answer the router gives either way; it fires on the pin for
+this prefix in `ClientSequenceReplayTests` as well, 11 assertions in all. The round ran the four
+suites together, so the patches for the guard status, the two halves of the name rule, the three
+CORS names, the name the OPTIONS branch writes, the content type and the key order fire on the
+pure pins that read the same rules as well. The patch that changed the realm value, which PR #87
+recorded as not biting, fires on the route suite alone, and the patch for the method fires on the
+pin for the method alone.
 
 ## Exit criteria
 

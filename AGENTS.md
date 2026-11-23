@@ -174,9 +174,10 @@ the name the response builder writes. `Tools/clients/probes.py` crafts one input
 violates it — the round answers 38 cases over 19 rules, 37 crafted inputs plus the baseline asserted
 to report nothing, so each probe is single-firing, the performance rule having one for each of the
 five kinds it reads, the route rule one for each of its two halves, the rule that reads the halves
-the sets name one for each of its three halves, all crafted on the one set that names more than one
-half, and the rule that reads the run record one for each of its eleven halves, which is twelve
-crafts — and the round hashes every file the check half
+the sets name one for each of its three halves, two crafted on the one set that names more than
+one half and one on the parsed registrations for the third route file, so each reports the half its
+own input violates alone, and the rule that reads the run record one for each of its eleven halves,
+which is twelve crafts — and the round hashes every file the check half
 reads before and after, so a craft that reached a file is reported; two crafts name data the record
 rule cannot read, the redaction craft on a set for a client this machine has not run and the route
 rule's first craft on a row no record line reaches, because after the third record landed both
