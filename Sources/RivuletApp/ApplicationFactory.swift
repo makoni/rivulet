@@ -32,6 +32,7 @@ public enum ApplicationFactory {
         GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher(),
             baseURL: config.baseURL,
             finder: SubscriptionFinder(fetcher: fetcher, options: config.fetcher))
+        RestV1Routes.register(on: application, storage: storage, hasher: BcryptHasher())
         return RivuletApplication(application: application, storage: storage, fetcher: fetcher)
     }
 }

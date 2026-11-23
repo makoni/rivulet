@@ -1567,14 +1567,16 @@ shapes each handler's own branches write, and the status each shape writes as th
 the rules stay the readable part of the check half, with the rule that reads the halves the sets
 name in `Tools/clients/halves.py` because this file is at the size cap. `Tools/clients/probes.py`
 crafts one input per rule that violates it and asserts that the rule reports it alone; the baseline
-— the committed data — reports nothing, so each probe is single-firing: 19 rules, 36 crafted inputs
-and the baseline, so 37 cases, the performance rule having one for each of the five kinds of finding
+— the committed data — reports nothing, so each probe is single-firing: 19 rules, 37 crafted inputs
+and the baseline, so 38 cases, the performance rule having one for each of the five kinds of finding
 it reads, the route rule one for each of its two halves, because an input that violates one half of
-a rule still satisfies the other, the rule that reads the half that reaches no route one for each of
-its two halves, both crafted on Capy Reader, the only set with a half that reaches no route: the
-shape half by naming the shape as one while the set names two, the note half by taking the note off
-the half that reaches no route rather than off the half its calls are read on, and the rule that
-reads the run record one for each of its eleven halves, which is twelve crafts: six on the record
+a rule still satisfies the other, the rule that reads the halves the sets name one for each of its
+three halves — the shape half by naming the shape as one while the set names two, the note half by
+taking the note off the half whose calls are not read as data rather than off the half its calls are
+read on, both on Capy Reader, the only set that names more than one half, and the registrations half
+by taking the registration line out of the third route file, which is the half that reads that file
+as data — and the rule that reads the run record one for each of its eleven halves, which is twelve
+crafts: six on the record
 the Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
 run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
 one on a record this machine has not written, for a client whose set records no calls, one on the
@@ -1631,8 +1633,9 @@ cannot show, and is named in `docs/clients.md` rather than asserted: the manual 
 document, which no rule reads as data, the record a walk for a client whose set records no calls
 leaves, which the check half reads as a finding, so that walk is evidence outside the repository
 rather than data it reads, the calling set of a client whose source cannot be read, the calls of a
-client on the path this port registers no route for, which this half records no calls for, because
-the rules that read calls read the two paths that are registered here, the order a client reaches
+client on the third path, which this half records no calls for because no run here left a record
+line on it, so the half is read as the prefix the port registers one route on and not as calls,
+the order a client reaches
 its calls at, which the run record carries for the four clients whose records the check half reads
 as data and the source declares for the others, the pin that reads a class reading the value on the
 set its own code names, so that for the client whose calls no pin sends the classes on its rows are
@@ -1672,17 +1675,21 @@ the record is written, so a guard that fires leaves the committed record alone, 
 it untouched through the ports demos; the guards that read what the run wrote run at the end, and
 their demos were run in a copy of the tree, which is what kept the committed record byte-identical
 there too. The Swift half is `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and
-12 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
+11 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
 reaches a registered route and which reaches the catch-all, the two item-id forms the same client
 sends, the page size above the clamp against the value at the clamp, the token half per method, the
 guard the merged form answers for the call with no add and no remove pair, the name the dispatch
-switch has no case for, and the prefix this port registers no route for. Each probe was seen to fire
-on the rule it names; the control read in the prefix pin is the answer the port gives for a path of
-the half the set names as read here, so no patch that changes only the data can show it alone. Both
-halves the pin reads are read through `#require`: the half that reaches no route and the half that
-is read here, so a set that names no half as answering nothing here reports at the read rather than
-trapping on the index. The transport read is the assumption the other pins run through, so no patch
-can show it alone either, and the transport rules are pinned by `GoogleReaderAuthTests`. The login
+switch has no case for, and the half whose calls are not read as data, which is the prefix the port
+registers one route on. Each probe was seen to fire on the rule it names; the pin for this half
+reads the two answers the port gives, the read's answer for the path the pattern registers and the
+router's answer for a path on the same prefix with no pattern. The pin for this half has two probes:
+the patch that took the registration out of the route file fires the assertion for the registered
+path, and the patch that moved the prefix the half names fires that assertion and the one for the
+prefix. The half the pin reads is
+read through `#require`, so a set that names no half whose calls are not read as data reports at the
+read rather than trapping on the index. The transport read is the assumption the other pins run
+through, so no patch can show it alone either, and the transport rules are pinned by
+`GoogleReaderAuthTests`. The login
 half and the token half are pinned as the answer they write, not as the order they happen in, which
 is what no pin can read. The performance half records measurements taken here rather than bounds:
 `Scripts/perf.sh` is the run, `Tools/clients/perf-run.txt` is the recorded run, and the rule
@@ -2022,7 +2029,7 @@ child directives, the references and assets the table of contents names, the fen
 commands a page calls, the flags each call carries, the names the page sets, the name-and-value
 pairs the fences write, the stated values, the routes, the clients, the links, the repository paths,
 the version and the TODO lines — against the sources that write those values: the manifest target,
-the dispatch, the config parser and the fetcher options, the two route files, the storage wrapper,
+the dispatch, the config parser and the fetcher options, the three route files, the storage wrapper,
 the free-space check, the committed example, the client matrix, the plan table, the root README, the
 contents table, the documents the docs directory has, the Swift sources and the report document. The
 pages state only what a check here can show, so a page that names a command the dispatch does not
@@ -2030,9 +2037,9 @@ register, a flag no signature declares, a name no config read takes, or a client
 no row for is a finding rather than a sentence.
 
 `Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part, and
-`Tools/docs/probes.py` crafts at least one input per rule that violates it: 31 cases over 21 rules,
-30 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
-craft here reaches more than one rule, and seven rules have more than one craft because each reads
+`Tools/docs/probes.py` crafts at least one input per rule that violates it: 32 cases over 21 rules,
+31 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
+craft here reaches more than one rule, and eight rules have more than one craft because each reads
 more than one half. Every craft changes the parsed form and never a file, and the round hashes every
 file the check half reads before and after, so a craft that reached a file is reported. The shapes
 no rule compares are named as not read rather than left unread: the directive kind, the child
@@ -2049,6 +2056,69 @@ the build half writes them here, and the rule reads that file as the path it is 
 the pages it writes. The build half `Scripts/build-docs.sh` is checked here by `bash -n` and by its
 nine guards, thirteen read sites, each seen to fail on the value its usage line names, and the
 archive it writes is the report item that names it as read by no rule.
+
+## Miniflux REST v1 subset (stage 10)
+
+Stage 10 is worked on the calls Capy Reader's `minifluxclient` declares, so its pins are the halves
+of the read that answers those calls, the answer the read gives, and the route the port registers.
+Three slices, each pinned as the rule it names.
+
+- The first slice is the `api_keys` table, its two reads, the `create-api-key` command and the two
+  halves of the auth read — 23 pins and 42 probes over six suites: 2 and 3 pin the description rules
+  as pure logic, 2 and 5 the token generator, 5 and 12 the two storage reads and the write, 2 and 11
+  the header block, 7 and 7 the two halves of the auth read as the decision each answers, and 5 and
+  4 the command run. Forty probes are seen to fail on the rule they name and two are recorded as not
+  biting: the patch that reads the join as the key row's own account, which this schema answers the
+  same way, and the patch that takes the length guard away, which traps on a value shorter than the
+  prefix instead of answering differently, so the line that reads such a value as not read cannot
+  flip.
+
+- The second slice pins the answer the read gives as pure logic and the document shape: 6 pins and
+  19 probes over two suites, 5 and 15 for the status each rule answers with, the document the shared
+  builder writes with the reference's wording for a guard and the rule name for a failure this port
+  names, and the names the transport adds, and 1 and 4 for the three-field account document.
+  Eighteen probes fire on the rule they name and one is recorded as not biting, the patch that
+  changed the realm, because the pins read the rule that decides whether the name is written and not
+  the value it carries. The realm value is shown by the third slice, on the answer over a socket.
+
+- The third slice registers the one path its scope has and pins the answer over a real socket: 8
+  pins and 13 probes in `RestV1RouteTests`, every probe seen to fail on the rule it names and to
+  revert its file byte-identically. The patch for the path the pattern registers fires on 10
+  assertions across these pins and on one in the stage-7 pin for this prefix, 11 in all, and the
+  patch for the method fires on its pin alone. The stage-7 pin reads the two answers the port gives,
+  the read's answer for the path the pattern registers and the router's answer for a path on the
+  same prefix with no pattern, and its two probes are the registration taken out of the route file
+  and the prefix the half names moved: the first fires the assertion for the registered path, the
+  second fires that assertion and the one for the prefix.
+
+What these pins cannot show is named in their headers rather than asserted: the single-row limit of
+either read; the row two keys of one account answer, which SQL does not order; the clock fields,
+read as the shape they hold; the `timestamp with time zone` type, which this port writes as Unix
+seconds; the constant-time form of the compare and the dummy compare upstream runs for a name with
+no row; the order between the compare and the row read, which one read serves here; the
+`SetLastLogin` write, which has no column here, and the column for the key's use, which the schema
+has and nothing writes; the locale wording of the two rules; the command's shape and its wording,
+which are the port's own path; the wordings of the storage failures these suites cannot trigger; the
+`Vary` name the reference writes only above its compression threshold; the 28 fields the schema has
+no column for; the 404 the handler answers for a row its own read does not find, because the read
+that reaches the handler has already found the row; the order the two keys of the router's answer
+are written in, which was not fixed across runs; and the reference's 405 for a method the pattern
+does not register, which this port answers with the router's 404. The wording the guard answer
+carries is read over the socket but is not crafted by a probe in this round: the patch for it is the
+one `RestV1ResponseTests` names, and it fires there on that suite's own wording assertions, so the
+assertion read over the socket is falsifiable through the same rule rather than shown to fail by a
+patch run against the socket suite.
+
+The check halves read the third route file as data. The client matrix's rule that reads the halves
+reads three halves — the shape, the note, and the registrations the three route files write — and
+the round answers 38 cases over 19 rules, 37 crafts plus the baseline asserted to report nothing,
+two of the three crafts being on Capy Reader, the only set that names more than one half, and the
+third on the parsed registrations. The DocC round reads the routes the pages name against the
+registrations the three files write and answers 32 cases over 21 rules, 31 crafts plus the baseline,
+and the parity round answers 22 probes. The matrix gains no row for the calls on this path: the rule
+that builds the rows reads the calls a record carries, and no run here left a record line on this
+path, which is what the phone criterion for a Miniflux account stays open for. The half is read as
+data only as the prefix the port registers one route on.
 
 ## Running
 

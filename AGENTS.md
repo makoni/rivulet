@@ -157,7 +157,9 @@ Fever half here, and its record is held as evidence outside the repository, beca
 client records no calls. The manual matrix criterion is closed for the four whose records are read
 as data, for the halves the walk on Reeder Classic showed, and for every Capy Reader item this run
 reached; it stays open for the Capy Reader item the run carried no record line for, renaming a
-subscription, and for the Capy Reader half this port registers no route for. What the 19 rules read:
+subscription, and for the Capy Reader half whose calls no run here left a line for, which the rule
+that reads the halves reads only as the prefix the port registers one route on. What the 19 rules
+read:
 the source each set names and its commit, the redaction as the placeholders the half reads, the
 matrix rows against the manifest lines, the classes against the parity table and the output-check
 class against the endpoints the reference applies the check on, the routes the port registers
@@ -169,11 +171,13 @@ counts table against the records it counts, the replay records against the matri
 performance table against the run that answered it and the shape the document names, the rule list
 and the report items against what the check half has, and the response name a client acts on against
 the name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that
-violates it — the round answers 37 cases over 19 rules, 36 crafted inputs plus the baseline asserted
+violates it — the round answers 38 cases over 19 rules, 37 crafted inputs plus the baseline asserted
 to report nothing, so each probe is single-firing, the performance rule having one for each of the
-five kinds it reads, the route rule one for each of its two halves, the rule that reads the half
-that reaches no route one for each of its two halves, and the rule that reads the run record one for
-each of its eleven halves, which is twelve crafts — and the round hashes every file the check half
+five kinds it reads, the route rule one for each of its two halves, the rule that reads the halves
+the sets name one for each of its three halves, two crafted on the one set that names more than
+one half and one on the parsed registrations for the third route file, so each reports the half its
+own input violates alone, and the rule that reads the run record one for each of its eleven halves,
+which is twelve crafts — and the round hashes every file the check half
 reads before and after, so a craft that reached a file is reported; two crafts name data the record
 rule cannot read, the redaction craft on a set for a client this machine has not run and the route
 rule's first craft on a row no record line reaches, because after the third record landed both
@@ -183,9 +187,10 @@ stay the readable part, and the rule that reads the halves the sets name is in
 the document rather than asserted: the manual checklist as a document, which no rule reads as data,
 the record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
-of a client, whose source cannot be read, the calls of a client on the path this port registers no
-route for, which this half records no calls for, because the rules that read calls read the two
-paths that are registered here, the order a client reaches its calls at, which the run record
+of a client, whose source cannot be read, the calls of a client on the third path, which this half
+records no calls for because no run here left a record line on it, so the half is read as the
+prefix the port registers one route on and not as calls, the order a client reaches its calls at,
+which the run record
 carries for the four clients whose records the check half reads as data and the source declares for
 the others, the values the calls carry, which are redacted, the app-level choice of which calls a
 library-based client makes, the guard a client applies before it sends, read as the bound on the
@@ -302,8 +307,13 @@ name, the reference's wording for a storage failure this suite cannot trigger, t
 the compression threshold, the 28 fields the schema has no column for, and the 404 the handler
 answers for a row its own read does not find. The route registration, the row the read hands the
 handler, the pattern keeping the method it names, and the answer the router gives for a path no
-pattern registers are the slice that also gives the client check half the third path it cannot read
-yet.
+pattern registers are the third slice, pinned over a real socket as 8 pins and 13 probes in
+`RestV1RouteTests`, with the stage-7 pin for this prefix rewritten to read the route the port
+registers, which is 9 pins and 11 probes in `ClientSequenceReplayTests`. The client check half
+reads the third route file as data through the rule that reads the halves, as the half that reads
+the prefix the port registers one route on; the matrix gains no row for the calls on this path,
+because no run here left a record line on it, and the patch that changed the realm value, which
+PR #87 recorded as not biting, fires on the route suite alone.
 
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
@@ -321,11 +331,11 @@ name; and the sixth slice, merged as PR #73, is the DocC catalog the harness rea
 pages a site is built from outside this repository (the documentation deliverable this agreement
 names for stage 8), whose check half is `Tools/docs/docs_check.py` over 21 rules reading the pages
 as the shapes they write against the sources that write the values — the manifest target, the
-dispatch, the config reads, the two route files, the storage wrapper, the free-space check, the
+dispatch, the config reads, the three route files, the storage wrapper, the free-space check, the
 committed example, the client matrix, the plan table, the root README, the contents table, the Swift
 sources and its own report document — with the run half `Scripts/docs.sh` at eight guards and
 thirteen read sites, all eight seen to fail here on the values the usage lines name, and the round
-`Tools/docs/probes.py` at 31 cases — 30 crafts plus the baseline asserted to report nothing, no
+`Tools/docs/probes.py` at 32 cases — 31 crafts plus the baseline asserted to report nothing, no
 craft reaching more than one rule — the reads being in `Tools/docs/parsers.py`. The seventeen report
 items name what no rule reads: the tool's answer for another machine, the tool's own version, the
 reading time, the titles and child directives, a page's prose, the way a page renders, the archive

@@ -7,18 +7,19 @@ this machine produced, and the baseline case asserts it reports nothing, which i
 craft single-firing: a craft that reached a second rule is reported as reaching it. No craft here
 reaches more than one rule, so `REACHES` names nothing; it is the place a craft that reached two
 rules through one patch would be named, which is what keeps the assertion honest when a craft is
-added. Seven rules have more than one craft, because each of those rules reads more than one half:
+added. Eight rules have more than one craft, because each of those rules reads more than one half:
 the document rule one for the value its build path is compared with and one for the document read as
 the run wrote nothing, the catalog rule has one for the directory the tool reads it as and one for
 the name the table of contents writes, the table-of-contents rule one for each half of its read, the
 stated-value rule one for each of the four kinds of value it reads, the reference-path rule one for
-each of its two halves, the contents-table rule one for each half, and the report rule one for each
-of the two lists it reads.
+each of its two halves, the routes rule one for the route a page names and one for the registration
+the third route file writes, the contents-table rule one for each half, and the report rule one for
+each of the two lists it reads.
 
 The shapes the coverage rule reads are the shapes the parser produces, so a craft that adds a shape
 to the parsed set is the only craft that can move that rule, and no other craft reaches it.
 
-31 cases: 30 crafted inputs plus the baseline.
+32 cases: 31 crafted inputs plus the baseline.
 
 Run it through `docs_check.py --probe`.
 """
@@ -153,6 +154,16 @@ def page_names_an_unregistered_route(data):
     page["routes"] = sorted(set(page["routes"]) | {"GET /reader/api/0/extra"})
 
 
+def registrations_lose_the_third_route_file(data):
+    # The half that reads the third route file. A page has to name the route for the rule to have
+    # something to compare, and no committed page names one on the third path, so this craft names
+    # it on a page and takes the registration out of the parsed set: the patch it stands for is the
+    # one that removes the registration line from the file the rule reads.
+    page = data["pages"][one_page(data)]
+    page["routes"] = sorted(set(page["routes"]) | {"GET /v1/me"})
+    data.__setitem__("routes", data["routes"] - {"GET /v1/me"})
+
+
 def page_names_a_client_the_matrix_does_not(data):
     page = data["pages"][one_page(data)]
     page["clients"] = sorted(set(page["clients"]) | {"Fever Client"})
@@ -268,6 +279,10 @@ def sources_half_cases():
         ("the_contents_table_names_every_document_the_docs_directory_has",
          contents_names_no_document_the_directory_has),
         ("the_check_half_reads_every_shape_the_pages_write", coverage_reads_no_shape),
+        # This craft moves both sides of the comparison, which is what the header says about the
+        # routes rule: the page names the route, the parsed registrations no longer have it.
+        ("the_routes_the_pages_name_are_routes_the_port_registers",
+         registrations_lose_the_third_route_file),
         ("report_names_rules_and_gaps", report_names_rules),
         ("report_names_rules_and_gaps", report_names_gaps),
     ]

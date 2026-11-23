@@ -7,8 +7,8 @@ import Vapor
 ///The recorded calling sets read as data and replayed against the served app over a real socket.
 ///Each pin takes one recorded call and asserts what the port answers for it: the record names the
 ///call and the value the pin reads, so a pin is the replay half of the matrix rather than a
-///restatement of the matrix's table. 9 pins and 12 probes, each seen to fail on the rule it names
-///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 3, and
+///restatement of the matrix's table. 9 pins and 11 probes, each seen to fail on the rule it names
+///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 2, and
 ///every other pin has 1.
 ///What each pin can fail on, with the input its probe crafts: - the recorded order is the order the
 ///set declares — a patch that swaps two entries of the record's own `source_order`. This is the
@@ -25,9 +25,9 @@ import Vapor
 ///every value by the field-width rule; - the page size above the clamp against the page size the
 ///record names at the clamp — a patch that dropped the clamp; - the path no route registers — a
 ///patch that registered it; - the dispatch name the switch has no case for — a patch that gave it a
-///case; - the prefix this port registers no route for — a patch that registered a route under it,
-///and a patch that named its half as answered here, which the guard reports at the read rather than
-///as a trap on the index, and a patch that moved the prefix that half names.
+///case; - the half whose calls are not all read here, which is the prefix this port registers one
+///route on — a patch that took the registration out of the file that writes it, and a patch that
+///moved the prefix that half names.
 ///What these pins cannot show: the `>50` guard NewsFlash applies before it sends, read as the bound
 ///on the list size, which this run reached below; the bound firing is what no pin can show, because
 ///the record carries names and not values; the values the records carry, which are placeholders, so
@@ -250,31 +250,32 @@ import Vapor
         }
     }
 
-    ///The prefix this port registers no route for is the half the record names as answering nothing
-    ///here: Capy Reader names two halves now, the Miniflux half being the one that reaches no
-    ///route, while the other half is the one its calls are read on. The read on a path of that
-    ///other half is the control that shows the 404 belongs to the prefix rather than to the port
-    ///answering nothing anywhere, which is the half of this pin that can fail on a patch; the note
-    ///the rule reads is crafted by a probe, because a pin reads the set as data and cannot read a
-    ///note as an expectation.
-    @Test func thePrefixThisPortRegistersNoRouteFor() async throws {
+    ///The half whose calls are not all read as data is the prefix this port registers one route on:
+    ///Capy Reader names two halves, and the Miniflux half is the one whose calls the check half
+    ///does not read as data, because no run here left a record line on this path. The two answers
+    ///this pin reads are the two sides of the parity row: the path the pattern registers answers
+    ///the read's answer, and a path on the same prefix with no pattern answers the router's answer,
+    ///which is what the reference does not answer because its chain runs before its mux. This pin
+    ///has two probes: the patch that took the registration out fires the assertion for the
+    ///registered path, and the patch that moved the prefix the half names fires that assertion and
+    ///the one for the prefix. The note the rule reads is crafted by a probe, because a pin reads
+    ///the set as data and cannot read a note as an expectation.
+    @Test func theHalfWhoseCallsAreNotAllReadHereIsThePrefixThisPortRegistersOneRouteOn() async throws {
         try await withServedApp { _, app, base in
             let set = try CallingSets.set("Capy Reader")
-            let half = try #require(set.halves.first { $0.answeredHere == "no route here" },
-                "the set names a half as answering nothing here, so there is a half to read")
-            let readHalf = try #require(set.halves.first { $0.answeredHere == "served here" },
-                "the set names the other half as read here, so the control has a path to read")
+            let half = try #require(set.halves.first { $0.callsRead != "read here" },
+                "the set names a half whose calls are not all read as data, so there is a half to read")
 
             #expect(set.halves.count == 2 && half.prefix == "/v1",
-                "the set names two halves, and the one that reaches no route here is /v1")
+                "the set names two halves, and the half whose calls are not all read here is /v1")
 
-            let readHere = try await app.client.get(URI(string: base + readHalf.prefix + "/tag/list"))
-            #expect(readHere.status != .notFound,
-                "a path of the half the record names as read here answers the read")
+            let registered = try await app.client.get(URI(string: base + half.prefix + "/me"))
+            #expect(registered.status == .unauthorized,
+                "the path the pattern registers answers the read's answer, not the router's")
 
-            let partialHalf = try await app.client.get(URI(string: base + half.prefix + "/me"))
-            #expect(partialHalf.status == .notFound,
-                "the prefix the record names as answering nothing here is Vapor's 404")
+            let noPattern = try await app.client.get(URI(string: base + half.prefix + "/entries"))
+            #expect(noPattern.status == .notFound,
+                "a path on this prefix with no pattern answers the router's answer")
         }
     }
 }

@@ -1,28 +1,40 @@
 #!/usr/bin/env python3
-"""The rule that reads the halves the calling sets name, kept in its own file because the check half
-is at the size cap. The half that reaches no route is read in two halves: the shape the set names
-for its halves has to agree with the halves it names, and the note has to name the read that half
-comes from. Both are read as data, so a set that names the shape as two halves while naming one half
-reports, and so does a set that names the shape as one while naming two. Each half of this rule is
-crafted on its own input, and both inputs are the one set with a half that reaches no route here, so
-each craft reports the half its own input violates alone. The rule is registered in the dict
-`Tools/clients/probes.py` reads, which is the dict in `Tools/clients/replay.py`; this file holds the
-rule and no register of its own.
+"""The rule that reads the halves the calling sets name, kept in its own file because the check
+half is at the size cap. It reads three halves. The half a set names as answered here has to be a
+prefix the port registers a route on, read from the files that register them, which is the half
+that reads the third path as data. For a set that names more than one half, the shape the set names
+for its halves has to agree with the halves it names, and a half whose calls are not read as data
+has to name the read it comes from. All three halves are read as data, so a patch that took the
+registration out of the third file reports, and so does a set that names the shape as one while
+naming two halves, and a set that names a half whose calls are not read as data without naming the
+read it comes from. Each half is crafted on its own input: two on the one set that names more than
+one half, and one on the parsed registrations read from the third route file, so each craft reports
+the half its own input violates alone. The
+rule is registered in the dict `Tools/clients/probes.py` reads, which is the dict in
+`Tools/clients/replay.py`; this file holds the rule and no register of its own.
 """
 
+import parsers as read
 
-def rule_shape_and_note(data):
+
+def rule_shape_note_and_registrations(data):
     found = []
+    registered = (read.port_routes(data["port_routes"])
+                  | read.port_routes(data["port_rest_routes"])
+                  | read.fever_routes(data["port_fever_routes"]))
     for name, set_data in data["sets"].items():
-        if not any(half["answered_here"] == "no route here" for half in set_data["halves"]):
+        halves = set_data["halves"]
+        for half in halves:
+            if half["answered_here"].startswith("served here") and not any(
+                    one.split(" ")[1].startswith(half["prefix"]) for one in registered):
+                found.append(f"{name}: the half names {half['prefix']} as answered here, which the "
+                             f"port registers no route on")
+        if len(halves) < 2:
             continue
-        shape_names_two = set_data["runtime_shape"].get("uses_two_halves")
-        names_two = len(set_data["halves"]) > 1
-        if shape_names_two != names_two:
-            found.append(f"{name}: the shape is named as "
-                         f"{'two halves' if shape_names_two else 'one half'}, while the "
-                         f"set names {'two halves' if names_two else 'one half'}")
-        if not any(half.get("note") for half in set_data["halves"]):
-            found.append(f"{name}: the half that reaches no route is named without naming the "
-                         f"read it comes from")
+        if set_data["runtime_shape"].get("uses_two_halves") is not True:
+            found.append(f"{name}: the shape is named as one half, while the set names "
+                         f"{len(halves)}")
+        if not any(half.get("note") for half in halves if half["calls_read"] != "read here"):
+            found.append(f"{name}: the half whose calls are not read as data is named without "
+                         f"naming the read it comes from")
     return found

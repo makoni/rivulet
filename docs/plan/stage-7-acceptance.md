@@ -89,7 +89,7 @@ can be checked without a run.
 `Tests/RivuletIntegrationTests/CallingSets/` is the record both halves read — the pins through
 `Bundle.module`, the check half from disk — and `ClientSequenceReplayTests` replays the recorded
 order and the answer the matrix names for each call. Nothing was captured here, so this is the whole
-of what a pin can show: 9 pins and 12 probes, each seen to fire on the rule it names.
+of what a pin can show: 9 pins and 11 probes, each seen to fire on the rule it names.
 - [x] Robustness landed with PR #55 on the fetcher side and the reduced corpus: the hostile bodies —
 a stream that inflates far past the size it is stored in, and a stream the decoder cannot finish —
 read as which limit answers, and the 10k-entry scenario with the budgets documented. The malformed
@@ -149,7 +149,7 @@ The client matrix: `Tools/clients/replay.py` with `Tools/clients/probes.py`, 19 
 record files, `docs/clients.md`, `docs/performance.md`, the sentence `docs/reference-notes.md`
 writes for the output-check sets, and the port's own route, dispatch, auth and response sources read
 as data, each rule shown to report its own crafted input alone and the baseline to report nothing —
-36 crafted inputs plus the baseline, so 37 cases, with the round hashing every file the check half
+37 crafted inputs plus the baseline, so 38 cases, with the round hashing every file the check half
 reads before and after, so a craft that reached a file is reported. The parsers are in
 `Tools/clients/parsers.py`, and the rule that reads the halves is in `Tools/clients/halves.py`
 because the check half is at the size cap, so the rules stay the readable part. -
@@ -160,7 +160,7 @@ reads the records the runs left behind as data in eleven halves, the tenth being
 reads the record files under, which is PR #78, merged here, and the eleventh the status a record
 line carries, which is PR #79, read as the status the handler the route file gives this path
 answers: the tenth half reports a file read as a client record that is not named for a client the
-matrix has a row under, and the round answers 37 cases over 19 rules, twelve crafts on those eleven
+matrix has a row under, and the round answers 38 cases over 19 rules, twelve crafts on those eleven
 halves. The run half is checked here by `bash -n` and by its nine guards, twelve read sites, six
 reading one value, three for the ports, two for the base's three halves, one for the entry guard's
 two halves, each seen to fail on the value it names: the record path, the client row, the host, the
@@ -180,8 +180,9 @@ over a real socket, read through `Bundle.module` as data rather than restated: t
 declares, which recorded call reaches a registered route and which reaches the catch-all answer, the
 two item- id forms the same client sends, the page size above the clamp against the value at the
 clamp, the token half per method, the guard the merged form answers for the call with no add and no
-remove pair, the name the dispatch switch has no case for, and the prefix this port registers no
-route for. 9 pins and 12 probes, each seen to fire on the rule it names and to revert the file it
+remove pair, the name the dispatch switch has no case for, and the half whose calls are not read as
+data, which is the prefix the port registers one route on. 9 pins and 11 probes, each seen to
+fire on the rule it names and to revert the file it
 patched byte- identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of
 the performance half, outside CI: the rule matches each number `docs/performance.md` names as
 measured here to the record line that produced it, and reports the five kinds of finding it reads: a
@@ -219,16 +220,17 @@ the pair, and what is still open is the classes no corpus input can reach.
       record is evidence outside the repository rather than data this half reads, so its halves are
       named as what the walk showed rather than as data read against a set; the add half has no call
       this client's set can be read for. Capy Reader is the client this half can walk by hand on the
-      device for the half this port registers no route for, and its set is read from the app's own
-      source at the commit its tag names, which puts its calls on the path this half registers
-      routes for, so the run half completes for it here: the column its pair guard reads has a case
-      for that path, and the record this run wrote is read as data. The walk by hand on the phone
-      showed the call the app makes first, `GET /v1/me`, answered status 404 for that path, and the
-      app refused the account on that answer, so nothing on that half was reached, and its record is
-      evidence outside the repository, which is the half the report items name. The manual half
-      stays open for the Capy Reader item this run carried no record line for, renaming a
-      subscription, and for the Capy Reader half this port registers no route for, which are named
-      per client.
+      device for the half whose calls are not read as data, and its set is read from the app's own
+      source at the commit its tag names, which puts its calls on the path the port now registers
+      one route on, so the run half completes for it here: the column its pair guard reads has a
+      case for that path, and the record this run wrote is read as data. The walk by hand on the
+      phone showed the call the app makes first, `GET /v1/me`, answered status 404 for that path,
+      and the app refused the account on that answer, so nothing on that half was reached, and its
+      record is evidence outside the repository, which is the half the report items name. The
+      manual half stays open for the Capy Reader item this run carried no record line for, renaming
+      a subscription, and for the Capy Reader half whose calls no run here left a record line for,
+      which the rule that reads the halves reads only as the prefix the port registers one route on,
+      which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.
