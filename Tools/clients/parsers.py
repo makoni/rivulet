@@ -32,6 +32,13 @@ DEFAULTS = {
                                   "GoogleReaderShape.swift"),
     "port_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes",
                                 "GoogleReaderRoutes.swift"),
+    # The two route files the rule that reads the halves needs beyond the Google Reader one: the
+    # half a set names as answered here has to be a prefix the port registers a route on, and the
+    # three files together are what the port registers.
+    "port_rest_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes",
+                                     "RestV1Routes.swift"),
+    "port_fever_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes",
+                                      "FeverRoutes.swift"),
     "port_fever": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "FeverHandlers.swift"),
     "port_auth": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "GoogleReaderAuth.swift"),
     "perf_script": os.path.join(ROOT, "Scripts", "perf.sh"),
@@ -184,22 +191,36 @@ def reference_sets(text, name):
 def port_routes(text):
     """The routes the port registers, read from the file that registers them. The login is
     registered on the application, every other route on the group the path names, so the prefix
-    is read from the line the call is on rather than assumed for the whole file. The catch-all is
-    read as the registration the file writes, `on(.GET, "**")`, not as the word in its comment,
-    which is what lets a patch that removes the branch be reported.
+    is read from the line the call is on rather than assumed for the whole file: the Google Reader
+    group is the name that file gives it, and the third file writes its prefix on the line the call
+    is on. The catch-all is read as the registration the file writes, `on(.GET, "**")`, not as the
+    word in its comment, which is what lets a patch that removes the branch be reported.
     """
     registered = set()
     for line in text.splitlines():
         match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
         if match is not None:
             parts = [part.strip().strip('"') for part in match.group(2).split(",")]
-            prefix = "/reader/api/0" if "protected." in line else ""
+            group = re.search(r'grouped\("([^"]+)"\)', line)
+            prefix = "/" + group.group(1) if group else (
+                "/reader/api/0" if "protected." in line else "")
             registered.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
             continue
         match = re.search(r"\bon\(\.(GET|POST), \"\*\*\"", line)
         if match is not None:
             registered.add(f"catch-all {match.group(1)}")
     return registered
+
+
+def fever_routes(text):
+    """The route the Fever file registers: the group the file writes, with each method the file
+    registers on it, read as the registration lines rather than as the comment that names them."""
+    out = set()
+    for line in text.splitlines():
+        match = re.search(r"on\(\.(GET|POST|HEAD)\b", line)
+        if match is not None:
+            out.add(f"{match.group(1)} /fever")
+    return out
 
 
 def route_handlers(text):
@@ -414,6 +435,8 @@ def build_matrix(paths):
         "parity": read(paths["parity"]),
         "run": read(paths["run"]),
         "port_routes": read(paths["port_routes"]),
+        "port_rest_routes": read(paths["port_rest_routes"]),
+        "port_fever_routes": read(paths["port_fever_routes"]),
         "port_fever": read(paths["port_fever"]),
         "port_auth": read(paths["port_auth"]),
         "perf_script": read(paths["perf_script"]),

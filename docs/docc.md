@@ -12,7 +12,7 @@ The halves are separated the way the deploy slice's are: `Scripts/docs.sh` is th
 `Tools/docs/collect.py` writes the document the run leaves behind, and `Tools/docs/docs_check.py` is
 the check half, reading that document as data rather than a build. The reads are in
 `Tools/docs/parsers.py` so the rule list stays the readable part, and `Tools/docs/probes.py` crafts
-at least one input per rule that violates it: 31 cases — 30 crafts plus the baseline, which is
+at least one input per rule that violates it: 32 cases — 31 crafts plus the baseline, which is
 asserted to report nothing — so each craft reports its own rule alone, with no craft reaching more
 than one rule through the patch it names, because every rule here reads the parsed form and never a
 file, and the round hashes every file the check half reads before and after. The committed
@@ -43,14 +43,16 @@ the run half, which needs the tool.
 - the_values_the_pages_state_are_the_values_the_sources_write
 - the_values_the_pages_write_are_the_values_the_example_writes
 
-Seven rules read more than one half, so they have one craft for each half: the document rule reads
+Eight rules read more than one half, so they have one craft for each half: the document rule reads
 the value its build path is compared with and the document read as the run wrote nothing; the
 catalog rule reads the directory the tool reads the catalog at and the name the table of contents
 writes for the site; the table-of-contents rule reads the list against the page files and the page
 files against the list; the stated-value rule reads the pragma, the factor, the listener and the
 integer minimums, which are four kinds of value; the reference-path rule reads an inline-code path
-and a link; the contents-table rule reads the rows against the documents and the documents against
-the rows; and the report rule reads the two lists below against what the check half has.
+and a link; the routes rule reads the routes the pages name against the registrations the three
+route files write, so it has one craft for a route a page names and one for the registration the
+third file writes; the contents-table rule reads the rows against the documents and the documents
+against the rows; and the report rule reads the two lists below against what the check half has.
 
 ## What this harness cannot show
 
@@ -81,7 +83,7 @@ page sets, the name-and-value pairs the fenced lines write, the stated values, t
 clients, the links, the repository paths, the version, the TODO lines and the path itself. The
 document is read as the run's record path, catalog path and build path, and as the tool's answer:
 the pages it wrote and the findings it printed. The sources the rules read against are the manifest,
-the dispatch, the config parser and the fetcher options, the two route files, the storage wrapper,
+the dispatch, the config parser and the fetcher options, the three route files, the storage wrapper,
 the free-space check, the committed example, the client matrix, the plan table, the root README, the
 contents table, the documents the docs directory has, the Swift sources and this document.
 

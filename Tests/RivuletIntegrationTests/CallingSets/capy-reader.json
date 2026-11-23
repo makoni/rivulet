@@ -27,8 +27,8 @@
       "api": "miniflux-rest",
       "prefix": "/v1",
       "calls_read": "not read here",
-      "answered_here": "no route here",
-      "note": "the app's own source declares this half as a second source, and the rules that read calls read the two paths this port registers, so this half is the third and nothing on it is read as data"
+      "answered_here": "served here for the path this stage registers",
+      "note": "the app's own source declares this half as a second source; the rule that reads the halves reads it as the prefix the port registers one route on, and its calls are not read as data because no run here left a record line on this path"
     }
   ],
   "sequence_kind": "the order its own call graph reaches them in, because the token is fetched on the first write that carries it and kept afterwards",

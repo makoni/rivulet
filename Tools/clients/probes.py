@@ -4,12 +4,12 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 36 crafted inputs and the baseline, so 37 cases — the performance rule
+single-firing: 19 rules, 37 crafted inputs and the baseline, so 38 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
 its two halves, because an input that violates one half of a rule still satisfies the other, the
-rule that reads the halves the sets name has one for each of its two halves, both crafted on the
-one set with a half that reaches no route here, so each reports the half its own input violates
-alone, and the rule that reads the run record has one for each of its eleven
+rule that reads the halves the sets name has one for each of its three halves, all crafted on the
+one set that names more than one half, so each reports the half its own input violates alone, and
+the rule that reads the run record has one for each of its eleven
 halves, twelve crafts in all: six on
 the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
 Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
@@ -170,15 +170,18 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # Two crafts for this rule, because its two halves cannot be shown by one input, and both are
-    # crafted on Capy Reader, the only set with a half that reaches no route here. That set names
-    # two halves now, so the shape half is crafted by naming the shape as one while the set names
-    # two, and the note half by taking the note off the half that reaches no route rather than off
-    # the half the calls are read on.
-    "the_half_that_reaches_no_route_is_read_as_shape_and_note": [
+    # Three crafts for this rule, one for each of its three halves, all crafted on Capy Reader, the
+    # only set that names more than one half. The shape half is crafted by naming the shape as one
+    # while the set names two, the note half by taking the note off the half whose calls are not
+    # read as data rather than off the half the calls are read on, and the registrations half by
+    # taking the registration line out of the third route file, which is the half that reads that
+    # file as data.
+    "the_halves_are_read_as_shape_note_and_registrations": [
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
             "uses_two_halves", False),
         lambda data: set_of(data, "Capy Reader")["halves"][1].pop("note"),
+        lambda data: data.__setitem__("port_rest_routes", data["port_rest_routes"].replace(
+            'application.grouped("v1").get("me", use:', "// the file registers nothing here")),
     ],
 
     # The recorded order is not the order the source declares.

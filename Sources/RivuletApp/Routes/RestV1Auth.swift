@@ -3,15 +3,16 @@
 
 import Foundation
 import RivuletCore
+import Vapor
 
-/// The read every request of this path runs through before it reaches a route.
+/// The read every request of this path runs through before it reaches a handler.
 ///
 /// The two halves run in the reference's order, which `RestV1AuthTests` pins: the key half first,
 /// and the basic half only when the key half read nothing. Upstream's `IsAuthenticated` guard is
 /// the answer the first half already gives, so it is not repeated here. The `WWW-Authenticate`
 /// name the reference's basic half writes before its guards is written here by the response half,
 /// and both that name's rule and the status each answer gets are pinned as pure logic by
-/// `RestV1ResponseTests`.
+/// `RestV1ResponseTests` and read again over a socket by `RestV1RouteTests`.
 struct RestV1Auth: Sendable {
     private let storage: SQLiteStorage
     private let hasher: BcryptHasher
@@ -19,6 +20,21 @@ struct RestV1Auth: Sendable {
     init(storage: SQLiteStorage, hasher: BcryptHasher) {
         self.storage = storage
         self.hasher = hasher
+    }
+
+    /// The wrapper the reference's chain puts on every route of this path: the read runs before the
+    /// handler, and the answer it gives for a request it did not authenticate is written by the
+    /// response half, which is the half that adds the names every answer of this path carries.
+    func withAuth(_ handler: @Sendable @escaping (Request, Int) async throws -> Response)
+        -> @Sendable (Request) async throws -> Response {
+        { request in
+            let headers = RestV1Headers(lines: request.headers.map { (name: $0.name, value: $0.value) })
+            switch try await authenticate(headers: headers) {
+            case .authenticated(let userID): return try await handler(request, userID)
+            case .unauthorized(let rule), .storageFailure(let rule):
+                return RestV1Response.answer(for: rule, headers: headers)
+            }
+        }
     }
 
     /// `validateAPIKeyAuth`: an empty value is not read against the storage layer at all, which is

@@ -40,6 +40,7 @@ DEFAULTS = {
     "fetcher": os.path.join(ROOT, "Sources", "RivuletCore", "Config", "FetcherOptions.swift"),
     "routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "GoogleReaderRoutes.swift"),
     "fever_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "FeverRoutes.swift"),
+    "rest_routes": os.path.join(ROOT, "Sources", "RivuletApp", "Routes", "RestV1Routes.swift"),
     "storage": os.path.join(ROOT, "Sources", "RivuletCore", "Storage", "SQLiteStorage.swift"),
     "free_space": os.path.join(ROOT, "Sources", "RivuletCore", "Storage", "FreeSpaceCheck.swift"),
     "example": os.path.join(ROOT, ".env.example"),
@@ -226,19 +227,23 @@ def routes(body):
 
 
 def registered_routes():
-    """The routes the port registers, read from the two files that register them.
+    """The routes the port registers, read from the three files that register them.
 
     The Google Reader path is registered on the group its prefix names, the Fever path on the group
-    the file writes, and the login on the application, so the prefix is read from the line the call
-    is on rather than assumed for the whole file.
+    the file writes, the Miniflux path on the group the line the call is on writes, and the login on
+    the application, so the prefix is read from the line the call is on rather than assumed for the
+    whole file.
     """
     out = set()
-    for line in text("routes").splitlines():
-        match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
-        if match:
-            parts = [one.strip().strip('"') for one in match.group(2).split(",")]
-            prefix = "/reader/api/0" if "protected." in line else ""
-            out.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
+    for name in ("routes", "rest_routes"):
+        for line in text(name).splitlines():
+            match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
+            if match:
+                parts = [one.strip().strip('"') for one in match.group(2).split(",")]
+                group = re.search(r"grouped\(\"([^\"]+)\"\)", line)
+                prefix = "/" + group.group(1) if group else (
+                    "/reader/api/0" if "protected." in line else "")
+                out.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
     for line in text("fever_routes").splitlines():
         match = re.search(r"on\(\.(GET|POST|HEAD)\b", line)
         if match:

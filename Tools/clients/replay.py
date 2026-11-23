@@ -42,8 +42,9 @@ NOT_SHOWN = [
     "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
-    "the calls of a client on the path this port registers no route for, which this half records "
-    "no calls for, because the rules that read calls read the two paths that are registered here",
+    "the calls of a client on the third path, which this half records no calls for because no run "
+    "here left a record line on it, so the half is read as the prefix the port registers one route "
+    "on and not as calls",
     "the order a client reaches its calls at, which the run record carries for the four clients "
     "whose records the check half reads as data and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
@@ -459,7 +460,8 @@ RULES = {
     "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": rule_gr_reaches_a_route,
     "the_reference_answer_names_a_route_the_reference_registers": rule_reference_answer,
     "the_fever_names_are_read_from_the_dispatch_switch": rule_fever_names_from_switch,
-    "the_half_that_reaches_no_route_is_read_as_shape_and_note": half_rule.rule_shape_and_note,
+    "the_halves_are_read_as_shape_note_and_registrations":
+        half_rule.rule_shape_note_and_registrations,
     "the_recorded_sequence_is_the_set_the_source_declares": rule_sequence,
     "the_login_record_is_first_and_the_token_precedes_every_call_that_needs_it": rule_login_first,
     "the_token_half_is_the_half_the_read_reads": rule_token_half,
