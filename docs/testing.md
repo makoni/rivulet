@@ -2091,7 +2091,6 @@ Three slices, each pinned as the rule it names.
   and the prefix the half names moved: the first fires the assertion for the registered path, the
   second fires that assertion and the one for the prefix.
 
-
 What these pins cannot show is named in their headers rather than asserted: the single-row limit of
 either read; the row two keys of one account answer, which SQL does not order; the clock fields,
 read as the shape they hold; the `timestamp with time zone` type, which this port writes as Unix
@@ -2116,11 +2115,10 @@ the round answers 38 cases over 19 rules, 37 crafts plus the baseline asserted t
 two of the three crafts being on Capy Reader, the only set that names more than one half, and the
 third on the parsed registrations. The DocC round reads the routes the pages name against the
 registrations the three files write and answers 32 cases over 21 rules, 31 crafts plus the baseline,
-and the parity round answers 22 probes. The matrix gains no row for the calls on this path, because
-the order rule compares the calls a set records with the order that set declares, and Capy Reader's
-order is the call graph for one source per account, so a Miniflux call cannot be placed in it, and
-no run here left a record line on this path. The half is read as data only as the prefix the port
-registers one route on, which is what the phone criterion for a Miniflux account stays open for.
+and the parity round answers 22 probes. The matrix gains no row for the calls on this path: the rule
+that builds the rows reads the calls a record carries, and no run here left a record line on this
+path, which is what the phone criterion for a Miniflux account stays open for. The half is read as
+data only as the prefix the port registers one route on.
 
 ## Running
 
