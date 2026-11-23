@@ -1,23 +1,93 @@
 # Stage 9 — Post-MVP backlog
 
-Not scheduled, not estimated. Pick from here after the MVP is deployed and stable.
-When an item is scheduled, split it into a proper stage plan with scope, tests and exit criteria.
+**Goal:** the whole backlog is in the first release, 0.1.0. **Status:** scheduled.
+**Depends on:** Stage 8.
 
-- **Integrations**: webhook, ntfy, Apprise, Pushover, Telegram Bot (the reference has no Gotify).
-- **Media proxy**: `MEDIA_PROXY_MODE` (default `http-only`), `MEDIA_PROXY_CUSTOM_URL`,
-  `MEDIA_PROXY_RESOURCE_TYPES`, private-key mode.
-- **XPath scraper rules**: per-feed custom extraction for broken feeds.
-- **Advanced feed discovery**: beyond the minimal `<link rel="alternate">` scan used by
-  `quickadd` (e.g., common feed paths).
-- **OPML import from URL**; scheduled OPML sync.
-- **REST v1 subset** and API keys (`X-Auth-Token`) — scheduled as stage 10, on the calls the real
-  consumer that appeared declares: [stage 10](stage-10-rest-v1.md).
-- **OIDC auth**; **multi-user** (per-user data isolation is already designed into the schema).
-- **Search improvements**: query operators, saved searches.
-- **Adaptive scheduling**: tune intervals from observed feed update frequency (an explicit
-  deviation from the reference).
-- **More Google Reader features**: shared entries (`share_code`), tags beyond star.
-- **Per-feed retention policies** (extension; the reference uses global settings only).
-- **Quoted-printable part decoding** in the multipart form read, which Go applies to a part that
-  declares `Content-Transfer-Encoding: quoted-printable` and this port does not; the rule is named
-  in `FeverMultipartRead.swift` and in `docs/parity.md`.
+## Order
+
+Group A — items that need nothing outside this machine to prove:
+
+1. Quoted-printable part decoding
+2. Media proxy
+3. Search improvements
+4. Per-feed retention policies
+5. Advanced feed discovery
+6. OPML import from URL
+7. More Google Reader features
+8. Scraper rules, as CSS selectors
+9. Adaptive scheduling
+
+Group B — items whose delivery needs something outside this machine:
+
+10. Integrations — five providers
+11. OIDC auth
+12. Multi-user
+
+## Exit criteria
+
+- [ ] Quoted-printable: a multipart part that declares the
+      `Content-Transfer-Encoding: quoted-printable` transfer encoding is decoded as Go's MIME reader
+      decodes it. Today the port has no such rule; it is named in `FeverMultipartRead.swift` and in
+      `docs/parity.md`. The rule is read as data by a probe seen to fail on it.
+- [ ] Media proxy: the four config names the reference reads — `MEDIA_PROXY_MODE` with its
+      default `http-only`, `MEDIA_PROXY_CUSTOM_URL`, `MEDIA_PROXY_RESOURCE_TYPES`, and the
+      private-key mode — are read as data, and the rewrite the reference's rewriter does is
+      pinned for the shapes it answers. What no pin can show is a fetch of a real media asset
+      from a real provider.
+- [ ] Search improvements: the query operators are read as data, and the saved-search half is a
+      schema read plus a command run.
+- [ ] Per-feed retention policies: the extension over the reference's global settings, read as
+      the pick the retention pass takes per feed. The reference has no per-feed rule, so this
+      half is the port's own and is recorded as a deviation.
+- [ ] Advanced feed discovery: the halves beyond the minimal `<link rel="alternate">` scan that
+      `quickadd` uses, read as the order the search tries, with the stub server answering the
+      paths.
+- [ ] OPML import from URL: the fetch half and the read half, pinned as the calls the run makes
+      through the fetcher seam.
+- [ ] More Google Reader features: shared entries (`share_code`) and the tags beyond star,
+      pinned as the handler branches and the storage reads they call.
+- [ ] Scraper rules: CSS selectors, as the reference applies them through goquery. The port
+      reads `scraperRules` from OPML as a field today and applies nothing; the criterion is that
+      the rules reach the parse. XPath is not what the reference has, so no new dependency is
+      needed.
+- [ ] Adaptive scheduling: the intervals tuned from the observed feed update frequency, read as
+      the decision the scheduler answers. This is an explicit deviation from the reference and is
+      recorded in `docs/parity.md`.
+- [ ] Integrations — five providers: webhook, ntfy, Apprise, Pushover, Telegram Bot. The settings
+      are the reference's `integrations` table keyed by `user_id`, with one `*_enabled` flag per
+      provider, so the parity row that says the flag is not ported closes here. The settings are
+      set by extending `integration-credentials`, which is the port's own console path for the
+      rules the reference's web form reads. Both trigger points are ported: `PushEntries` for the
+      new entries a refresh leaves, and `SendEntry` for a saved entry, which the reference reaches
+      from its web UI, its REST API, the Fever `mark` branch and the Google Reader `edit-tag` star
+      branch. Every provider goes through the port's fetcher, as every reference integration
+      client goes through `internal/http/client`, so the SSRF guard and the body cap apply. Each
+      client is pinned as the request it sends through a stub server — the method, the path, the
+      body shape, the names it writes, the secret, and the flag that decides whether the provider
+      is called at all. That a real third-party service received the entry is a report item.
+- [ ] OIDC auth: the rules the reference reads, pinned as pure logic plus the stub provider's
+      answer. A real provider round trip is a report item.
+- [ ] Multi-user: per-user data isolation, which the schema already carries, reaches the auth
+      reads and the command surface.
+
+## Release criteria
+
+- [ ] Versioned migrations start here: the framework, and the first migration read as a run.
+- [ ] The release deliverable is the tag `v0.1.0`, the static musl binary as a release asset, and
+      `CHANGELOG.md`.
+- [ ] The DocC site is not a release deliverable here: `Scripts/build-docs.sh` writes the archive,
+      and the person runs the script and publishes it outside the repository.
+- [ ] Stage 8's criterion of a fresh VPS following `docs/deploy.md` is the last step, after the
+      backlog is done.
+
+## Closed by a run outside this machine
+
+- [ ] The two open stage-7 criteria — the client acceptance matrix
+      (`docs/plan/stage-7-acceptance.md`) and the manual client matrix — are closed by the Capy
+      Reader run against the reference clone here, run as a container, walking the login, the
+      subscription list and the rename so a record line lands on `/v1`. The matrix row for that
+      call is written from the record, and the rule that reads the halves gains the half it cannot
+      read today.
+- [ ] `ServeProcessTests.theBuiltBinaryAnswersOnTheProbedPort` is left as it is: it failed once in
+      a full run with `.noServeEvent` and passes alone. Nothing is written about it until it
+      repeats.
