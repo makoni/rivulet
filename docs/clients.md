@@ -663,9 +663,10 @@ wrote, which the run's own pass wrote before the first request arrived.
 
 `Tests/RivuletIntegrationTests/ClientSequenceReplayTests` replays the recorded calls against the
 served app over a real socket, and reads the calling sets as data rather than restating them. 9 pins
-and 11 probes: the recorded order for each set, which recorded call reaches a registered route and
+and 12 probes: the recorded order for each set, which recorded call reaches a registered route and
 which reaches the catch-all answer, the two forms of the same item id the same client sends, the
-page size above the clamp against the page size below it, the token half per method, the guard the
+page size above the clamp against the page size below it, the token half per method on the half read
+here and the header half for the calls read through the tolerance table, the guard the
 merged form answers for the call with no add and no remove pair, the name the dispatch switch has no
 case for, and the half whose calls are not read as data. What no patch can show is named in the
 suite header rather than asserted: the `>50` guard, which is the client's own and fires before the

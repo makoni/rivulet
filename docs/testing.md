@@ -1608,7 +1608,8 @@ catch-all read as the registration line the file writes, the reference's route a
 the halves of a client whose half reaches no route, read as the shape the set names for its halves
 agreeing with the halves it names and as the note naming the read that half comes from, the order
 the source declares, the login being first and the token coming before every call that carries it,
-the token half per method, the stream forms as the prefix and suffix sets the branch reads, the
+the token half per method on the half read here and the header half for the calls read through the
+tolerance table, the stream forms as the prefix and suffix sets the branch reads, the
 counts table against the records it counts, the replay records against the matrix's own column, the
 performance table against the run that answered it and the shape the document names, the rule list
 and the report items against what the check half has, the response name a client acts on against the
@@ -1676,9 +1677,10 @@ the record is written, so a guard that fires leaves the committed record alone, 
 it untouched through the ports demos; the guards that read what the run wrote run at the end, and
 their demos were run in a copy of the tree, which is what kept the committed record byte-identical
 there too. The Swift half is `Tests/RivuletIntegrationTests/ClientSequenceReplayTests`: 9 pins and
-11 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
+12 probes, reading the same files through `Bundle.module` as data — the recorded order, which call
 reaches a registered route and which reaches the catch-all, the two item-id forms the same client
-sends, the page size above the clamp against the value at the clamp, the token half per method, the
+sends, the page size above the clamp against the value at the clamp, the token half per method on the
+half read here and the header half for the calls read through the tolerance table, the
 guard the merged form answers for the call with no add and no remove pair, the name the dispatch
 switch has no case for, and the half whose calls are not read as data, which is the prefix the port
 registers one route on. Each probe was seen to fire on the rule it names; the pin for this half
