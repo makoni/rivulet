@@ -307,7 +307,8 @@ name, the reference's wording for a storage failure this suite cannot trigger, t
 the compression threshold, the 28 fields the schema has no column for, and the 404 the handler
 answers for a row its own read does not find. The route registration, the row the read hands the
 handler, the pattern keeping the method it names, and the answer the router gives for a path no
-pattern registers are the third slice, pinned over a real socket as 8 pins and 13 probes in
+pattern registers are the third slice, merged as PR #88, pinned over a real socket as 8 pins and 13
+probes in
 `RestV1RouteTests`, with the stage-7 pin for this prefix rewritten to read the route the port
 registers, which is 9 pins and 11 probes in `ClientSequenceReplayTests`. The client check half
 reads the third route file as data through the rule that reads the halves, as the half that reads
