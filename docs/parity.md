@@ -1439,20 +1439,20 @@ reads, so all four stay whole on their own line.
 | parsed_title | Google Reader subscription path — The title inside the request | accepted | request/subscription_quickadd |
 | login_half | Google Reader auth path — The row the login read runs on | accepted | not reachable here |
 | empty_lists | Fever path — An empty list on the two documents | accepted | not reachable here |
+| rest_v1_route_answer | REST v1 routes — The answer for a path this port registers no route for | accepted | not reachable here |
 
-The eight rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
+The nine rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
 are read inside the sanitizer and never written out, the bracketed host answers a fetch decision
 rather than a stored value, the media proxy is run as `none` on the reference side so the stored
 bytes are comparable, the wording of a rule the port names is not compared at all, and the two scan
 classes are read only from an HTML document, which the corpus has none of: every corpus file is a
 feed document, answered by the format check before the scan reads a `link`; the login row names
 which path wrote the value the login read compares, which no pair document states; and the
-empty-list
-class belongs to a path the run sends no request to, because its sequence is the shapes the manifest
-records. They are named
-here rather than asserted, and the run guard that declares the proxy mode is what makes the third
-half of that list hold. `none` is the value the reference's own validator accepts, alongside
-`http-only` and `all`; the harness runs `none`, which is not the reference's default.
+empty-list and the REST v1 rows belong to paths the corpus sends no request to, because its sequence
+is the shapes the manifest records. They are named here rather than asserted, and the run guard that
+declares the proxy mode is what makes the third half of that list hold. `none` is the value the
+reference's own validator accepts, alongside `http-only` and `all`; the harness runs `none`, which
+is not the reference's default.
 
 The one row this path adds that a shape can reach is the title inside the request, and it is
 reached as the key set the quickadd answer carries: the reference writes `streamName` with the
@@ -1640,11 +1640,12 @@ answers.
 
 - The other 28 are fields no rule here reads as data: the tolerance table names no row for them and
 the client matrix names no class for the account document, so the harness reads nothing here and
-they are recorded as prose. The third path is read as data by the rule that reads the halves, as
-the prefix this port registers one route on. A row for these fields is what the harness would read
-as data, and it comes with a run on the phone that leaves a record line on this path.
+they are recorded as prose. The third path is read as data by the rule that reads the halves, as the
+prefix this port registers one route on, and by the rule that reads the run record through the row
+this run added for the answer. A row for these fields is what the harness would read as data, and it
+comes with a run on the phone that leaves a record line for the account document.
 
-- The answer for a path this port registers no route for, which is where the walk on the phone
+- The answer for a path this port registers no route for, which is where the first walk on the phone
 ended: the reference runs its auth chain before its mux, so an unauthenticated request for such a
 path answers the guard's 401, and a request that passed the guards answers the mux's 404 as text.
 This port answers Vapor's router answer before any read runs, and runs here showed that answer as

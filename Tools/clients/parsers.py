@@ -188,6 +188,86 @@ def reference_sets(text, name):
     return routes, dispatch
 
 
+# The word the set names for the half whose calls are read through the tolerance table, and the word
+# it names for the side the run answered on. The run half reads the same words for the target it
+# declares, so the target and the half agree on one name.
+TOLERANCE_READ = "read here through the tolerance table"
+REFERENCE_SIDE = "the reference"
+PORT_SIDE = "this port"
+
+
+def run_target(client, paths=DEFAULTS):
+    """The side the set names for the half the run answered on, which is the value the run half
+    declares for its target. A half that names no side is answered on this port, which is the side
+    every run here but one answered on, so the run half reads the target as the name the set writes
+    for the client it names."""
+    halves = set_for(client, paths)["halves"]
+    return next((half["run_answered_on"] for half in halves if half.get("run_answered_on")),
+                PORT_SIDE)
+
+
+def call_for(client, method, path, paths=DEFAULTS):
+    """The call the set names for the path the client sent to. On the half whose calls are read
+    through the tolerance table the set names the call as the pattern the other side registers,
+    which carries the method, so the segment the pattern writes as a placeholder is read as any
+    value the client sent, and the record names the pattern rather than the concrete id the app put
+    in the path.
+    """
+    for call in set_for(client, paths)["calls"]:
+        if half_for(client, call["key"])["calls_read"] != TOLERANCE_READ:
+            continue
+        pattern = call["key"].split(" ", 1)[1].strip("/").split("/")
+        sent = path.split("?")[0].strip("/").split("/")
+        if len(pattern) != len(sent) or call["method"] != method:
+            continue
+        if all(part.startswith("{") or part == value for part, value in zip(pattern, sent)):
+            return call["key"]
+    return path.split("?")[0].strip("/")
+
+
+def reference_statuses(text, name):
+    """The status each route on one path answers, read from the table the note writes for it: the
+    route is the backticked pair the row writes, and the status is the number the row writes beside
+    it. The rule that reads the run record reads a status answer on the half whose calls are read
+    through the tolerance table against this, because the run answered on the side the table names
+    the answer for.
+    """
+    out = {}
+    for row in table(section(text, name)):
+        match = re.search(r"`([A-Z]+) +(/[^`]*)`", row.get("Route", ""))
+        if match is None:
+            continue
+        out[match.group(1) + " " + match.group(2)] = int(row.get("Answer", ""))
+    return out
+
+
+def half_for(client, call):
+    """The half a record line is read on: the half whose prefix the call name carries, or the first
+    half for a call the reference registers on the application rather than on the group the prefix
+    names, which is the login. On the half whose calls are read through the tolerance table the call
+    name is the pattern the reference registers, which carries the method, so the prefix is read as
+    the part of the name rather than as its head.
+    """
+    halves = set_for(client)["halves"]
+    for half in halves:
+        if half["prefix"].strip("/") in call:
+            return half
+    return halves[0]
+
+
+def guard_answer(text, name):
+    """The answer the guard gives for a request that did not pass the chain, read from the sentence
+    the note writes for one path: the number the sentence names beside the word `guard's`. The run
+    record reads a status answer on a half whose run answered on the other side against this,
+    because the other side runs its chain before its mux, so the number is what the sentence
+    writes and a patch that changes the sentence changes what the read takes. The sentence is read
+    as the whole block the document writes for it, because it is wrapped at the width the file is
+    written at.
+    """
+    match = re.search(r"the guard's (\d{3})", " ".join(line.strip() for line in section(text, name)))
+    return int(match.group(1)) if match else None
+
+
 def port_routes(text):
     """The routes the port registers, read from the file that registers them. The login is
     registered on the application, every other route on the group the path names, so the prefix

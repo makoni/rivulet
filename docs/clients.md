@@ -19,11 +19,10 @@ the numbers, at its own path, and not as a record for a client the matrix has a 
 run, Reeder Classic on the phone, walked the Fever half here, and its record is held as evidence
 outside the repository rather than read here, because the set for that client records no calls, so
 the rule reads a record file for it as a finding. The manual matrix exit criterion of
-`docs/plan/stage-7-acceptance.md` is closed for the four whose records are read as data, for the
-halves the walk on Reeder Classic showed, and for every Capy Reader item this run reached; it stays
-open for the Capy Reader item the record carries no line for, renaming a subscription, and for the
-Capy Reader half whose calls no run here left a line for, which the rule that reads the halves reads
-only as the prefix the port registers one route on. The single-client criterion of
+`docs/plan/stage-7-acceptance.md` is closed for the three clients whose records the check half reads
+as data and for the halves the walk on Reeder Classic showed, and is open again for Capy Reader: its
+record carries lines for seven of the 36 calls its set names, and the calls the earlier walk showed
+on the Google Reader half are no longer data. The single-client criterion of
 `docs/plan/stage-5-apis.md`, which names one real client rather than a client by name, is closed:
 the Fever run shows the halves its set has, that a client connects and syncs, and the Google Reader
 run shows the half that set has no call for, the call that adds a feed. FeedFlow was run on a phone
@@ -41,31 +40,35 @@ written for the sets they name: the shape the performance paragraph declares, an
 endpoints in `docs/reference-notes.md` that the output-check class is read against.
 `Tools/clients/probes.py` is the probe half: it crafts one input per rule that violates it and
 asserts that the rule reports it alone; the baseline reports nothing, so each probe is single-
-firing — 19 rules, 37 crafted inputs and the baseline, so 38 cases: the performance rule has one for
-each of the five kinds of finding it reads, the route rule has one for each of its two halves,
+firing — 19 rules, 40 crafted inputs and the baseline, so 41 cases: the performance rule has one for
+each of the five kinds of finding it reads, the route rule has one for each of its three halves,
 because an input that violates one of them still satisfies the other, the rule that reads the halves
-the sets name has one for each of its three halves, two crafted on the one set that names more than
-one half and one on the parsed registrations for the third route file, so each reports the half its
-own input violates alone, and the rule that reads the run
-record has one for each of its eleven halves, which is twelve crafts: six on the record the Fever
-run wrote here, one on the paragraph naming its calls, one on the record the Google Reader run on
-the phone wrote here, the order half crafted again on the record the run on the Mac wrote, one on a
-record this machine has not written, for a client whose set records no calls, one on the names the
+the sets name has one for each of its four halves that can be shown alone, three crafted on the one
+set that names more than one half, and the half that reads the third route file as data has no craft
+of its own, because that file registers one route and the matrix has a row naming it as its answer,
+so a patch that took the registration out fires the route rule as well, and the rule that reads the
+run record has one for each of its twelve halves, which is fourteen crafts: six on the record the
+Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader run
+on the phone wrote here, the order half crafted again on the record the run on the Mac wrote, one on
+a record this machine has not written, for a client whose set records no calls, one on the names the
 round reads the record files under, which is the half that keeps the performance record, read by its
 own rule at its own path, out of the client records; the craft adds a name the round does not read a
 client under, so what the round shows is the message on that name, not that the read leaves the
-other files out; and one on the status a record line carries, which writes a status the handler for
-that path has no branch for. The order half reads a paragraph only when the document writes it in
-the form the half names, so the craft on the Mac record works because the paragraph for that client
-names the client, as the other two do; the form itself is the second half named in
+other files out; one on the status a record line carries, which writes a status the handler for that
+path has no branch for; and two on the answer a line carries on the half read through the tolerance
+table, one moving the answer off both sides and one moving the number the note's sentence names for
+the answer the chain gives before the mux. The order half reads a paragraph only when the document
+writes it in the form the half names, so the craft on the Mac record works because the paragraph for
+that client names the client, as the other two do; the form itself is the second half named in
 `Tools/clients/run_record.py` rather than probed, because a craft that took the client name out of
-the paragraph leaves this half reading nothing. One of the twelve crafts reaches two parts of the
+the paragraph leaves this half reading nothing. One of the fourteen crafts reaches two parts of the
 data at once, the record line and the paragraph that names the calls this run showed, because the
 half reads the record against the paragraph and the Fever run reached no call outside the recorded
-set. Two crafts have to name data this rule cannot read, which is why the redaction craft is on a
-set for a client this machine has not run and the first craft of the route rule is on a row no
-record line reaches: a change to data this rule also reads fires it alongside the rule the craft
-names, which is what the round showed here after the third record landed.
+set. Three crafts have to name data another rule cannot read, which is why the redaction craft is on
+a set for a client this machine has not run and the first craft of the route rule is on a row no
+record line reaches, and its third craft is on a row whose record line the answer half skips because
+the run answered on the other side: a change to data this rule also reads fires it alongside the
+rule the craft names, which is what the round showed here after the third record landed.
 
 The width rule does not reach a table row, a manifest record line, a report item line or a
 whole-string value inside a JSON record, each of which is read as one whole string. The record
@@ -89,16 +92,20 @@ saw it: the name the dispatch case answered on when the port wrote a document of
 status when it wrote something else. The shape answer is read against the matrix row; the status is
 read against the handler the route file gives the path, through the shapes its own branches write
 and the status each shape writes, so a record line carrying a status this handler has no branch for
-is a finding. The half reads only the paths it can name a handler for: a row whose answer is the
-catch-all or a dispatch case has no handler, and the login route writes no handler call, so those
-paths read nothing here. A shape that writes no error status, `text` or `json`, has no pair in the
-pin, so it adds nothing to the statuses a handler answers, and a record line carrying `status 200`
-is read as a finding because no pair names the status the text shape writes. The record carries no
-value, so the credential pair appears as the name the redaction names for it. The name the half
-allows for the token is one of two, and the sets name different ones: the documentation-read set
-names `api_key` for Reeder Classic, and of the four run records three name `T` and one names
-`api_key`, the Fever run. Which name an app sends is not read here for the documentation-read
-client, because no call is recorded for it.
+is a finding. On the half whose calls are read through the tolerance table the run answered on the
+other side, so those two halves read nothing for its lines and the answer is read as the pattern the
+other side registers for the path, which is the name the set has for the call, and a status line is
+read as the number the note's sentence names for the answer the chain gives before the mux. The half
+reads only the paths it can name a handler for: a row whose answer is the catch-all or a dispatch
+case has no handler, and the login route writes no handler call, so those paths read nothing here. A
+shape that writes no error status, `text` or `json`, has no pair in the pin, so it adds nothing to
+the statuses a handler answers, and a record line carrying `status 200` is read as a finding because
+no pair names the status the text shape writes. The record carries no value, so the credential pair
+appears as the name the redaction names for it. The name the half allows for the token is one of
+two, and the sets name different ones: the documentation-read set names `api_key` for Reeder
+Classic, and of the four run records three name `T` and one names `api_key`, the Fever run. Which
+name an app sends is not read here for the documentation-read client, because no call is recorded
+for it.
 
 The order is read as the order column, not as the position of the line, because the line is written
 when the response is complete and the client had more than one connection open at once, which the
@@ -122,27 +129,29 @@ default base the run builds did before the read followed that form, so the defau
 port alone for those clients and the prefix for the client that sends the base as the whole prefix;
 for NetNewsWire this half was seen red on the head before its set named the form, on the base its
 own source needs, which carries only host and port because every call appends the endpoint path to
-the base it is given;
-the version, by a version the file the run reads does not write, which is the half that only exists
-on this machine; the pair row, by an empty name the command's rule refuses before the storage layer,
-seen on both paths through the column each one names; the entry rows, by the value 2 against the one
-row the pass wrote, and by a url the run wrote no row for; and the record being empty, by an empty
-record. The nine guards are twelve read sites, one failure message each: six of them read one value,
-the ports item reads three, the base reads three halves at two sites, and the entry guard reads two
-halves at one site. The usage block names thirteen of the fourteen halves the guards read, one line
-each; the half it cannot name is the observer port the machine already holds, which is seen by
-holding the port with a listener, while the served-port half has a line. The three guards that read
-what the run itself wrote — the pair row, the entry rows, and the record being empty — fail only on
-a run, and the guards that read the machine fail only on a machine. The guards that read a value the
-run declares run before the record is written, so a guard that fires leaves the committed record
-alone, which is what kept it byte-identical through the ports demos; the guards that read what the
-run wrote run at the end, and their demos were run in a copy of the tree, which is what kept the
-committed record byte-identical there too. A stand-in client, not one of the five the matrix names,
-was sent to the observer in that copy to show that these halves read a record a run wrote rather
-than a record the round crafts: writing its record in the copy's record directory, the rule read it
-for the client its lines named and reported nothing where the stand-in agreed with the path and the
-names it reads, and reported the answers it did not agree with. The check half then reads the record
-the run wrote, not the processes.
+the base it is given; the version, by a version the file the run reads does not write, which is the
+half that only exists on this machine; the pair row, by an empty name the command's rule refuses
+before the storage layer, seen on both paths through the column each one names; the entry rows, by
+the value 2 against the one row the pass wrote, and by a url the run wrote no row for; and the
+record being empty, by an empty record. The target is read against the side the set names for the
+half the run answered on, which is the half that decides which side writes the answer for a record
+line, and it was seen to fail on a name the set does not write for Capy Reader, whose set names the
+reference for that half. The ten guards are thirteen read sites, one failure message each: seven of
+them read one value, the ports item reads three, the base reads three halves at two sites, and the
+entry guard reads two halves at one site. The usage block names fourteen of the fifteen halves the
+guards read, one line each; the half it cannot name is the observer port the machine already holds,
+which is seen by holding the port with a listener, while the served-port half has a line. The three
+guards that read what the run itself wrote — the pair row, the entry rows, and the record being
+empty — fail only on a run, and the guards that read the machine fail only on a machine. The guards
+that read a value the run declares run before the record is written, so a guard that fires leaves
+the committed record alone, which is what kept it byte-identical through the ports demos; the guards
+that read what the run wrote run at the end, and their demos were run in a copy of the tree, which
+is what kept the committed record byte-identical there too. A stand-in client, not one of the five
+the matrix names, was sent to the observer in that copy to show that these halves read a record a
+run wrote rather than a record the round crafts: writing its record in the copy's record directory,
+the rule read it for the client its lines named and reported nothing where the stand-in agreed with
+the path and the names it reads, and reported the answers it did not agree with. The check half then
+reads the record the run wrote, not the processes.
 
 The host guard is what the second run reads the machine for: the client was a phone on the local
 network, so the run declared the address the machine's own default route selects rather than
@@ -176,7 +185,7 @@ seeds, and the seed that pin writes is a command that fetches nothing.
 - `matrix_names_every_call_and_the_classes_agree_with_the_manifest`
 - `matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row`
 - `the_output_check_class_names_an_endpoint_the_reference_applies_the_check_on`
-- `a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all`
+- `a_call_reaches_an_answer_the_port_registers_the_catch_all_or_the_router_answer`
 - `the_reference_answer_names_a_route_the_reference_registers`
 - `the_fever_names_are_read_from_the_dispatch_switch`
 - `the_halves_are_read_as_shape_note_and_registrations`
@@ -222,6 +231,7 @@ this document names, and that rule reports what the data says rather than what t
 | closed_source | client matrix | matrix rule |
 | page_size | client matrix | matrix rule |
 | empty_lists | docs/parity.md | accepted |
+| rest_v1_route_answer | docs/parity.md | accepted |
 
 ## The matrix
 
@@ -274,6 +284,31 @@ this document names, and that rule reports what the data says rather than what t
 | Capy Reader | reader/api/0/disable-tag | POST | POST /reader/api/0/disable-tag | POST /reader/api/0/disable-tag | yes | stream_forms |
 | Capy Reader | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | POST /reader/api/0/subscription/quickadd | yes | minimal_scan |
 | Capy Reader | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit | POST /reader/api/0/subscription/edit | yes | none |
+| Capy Reader | GET /v1/feeds | GET | GET /v1/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds/{feedID} | GET | GET /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | POST /v1/feeds | POST | POST /v1/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID} | PUT | PUT /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | DELETE /v1/feeds/{feedID} | DELETE | DELETE /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds/{feedID}/icon | GET | GET /v1/feeds/{feedID}/icon | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID}/refresh | PUT | PUT /v1/feeds/{feedID}/refresh | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID}/mark-all-as-read | PUT | PUT /v1/feeds/{feedID}/mark-all-as-read | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/entries | GET | GET /v1/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds/{feedID}/entries | GET | GET /v1/feeds/{feedID}/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/entries/{entryID} | GET | GET /v1/entries/{entryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/entries | PUT | PUT /v1/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/entries/{entryID}/bookmark | PUT | PUT /v1/entries/{entryID}/bookmark | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | POST /v1/entries/{entryID}/save | POST | POST /v1/entries/{entryID}/save | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/integrations/status | GET | GET /v1/integrations/status | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories | GET | GET /v1/categories | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories/{categoryID} | GET | not read here | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | POST /v1/categories | POST | POST /v1/categories | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/categories/{categoryID} | PUT | PUT /v1/categories/{categoryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | DELETE /v1/categories/{categoryID} | DELETE | DELETE /v1/categories/{categoryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories/{categoryID}/feeds | GET | GET /v1/categories/{categoryID}/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories/{categoryID}/entries | GET | GET /v1/categories/{categoryID}/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | PUT /v1/categories/{categoryID}/mark-all-as-read | PUT | PUT /v1/categories/{categoryID}/mark-all-as-read | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/icons/{iconID} | GET | GET /v1/icons/{iconID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/me | GET | GET /v1/me | GET /v1/me | yes | none |
 | Reeder Classic | no-call-recorded | — | not read here | no route here | no: no call recorded for a closed-source client | closed_source |
 
 ## The counts the matrix reports
@@ -283,9 +318,9 @@ this document names, and that rule reports what the data says rather than what t
 | NetNewsWire | 11 | 11 | 0 | 11 |
 | FeedFlow | 11 | 10 | 1 | 11 |
 | NewsFlash | 14 | 12 | 2 | 13 |
-| Capy Reader | 11 | 11 | 0 | 11 |
+| Capy Reader | 36 | 35 | 0 | 12 |
 | Reeder Classic | 0 | 0 | 0 | 0 |
-| all clients | 47 | 44 | 3 | 46 |
+| all clients | 72 | 68 | 3 | 47 |
 
 ## What this matrix cannot show
 
@@ -295,7 +330,8 @@ from the width rule.
 - the manual checklist as a document, which no rule reads as data: the check half reads the record lines for the four clients whose records it reads as data and the calling set for the one read from documentation, and it reads none of the steps a checklist names
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
 - the calling set of a client whose source cannot be read, which is named per client as read from its documentation
-- the calls of a client on the third path, which this half records no calls for because no run here left a record line on it, so the half is read as the prefix the port registers one route on and not as calls
+- the key names a record line carries on the half read through the tolerance table, which are the names the model struct on the other side declares and which this half has no file to read
+- the registration the third route file writes, which no craft can take away alone because the matrix has a row that names it as its answer, so the half that reads that file as data is shown by the route rule and not by a craft of its own
 - the order a client reaches its calls at, which the run record carries for the four clients whose records the check half reads as data and the source declares for the others
 - the values the calls carry, which are redacted, so no row can show a value
 - the app-level choice of which calls a library-based client makes, which is read at the library boundary for the client whose set is read from documentation
@@ -476,75 +512,91 @@ passes, which is the document the rule reads as data.
 ### Capy Reader — Google Reader API, with Miniflux as a second source
 
 Read from `readerclient/src/main/java/com/jocmp/readerclient/GoogleReader.kt` at
-`d936956c114b58053c8cdd058fa0efe5aa403eb0`, the commit the tag `2026.11.1217` names: 11 calls, and
-the two endpoints the reference registers that this client's source does not send are `user-info`
-and `mark-all-as-read`. The call the run here carried no line for is `subscription/edit`.
+`d936956c114b58053c8cdd058fa0efe5aa403eb0`, the commit the tag `2026.11.1217` names: 11 calls on the
+Google Reader half, and 25 calls read from
+`minifluxclient/src/main/java/com/jocmp/minifluxclient/Miniflux.kt` on the half read through the
+tolerance table, so the set records 36 calls. The two endpoints the reference registers that this
+client's source does not send are `user-info` and `mark-all-as-read`.
 
 The set names two halves: the Google Reader half its calls are read on, and the Miniflux half, the
 prefix this port registers one route on. The shape the set names for its halves is two, which is
-what the rule that reads the halves compares, and the note on the half whose calls are not read as
-data names the read it comes from: the rule reads that half as the prefix the port registers a route
-on, and its calls are not read as data because no run here left a record line on this path.
+what the rule that reads the halves compares, and the note on the half read through the tolerance
+table names the table it reads them through. The side the run answered on is read as data for that
+half, and the set names it as the reference, which is the side the table reads the difference on;
+the half names the section of the note the read takes the chain's answer from, and the Google Reader
+half names its own section for the same read.
+
+The order the set names is the order its own call graph reaches the calls in for the half read on
+this path, and the order the source declares them in for the half read through the tolerance table,
+because the app declares that half as an interface and its call graph reaches those calls per
+feature. The rule that reads the order reads a kind it names exactly, so this set's order is read as
+data only through the calls covering it.
 
 Two things the app's own source shows are read as data. `Source.READER` keeps the base as the url as
 typed with a trailing slash, so the app appends `reader/api/0/` itself, which is the form the set
 names and the form the base guard reads the base against, so the base the run builds for this client
 carries only host and port. And the token is fetched by the wrapper on the first write that carries
 it and kept afterwards, and refetched when the answer carries the bad-token name, which is why the
-set names the order as the order its own call graph reaches them in rather than as the file order:
+set names the order as the order its own call graph reaches them in for the half read on this path:
 the login is first, and the token call comes after the reads that use the login's answer, so it is
 not first. The app writes the header on every request through its own interceptor and the `T` pair
-on the writes, so the set names the header half for the reads and the form half for the writes,
-which is the half the read takes per method; the login carries no `T` pair, so its auth half is
-none, although the header goes on that request too. `n` is `10_000`, above the clamp. The item ids
-are the padded form on both calls that carry them, because the app writes an id with `%016x`, so
-this client has no unpadded form to report. Three of the seven POST declarations carry `output` as a
-URL query pair — the item-content read, the state write and the add — which is the side the merged
-read takes it from, the other names being body fields. The login reads `output` through its own read
-and answers the text shape for a value that is not `json`, which is what this client sends: nothing.
-The reference applies the output check on four endpoints, one of them a POST, so the three POST
-write paths that carry no `output` reach no output read at all and write the text shape whatever is
-sent.
+on the writes, so the set names the header half for the reads and the form half for the writes on
+the Google Reader half, which is the half the read takes per method; on the half read through the
+tolerance table the chain reads the credential as basic auth, so the set names the header half for
+every method there. The login carries no `T` pair, so its auth half is none, although the header
+goes on that request too. `n` is `10_000`, above the clamp. The item ids are the padded form on both
+calls that carry them, because the app writes an id with `%016x`, so this client has no unpadded
+form to report. Three of the seven POST declarations carry `output` as a URL query pair — the
+item-content read, the state write and the add — which is the side the merged read takes it from,
+the other names being body fields. The login reads `output` through its own read and answers the
+text shape for a value that is not `json`, which is what this client sends: nothing. The reference
+applies the output check on four endpoints, one of them a POST, so the three POST write paths that
+carry no `output` reach no output read at all and write the text shape whatever is sent.
 
-The earlier walk by hand could not pass that guard, because the set named the third path, for which
-the guard has no case; the record that walk left is evidence outside the repository, as Reeder
-Classic's is. What it showed was the first call that walk made, `GET /v1/me`, on the half that
-answered the router's answer at the time of the walk, which the app read as the credential check
-failing, so no call of the checklist was reached on that path. The pin for this half reads the two
-answers the port gives now: the read's answer for the path the pattern registers, and the router's
-answer for a path on the same prefix with no pattern.
+The committed record for this client is the document the walk on the phone left, not a re-derivation
+of an earlier one: the read that names a call on the half read through the tolerance table changed,
+so the lines the earlier walk left cannot be read as the set names them, and that walk is held as
+evidence outside the repository, as Reeder Classic's is. The pin for the half read through the
+tolerance table reads the two answers the port gives: the read's answer for the path the pattern
+registers, and the router's answer for a path on the same prefix with no pattern.
 
 Manual checklist, walked here by the run on the phone: log in; list the subscriptions; list the
 tags; read a page of item ids and their contents; add a feed from the client; mark one item read;
-star one item; rename a folder; delete a folder; rename a subscription. The walk reached every call
-its set names except `subscription/edit`: the app renames a subscription through that call, and what
-the walk renamed was a folder, which is the `rename-tag` call, so that item stays open.
+star one item; rename a folder; delete a folder; rename a subscription. This run showed four of
+them: the sync pass, the star write, the mark-read the app kept in its own state and flushed on the
+next pass, and the folder rename. The other items were not walked on this run, so the criterion
+stays open for them, and the record carries no line for the login either, because the app already
+held the account when the run started.
 
 The calls this run showed for Capy Reader, in the order the record says they arrived:
-`accounts/ClientLogin`, `reader/api/0/subscription/list`, `reader/api/0/tag/list`,
-`reader/api/0/stream/items/ids`, `reader/api/0/token`, `reader/api/0/subscription/quickadd`,
-`reader/api/0/stream/items/contents`, `reader/api/0/edit-tag`, `reader/api/0/rename-tag`,
-`reader/api/0/disable-tag`.
+`GET /v1/integrations/status`, `GET /v1/feeds`, `GET /v1/entries`,
+`PUT /v1/entries/{entryID}/bookmark`, `PUT /v1/entries`, `reader/api/0/token`,
+`reader/api/0/rename-tag`.
 
-The record carries 25 lines for this run: the login, four subscription lists, three tag lists, nine
-stream pages, the token, one add, one item-content read, three state writes, one folder rename and
-one folder delete. The three state writes read as the two branches of the same read: two carried the
-add name and one the remove name, and the record carries names rather than values, so which state
-item each carried is the half no line can show. The rename line names `s` and `dest`; the source
-declares both as the label form, so both reach the read's stream branch, and the write takes `dest`
-as the name that branch gives after the prefix is trimmed. No line can show what either value was,
-the record carrying names. The folder delete answered the status the handler gives for the rule that
-keeps at least one category, which is the answer the reference gives for that rule as well, so this
-line is not a divergence: the write-handler pin asserts the storage rule and its wording over a
-socket, and the record carries the status as the handler answers it.
+The record carries 27 lines for this run: four sync passes, each answering the integrations read,
+the feeds list and three entry reads; two star writes, each reaching the bookmark write at once; one
+flush of the mark-read the app had kept in its own state, which reached the entries write; and the
+folder rename, which sent the token read and the rename write twice and answered the guard's 401 on
+both, because the app carries the stored value as the token name on the Google Reader half, which is
+not the credential the chain there reads. The rename is the only call of this run that reached the
+Google Reader half.
+
+The answer for a line on the half read through the tolerance table is the pattern the reference
+registers for the path, which is the name the set has for the call, so the record names the pattern
+rather than the concrete id the app sent: the star write is `PUT /v1/entries/{entryID}/bookmark`,
+not the row number. The key names those lines carry are the names the model struct on the other side
+declares, which this half has no file to read, so no rule here reads them.
+
+The app renames a subscription through `subscription/edit`, and this run sent no request for it, so
+the item stays open and the record carries no line for that call.
 
 For this client the pins read the set as data and send no request as the client does: the order pin
 reads the order its own call graph names, the token pin reads the auth half for every call every set
 records, and the prefix pin reads the two halves, the control read on a path of the half this port
 serves being what shows the 404 belongs to the prefix. So the classes on this client's rows are read
 by the comparator as names against the manifest, which is what the report items name, and the
-`Replayed here: yes` on the row for `subscription/edit` is that pin reading the set, not a line the
-run wrote: the record carries no line for that call.
+`Replayed here: yes` on the row for `GET /v1/me` is the route pin reading the pattern the port
+registers, not a line the run wrote: the record carries no line for that call.
 
 ### Reeder Classic — Fever API
 

@@ -842,6 +842,78 @@ Semantics:
   has no pattern for, both after the auth chain has run, so an unauthenticated request for one of
   those paths answers the guard's 401 first.
 
+## REST v1 routes (`internal/api/api.go`, commit `c4d54f87`)
+
+The reference registers 51 patterns on this prefix, one per path with the method written on it. The
+answer each pattern writes is the status the handler calls the builder with, read from the last
+`response` call the handler makes: the builder's own default is 200, `NoContent` writes 204,
+`JSONCreated` 201, `JSONAccepted` 202. The table is read as data by the client matrix, which reads a
+record line on this half against the answer the pattern named for the path answers.
+
+| Route | Answer |
+| --- | --- |
+| `POST /v1/users` | 201 |
+| `GET /v1/users` | 200 |
+| `GET /v1/users/{identifier}` | 200 |
+| `PUT /v1/users/{userID}` | 201 |
+| `DELETE /v1/users/{userID}` | 204 |
+| `PUT /v1/users/{userID}/mark-all-as-read` | 204 |
+| `GET /v1/me` | 200 |
+| `POST /v1/categories` | 201 |
+| `GET /v1/categories` | 200 |
+| `PUT /v1/categories/{categoryID}` | 201 |
+| `DELETE /v1/categories/{categoryID}` | 204 |
+| `PUT /v1/categories/{categoryID}/mark-all-as-read` | 204 |
+| `GET /v1/categories/{categoryID}/feeds` | 200 |
+| `PUT /v1/categories/{categoryID}/refresh` | 204 |
+| `GET /v1/categories/{categoryID}/entries` | 200 |
+| `GET /v1/categories/{categoryID}/entries/{entryID}` | 200 |
+| `POST /v1/discover` | 200 |
+| `POST /v1/feeds` | 201 |
+| `GET /v1/feeds` | 200 |
+| `GET /v1/feeds/counters` | 200 |
+| `PUT /v1/feeds/refresh` | 204 |
+| `PUT /v1/feeds/{feedID}/refresh` | 204 |
+| `GET /v1/feeds/{feedID}` | 200 |
+| `PUT /v1/feeds/{feedID}` | 201 |
+| `DELETE /v1/feeds/{feedID}` | 204 |
+| `GET /v1/feeds/{feedID}/icon` | 200 |
+| `PUT /v1/feeds/{feedID}/mark-all-as-read` | 204 |
+| `GET /v1/export` | 200 |
+| `POST /v1/import` | 201 |
+| `GET /v1/feeds/{feedID}/entries` | 200 |
+| `POST /v1/feeds/{feedID}/entries/import` | 200 |
+| `GET /v1/feeds/{feedID}/entries/{entryID}` | 200 |
+| `GET /v1/entries/ids` | 200 |
+| `GET /v1/entries` | 200 |
+| `PUT /v1/entries` | 204 |
+| `GET /v1/entries/{entryID}` | 200 |
+| `PUT /v1/entries/{entryID}` | 201 |
+| `PUT /v1/entries/{entryID}/bookmark` | 204 |
+| `PUT /v1/entries/{entryID}/star` | 204 |
+| `POST /v1/entries/{entryID}/save` | 202 |
+| `GET /v1/entries/{entryID}/fetch-content` | 200 |
+| `PUT /v1/flush-history` | 202 |
+| `DELETE /v1/flush-history` | 202 |
+| `GET /v1/icons/{iconID}` | 200 |
+| `GET /v1/enclosures/{enclosureID}` | 200 |
+| `PUT /v1/enclosures/{enclosureID}` | 204 |
+| `GET /v1/integrations/status` | 200 |
+| `GET /v1/version` | 200 |
+| `POST /v1/api-keys` | 201 |
+| `GET /v1/api-keys` | 200 |
+| `DELETE /v1/api-keys/{apiKeyID}` | 204 |
+
+- `PUT /v1/flush-history` and `DELETE /v1/flush-history` share one handler, which answers
+  `JSONAccepted`, so both methods answer 202.
+- The chain runs before the mux, so an unauthenticated request for a path on this half answers the
+  guard's 401, which is what the rule that reads the run record reads a status line on this half
+  against when the run answered on the reference.
+- The document each route writes is the model struct the handler passes to the builder. The key
+  names a record line carries on this half are the names that struct declares, which no rule here
+  reads as data: the client matrix reads the record's key names against the names this port's shape
+  file writes, and this port has a shape file only for the Google Reader path.
+
 ## OPML (`internal/reader/opml`, commit `c4d54f87`)
 
 - The value layer the reference reads into (`opmlDocument`, `opmlOutline` and its `UnmarshalXML`)

@@ -39,6 +39,7 @@ Classes the run read:
 - parsed_title: accepted
 - login_half: accepted
 - empty_lists: accepted
+- rest_v1_route_answer: accepted
 
 What the run cannot show:
 - that the run ran at all, because it is on demand and not in CI

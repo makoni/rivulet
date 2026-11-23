@@ -49,25 +49,27 @@ than bounds. **Effort:** M. **Depends on:** Stages 5–6.
 ## Scope
 
 - [ ] Client acceptance matrix (`docs/clients.md`): NetNewsWire (macOS/iOS), Capy Reader (Android),
-      FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client
-      whose calling set the sixth slice was sized to — setup instructions and a manual checklist
-      (subscribe, add a feed from the client, sync read state, star, counts). Done as the half this
-      machine can do: the calling sets are recorded for all five, three read from their own source
-      at a named commit and two from documentation, with a setup paragraph and a checklist paragraph
-      for the four that have both. The Capy Reader section names the checklist items and what the
-      walk showed, and has no setup paragraph, because the run half cannot complete for it; it was
-      walked by hand, while the four were walked by the run. No set is a capture. NewsFlash,
-      FeedFlow and NetNewsWire are the clients run against this port here, through the run half
-      `Scripts/client-run.sh`, and their checklists are the halves those runs walked: the Fever run
-      walked the base document, the read documents and the marks, the Google Reader run on the phone
-      walked the login, the subscription list, one stream page and the add, which is the half the
-      Fever set has no call for and which is why stage 5's single-client criterion is closed, and
-      the Google Reader run on the Mac walked every call its set names. Reeder Classic, the fifth
-      client, was walked here on the phone for the Fever half, whose record is held as evidence
-      outside the repository, because the check half reads a record for a client whose set records
-      no calls as a finding rather than as data; the add half cannot be walked for it, since the
-      Fever set has no call that can write a feed row. The manual half stays open for the Capy
-      Reader items the walk by hand on the phone did not reach, which are named per client.
+      FeedFlow (iOS/Android), optionally Reeder Classic, and Newsflash (iOS) — the Fever client whose
+      calling set the sixth slice was sized to — setup instructions and a manual checklist (subscribe, add
+      a feed from the client, sync read state, star, counts). Done as the half this machine can do: the
+      calling sets are recorded for all five, three read from their own source at a named commit and two
+      from documentation, with a setup paragraph and a checklist paragraph for the four that have both.
+      The Capy Reader section names the checklist items and what the walk showed, and has no setup
+      paragraph, because the account on the device was put there before the run, through the app's own
+      form, which the run half does not walk. No set is a capture. NewsFlash, FeedFlow and NetNewsWire are
+      the clients run against this port here, through the run half `Scripts/client-run.sh`, and their
+      checklists are the halves those runs walked: the Fever run walked the base document, the read
+      documents and the marks, the Google Reader run on the phone walked the login, the subscription list,
+      one stream page and the add, which is the half the Fever set has no call for and which is why stage
+      5's single-client criterion is closed, and the Google Reader run on the Mac walked every call its
+      set names. Reeder Classic, the fifth client, was walked here on the phone for the Fever half, whose
+      record is held as evidence outside the repository, because the check half reads a record for a
+      client whose set records no calls as a finding rather than as data; the add half cannot be walked
+      for it, since the Fever set has no call that can write a feed row. The manual half stays open for
+      the Capy Reader items this run did not reach: the run on the phone showed the sync pass, the star
+      write, the flush of a mark-read the app had kept in its own state, and the folder rename, which
+      answered the guard's 401 on the Google Reader half, and the record carries no line for the login
+      because the app already held the account when the run started.
 - [x] Parity harness (`Tools/parity/`, driven by `Scripts/parity.sh`): real Miniflux and Rivulet
 read the same corpus, and the difference is read class by class against the tolerance table, which
 is read as data from `docs/parity.md` rather than restated in the comparator. The corpus is the five
@@ -213,24 +215,19 @@ the run needs is here now, and the run executes end to end through the collector
 authenticated pair; the login half is closed as the accepted-divergence row for the path that writes
 the pair, and what is still open is the classes no corpus input can reach.
 - [ ] Manual client matrix green (or deviations documented with client-specific notes). Closed for
-      the halves the runs here read as data: NewsFlash connects and syncs against a locally served
-      port through `Scripts/client-run.sh`, FeedFlow connects on a phone over the local network,
-      adds a feed through the call its own set names, and syncs, and the run on the Mac walked every
-      call its set names. Reeder Classic was walked here on the phone for the Fever half, and its
-      record is evidence outside the repository rather than data this half reads, so its halves are
-      named as what the walk showed rather than as data read against a set; the add half has no call
-      this client's set can be read for. Capy Reader is the client this half can walk by hand on the
-      device for the half whose calls are not read as data, and its set is read from the app's own
-      source at the commit its tag names, which puts its calls on the path the port now registers
-      one route on, so the run half completes for it here: the column its pair guard reads has a
-      case for that path, and the record this run wrote is read as data. The walk by hand on the
-      phone showed the call the app makes first, `GET /v1/me`, answered status 404 for that path,
-      and the app refused the account on that answer, so nothing on that half was reached, and its
-      record is evidence outside the repository, which is the half the report items name. The
-      manual half stays open for the Capy Reader item this run carried no record line for, renaming
-      a subscription, and for the Capy Reader half whose calls no run here left a record line for,
-      which the rule that reads the halves reads only as the prefix the port registers one route on,
-      which are named per client.
+      the halves the runs here read as data: NewsFlash connects and syncs against a locally served port
+      through `Scripts/client-run.sh`, FeedFlow connects on a phone over the local network, adds a feed
+      through the call its own set names, and syncs, and the run on the Mac walked every call its set
+      names. Reeder Classic was walked here on the phone for the Fever half, and its record is evidence
+      outside the repository rather than data this half reads, so its halves are named as what the walk
+      showed rather than as data read against a set; the add half has no call this client's set can be
+      read for. Capy Reader is the client run here on the phone through the run half, and its set is read
+      from the app's own source at the commit its tag names, which puts its calls on the path the port
+      registers one route on, so the run half completes for it here: the column its pair guard reads has a
+      case for that path, and the record this run wrote is read as data. The run answered on the
+      reference, so the answers its lines carry are read against the reference's answer for the path,
+      which is the half the tolerance table licenses. The manual half stays open for the Capy Reader items
+      this run did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.

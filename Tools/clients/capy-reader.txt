@@ -1,25 +1,27 @@
-Capy Reader | 1 | accounts/ClientLogin | POST | POST /accounts/ClientLogin |  | Email Passwd
-Capy Reader | 2 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
-Capy Reader | 3 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
-Capy Reader | 4 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
-Capy Reader | 5 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
-Capy Reader | 6 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
-Capy Reader | 7 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
-Capy Reader | 8 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
-Capy Reader | 9 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
-Capy Reader | 10 | reader/api/0/token | GET | GET /reader/api/0/token |  | T
-Capy Reader | 11 | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | numResults query streamId | T output quickadd
-Capy Reader | 12 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
-Capy Reader | 13 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
-Capy Reader | 14 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
-Capy Reader | 15 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
-Capy Reader | 16 | reader/api/0/subscription/list | GET | GET /reader/api/0/subscription/list | subscriptions | T output
-Capy Reader | 17 | reader/api/0/tag/list | GET | GET /reader/api/0/tag/list | tags | T output
-Capy Reader | 18 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s
-Capy Reader | 19 | reader/api/0/stream/items/ids | GET | GET /reader/api/0/stream/items/ids | itemRefs | T n output s xt
-Capy Reader | 20 | reader/api/0/stream/items/contents | POST | POST /reader/api/0/stream/items/contents | direction id title self updated items author | T i output
-Capy Reader | 21 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output
-Capy Reader | 22 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T i output r
-Capy Reader | 23 | reader/api/0/rename-tag | POST | POST /reader/api/0/rename-tag |  | T dest s
-Capy Reader | 24 | reader/api/0/disable-tag | POST | status 500 | error_message | T s
-Capy Reader | 25 | reader/api/0/edit-tag | POST | POST /reader/api/0/edit-tag |  | T a i output
+Capy Reader | 1 | GET /v1/integrations/status | GET | GET /v1/integrations/status | has_integrations | T
+Capy Reader | 2 | GET /v1/feeds | GET | GET /v1/feeds |  | T
+Capy Reader | 3 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset starred
+Capy Reader | 4 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset status
+Capy Reader | 5 | GET /v1/entries | GET | GET /v1/entries | total entries | T changed_after direction limit offset order
+Capy Reader | 6 | PUT /v1/entries/{entryID}/bookmark | PUT | status 204 |  | T
+Capy Reader | 7 | GET /v1/integrations/status | GET | GET /v1/integrations/status | has_integrations | T
+Capy Reader | 8 | GET /v1/feeds | GET | GET /v1/feeds |  | T
+Capy Reader | 9 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset starred
+Capy Reader | 10 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset status
+Capy Reader | 11 | GET /v1/entries | GET | GET /v1/entries |  | T changed_after direction limit offset order
+Capy Reader | 12 | PUT /v1/entries/{entryID}/bookmark | PUT | status 204 |  | T
+Capy Reader | 13 | GET /v1/integrations/status | GET | GET /v1/integrations/status | has_integrations | T
+Capy Reader | 14 | GET /v1/feeds | GET | GET /v1/feeds |  | T
+Capy Reader | 15 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset status
+Capy Reader | 16 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset starred
+Capy Reader | 17 | GET /v1/entries | GET | GET /v1/entries |  | T changed_after direction limit offset order
+Capy Reader | 18 | PUT /v1/entries | PUT | status 204 |  | T
+Capy Reader | 19 | GET /v1/integrations/status | GET | GET /v1/integrations/status | has_integrations | T
+Capy Reader | 20 | GET /v1/feeds | GET | GET /v1/feeds |  | T
+Capy Reader | 21 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset status
+Capy Reader | 22 | GET /v1/entries | GET | GET /v1/entries |  | T limit offset starred
+Capy Reader | 23 | GET /v1/entries | GET | GET /v1/entries |  | T changed_after direction limit offset order
+Capy Reader | 24 | reader/api/0/token | GET | status 401 |  | T
+Capy Reader | 25 | reader/api/0/rename-tag | POST | status 401 |  | T dest s
+Capy Reader | 26 | reader/api/0/token | GET | status 401 |  | T
+Capy Reader | 27 | reader/api/0/rename-tag | POST | status 401 |  | T dest s

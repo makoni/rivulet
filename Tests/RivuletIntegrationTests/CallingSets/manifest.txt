@@ -62,3 +62,28 @@ reeder-classic/no-call-recorded | closed_source | the calling set of a closed-so
 # The name FeedFlow acts on for the token half is the response name the port writes for an
 # unauthenticated request on this path; it is not a call, so it has no record line, and the rule
 # that reads it is the one that names this line in its own wording.
+capy-reader/GET /v1/feeds | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/feeds/{feedID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/POST /v1/feeds | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/feeds/{feedID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/DELETE /v1/feeds/{feedID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/feeds/{feedID}/icon | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/feeds/{feedID}/refresh | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/feeds/{feedID}/mark-all-as-read | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/entries | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/feeds/{feedID}/entries | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/entries/{entryID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/entries | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/entries/{entryID}/bookmark | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/POST /v1/entries/{entryID}/save | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/integrations/status | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/categories | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/categories/{categoryID} | rest_v1_route_answer | the reference's answer for a path its own mux has no pattern for, which is the text shape rather than the document
+capy-reader/POST /v1/categories | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/categories/{categoryID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/DELETE /v1/categories/{categoryID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/categories/{categoryID}/feeds | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/categories/{categoryID}/entries | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/PUT /v1/categories/{categoryID}/mark-all-as-read | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/icons/{iconID} | rest_v1_route_answer | the answer for a path this port registers no route for, which the route suite pins for one path on this half
+capy-reader/GET /v1/me | none | the 28 fields the reference's struct declares and this port has no columns for

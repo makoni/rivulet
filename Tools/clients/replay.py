@@ -42,9 +42,11 @@ NOT_SHOWN = [
     "as a finding, so that walk is evidence outside the repository rather than data it reads",
     "the calling set of a client whose source cannot be read, which is named per client as read "
     "from its documentation",
-    "the calls of a client on the third path, which this half records no calls for because no run "
-    "here left a record line on it, so the half is read as the prefix the port registers one route "
-    "on and not as calls",
+    "the key names a record line carries on the half read through the tolerance table, which are "
+    "the names the model struct on the other side declares and which this half has no file to read",
+    "the registration the third route file writes, which no craft can take away alone because the "
+    "matrix has a row that names it as its answer, so the half that reads that file as data is shown "
+    "by the route rule and not by a craft of its own",
     "the order a client reaches its calls at, which the run record carries for the four clients "
     "whose records the check half reads as data and the source declares for the others",
     "the values the calls carry, which are redacted, so no row can show a value",
@@ -73,6 +75,12 @@ NOT_SHOWN = [
     "the version of a client run on a device, which this machine has no app metadata to read the "
     "value against",
 ]
+
+# The word the matrix writes for the answer this port gives for a path no pattern registers, which
+# is the answer the tolerance table records as this port's side of the pair, and the section of the
+# reference's own note that writes the answer for a path on that half.
+ROUTER_ANSWER = "router answer"
+V1_SECTION = "## REST v1 routes"
 
 # The forms the stream branch reads a value with, as `docs/reference-notes.md` writes them: the two
 # forms of each prefix are an OR, and the seven suffixes are the cases the switch has.
@@ -158,26 +166,45 @@ def rule_classes_read(data):
     return found
 
 
-def rule_gr_reaches_a_route(data):
-    """The answer each row names has to be a route the file registers, or the catch-all the same
-    file registers as `on(.GET, "**")`. Both halves are read as data, so a patch that removes
-    either can be reported: one craft names a route the file does not register, the other removes
-    the registration line for the catch-all the row answers on. A row whose class names the set as
-    one this half cannot read names no route, so the class is what skips it."""
+def rule_reaches_an_answer(data):
+    """The answer each row names has to be a route the file for its half registers, or the catch-all
+    the same file registers as `on(.GET, "**")`, or the router's answer for a path no pattern registers.
+    All three halves are read as data, so a patch that removes any of them can be reported: one craft
+    names a route the file does not register, one removes the registration line for the catch-all the
+    row answers on, and one names the route the file registers for a different path on the half that has
+    no group and no catch-all, which is the half where an unregistered path answers the router's own. A
+    row whose class names the set as one this half cannot read names no answer, so the class is what
+    skips it."""
     found = []
-    registered = read.port_routes(data["port_routes"])
+    registered = {
+        "google-reader": read.port_routes(data["port_routes"]),
+        "miniflux-rest": read.port_routes(data["port_rest_routes"]),
+        "fever": read.fever_routes(data["port_fever_routes"]),
+    }
     for row in data["matrix"]:
         answer = row["This port answers"]
         if row["Class"] == "closed_source" or answer.startswith("dispatch:"):
             continue
+        half = read.half_for(row["Client"], row["Call"])
+        routes = registered[half["api"]]
         if answer == "catch-all":
-            if f"catch-all {row['Method']}" not in registered:
+            if f"catch-all {row['Method']}" not in routes:
                 found.append(f"{row['Client']}/{row['Call']}: the port registers no catch-all "
                              f"for a {row['Method']} call")
             continue
-        if answer not in registered:
+        if answer == ROUTER_ANSWER:
+            if half["calls_read"] == read.TOLERANCE_READ:
+                continue
+            found.append(f"{row['Client']}/{row['Call']}: the row names the router's answer on a half "
+                         f"the port answers an unregistered path on with the catch-all")
+            continue
+        if answer not in routes:
             found.append(f"{row['Client']}/{row['Call']}: the port registers no route "
                          f"for the path the row names")
+            continue
+        if half["calls_read"] == read.TOLERANCE_READ and answer != row["Call"]:
+            found.append(f"{row['Client']}/{row['Call']}: the row names a route the file registers "
+                         f"for another path on the half that has no group and no catch-all")
     return found
 
 
@@ -185,6 +212,7 @@ def rule_reference_answer(data):
     found = []
     gr, _ = read.reference_sets(data["reference"], "## Google Reader API")
     fever, fever_dispatch = read.reference_sets(data["reference"], "## Fever API")
+    v1 = read.reference_statuses(data["reference"], V1_SECTION)
     for row in data["matrix"]:
         read_by = row["The reference reads"]
         if read_by in {"not read here", "catch-all"}:
@@ -195,7 +223,7 @@ def rule_reference_answer(data):
                 found.append(f"{row['Client']}/{row['Call']}: the reference records no case "
                              f"for {name}")
             continue
-        if read_by not in gr and read_by not in fever:
+        if read_by not in gr and read_by not in fever and read_by not in v1:
             found.append(f"{row['Client']}/{row['Call']}: the reference records no route "
                          f"for {read_by}")
     return found
@@ -226,8 +254,7 @@ def rule_sequence(data):
         kind = set_data["sequence_kind"]
         if kind.startswith("not read here"):
             if set_data["calls"] or set_data["source_order"]:
-                found.append(f"{name}: the set names the order as not read here and still "
-                             f"records one")
+                found.append(f"{name}: the set names the order as not read here and still records one")
             continue
         if kind == "the order the source declares them in" and \
                 set_data["declared_order"] != set_data["source_order"]:
@@ -272,7 +299,13 @@ def rule_token_half(data):
         for call in set_data["calls"]:
             if call["auth"] == "none":
                 continue
-            expected = "header" if call["method"] == "GET" else "form"
+            half = read.half_for(name, call["key"])
+            if half["calls_read"] == read.TOLERANCE_READ:
+                # The chain on that half reads the credential as basic auth, so the half the read
+                # takes it from is the header for every method, which is the half the set names.
+                expected = "header"
+            else:
+                expected = "header" if call["method"] == "GET" else "form"
             if call["auth"] != expected:
                 found.append(f"{name}/{call['key']}: the set names the {call['auth']} half "
                              f"for a {call['method']} call, which the read takes from the "
@@ -300,13 +333,15 @@ def rule_counts(data):
     found = []
     gr, _ = read.reference_sets(data["reference"], "## Google Reader API")
     _, fever = read.reference_sets(data["reference"], "## Fever API")
+    v1 = read.reference_statuses(data["reference"], V1_SECTION)
     recorded = {set_data["client"]: len(set_data["calls"]) for set_data in data["sets"].values()}
     columns = ("Calls recorded", "Reaches a route or a dispatch case",
                "Reaches the catch-all or the default branch", "Replayed here")
 
     def counted(rows):
         reaches = sum(1 for r in rows if r["The reference reads"] in gr or
-                      r["The reference reads"].split("dispatch: ")[-1] in fever)
+                      r["The reference reads"].split("dispatch: ")[-1] in fever or
+                      r["The reference reads"] in v1)
         other = sum(1 for r in rows if r["The reference reads"] in
                     {"catch-all", "dispatch: default"})
         replayed = sum(1 for r in rows if r["Replayed here"] == "yes")
@@ -457,7 +492,8 @@ RULES = {
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row": rule_classes_read,
     "the_output_check_class_names_an_endpoint_the_reference_applies_the_check_on":
         rule_output_check_applied,
-    "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": rule_gr_reaches_a_route,
+    "a_call_reaches_an_answer_the_port_registers_the_catch_all_or_the_router_answer":
+        rule_reaches_an_answer,
     "the_reference_answer_names_a_route_the_reference_registers": rule_reference_answer,
     "the_fever_names_are_read_from_the_dispatch_switch": rule_fever_names_from_switch,
     "the_halves_are_read_as_shape_note_and_registrations":

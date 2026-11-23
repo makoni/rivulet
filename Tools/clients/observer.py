@@ -8,7 +8,12 @@ port gave, the key names the answer carried, and the field names the request car
 is written as the run saw it — the name the dispatch case answered on when the port wrote a
 document of this path, and the status when it wrote something else — so the record says what
 happened rather than what the matrix expected to see, which is what lets the check half read the
-record against the matrix and report a run that answered differently.
+record against the matrix and report a run that answered differently. On the half whose calls the
+check half reads through the tolerance table the run answered on the other side, so the answer is the
+pattern that side registers for the path, which is the name the set has for the call, and the status
+when the handler answered something other than its document. The side the run answered on is the value
+the run half declares for its target, read as the set names it for the half, so this half and the
+check half use one name for it.
 
 The order column is the order the requests arrived at, counted per request rather than per
 connection, because a client that keeps its connections open sends several requests on one
@@ -25,7 +30,8 @@ pins. A record line is exempt from the width rule because it is one record.
 
 Usage: CLIENT_RECORD=<the file the run writes> CLIENT_NAME=<the client the run names>
 CLIENT_HOST=<the address the client was given> CLIENT_OBSERVE_PORT=<the port the client is
-pointed at> CLIENT_TARGET_PORT=<the port the run serves on> python3 Tools/clients/observer.py
+pointed at> CLIENT_TARGET_PORT=<the port the run serves on> CLIENT_TARGET=<the side the set names
+for the half the run answered on> python3 Tools/clients/observer.py
 
 Read `docs/clients.md` first: the rule in `Tools/clients/run_record.py` reads the record as data.
 """
@@ -43,6 +49,11 @@ RECORD = os.environ["CLIENT_RECORD"]
 OBSERVE_PORT = int(os.environ["CLIENT_OBSERVE_PORT"])
 TARGET_PORT = int(os.environ["CLIENT_TARGET_PORT"])
 CLIENT = os.environ.get("CLIENT_NAME", "NewsFlash")
+# The side the run answered on, as the run half names it: this port, or the reference. The answer a
+# record line carries is read against the side the run answered on, which is what makes a run on the
+# reference a run whose answers are read through the tolerance table rather than against this port's
+# handler.
+TARGET = os.environ.get("CLIENT_TARGET", "port")
 # The address the client was given. A client on another device reaches the observer through it, so
 # the run half reads it as the value it declares for the client and binds this half on it.
 HOST = os.environ.get("CLIENT_HOST", "127.0.0.1")
@@ -146,14 +157,19 @@ def keys_in_answer(payload):
     return list(document) if isinstance(document, dict) else []
 
 
-def answer_of(status, method, base, keys, mark):
+def answer_of(status, method, base, keys, mark, call):
     """The answer the run saw: the name the dispatch case answered on for the path that dispatches,
     the registration the file writes for the path that answers on a route, the catch-all as the
     matrix names it for a path this port registers no route for, and the status when the port
-    wrote something other than an answer of this path.
+    wrote something other than an answer of this path. On the half whose calls are read through the
+    tolerance table the run answered on the other side, so the answer is the pattern that side
+    registers for the path, which is the name the set has for the call, and the status when the
+    handler answered something other than its document.
     """
     if status != 200:
         return "status " + str(status)
+    if read.half_for(CLIENT, call)["calls_read"] == read.TOLERANCE_READ:
+        return call
     if API == "google-reader":
         route = next((one for one in ROUTES if one.startswith(method) and one.endswith("/" + base)),
                      None)
@@ -166,7 +182,7 @@ def answer_of(status, method, base, keys, mark):
     return "dispatch: " + named[0] if named else "dispatch: default"
 
 
-def call_of(path, names, mark):
+def call_of(path, names, mark, method):
     """The call as the set names it, read from the path the client sent to, with the branch it
     takes.
 
@@ -174,9 +190,14 @@ def call_of(path, names, mark):
     dispatch takes `mark` from the merged read: the run sent `?api&&mark=item&as=read&id=1`,
     where `mark` is a pair, so the call the record names for that line is the branch the switch
     ran on. For the path that answers on a route the name is the path, with the branch the merged
-    form gives written as the set names that branch.
+    form gives written as the set names that branch. On the half whose calls are read through the
+    tolerance table the set names the call as the pattern the other side registers, which carries
+    the method, so the segment the pattern writes as a placeholder is read as the value the client
+    sent and the record names the pattern rather than the concrete id.
     """
     base = path.split("?")[0].strip("/") or "the root"
+    if read.half_for(CLIENT, base)["calls_read"] == read.TOLERANCE_READ:
+        return read.call_for(CLIENT, method, path)
     if API == "google-reader":
         return next((one for one in (call["key"] for call in SET["calls"])
                      if BRANCH_MARK in one and one.split(BRANCH_MARK)[0] == base
@@ -212,6 +233,18 @@ def main():
         def do_GET(self):
             self.forward("GET")
 
+        # The methods the reference registers routes for on the half a set names as answered here:
+        # a client that writes through that half sends them, so this half has to answer them rather
+        # than refuse them, which is what left the walk with no record line for a write on that half.
+        def do_PUT(self):
+            self.forward("PUT")
+
+        def do_DELETE(self):
+            self.forward("DELETE")
+
+        def do_PATCH(self):
+            self.forward("PATCH")
+
         def forward(self, method):
             with lock:
                 seen[0] += 1
@@ -240,8 +273,9 @@ def main():
             fields = sorted(set(pairs))
             if TOKEN_FROM_HEADER and "authorization" in self.headers:
                 fields = sorted(set(fields) | {TOKEN})
-            line = " | ".join((CLIENT, str(order), call_of(self.path, names + pairs, mark), method,
-                               answer_of(response.status, method, base, carried, mark),
+            call = call_of(self.path, names + pairs, mark, method)
+            line = " | ".join((CLIENT, str(order), call, method,
+                               answer_of(response.status, method, base, carried, mark, call),
                                " ".join(carried), " ".join(fields) or "none"))
             with lock:
                 with open(RECORD, "a", encoding="utf-8") as handle:

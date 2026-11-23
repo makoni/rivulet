@@ -146,7 +146,7 @@ reads the matrix with five sets again: three read from their own source at a nam
 two read from documentation are Reeder Classic, whose source cannot be read here, and Capy Reader.
 This slice reads Capy Reader's set from the app's own source at the commit its tag names, which
 takes the matrix to four sets read from a source and one from documentation, Reeder Classic being
-that one, and the counts to 47 calls over five clients. The check half reads those sets, the
+that one, and the counts to 72 calls over six clients. The check half reads those sets, the
 record files, the document and the port's own route, dispatch and auth sources as data over 19
 rules. No set is a capture, and four clients have been run against this port here and left a record
 this half reads as data, all through the run half `Scripts/client-run.sh`: NewsFlash, the Fever
@@ -155,35 +155,41 @@ network, NetNewsWire, the Google Reader client run on the Mac on the same networ
 the Google Reader client run on the same phone. A fifth run, Reeder Classic on the phone, walked the
 Fever half here, and its record is held as evidence outside the repository, because the set for that
 client records no calls. The manual matrix criterion is closed for the four whose records are read
-as data, for the halves the walk on Reeder Classic showed, and for every Capy Reader item this run
-reached; it stays open for the Capy Reader item the run carried no record line for, renaming a
-subscription, and for the Capy Reader half whose calls no run here left a line for, which the rule
-that reads the halves reads only as the prefix the port registers one route on. What the 19 rules
+as data and for the halves the walk on Reeder Classic showed, and is open again for Capy Reader: its
+record is the 27 lines the fresh walk with the new observer left, which carries lines for seven of
+the 36 calls its set names, and the calls the earlier walk showed on the Google Reader half are no
+longer data, because the read that names a call on the half read through the tolerance table changed
+and the lines that walk left cannot be read as the set names them. What the 19 rules
 read:
 the source each set names and its commit, the redaction as the placeholders the half reads, the
 matrix rows against the manifest lines, the classes against the parity table and the output-check
 class against the endpoints the reference applies the check on, the routes the port registers
-against the answer each row names, with the catch-all read as the registration line the file writes,
-the reference's route and dispatch sets, the two halves of a client that reaches one half only, the
-order the source declares, the login being first and the token coming before every call that carries
+against the answer each row names, with the catch-all read as the registration line the file writes
+and the router answer read as the answer for a path on the prefix the port registers one route on,
+the reference's route and dispatch sets, the four halves the sets name — shape, note,
+registrations, and the side the run answered on — the order the source declares, the login being
+first and the token coming before every call that carries
 it, the token half per method, the stream forms as the prefix and suffix sets the branch reads, the
 counts table against the records it counts, the replay records against the matrix's own column, the
 performance table against the run that answered it and the shape the document names, the rule list
 and the report items against what the check half has, and the response name a client acts on against
 the name the response builder writes. `Tools/clients/probes.py` crafts one input per rule that
-violates it — the round answers 38 cases over 19 rules, 37 crafted inputs plus the baseline asserted
+violates it — the round answers 41 cases over 19 rules, 40 crafted inputs plus the baseline asserted
 to report nothing, so each probe is single-firing, the performance rule having one for each of the
-five kinds it reads, the route rule one for each of its two halves, the rule that reads the halves
-the sets name one for each of its three halves, two crafted on the one set that names more than
-one half and one on the parsed registrations for the third route file, so each reports the half its
-own input violates alone, and the rule that reads the run record one for each of its eleven halves,
-which is twelve crafts — and the round hashes every file the check half
-reads before and after, so a craft that reached a file is reported; two crafts name data the record
-rule cannot read, the redaction craft on a set for a client this machine has not run and the route
-rule's first craft on a row no record line reaches, because after the third record landed both
-crafts reported the record rule as well; the parsers are in `Tools/clients/parsers.py` so the rules
-stay the readable part, and the rule that reads the halves the sets name is in
-`Tools/clients/halves.py`, because this file is at the size cap. What no craft can show is named in
+five kinds it reads, the route rule one for each of its three halves, the rule that reads the halves
+the sets name one for each of its four halves that can be shown alone, three crafted on the one set
+that names more than one half and the fourth half read as data without a craft of its own, because
+the third route file registers one route and the matrix has a row naming it as its answer, so each
+reports the half its own input violates alone, and the rule that reads the run record one for each
+of its twelve halves, which is fourteen crafts — and the round hashes every file the check half
+reads before and after, so a craft that reached a file is reported; three crafts name data the
+record rule cannot read, the redaction craft on a set for a client this machine has not run, the
+route rule's first craft on a row no record line reaches, and its third craft on a row whose record
+line the answer half skips because the run answered on the other side, because after the third
+record landed both crafts reported the record rule as well; the parsers are in
+`Tools/clients/parsers.py` so the rules stay the readable part, and the rule that reads the halves
+the sets name is in `Tools/clients/halves.py`, because this file is at the size cap. What no craft
+can show is named in
 the document rather than asserted: the manual checklist as a document, which no rule reads as data,
 the record a walk for a client whose set records no calls leaves, which the check half reads as a
 finding, so that walk is evidence outside the repository rather than data it reads, the calling set
@@ -209,21 +215,27 @@ branch the round cannot show firing: a craft that took the client name out of th
 that half reading nothing. The eighth slice, merged as PR #71, is the run half executed here:
 `Scripts/client-run.sh` with `Tools/clients/observer.py` writes one record line per request it
 forwarded and asserts nothing, the records the runs left behind are read as data by the nineteenth
-rule in eleven halves, twelve crafts: six on the record the Fever run wrote, one on the paragraph
+rule in twelve halves, fourteen crafts: six on the record the Fever run wrote, one on the paragraph
 naming its calls, one on the record the Google Reader run on the phone wrote here, the order half
 crafted again on the record the run on the Mac wrote, one on a record this machine has not written,
 one on the names the round reads the record files under, which PR #78 added and which keeps the
-performance record, read by its own rule at its own path, out of the client records, and one on the
+performance record, read by its own rule at its own path, out of the client records, one on the
 status a record line carries, which PR #79 added, read as the status the handler the route file
 gives this path answers, through the shapes its own branches write and the status each shape writes,
-read from the pin that pins the mapping. The half reads only the paths it can name a handler for, so
-the login route and the paths that answer on the catch-all or a dispatch case read nothing here. The
-answer half reads the shape answers and the status half reads the status answers, so the two
-together cover the answer column, which is what took the round to 36 cases over 19 rules. A fourth
-walk, Reeder Classic on the phone, is the half this rule cannot read: its set records no calls, so a
-record file for that client is a finding rather than data, and the record the walk left is held as
-evidence outside the repository. The run half is checked by `bash -n` and by its nine guards, twelve
-read sites, six reading one value, three for the ports, two for the base's three halves, one for the
+read from the pin that pins the mapping, and two on the answer a line carries on the half read
+through the tolerance table, added with the fresh walk on this stage: one moving the answer off both
+sides, one moving the number the note's sentence names for the answer the chain gives before the
+mux. The half reads only the paths it can name a handler for, so the login route and the paths
+that answer on the catch-all or a dispatch case read nothing here. The answer half reads the shape
+answers and the status half reads the status answers, so the two together cover the answer column,
+which is what took the round to 36 cases over 19 rules then, and the round answers 41 now. A
+fourth walk, Reeder Classic on the phone, is the half this rule cannot read: its set records no
+calls, so a record file for that client is a finding rather than data, and the record the walk left
+is held as evidence outside the repository. The run half is checked by `bash -n` and by its ten
+guards, thirteen read sites, seven reading one value — one of them the target the run declares,
+read against the side the set names for the half the run answered on, and seen to fail on a name
+Capy Reader's set does not write for that half — three for the ports, two for the base's three
+halves, one for the
 entry guard's two halves, each seen to fail on the value it names, the base half the run builds,
 which now follows the form the set names for a client that appends the prefix itself, the half
 having been seen red on the head before that read followed the form, and seen red here for
@@ -245,9 +257,9 @@ feed in it, which is the half the record reads as the destination, the action an
 together, and the version named beside the placeholder the run declares is the 7.2.1 the device's
 About box reports. The order half reads the order column rather than the position of the line, and
 it reads the paragraph for a client only when the document writes it in the form the half names,
-which is why the paragraph for this client names the client, as the other two do; one of the twelve
-crafts reaches two parts of the data at once, the record line and the paragraph naming the calls
-this run showed.
+which is why the paragraph for this client names the client, as the other two do; one of the
+fourteen crafts reaches two parts of the data at once, the record line and the paragraph naming the
+calls this run showed.
 
 The ninth slice, merged as PR #77, is the run half executed on a device and the pin the process
 harness gained for it. FeedFlow, the Google Reader client, was run against the served port through
@@ -312,9 +324,13 @@ probes in
 `RestV1RouteTests`, with the stage-7 pin for this prefix rewritten to read the route the port
 registers, which is 9 pins and 11 probes in `ClientSequenceReplayTests`. The client check half
 reads the third route file as data through the rule that reads the halves, as the half that reads
-the prefix the port registers one route on; the matrix gains no row for the calls on this path,
-because no run here left a record line on it, and the patch that changed the realm value, which
-PR #87 recorded as not biting, fires on the route suite alone.
+the prefix the port registers one route on, and the matrix gained 25 rows for the calls Capy
+Reader's set names on this path, read against the answer the port gives for a path no pattern
+registers. The fresh walk on the phone, with the observer reading the call name and the answer
+through the tolerance table, left the 27 lines the check half reads as this client's record, the
+run having answered on the reference, which is the side the table reads the difference on. The
+patch that changed the realm value, which PR #87 recorded as not biting, fires on the route suite
+alone.
 
 **Stage 8 — Packaging & deployment** is in progress with seven slices merged: the static musl build
 spike (PR #67), which is the answer that the Static Linux SDK builds the whole dependency stack, so
@@ -784,14 +800,8 @@ only the seams the plan requires.
 One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
 to resource files, not inline megablocks.
 - Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
-- Wrapping: prose and comments wrap at ≤100 columns, breaking at word boundaries. Five things are
-exempt because none can be broken without changing what it says: a Markdown table row; an inline
-code span longer than the width; a line the check half reads as one whole string, which is a
-manifest record line or a generated report item line; a value the check half reads as one whole
-string inside a JSON record; and a shell command line or a guard message, which the run reads as
-one line. Each stays whole on its own line. Code lines are single expressions
-and are not split to meet the width. A commit that only rewraps does not change behavior, so it does
-not reopen a review that already approved the words.
+- A commit that only rewraps does not change behavior, so it does not reopen a review that already
+  approved the words.
 - Zero warnings: the project and the test targets build clean — `swift build` and `swift build
 --build-tests` answer with no warning on a clean build. Each warning is fixed at the site it names,
 not silenced with a flag: the `await` on a call that is not async is dropped, a binding or a result
