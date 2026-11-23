@@ -250,13 +250,14 @@ CASES = {
         lambda data: data.__setitem__("port_response", data["port_response"].replace(
             'name: "X-Reader-Google-Bad-Token"', 'name: "X-Reader-Local-Bad-Token"')),
 
-    # The twelve halves of the rule that reads the run record, one craft each: six on the record the
+    # The twelve halves of the rule that reads the run record, fourteen crafts: six on the record the
     # Fever run wrote here, one on the paragraph that names its calls, one on the record the Google
-    # Reader run wrote here, one on a record this machine has not written, which is the craft that adds
-    # a line for a client whose set records no calls, one on the names the round reads the record files
-    # under, one on the status a record line carries for an error answer, and two on the answer a line
-    # carries on the half the tolerance table reads, one moving the answer off both sides and one
-    # moving the number the note's sentence names for the chain's answer.
+    # Reader run wrote here, the order half crafted again on the record the run on the Mac wrote, one
+    # on a record this machine has not written, which is the craft that adds a line for a client whose
+    # set records no calls, one on the names the round reads the record files under, one on the status
+    # a record line carries for an error answer, and two on the answer a line carries on the half the
+    # tolerance table reads, one moving the answer off both sides and one moving the number the note's
+    # sentence names for the chain's answer.
     "the_run_record_agrees_with_the_set_and_the_answer_it_names": [
         # The order the record carries, read as the order column, against the order the paragraph
         # names the calls the two have in common: the two names swap in the column.
