@@ -7,7 +7,7 @@ set -euo pipefail
 # it does not run in CI: it is a real-time run, so the determinism rules in `docs/testing.md` do not
 # apply to it, and it is the only part of stage 4 that reaches a real HTTP server and a real clock.
 # The in-process cadence loop is stage 6's, so the shell is the cadence here: each round runs the
-# manual pass once and takes a snapshot. The checks live in `Scripts/soak_check.py`, which reads the
+# manual pass once and takes a snapshot. The checks live in `Tools/soak/soak_check.py`, which reads the
 # data each round leaves behind rather than the process that produced it.
 #
 # What the run shows is the rule each round reports: the pass ran exactly the pick, the stamps moved
@@ -31,7 +31,7 @@ set -euo pipefail
 #        SOAK_SECONDS=120 SOAK_FEEDS=22 Scripts/soak.sh   # the same shape, for checking checks
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CHECK="$ROOT/Scripts/soak_check.py"
+CHECK="$ROOT/Tools/soak/soak_check.py"
 
 SOAK_SECONDS=${SOAK_SECONDS:-7200}
 SOAK_FEEDS=${SOAK_FEEDS:-24}
