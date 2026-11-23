@@ -9,9 +9,9 @@ set -euo pipefail
 # requests arrived, and writes the answer as the registration the file writes for the path that
 # answers on a route, or as the name the dispatch case answered on for the path that dispatches, so
 # the record is what the run saw rather than what the matrix expected to see. The run half asserts
-# nothing about a line: the rule that reads the record is `Tools/clients/run_record.py`.  The record
+# nothing about a line: the rule that reads the record is `Tools/clients/run_record.py`. The record
 # is one file per client, in the record directory the check half reads, named as the round reads
-# that client, so the rule reads a record for the client its lines name.  What the guards read, and
+# that client, so the rule reads a record for the client its lines name. What the guards read, and
 # what each can fail on: the record path against the record directory the check half reads in
 # `Tools/clients/parsers.py`, which is the half that makes a record written somewhere else
 # unreadable; the client the run names against the client the matrix has a row for; the host the run
@@ -25,20 +25,21 @@ set -euo pipefail
 # prefix from the base, so a base carrying a path the set does not name for this client reaches the
 # root, with the default base the run builds following that form so it does not reach the guard with
 # the prefix twice for a client whose set names that it appends the prefix itself; the version the
-# run names against the version the app's own metadata on the machine writes,
-# which is the half a client run on a device cannot be read against here; the pair row the run
-# wrote, read through the column the storage read names for the path the set gives this client,
-# which is the value the login compares; the entry rows the pass wrote for the feed the run declares
-# — for a client whose set names the add call that row is the row the client's own call writes —
-# against the value the run declares that page carries; and the record being empty, which is what a
-# check half that reads no record line cannot show. The nine guards are twelve read sites, one
-# failure message each: six of them read one value, the ports item reads three, the base reads three
-# halves at two sites, and the entry guard reads two halves at one site. The guards that read the
-# machine fail only on a machine, and the three that read what the run itself wrote — the pair row,
-# the entry rows, and the record being empty — fail only on a run.  Usage, one line per half the
-# guards read, each run against the value that line names. Thirteen of the fourteen halves have a
-# line; the one that does not is the observer port the machine already holds, which is seen by
-# holding the port with a listener:
+# run names against the version the app's own metadata on the machine writes, which is the half a
+# client run on a device cannot be read against here; the pair row the run wrote, read through the
+# column the storage read names for the path the set gives this client, which is the value the login
+# compares; the entry rows the pass wrote for the feed the run declares — for a client whose set
+# names the add call that row is the row the client's own call writes — against the value the run
+# declares that page carries; and the record being empty, which is what a check half that reads no
+# record line cannot show; and the target the run declares against the side the set names for the
+# half the run answered on, which is the half that decides which side writes the answer for a record
+# line. The ten guards are thirteen read sites, one failure message each: seven of them read one
+# value, the ports item reads three, the base reads three halves at two sites, and the entry guard
+# reads two halves at one site. The guards that read the machine fail only on a machine, and the
+# three that read what the run itself wrote — the pair row, the entry rows, and the record being
+# empty — fail only on a run. Usage, one line per half the guards read, each run against the value
+# that line names. Fourteen of the fifteen halves have a line; the one that does not is the observer
+# port the machine already holds, which is seen by holding the port with a listener:
 #   Scripts/client-run.sh                                   # the run, then the guards
 #   CLIENT_RECORD=<a path outside the record directory the check half reads> Scripts/client-run.sh    # the record path
 #   CLIENT_NAME=<a client the matrix has no row for> Scripts/client-run.sh        # the client row
@@ -49,6 +50,7 @@ set -euo pipefail
 #   CLIENT_NAME=FeedFlow CLIENT_BASE=http://127.0.0.1:8099/fever Scripts/client-run.sh  # the base, the prefix half, for the client whose set names the Google Reader path
 #   CLIENT_NAME=FeedFlow CLIENT_BASE=http://127.0.0.1:8099/reader/api/0 Scripts/client-run.sh  # the base, the form half, for the client whose set names that it builds the prefix itself
 #   CLIENT_VERSION=<a version the file the run reads does not write> Scripts/client-run.sh            # the version, on the half that only exists on this machine
+#   CLIENT_NAME="Capy Reader" CLIENT_TARGET=this port Scripts/client-run.sh                # the target, on a side the set does not name for the client
 #   CLIENT_USER= Scripts/client-run.sh                                              # the pair row, on a name the command's rule refuses before the storage layer, read through the column each path names
 #   DECLARED_ITEMS=2 Scripts/client-run.sh                                   # the entry rows
 #   DECLARED_FEED=<a url the run wrote no row for> Scripts/client-run.sh            # the entry rows, the feed half
@@ -85,6 +87,10 @@ api_for() {
     python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import parsers; print(parsers.set_for(sys.argv[2])["api"])' "$CLIENTS" "$CLIENT_NAME"
 }
 
+target_for() {
+    python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import parsers; print(parsers.run_target(sys.argv[2]))' "$CLIENTS" "$CLIENT_NAME"
+}
+
 WORK=${CLIENT_WORK:-$(mktemp -d)}
 RIVULET=${RIVULET:-$(cd "$ROOT" && swift build --show-bin-path)/rivulet}
 APP_ID=io.gitlab.news_flash.NewsFlash
@@ -97,6 +103,11 @@ HOST=${CLIENT_HOST:-127.0.0.1}
 RECORD=${CLIENT_RECORD:-$(record_for)}
 OBSERVE_PORT=${CLIENT_OBSERVE_PORT:-8099}
 TARGET_PORT=${CLIENT_TARGET_PORT:-8098}
+# The side the run answers on, read as the set names it for the half the run answered on: this port
+# for a run against the served port, the reference for a run against the reference. The observer
+# writes the answer for a line as the side the run answered on gives for the path, so the target the
+# run declares and the half the check half reads the answer on are one name.
+TARGET=${CLIENT_TARGET:-$(target_for)}
 # The address the run's own serve half binds, which is the address the served port is read on: the
 # observer port is read on the host the run declares, because that is the address a device reaches
 # the observer through, while the served port answers only here.
@@ -178,6 +189,8 @@ run_guards() {
     [ "$RECORD" = "$(record_for)" ] ||
         fail "the record path $RECORD is not the file the check half reads for $CLIENT_NAME"
     grep -q "^| $CLIENT_NAME |" "$ROOT/docs/clients.md" || fail "the matrix has no row for $CLIENT_NAME"
+    [ "$TARGET" = "$(target_for)" ] ||
+        fail "the run declares a target the set does not name for $CLIENT_NAME ($(target_for))"
     [ "$HOST" = "127.0.0.1" ] || [ "$HOST" = "$(machine_host)" ] ||
         fail "the run writes a host the machine does not answer on ($HOST, not $(machine_host))"
     [ "$OBSERVE_PORT" != "$TARGET_PORT" ] || fail "the observer forwards to the port it listens on"
@@ -310,7 +323,7 @@ else
 fi
 
 export CLIENT_RECORD="$RECORD" CLIENT_OBSERVE_PORT="$OBSERVE_PORT" CLIENT_TARGET_PORT="$TARGET_PORT"
-export CLIENT_NAME="$CLIENT_NAME" CLIENT_HOST="$HOST"
+export CLIENT_NAME="$CLIENT_NAME" CLIENT_HOST="$HOST" CLIENT_TARGET="$TARGET"
 python3 "$CLIENTS/observer.py" >>"$WORK/observer.log" 2>&1 &
 observer_pid=$!
 

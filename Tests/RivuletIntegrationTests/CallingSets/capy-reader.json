@@ -21,29 +21,60 @@
       "prefix": "/reader/api/0",
       "prefix_form": "the client appends the prefix itself, so the base holds only host and port",
       "calls_read": "read here",
-      "answered_here": "served here"
+      "answered_here": "served here",
+      "run_answered_on": "the reference",
+      "chain_answer": "## Api keys and the auth read"
     },
     {
       "api": "miniflux-rest",
       "prefix": "/v1",
-      "calls_read": "not read here",
+      "prefix_form": "the client builds the base as the url it is given, with the trailing slash the login form keeps, so the base is the whole prefix",
+      "calls_read": "read here through the tolerance table",
       "answered_here": "served here for the path this stage registers",
-      "note": "the app's own source declares this half as a second source; the rule that reads the halves reads it as the prefix the port registers one route on, and its calls are not read as data because no run here left a record line on this path"
+      "run_answered_on": "the reference",
+      "read_from": "minifluxclient/src/main/java/com/jocmp/minifluxclient/Miniflux.kt",
+      "note": "the app's own source declares this half as a second source; the rule that reads the halves reads it as the prefix the port registers one route on, and its calls are read as data through the tolerance row for the answer, because the run that left the record lines on this path answered on the reference",
+      "chain_answer": "## REST v1 routes"
     }
   ],
-  "sequence_kind": "the order its own call graph reaches them in, because the token is fetched on the first write that carries it and kept afterwards",
+  "sequence_kind": "the order its own call graph reaches them in for the half read on this path, because the token is fetched on the first write that carries it and kept afterwards, and the order the source declares them in for the half read through the tolerance table, because the app declares that half as an interface and its call graph reaches those calls per feature",
   "declared_order": [
+    "accounts/ClientLogin",
     "reader/api/0/subscription/list",
     "reader/api/0/tag/list",
     "reader/api/0/stream/items/ids",
+    "reader/api/0/token",
     "reader/api/0/stream/items/contents",
     "reader/api/0/edit-tag",
     "reader/api/0/rename-tag",
     "reader/api/0/disable-tag",
     "reader/api/0/subscription/quickadd",
     "reader/api/0/subscription/edit",
-    "accounts/ClientLogin",
-    "reader/api/0/token"
+    "GET /v1/feeds",
+    "GET /v1/feeds/{feedID}",
+    "POST /v1/feeds",
+    "PUT /v1/feeds/{feedID}",
+    "DELETE /v1/feeds/{feedID}",
+    "GET /v1/feeds/{feedID}/icon",
+    "PUT /v1/feeds/{feedID}/refresh",
+    "PUT /v1/feeds/{feedID}/mark-all-as-read",
+    "GET /v1/entries",
+    "GET /v1/feeds/{feedID}/entries",
+    "GET /v1/entries/{entryID}",
+    "PUT /v1/entries",
+    "PUT /v1/entries/{entryID}/bookmark",
+    "POST /v1/entries/{entryID}/save",
+    "GET /v1/integrations/status",
+    "GET /v1/categories",
+    "GET /v1/categories/{categoryID}",
+    "POST /v1/categories",
+    "PUT /v1/categories/{categoryID}",
+    "DELETE /v1/categories/{categoryID}",
+    "GET /v1/categories/{categoryID}/feeds",
+    "GET /v1/categories/{categoryID}/entries",
+    "PUT /v1/categories/{categoryID}/mark-all-as-read",
+    "GET /v1/icons/{iconID}",
+    "GET /v1/me"
   ],
   "source_order": [
     "accounts/ClientLogin",
@@ -56,14 +87,42 @@
     "reader/api/0/rename-tag",
     "reader/api/0/disable-tag",
     "reader/api/0/subscription/quickadd",
-    "reader/api/0/subscription/edit"
+    "reader/api/0/subscription/edit",
+    "GET /v1/feeds",
+    "GET /v1/feeds/{feedID}",
+    "POST /v1/feeds",
+    "PUT /v1/feeds/{feedID}",
+    "DELETE /v1/feeds/{feedID}",
+    "GET /v1/feeds/{feedID}/icon",
+    "PUT /v1/feeds/{feedID}/refresh",
+    "PUT /v1/feeds/{feedID}/mark-all-as-read",
+    "GET /v1/entries",
+    "GET /v1/feeds/{feedID}/entries",
+    "GET /v1/entries/{entryID}",
+    "PUT /v1/entries",
+    "PUT /v1/entries/{entryID}/bookmark",
+    "POST /v1/entries/{entryID}/save",
+    "GET /v1/integrations/status",
+    "GET /v1/categories",
+    "GET /v1/categories/{categoryID}",
+    "POST /v1/categories",
+    "PUT /v1/categories/{categoryID}",
+    "DELETE /v1/categories/{categoryID}",
+    "GET /v1/categories/{categoryID}/feeds",
+    "GET /v1/categories/{categoryID}/entries",
+    "PUT /v1/categories/{categoryID}/mark-all-as-read",
+    "GET /v1/icons/{iconID}",
+    "GET /v1/me"
   ],
   "calls": [
     {
       "key": "accounts/ClientLogin",
       "method": "POST",
       "auth": "none",
-      "names": ["Email", "Passwd"],
+      "names": [
+        "Email",
+        "Passwd"
+      ],
       "reads": "the plain-text shape, because no output name is sent",
       "id_form": "none"
     },
@@ -71,21 +130,32 @@
       "key": "reader/api/0/subscription/list",
       "method": "GET",
       "auth": "header",
-      "names": ["output"],
+      "names": [
+        "output"
+      ],
       "id_form": "none"
     },
     {
       "key": "reader/api/0/tag/list",
       "method": "GET",
       "auth": "header",
-      "names": ["output"],
+      "names": [
+        "output"
+      ],
       "id_form": "none"
     },
     {
       "key": "reader/api/0/stream/items/ids",
       "method": "GET",
       "auth": "header",
-      "names": ["s", "ot", "c", "n", "xt", "output"],
+      "names": [
+        "s",
+        "ot",
+        "c",
+        "n",
+        "xt",
+        "output"
+      ],
       "streams": [
         "user/-/state/com.google/reading-list",
         "user/-/state/com.google/starred",
@@ -101,14 +171,24 @@
       "key": "reader/api/0/stream/items/contents",
       "method": "POST",
       "auth": "form",
-      "names": ["i", "T", "output"],
+      "names": [
+        "i",
+        "T",
+        "output"
+      ],
       "id_form": "padded"
     },
     {
       "key": "reader/api/0/edit-tag",
       "method": "POST",
       "auth": "form",
-      "names": ["i", "T", "a", "r", "output"],
+      "names": [
+        "i",
+        "T",
+        "a",
+        "r",
+        "output"
+      ],
       "streams": [
         "user/-/state/com.google/read",
         "user/-/state/com.google/starred",
@@ -121,8 +201,15 @@
       "key": "reader/api/0/rename-tag",
       "method": "POST",
       "auth": "form",
-      "names": ["s", "dest", "T"],
-      "streams": ["user/-/label/<folder title>", "user/-/label/<new title>"],
+      "names": [
+        "s",
+        "dest",
+        "T"
+      ],
+      "streams": [
+        "user/-/label/<folder title>",
+        "user/-/label/<new title>"
+      ],
       "note": "both fields are the label form the app builds, so this call records two stream values, and `dest` reaches the read through the same branch as `s`",
       "id_form": "none"
     },
@@ -130,15 +217,24 @@
       "key": "reader/api/0/disable-tag",
       "method": "POST",
       "auth": "form",
-      "names": ["s", "T"],
-      "streams": ["user/-/label/<name>"],
+      "names": [
+        "s",
+        "T"
+      ],
+      "streams": [
+        "user/-/label/<name>"
+      ],
       "id_form": "none"
     },
     {
       "key": "reader/api/0/subscription/quickadd",
       "method": "POST",
       "auth": "form",
-      "names": ["quickadd", "T", "output"],
+      "names": [
+        "quickadd",
+        "T",
+        "output"
+      ],
       "note": "`quickadd` is the body field the merged read takes, while `output` is declared as a URL query pair, so the two names reach the read through different halves",
       "id_form": "none"
     },
@@ -146,8 +242,17 @@
       "key": "reader/api/0/subscription/edit",
       "method": "POST",
       "auth": "form",
-      "names": ["s", "ac", "a", "t", "T"],
-      "streams": ["feed/<feed id>", "user/-/label/<folder title>"],
+      "names": [
+        "s",
+        "ac",
+        "a",
+        "t",
+        "T"
+      ],
+      "streams": [
+        "feed/<feed id>",
+        "user/-/label/<folder title>"
+      ],
       "note": "the source declares no remove value for this call, and `a` is the label form the app builds for the folder title, so this call records two stream values",
       "id_form": "none"
     },
@@ -158,9 +263,223 @@
       "names": [],
       "reads": "the token is fetched by the wrapper on the first write that carries it, and refetched when the answer carries the bad-token name",
       "id_form": "none"
+    },
+    {
+      "key": "GET /v1/feeds",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/feeds/{feedID}",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "POST /v1/feeds",
+      "method": "POST",
+      "auth": "header",
+      "names": [],
+      "reads": "the body is the request object the app builds, which the transport does not read as a form, so no name reaches the record for it",
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/feeds/{feedID}",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "DELETE /v1/feeds/{feedID}",
+      "method": "DELETE",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/feeds/{feedID}/icon",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/feeds/{feedID}/refresh",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/feeds/{feedID}/mark-all-as-read",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/entries",
+      "method": "GET",
+      "auth": "header",
+      "names": [
+        "status",
+        "offset",
+        "limit",
+        "order",
+        "direction",
+        "before",
+        "after",
+        "before_entry_id",
+        "after_entry_id",
+        "starred",
+        "search",
+        "category_id",
+        "changed_after"
+      ],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/feeds/{feedID}/entries",
+      "method": "GET",
+      "auth": "header",
+      "names": [
+        "status",
+        "offset",
+        "limit",
+        "order",
+        "direction",
+        "before",
+        "after",
+        "starred",
+        "search"
+      ],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/entries/{entryID}",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/entries",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/entries/{entryID}/bookmark",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "POST /v1/entries/{entryID}/save",
+      "method": "POST",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/integrations/status",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/categories",
+      "method": "GET",
+      "auth": "header",
+      "names": [
+        "counts"
+      ],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/categories/{categoryID}",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "reads": "the reference registers no pattern for this path, so the answer is the mux's 404 as text",
+      "id_form": "none"
+    },
+    {
+      "key": "POST /v1/categories",
+      "method": "POST",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/categories/{categoryID}",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "DELETE /v1/categories/{categoryID}",
+      "method": "DELETE",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/categories/{categoryID}/feeds",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/categories/{categoryID}/entries",
+      "method": "GET",
+      "auth": "header",
+      "names": [
+        "status",
+        "offset",
+        "limit",
+        "order",
+        "direction",
+        "starred",
+        "search"
+      ],
+      "id_form": "none"
+    },
+    {
+      "key": "PUT /v1/categories/{categoryID}/mark-all-as-read",
+      "method": "PUT",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/icons/{iconID}",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
+    },
+    {
+      "key": "GET /v1/me",
+      "method": "GET",
+      "auth": "header",
+      "names": [],
+      "id_form": "none"
     }
   ],
-  "not_reached": ["reader/api/0/user-info", "reader/api/0/mark-all-as-read"],
+  "not_reached": [
+    "reader/api/0/user-info",
+    "reader/api/0/mark-all-as-read"
+  ],
   "runtime_shape": {
     "login_first": true,
     "token_before_T": true,

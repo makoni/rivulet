@@ -7,9 +7,9 @@ import Vapor
 ///The recorded calling sets read as data and replayed against the served app over a real socket.
 ///Each pin takes one recorded call and asserts what the port answers for it: the record names the
 ///call and the value the pin reads, so a pin is the replay half of the matrix rather than a
-///restatement of the matrix's table. 9 pins and 11 probes, each seen to fail on the rule it names
-///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 2, and
-///every other pin has 1.
+///restatement of the matrix's table. 9 pins and 12 probes, each seen to fail on the rule it names
+///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 2, the
+///token pin has 2, and every other pin has 1.
 ///What each pin can fail on, with the input its probe crafts: - the recorded order is the order the
 ///set declares — a patch that swaps two entries of the record's own `source_order`. This is the
 ///only pin here that can fail on the record rather than on a rule, because nothing in the port
@@ -17,9 +17,11 @@ import Vapor
 ///and the value its answer carries is the value the later requests read as the token — a patch that
 ///wrapped the login route with the read, and a patch that wrote the stored value in the three lines
 ///instead of the value the row derives; - the token half the record names for each recorded call —
-///a patch that read the field the record names for the login's own token call, because the read's
-///decision by method is `GoogleReaderAuthTests`' pin with its own probe, and the transport read is
-///the assumption every other pin here runs through, so no patch to it can fire one pin alone; - the
+///a patch that read the field the record names for the login's own token call, and a patch that moved
+///a call on the half read through the tolerance table to the other side, which is the half the pin
+///reads the field against, because the read's decision by method is `GoogleReaderAuthTests`' pin with
+///its own probe, and the transport read is the assumption every other pin here runs through, so no
+///patch to it can fire one pin alone; - the
 ///guard for the call the record names with no add and no remove pair — a patch that dropped the
 ///guard; - the two item-id forms the same client sends in two different calls — a patch that read
 ///every value by the field-width rule; - the page size above the clamp against the page size the
@@ -47,6 +49,12 @@ import Vapor
     private let name = "alice"
     private let password = "secret"
     private let storedHash = "$2a$10$hOrIpoEkDKAMFrOt2/k1yeyHBaZKOwK8zEg9JVchReOAtQZ5mEeFu"
+
+    // The two values the token pin reads: the half the call name carries, and the word the set names
+    // for the half read through the tolerance table, which is the word `Tools/clients/parsers.py`
+    // names for the same half.
+    private let slashes = CharacterSet(charactersIn: "/")
+    private let toleranceRead = "read here through the tolerance table"
 
     ///The order the record declares, read as data: the set that names the order as declared has to
     ///be the order the pins replay, and the set that names it as a call graph has to cover the same
@@ -105,9 +113,12 @@ import Vapor
     }
 
     ///Which side the read takes the token from is the field the record names for each call, and the
-    ///pin reads that field for every call every set records. The read's own decision by method is
-    ///`GoogleReaderAuthTests`' pin with its own probe, so this pin's probe is the record's field:
-    ///the only input the pin can fail on, and the socket half shows the two fields agree.
+    ///pin reads that field for every call every set records, on the half the call name carries. The
+    ///read's own decision by method is `GoogleReaderAuthTests`' pin with its own probe, so this pin's
+    ///probe is the record's field: the only input the pin can fail on, and the socket half shows the
+    ///two fields agree. On the half read through the tolerance table the chain reads the credential as
+    ///basic auth, which is the header side for every method, so a call there names the header whatever
+    ///the method is.
     @Test func theTokenHalfIsTheHalfTheReadReadsForEachMethod() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
@@ -116,8 +127,13 @@ import Vapor
 
             for set in try CallingSets.all() {
                 for call in set.calls where call.auth != "none" {
-                    #expect(call.auth == (call.method == "GET" ? "header" : "form"),
-                        "\(set.client)/\(call.key): the read for a \(call.method) route reads the \(call.auth) half")
+                    let half = set.halves.first {
+                        call.key.range(of: $0.prefix.trimmingCharacters(in: slashes)) != nil
+                    }
+                    let expected = half?.callsRead == toleranceRead ? "header"
+                        : (call.method == "GET" ? "header" : "form")
+                    #expect(call.auth == expected,
+                        "\(set.client)/\(call.key): the read for a \(call.method) call on the half the record names reads the \(call.auth) half")
                 }
             }
 

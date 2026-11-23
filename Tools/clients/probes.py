@@ -4,22 +4,24 @@ This is the falsifiability half of the client matrix. The rules in `replay.py` a
 the committed data, so a probe is a crafted input: the same data with one thing changed, and the
 assertion is that the rule the change names reports it and no other rule reports anything. The
 baseline is the committed data itself, asserted to report nothing, which is what makes each probe
-single-firing: 19 rules, 37 crafted inputs and the baseline, so 38 cases — the performance rule
+single-firing: 19 rules, 40 crafted inputs and the baseline, so 41 cases — the performance rule
 has one craft for each of the five kinds of finding it reads, the route rule has one for each of
-its two halves, because an input that violates one half of a rule still satisfies the other, the
-rule that reads the halves the sets name has one for each of its three halves, all crafted on the
-one set that names more than one half, so each reports the half its own input violates alone, and
-the rule that reads the run record has one for each of its eleven
-halves, twelve crafts in all: six on
-the record the Fever run wrote here, one on the paragraph naming its calls, one on the record the
-Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on a
-record this machine has not written, for a client whose set records no calls, one on the names the
-round reads the record files under, which is the half that keeps the performance record, read by its
-own rule at its own path, out of the client records, and one on the status a record line carries for
-an error answer. One of those twelve reaches two parts of the data at once, the record line and the
-paragraph that names the calls this run showed, because the half reads the record against the
-paragraph and the Fever run reached no call outside the recorded set; that craft is named with the
-rule in `docs/clients.md`.
+its three halves, because an input that violates one half of a rule still satisfies the other, the
+rule that reads the halves the sets name has one for each of its four halves that can be shown
+alone, three crafted on the one set that names more than one half, and the fourth half read as
+data without a craft of its own, so each reports the half its own input violates alone, and the
+rule that reads the run record has one for each of its twelve halves, fourteen crafts in all: six
+on the record the Fever run wrote here, one on the paragraph naming its calls, one on the record
+the Google Reader run on the phone wrote here, one on the record the run on the Mac wrote, one on
+a record this machine has not written, for a client whose set records no calls, one on the names
+the round reads the record files under, which is the half that keeps the performance record, read
+by its own rule at its own path, out of the client records, one on the status a record line
+carries for an error answer, and two on the answer a line carries on the half read through the
+tolerance table, one moving the answer off both sides and one moving the number the note's
+sentence names for the answer the chain gives before the mux. One of those fourteen reaches two
+parts of the data at once, the record line and the paragraph that names the calls this run showed,
+because the half reads the record against the paragraph and the Fever run reached no call outside
+the recorded set; that craft is named with the rule in `docs/clients.md`.
 The crafts change the data in memory, never the files. The round hashes every file the check half
 reads before and after, so a craft that reached a file is reported. The crafts that would have to
 change a client's own source — the bound the guard applies before the request is sent, and the
@@ -142,15 +144,20 @@ CASES = {
     "matrix_classes_are_read_by_the_matrix_and_parity_classes_have_a_row":
         lambda data: data["classes"][0].__setitem__("Read by", "docs/parity.md"),
 
-    # A row names an answer the port registers no route for. The row has to be one the record for
-    # its client carries no line for — the same change on a row a record line reads is a finding for
-    # the rule that reads the record as well. The second craft takes away the registration line the
-    # catch-all half reads, which is the other half of the same rule.
-    "a_gr_call_reaches_a_route_the_port_registers_or_the_catch_all": [
+    # A row names an answer the port registers no route for. The row has to be one the record for its
+    # client carries no line for — the same change on a row a record line reads is a finding for the
+    # rule that reads the record as well. The second craft takes away the registration line the
+    # catch-all half reads, which is the other half of the same rule. The third craft names the route
+    # the file registers for a different path on the half that has no group and no catch-all, which is
+    # the half where an unregistered path answers the router's own; the row has to be one the record
+    # for its client reads through the tolerance table, so the answer half reads nothing for it.
+    "a_call_reaches_an_answer_the_port_registers_the_catch_all_or_the_router_answer": [
         lambda data: row_of(data, "FeedFlow", "reader/api/0/stream/contents").__setitem__(
             "This port answers", "POST /reader/api/0/stream/contents-not-registered"),
         lambda data: data.__setitem__("port_routes", data["port_routes"].replace(
             'on(.GET, "**"', 'on(.GET, "**-not-registered"')),
+        lambda data: row_of(data, "Capy Reader", "GET /v1/feeds").__setitem__(
+            "This port answers", "GET /v1/me"),
     ],
 
     # A row reads as the output check for an endpoint the reference applies the check on nowhere:
@@ -170,18 +177,20 @@ CASES = {
         lambda data: data.__setitem__("port_fever", data["port_fever"].replace(
             'named: "groups"', 'named: "groupz"')),
 
-    # Three crafts for this rule, one for each of its three halves. The shape half and the note half
-    # are crafted on Capy Reader, the only set that names more than one half: the shape half by
-    # naming the shape as one while the set names two, the note half by taking the note off the half
-    # whose calls are not read as data rather than off the half the calls are read on. The
-    # registrations half is crafted on the parsed registrations, by taking the registration line out
-    # of the third route file, which is the half that reads that file as data.
+    # Four crafts for this rule, one for each of its four halves. The shape half and the note half and
+    # the side half are crafted on Capy Reader, the only set that names more than one half: the shape
+    # half by naming the shape as one while the set names two, the note half by taking the note off the
+    # half whose calls are not read as data rather than off the half the calls are read on, and the side
+    # half by moving the tolerance half to this port, which is the side the table does not read the
+    # difference on. The registrations half is read as data but cannot be crafted alone: the third route
+    # file registers one route, and the matrix has a row that names it as its answer, so a patch that
+    # took the registration out fires the route rule as well. That is the report item.
     "the_halves_are_read_as_shape_note_and_registrations": [
         lambda data: set_of(data, "Capy Reader")["runtime_shape"].__setitem__(
             "uses_two_halves", False),
         lambda data: set_of(data, "Capy Reader")["halves"][1].pop("note"),
-        lambda data: data.__setitem__("port_rest_routes", data["port_rest_routes"].replace(
-            'application.grouped("v1").get("me", use:', "// the file registers nothing here")),
+        lambda data: set_of(data, "Capy Reader")["halves"][1].__setitem__(
+            "run_answered_on", "this port"),
     ],
 
     # The recorded order is not the order the source declares.
@@ -241,11 +250,14 @@ CASES = {
         lambda data: data.__setitem__("port_response", data["port_response"].replace(
             'name: "X-Reader-Google-Bad-Token"', 'name: "X-Reader-Local-Bad-Token"')),
 
-    # The eleven halves of the rule that reads the run record, one craft each: six on the record the
+    # The twelve halves of the rule that reads the run record, fourteen crafts: six on the record the
     # Fever run wrote here, one on the paragraph that names its calls, one on the record the Google
-    # Reader run wrote here, one on a record this machine has not written, which is the craft that
-    # adds a line for a client whose set records no calls, one on the names the round reads the
-    # record files under, and one on the status a record line carries for an error answer.
+    # Reader run wrote here, the order half crafted again on the record the run on the Mac wrote, one
+    # on a record this machine has not written, which is the craft that adds a line for a client whose
+    # set records no calls, one on the names the round reads the record files under, one on the status
+    # a record line carries for an error answer, and two on the answer a line carries on the half the
+    # tolerance table reads, one moving the answer off both sides and one moving the number the note's
+    # sentence names for the chain's answer.
     "the_run_record_agrees_with_the_set_and_the_answer_it_names": [
         # The order the record carries, read as the order column, against the order the paragraph
         # names the calls the two have in common: the two names swap in the column.
@@ -306,6 +318,19 @@ CASES = {
         lambda data: next(line for line in lines_of(data, "FeedFlow")
                           if line["answer"].startswith("status ")).__setitem__(
             "answer", "status 404"),
+
+        # The answer a line carries on the half the tolerance table reads, moved off both sides:
+        # neither the route the reference names for the path nor the status that route answers. The
+        # other halves that read an answer skip a line on this half, so this craft reaches the
+        # tolerance half alone.
+        lambda data: line_of(data, "Capy Reader", "GET /v1/feeds").__setitem__(
+            "answer", "status 404"),
+
+        # The number the note's sentence names for the answer the chain gives before the mux, which
+        # is what this half reads a status line against for a path the table names no status for:
+        # the four lines the run wrote on this half stop agreeing with the sentence.
+        lambda data: data.__setitem__("reference", data["reference"].replace(
+            "answers the guard's 401 first", "answers the guard's 403 first")),
     ],
 }
 
@@ -314,9 +339,10 @@ def cases():
     """The committed data as the baseline, and one crafted input per rule, in the order the document
     names the rules, which is the order the round reads them in. Four rules have more than one
     craft, because their branches cannot be shown by one input: the performance rule reports five
-    kinds of finding, the route rule reads two halves, the rule that reads the run record reads
-    eleven, and the rule that reads the half that reaches no route reads two, both on the one set
-    with a half that reaches no route here, so each reports the half its own input violates alone.
+    kinds of finding, the route rule reads three halves, the rule that reads the run record reads
+    twelve, and the rule that reads the halves the sets name reads four and is crafted on three, the
+    fourth half being read as data without a craft of its own, so each reports the half its own
+    input violates alone.
     """
     out = [("baseline", None)]
     for name in read.build_matrix(read.DEFAULTS)["rule_names"]:

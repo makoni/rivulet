@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 """The rule that reads the client run as data, kept in its own file because the check half is at the
 size cap. The run half writes one record line per request the client actually sent, so this rule
-reads the run document rather than the app: the client the record names, the order the calls
-arrived in, the call as the recorded set names it, the method, the answer the port gave, the key
-names the answer carried, and the field names the request carried. Eleven halves and twelve crafts,
-the order half crafted on two of the three records the round reads as data here: the client the
-record names against the set that client's row records; the order the record carries against the
-record carries against the order the document names the calls this run showed; a call the set
-cannot name against the document naming it as shown; the answer for a call the set names against
-the matrix row; the answer for a call the reference records no case for against the default
-branch, which is the dispatch word for the path that dispatches and the catch-all word for the
-path that answers on a route; the status a record line carries when the port wrote something other
-than an answer of this path, read as the status the handler the route file gives this path answers,
-through the shapes its own branches write and the status each shape writes; the call name against
-the branch the merged form gives, read through the mark the set names that branch with; the key
-names read against the names the file writes for the path this client uses; the name the redaction
-names for the pair; the guarded call against the document naming it as shown by this run; and the
-record files the round reads, read as the names it reads them under, which is the half that keeps
-the file another rule reads at its own path out of the client records. The order half reads the
-order of first appearances, because one run can reach the same call more than once, and it does not
-read the run's order against the order the source declares: the document names the order a client
-reaches its calls at as shown only for the client run here, so the half compares the record with the
-order the same document names the calls this run showed, which is the half the document can be
-wrong about. The order column is the order the requests arrived at, read rather than the position
-of the line, because the line is written when the response is complete, which is not the arrival
-order when the client has more than one connection open at once. The paragraph is read for the
-client the record names, so a run this machine has not written a record for has no paragraph to
-read an order against, and the half reads nothing for it rather than reading the order of another
+reads the run document rather than the app: the client the record names, the order the calls arrived
+in, the call as the recorded set names it, the method, the answer the port gave, the key names the
+answer carried, and the field names the request carried. Twelve halves and fourteen crafts, the
+order half crafted on two of the four records the round reads as data here: the client the record
+names against the set that client's row records; the order the record carries against the order the
+document names the calls this run showed; a call the set cannot name against the document naming it
+as shown; the answer for a call the set names against the matrix row; the answer for a call the
+reference records no case for against the default branch, which is the dispatch word for the path
+that dispatches and the catch-all word for the path that answers on a route; the status a record
+line carries when the port wrote something other than an answer of this path, read as the status the
+handler the route file gives this path answers, through the shapes its own branches write and the
+status each shape writes; the call name against the branch the merged form gives, read through the
+mark the set names that branch with; the key names read against the names the file writes for the
+path this client uses; the name the redaction names for the pair; the guarded call against the
+document naming it as shown by this run; the record files the round reads, read as the names it
+reads them under, which is the half that keeps the file another rule reads at its own path out of
+the client records; and the answer for a line on the half whose run answered on the other side, read
+as the answer that side gives for the path, which is the half the tolerance table licenses. The
+order half reads the order of first appearances, because one run can reach the same call more than
+once, and it does not read the run's order against the order the source declares: the document names
+the order a client reaches its calls at as shown only for the client run here, so the half compares
+the record with the order the same document names the calls this run showed, which is the half the
+document can be wrong about. The order column is the order the requests arrived at, read rather than
+the position of the line, because the line is written when the response is complete, which is not
+the arrival order when the client has more than one connection open at once. The paragraph is read
+for the client the record names, so a run this machine has not written a record for has no paragraph
+to read an order against, and the half reads nothing for it rather than reading the order of another
 client's run. The paragraph has to be written in the form this half names, so the document names the
 client in the paragraph for each run it wrote here; that form is the second branch named here rather
 than probed, because a craft that took the client name out of the paragraph leaves this half reading
@@ -34,9 +35,13 @@ nothing. Each half the round crafts is single-firing, because the record is a co
 round reads as data: a craft changes the parsed record in memory and the round hashes the file
 before and after. The first branch named rather than probed is the one that reports a record naming
 a client the check half has no set for, which no committed record can put in place. The number
-written for each status name is this read's vocabulary, because the pin asserts the status name
-and no test asserts the number: the pair (shape, status) is read as data, the number is named here,
-and that is the half the report item names.
+written for each status name is this read's vocabulary, because the pin asserts the status name and
+no test asserts the number: the pair (shape, status) is read as data, the number is named here, and
+that is the half the report item names. The three halves that read the answer for a run answered on
+the other side read nothing for a run answered on this port, which is what keeps the crafts on the
+records the runs wrote here single-firing, and the number the note names for the answer the chain
+gives before the mux is read as the sentence writes it, so the craft for that half moves the number
+in the sentence rather than the answer on a line.
 """
 
 import parsers as read
@@ -57,6 +62,9 @@ BRANCH_MARK = "#"
 # report item names.
 STATUS_PREFIX = "status "
 STATUS_NUMBER = {"badRequest": 400, "internalServerError": 500, "notFound": 404}
+# The section of the reference's own note that names the answer for a path on the half read through
+# the tolerance table. Each half names the section the read takes the chain's answer from.
+V1_SECTION = "## REST v1 routes"
 
 
 def set_key(client):
@@ -101,14 +109,17 @@ def call_half(record, calls, shown):
     return found
 
 
-def answer_half(record, rows):
+def answer_half(record, rows, client):
     """The answer the record carries for a call the set names, read against the matrix row. A line
     whose answer is a status is not read here: the row names the answer for the path, while the
-    status is the answer the handler wrote for the read that failed, which the status half reads.
+    status is the answer the handler wrote for the read that failed, which the status half reads. A
+    line on a half whose run answered on the other side is not read here either, because the row for
+    that half names the answer this port gives, and the answer the run carried is read by the half
+    that reads the tolerance table.
     """
     found = []
     for one in record:
-        if one["answer"].startswith(STATUS_PREFIX):
+        if one["answer"].startswith(STATUS_PREFIX) or answered_on_other_side(client, one["call"]):
             continue
         if one["call"] in rows and one["answer"] != rows[one["call"]]["This port answers"]:
             found.append(f"{one['call']}: the record reads {one['answer']}, "
@@ -135,11 +146,15 @@ def status_half(record, rows, handlers, shapes, statuses):
     its own branches write and the status each shape writes: a status this handler has no branch for
     is a finding, which is what the craft for this half shows. A line whose call the matrix has no
     row for is not read here, because the half that reads the call name is the one that reports it,
-    and the shape half already skips those lines as statuses.
+    and the shape half already skips those lines as statuses. A line on a half whose run answered on
+    the other side is not read here, because the status on that half is the answer the other side
+    gives, which the half that reads the tolerance table reads.
     """
     found = []
     for one in record:
         if not one["answer"].startswith(STATUS_PREFIX) or one["call"] not in rows:
+            continue
+        if answered_on_other_side(one["client"], one["call"]):
             continue
         answer = rows[one["call"]]["This port answers"]
         handler = handlers.get(answer)
@@ -173,10 +188,16 @@ def branch_half(record, calls):
     return found
 
 
-def key_half(record, written):
-    """A key name the record carries that the file writes nowhere for this path."""
+def key_half(record, written, client):
+    """A key name the record carries that the file writes nowhere for this path. A line on the half
+    whose calls are read through the tolerance table is not read here: the names on that half are the
+    names the model struct on the other side declares, which this half has no file to read, and that
+    is the report item.
+    """
     found = []
     for one in record:
+        if read.half_for(client, one["call"])["calls_read"] == read.TOLERANCE_READ:
+            continue
         extra = [key for key in one["keys"] if key not in written]
         if extra:
             found.append(f"{one['call']}: the record names {extra}, "
@@ -214,6 +235,44 @@ def guard_half(record, guarded, shown):
     return found
 
 
+def answered_on_other_side(client, call):
+    """Whether the half a record line is read on names the other side as the side the run answered
+    on, which is what decides which half reads that line's answer.
+    """
+    return read.half_for(client, call).get("run_answered_on") == read.REFERENCE_SIDE
+
+
+def tolerance_half(record, rows, statuses, guard):
+    """The answer a record line carries for a run that answered on the other side. Read as the answer
+    that side gives for the path: the route its own note names for the path, the status that route
+    answers for it, or the answer the chain gives before the mux, which the note names for the half.
+    The row the tolerance table names for this half is what licenses the pair of the two answers,
+    which is the half the class rule reads; this half reads the answer the run carried, so a craft
+    that moves the answer off both sides reports, and a craft that moves the number the note names
+    for the chain reports the lines that read as the chain's answer.
+    """
+    found = []
+    for one in record:
+        half = read.half_for(one["client"], one["call"])
+        if half.get("run_answered_on") != read.REFERENCE_SIDE:
+            continue
+        row = rows.get(one["call"])
+        if row is None:
+            continue
+        route = row["The reference reads"]
+        if one["answer"] == route:
+            continue
+        status = statuses.get(route)
+        if status is None:
+            status = guard[half["prefix"]]
+        if status is not None and one["answer"] == STATUS_PREFIX + str(status):
+            continue
+        found.append(f"{one['call']}: the record reads {one['answer']}, which is neither the route "
+                     f"the reference names for this path nor the status that route answers "
+                     f"({status})")
+    return found
+
+
 def record_halves(data, client, record):
     """The halves this rule reads for one record, as the data names the client that run wrote it
     for.
@@ -227,19 +286,22 @@ def record_halves(data, client, record):
     calls = {call["key"] for call in set_data["calls"]}
     login = next((call["key"] for call in set_data["calls"] if call["auth"] == "none"), None)
     rows = {row["Call"]: row for row in data["matrix"] if row["Client"] == client}
-    guarded = {line["key"].split("/", 1)[1] for line in data["manifest"]
-               if line["rest"][0] == GUARD_CLASS}
+    guarded = {line["key"].split("/", 1)[1] for line in data["manifest"] if line["rest"][0] == GUARD_CLASS}
     shown = shown_for(data, client)
     found = order_half(record, shown)
     found += call_half(record, calls, shown)
-    found += answer_half(record, rows)
+    found += answer_half(record, rows, client)
     found += default_half(record, calls, DEFAULT_ANSWER[set_data["api"]])
     found += status_half(record, rows, data["route_handlers"], data["handler_shapes"],
                          read.status_names(data["status_pin"]))
     found += branch_half(record, calls)
-    found += key_half(record, data["shape_keys"][set_data["api"]])
+    found += key_half(record, data["shape_keys"][set_data["api"]], client)
     found += token_half(record, set_data["redaction"]["token"], login)
     found += guard_half(record, guarded, shown)
+    statuses = read.reference_statuses(data["reference"], V1_SECTION)
+    guard = {half["prefix"]: read.guard_answer(data["reference"], half.get("chain_answer") or "")
+             for half in set_data["halves"]}
+    found += tolerance_half(record, rows, statuses, guard)
     return found
 
 
