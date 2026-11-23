@@ -1568,22 +1568,23 @@ shapes each handler's own branches write, and the status each shape writes as th
 the rules stay the readable part of the check half, with the rule that reads the halves the sets
 name in `Tools/clients/halves.py` because this file is at the size cap. `Tools/clients/probes.py`
 crafts one input per rule that violates it and asserts that the rule reports it alone; the baseline
-— the committed data — reports nothing, so each probe is single-firing: 19 rules, 37 crafted inputs
-and the baseline, so 38 cases, the performance rule having one for each of the five kinds of finding
-it reads, the route rule one for each of its two halves, because an input that violates one half of
+— the committed data — reports nothing, so each probe is single-firing: 19 rules, 40 crafted inputs
+and the baseline, so 41 cases, the performance rule having one for each of the five kinds of finding
+it reads, the route rule one for each of its three halves, because an input that violates one half of
 a rule still satisfies the other, the rule that reads the halves the sets name one for each of its
 three halves — the shape half by naming the shape as one while the set names two, the note half by
 taking the note off the half whose calls are not read as data rather than off the half its calls are
 read on, both on Capy Reader, the only set that names more than one half, and the registrations half
 by taking the registration line out of the third route file, which is the half that reads that file
-as data — and the rule that reads the run record one for each of its eleven halves, which is twelve
-crafts: six on the record
-the Fever run wrote here, one on the paragraph naming its calls, one on the record the Google Reader
-run on the phone wrote here, the order half crafted again on the record the run on the Mac wrote,
-one on a record this machine has not written, for a client whose set records no calls, one on the
-names the round reads the record files under, which is the half that keeps the performance record,
-read by its own rule at its own path, out of the client records, and one on the status a record line
-carries, which writes a status the handler for that path has no branch for. The status half reads
+as data — and the rule that reads the run record one for each of its twelve halves, which is fourteen
+crafts: six on the record the Fever run wrote here, one on the paragraph naming its calls, one on the
+record the Google Reader run on the phone wrote here, the order half crafted again on the record the
+run on the Mac wrote, one on a record this machine has not written, for a client whose set records no
+calls, one on the names the round reads the record files under, which is the half that keeps the
+performance record, read by its own rule at its own path, out of the client records, one on the status
+a record line carries, which writes a status the handler for that path has no branch for, and two on
+the answer a line carries on the half the tolerance table reads, one moving the answer off both sides
+and one moving the number the note's sentence names for the answer the chain gives before the mux. The status half reads
 only the paths it can name a handler for: a row whose answer is the catch-all or a dispatch case has
 no handler, and the login route writes no handler call, so those paths read nothing here, and a
 shape that writes no error status has no pair in the pin, so a record line carrying the status the
@@ -1592,7 +1593,7 @@ read by this half, which is the half that reads the call name. The order half re
 when the document writes it in the form the half names, so the craft on the record the Mac run wrote
 works because the paragraph for that client names the client, as the other three do; the form itself
 is named as a half no craft can show, because a craft that took the client name out of the paragraph
-leaves the half reading nothing. One of the twelve crafts reaches two parts of the data at once, the
+leaves the half reading nothing. One of the fourteen crafts reaches two parts of the data at once, the
 record line and the paragraph that names the calls this run showed, because the half reads the
 record against the paragraph and the Fever run reached no call outside the recorded set. Two crafts
 have to name data this rule cannot read: the redaction craft is on a set for a client this machine
@@ -1615,7 +1616,7 @@ performance table against the run that answered it and the shape the document na
 and the report items against what the check half has, the response name a client acts on against the
 name the response builder writes, and the record each client run wrote against the set, the matrix
 row, the response shape, the redaction and the paragraph the document writes for the calls that run
-showed. The rule that reads the run record has eleven halves: the client the record names against
+showed. The rule that reads the run record has twelve halves: the client the record names against
 the set that client's row records, the order column against the order the document names the calls
 this run showed, a call the set cannot name against the document naming it as shown, the answer for
 a call the set names against the matrix row, the answer for a call the reference records no case for
@@ -1626,9 +1627,11 @@ the merged form gives, read through the mark the set names that branch with, the
 the names the response shape writes, the name the redaction names for the credential pair, the
 guarded call against the document naming it as shown, and the record files the round reads, read as
 the names it reads them under, which is the half that keeps the performance record, read at its own
-path by the rule that reads the numbers, out of the client records; the craft adds a name the round
-does not read a client under, so what the round shows is the message on that name, not that the read
-leaves the other files out. The number written for each status name is that half's vocabulary: the
+path by the rule that reads the numbers, out of the client records, and the answer a line carries on
+the half whose run answered on the other side, read as the answer that side gives for the path, which
+is the half the tolerance table licenses; the craft adds a name the round does not read a client
+under, so what the round shows is the message on that name, not that the read leaves the other files
+out. The number written for each status name is that half's vocabulary: the
 pin asserts the status name and no test asserts the number, so the pair (shape, status) is read as
 data while the number is named in the code, which is the half the report item names. What this half
 cannot show, and is named in `docs/clients.md` rather than asserted: the manual checklist as a
@@ -1657,9 +1660,10 @@ that sends the stored value as the token, the numbers of another machine, the qu
 read the value against. The run half is `Scripts/client-run.sh` with `Tools/clients/observer.py`,
 outside CI: the observer writes one record line per request it forwarded and asserts nothing, and
 the check half reads the record the run left behind rather than the processes. It is checked here by
-`bash -n` and by its nine guards — twelve read sites, six reading one value, three for the ports,
-two for the base's three halves, one for the entry guard's two halves — each seen to fail on the
-value it names: the record path, the client row, the host by an address the machine does not answer
+`bash -n` and by its ten guards — thirteen read sites, seven reading one value, three for the ports,
+two for the base's three halves at two sites, one for the entry guard's two halves — each seen to fail
+on the value it names: the record path, the client row, the target by a side the set does not name for
+the client, the host by an address the machine does not answer
 on, read against the address the machine's own default route selects, the two ports by naming the
 same port twice and by a port the machine already holds, seen by holding one port with a listener,
 the base by the port it names, by a path the set does not name for the client, seen for FeedFlow
@@ -1669,7 +1673,7 @@ reaches the port with it twice, which is also what the default base the run buil
 read followed that form, the default now naming the port alone for that client and the prefix for
 the clients that send the base as the whole prefix; the version by a version the file the run reads
 does not write, the pair row, the entry rows, and the record being empty. The usage block names
-thirteen of the fourteen halves these read sites fail on, one line each, the observer-port half
+fourteen of the fifteen halves these read sites fail on, one line each, the observer-port half
 being seen by holding the port with a listener. The three guards that read what the run itself wrote
 — the pair row, the entry rows, and the record being empty — fail only on a run, and the guards that
 read the machine fail only on a machine. The guards that read a value the run declares run before
