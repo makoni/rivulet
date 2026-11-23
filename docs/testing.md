@@ -1688,7 +1688,8 @@ path, and the patch that moved the prefix the half names fires that assertion an
 prefix. The half the pin reads is
 read through `#require`, so a set that names no half whose calls are not read as data reports at the
 read rather than trapping on the index. The transport read is the assumption the other pins run
-can show it alone either, and the transport rules are pinned by `GoogleReaderAuthTests`. The login
+through, so no patch can show it alone either, and the transport rules are pinned by
+`GoogleReaderAuthTests`. The login
 half and the token half are pinned as the answer they write, not as the order they happen in, which
 is what no pin can read. The performance half records measurements taken here rather than bounds:
 `Scripts/perf.sh` is the run, `Tools/clients/perf-run.txt` is the recorded run, and the rule

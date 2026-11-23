@@ -9,7 +9,7 @@ form and never a file, and the round hashes every file named here before and aft
 What the round reads as data: the document the run left, which carries the answer the DocC tool gave
 for the catalog - the pages it built, the findings it answered, and the program the run invoked; the
 catalog as the shapes its pages write; the sources the rules read the names and the values against -
-the manifest, the dispatch, the config parser, the two route files, the storage wrapper and the
+the manifest, the dispatch, the config parser, the three route files, the storage wrapper and the
 free-space check; the committed example, which is where the values the pages write are read against;
 the client matrix, which is where the client names are read against; the plan table and the root
 README, which are the two documents the stage-state rule reads; the contents table and the documents
