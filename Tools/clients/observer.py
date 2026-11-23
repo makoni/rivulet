@@ -26,7 +26,7 @@ The record carries no value. The names the merged form gives are read as the tra
 which side it reads: the pair names from the query, and from the body only when the body is read
 as a form, which is only for the methods the reference reads a body form for — pair names for a
 urlencoded body, quoted or unquoted part names for a multipart one, which is the read PR #61
-pins. A record line is exempt from the width rule because it is one record.
+pins. A record line is one record, so it stays whole on its own line.
 
 Usage: CLIENT_RECORD=<the file the run writes> CLIENT_NAME=<the client the run names>
 CLIENT_HOST=<the address the client was given> CLIENT_OBSERVE_PORT=<the port the client is

@@ -326,8 +326,8 @@ CASES = {
             "answer", "status 404"),
 
         # The number the note's sentence names for the answer the chain gives before the mux, which
-        # is what this half reads a status line on the half read here against: the two lines the run
-        # wrote as the chain's answer stop agreeing with the sentence.
+        # is what this half reads a status line against for a path the table names no status for:
+        # the four lines the run wrote on this half stop agreeing with the sentence.
         lambda data: data.__setitem__("reference", data["reference"].replace(
             "answers the guard's 401 first", "answers the guard's 403 first")),
     ],

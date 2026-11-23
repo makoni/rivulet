@@ -1548,10 +1548,11 @@ row names — the reference answers a method its mux has no pattern for with a t
 with the shape its router writes — because the rule that reads key sets reads no coverage. The
 committed report is the one the harness writes from the table before the rules read it, which is the
 same document a run writes from the same table;
-- what the width rule does not reach: the manifest's record lines, which are one record, the
-report's item lines, which are one item each and read as whole strings by the rule that reads the
-report, the whole-string values inside the JSON records the rules read as data, and the shell's
-command lines and guard messages, which cannot be broken without changing what the run reads.
+- what is read as one whole string and so cannot be broken at a word: the manifest's record lines,
+which are one record, the report's item lines, which are one item each and read as whole strings by
+the rule that reads the report, the whole-string values inside the JSON records the rules read as
+data, and the shell's command lines and guard messages, which cannot be broken without changing what
+the run reads.
 
 ## Client matrix (stage 7)
 

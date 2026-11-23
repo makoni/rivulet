@@ -1,6 +1,6 @@
 # The smoke job's corpus: one record line per feed the clean container is asked to read, the title
 # the document declares, and what that input cannot show on its own. A record line is one record, so
-# it is not wrapped and is exempt from the width rule. These documents are the smoke's own, not
+# it stays whole on its own line. These documents are the smoke's own, not
 # ported from the reference, and they carry no fixture value the stage-3 corpora pin.
 # The rule reads a record as the file it names, its digest and the count, and reads each row as
 # naming that record through the url the run asked with. The title column is declared data no rule

@@ -1,6 +1,6 @@
 # The recorded output of `Scripts/perf.sh` run here, and the elapsed the timed pin prints here.
 # One record line per number: the run, the source that produced it, the field that source declares,
-# and the value. A record line is exempt from the width rule because it is one record.
+# and the value. A record line is one record, so it stays whole on its own line.
 # `docs/performance.md` records these as measurements taken here; a number the document names as not
 # measured here has no line here, which is what the rule that reads both checks. The fields the
 # sources declare are read from `Scripts/perf.sh` and from the pin's own print, so a line naming a

@@ -70,9 +70,10 @@ record line reaches, and its third craft is on a row whose record line the answe
 the run answered on the other side: a change to data this rule also reads fires it alongside the
 rule the craft names, which is what the round showed here after the third record landed.
 
-The width rule does not reach a table row, a manifest record line, a report item line or a
-whole-string value inside a JSON record, each of which is read as one whole string. The record
-lines, the item lines and the values inside the set files here are exempt for that reason.
+The lines the check half reads as one whole string — a table row, a manifest record line, a report
+item line, a whole-string value inside a JSON record — cannot be broken at a word, so they stay
+whole on their own lines. The record lines, the item lines and the values inside the set files here
+are read that way.
 
 ## The run half
 
@@ -95,7 +96,8 @@ and the status each shape writes, so a record line carrying a status this handle
 is a finding. On the half whose calls are read through the tolerance table the run answered on the
 other side, so those two halves read nothing for its lines and the answer is read as the pattern the
 other side registers for the path, which is the name the set has for the call, and a status line is
-read as the number the note's sentence names for the answer the chain gives before the mux. The half
+read as the status the table names for that route, or as the number the note's sentence names for the
+answer the chain gives before the mux when the table names no status for it. The half
 reads only the paths it can name a handler for: a row whose answer is the catch-all or a dispatch
 case has no handler, and the login route writes no handler call, so those paths read nothing here. A
 shape that writes no error status, `text` or `json`, has no pair in the pin, so it adds nothing to
@@ -324,8 +326,8 @@ this document names, and that rule reports what the data says rather than what t
 
 ## What this matrix cannot show
 
-Each line below is one report item line, read as one whole string by the check half, so it is exempt
-from the width rule.
+Each line below is one report item line, read as one whole string by the check half, so it cannot be
+broken at a word and stays whole on its own line.
 
 - the manual checklist as a document, which no rule reads as data: the check half reads the record lines for the four clients whose records it reads as data and the calling set for the one read from documentation, and it reads none of the steps a checklist names
 - the record a walk for a client whose set records no calls leaves, which the check half reads as a finding, so that walk is evidence outside the repository rather than data it reads
@@ -578,8 +580,8 @@ the feeds list and three entry reads; two star writes, each reaching the bookmar
 flush of the mark-read the app had kept in its own state, which reached the entries write; and the
 folder rename, which sent the token read and the rename write twice and answered the guard's 401 on
 both, because the app carries the stored value as the token name on the Google Reader half, which is
-not the credential the chain there reads. The rename is the only call of this run that reached the
-Google Reader half.
+not the credential the chain there reads. The token read and the rename write are the two calls of
+this run that reached the Google Reader half.
 
 The answer for a line on the half read through the tolerance table is the pattern the reference
 registers for the path, which is the name the set has for the call, so the record names the pattern

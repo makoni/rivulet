@@ -1413,10 +1413,9 @@ preference. The rules that guard the run itself — the flags, the pinned refere
 digests, the request sequence, the counts, the report — report whatever the data says, whatever the
 table says.
 
-The width rule does not reach the manifest's record lines, the report's item lines, or the shell's
-command lines and guard messages: a record and an item are each one thing the check half reads as
-data, and a command or a guard message cannot be broken at a word without changing what the run
-reads, so all four stay whole on their own line.
+The lines the check half reads as one whole string — the manifest's record lines and the report's
+item lines — cannot be broken at a word, and neither can the shell's command lines and guard
+messages, which the run reads as one line, so all four stay whole on their own line.
 
 **The classes the harness reads.**
 

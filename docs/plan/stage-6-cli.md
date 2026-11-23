@@ -154,6 +154,9 @@ after retention — pinned as storage rules by `MaintenanceTests` and as runs by
 
 ## Backlog
 
+The prose column-width rule was dropped from the working agreement at the person's request, so the
+width findings below record what was done under it at the time and are not open items.
+
 - Style findings from PR #47 that do not change behavior: the single-expression code lines in the
 command pins that read over the width (the `contains` calls with the rule name and the comment
 argument, and the seed calls with the fixture values), which the wrapping rule exempts, and
