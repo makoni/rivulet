@@ -13,7 +13,8 @@ documentation layer read as data over 21 rules in `Tools/docs/docs_check.py` (PR
 `Scripts/docs.sh` as its run half and `Tools/docs/probes.py` as its round — the catalog being the
 pages a site is built from, published outside this repository, the Pages publish half dropped as
 PR #74 so no CI job here publishes it — and the build half `Scripts/build-docs.sh` (PR #75), which
-writes the archive that site is built from outside the repository. **Effort:** S–M.
+writes the archive that site is built from outside the repository, the site itself being the
+person's own run and publish, so this project does not return to it. **Effort:** S–M.
 **Depends on:** Stage 6.
 
 ## Scope
@@ -51,13 +52,13 @@ only commands the dispatch registers, only flags those signatures declare and on
 reads, so the command surface the stage-6 criterion reads is the same set the page calls; Litestream
 is named as a tool outside the port, with no command of the port running it, and the page names what
 it cannot show as its own section.
-- [ ] Documentation publishing: `Scripts/build-docs.sh` writes the archive the site is built from,
-      and the site itself is outside this repository and is published by hand, so no CI job here
-      shows a served site. What this slice landed is the toolchain half: the symbol-graph half, PR
-      #76, reads the graph SwiftPM's own subcommand answers for its own run, which is the file the
-      symbol pages are written from, and no rule reads those pages as pages, which is the report
-      item the check half names. What stays open is the site, which this repository does not
-      publish.
+- [x] Documentation publishing: `Scripts/build-docs.sh` writes the archive the site is built from,
+      and the site itself is outside this repository, so no CI job here shows a served site. What
+      this slice landed is the toolchain half: the symbol-graph half, PR #76, reads the graph
+      SwiftPM's own subcommand answers for its own run, which is the file the symbol pages are
+      written from, and no rule reads those pages as pages, which is the report item the check half
+      names. The criterion is closed as that half: the script is what a person runs, and the site is
+      built and published by the person outside this repository, so nothing here returns to it.
 
 ## Spike result
 

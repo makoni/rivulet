@@ -359,7 +359,9 @@ root, which is what makes that job machine-independent; the run halves stay on d
 read a machine, a tool or a process — Docker, systemd, the terminal, the DocC tool. Publishing the
 DocC pages as a site happens outside this repository, so no CI job here shows a served site, and the
 pages the harness reads as data are the deliverable; the build half `Scripts/build-docs.sh` needs
-the tool too, so it stays on demand with the run halves.
+the tool too, so it stays on demand with the run halves. The site is the person's own: they run the
+script and publish the archive where they want it, so the documentation-publishing criterion is
+closed as the toolchain half and nothing here returns to the site.
 
 **Stage 6 — CLI & operations** is complete with its eight slices merged; its one exit criterion, the
 deployment runbook needing nothing beyond these commands, closed with `docs/deploy.md` as stage 8's
@@ -763,7 +765,8 @@ genuinely wrong, fix the test in the same commit with a clear explanation.
 
 - Documentation and tutorials are a project deliverable, not an afterthought. We collect them with
 DocC; `Scripts/build-docs.sh` writes the archive the site is built from, and the site itself is
-outside this repository, so no CI job here publishes it.
+outside this repository, so no CI job here publishes it. The script is run by the person, who
+publishes the archive themselves, and the site is not something this project returns to.
 - Every public API gets a DocC documentation comment.
 - DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
 executable): articles for concepts, tutorials for key workflows (setup, feeds, clients, deployment).

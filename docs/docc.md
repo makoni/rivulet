@@ -116,9 +116,10 @@ fail here on the value the usage lines name: the archive path, the catalog path,
 the base read as the tool writes it, the names the markdown manifest carries, the copy against the
 file SwiftPM wrote, the module the copy names against the target the manifest writes, and the link
 on each page the committed document names. No rule here reads an archive, so this half is what a
-person runs before publishing, and publishing is outside this repository. The four comment
-references the tool reported as findings for a build that reads the graph are fixed at the sites
-they name, and the tool answered nothing for the build run here.
+person runs before publishing, and publishing is outside this repository: the person runs the script
+and publishes the archive where they want it, so the site is not something this project returns to.
+The four comment references the tool reported as findings for a build that reads the graph are fixed
+at the sites they name, and the tool answered nothing for the build run here.
 
 ## Running it
 
