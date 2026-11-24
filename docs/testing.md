@@ -1566,7 +1566,8 @@ record lines, the two sentences the rules parse as sets, the names read in the o
 carries them, the routes the port registers, the handler each registration line gives its path, the
 shapes each handler's own branches write, and the status each shape writes as the pin asserts it, so
 the rules stay the readable part of the check half, with the rule that reads the halves the sets
-name in `Tools/clients/halves.py` because this file is at the size cap. `Tools/clients/probes.py`
+name in `Tools/clients/halves.py` because `Tools/clients/replay.py` is past the size cap the project
+sets, at 536 lines, as `Tools/clients/parsers.py` is at 547. `Tools/clients/probes.py`
 crafts one input per rule that violates it and asserts that the rule reports it alone; the baseline
 — the committed data — reports nothing, so each probe is single-firing: 19 rules, 40 crafted inputs
 and the baseline, so 41 cases, the performance rule having one for each of the five kinds of finding
@@ -1776,9 +1777,9 @@ names. `Tools/smoke/probes.py` crafts one input per rule that violates it — 61
 baseline over 20 rules, the baseline asserted to report nothing, so each probe is single-firing,
 four rules having one craft and sixteen reading more than one half — and the file readers are in
 `Tools/smoke/sources.py` so the rule list stays the readable part, with the runbook rule kept in
-`Tools/smoke/runbook.py` because the check half is at the size cap the project sets. The run records
-every command it calls as a step, which is the half the runbook rule reads as data rather than as a
-list the run declares. Four helpers keep other rules out of the crafts that reach them:
+`Tools/smoke/runbook.py` because `Tools/smoke/smoke_check.py` is 485 lines, under the cap the project
+sets. The run records every command it calls as a step, which is the half the runbook rule reads as
+data rather than as a list the run declares. Four helpers keep other rules out of the crafts that reach them:
 `keep_copy_equal` reads the copy as the rows the second snapshot holds, `set_due` keeps the
 mid-round count equal to the pick, `others` takes a row the scheduling rule does not read as the one
 in flight, and `change_url` writes a url change to both reads, so a craft that changes the row set
@@ -2043,8 +2044,9 @@ pages state only what a check here can show, so a page that names a command the 
 register, a flag no signature declares, a name no config read takes, or a client the matrix records
 no row for is a finding rather than a sentence.
 
-`Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part, and
-`Tools/docs/probes.py` crafts at least one input per rule that violates it: 32 cases over 21 rules,
+`Tools/docs/parsers.py` holds only the reads, so the rule list stays the readable part; it is past
+the cap the project sets, at 503 lines. `Tools/docs/probes.py` crafts at least one input per rule
+that violates it: 32 cases over 21 rules,
 31 crafts plus the baseline asserted to report nothing, so each craft reports its own rule alone; no
 craft here reaches more than one rule, and eight rules have more than one craft because each reads
 more than one half. Every craft changes the parsed form and never a file, and the round hashes every
