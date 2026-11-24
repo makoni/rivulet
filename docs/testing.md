@@ -1828,10 +1828,10 @@ only the default the file declares — off — is read there; the two snapshots 
 documents, read key by key; the rows as one row per record the manifest declares, read through the
 url the run asked with, with the counts against the records; the stop as the sentence the second
 boot answered for the integrity rule, the row set, and the fields the stop does not write — the url
-and `enabled`, which no fetch step writes, and the two parsing- error fields, read as unchanged
+and `enabled`, which no fetch step writes, and the two parsing-error fields, read as unchanged
 because the job the stop interrupted never reached its write; the scheduling as the pick the rules
 take at the read with the row the run names as in flight unstamped at that read, the stamp landing
-after the stop, the schedule landing after the round, and the mid- round count equal to the pick;
+after the stop, the schedule landing after the round, and the mid-round count equal to the pick;
 the copy as the sentence the command wrote for the destination it was given, read against the file
 it wrote with no `-wal` beside it; the machine as the two reads compared through the label the run
 writes; the runbook as the commands its fenced lines call, read against the case the dispatch
@@ -1861,20 +1861,20 @@ rule reads. Per feed the record shows the fetch hop and the icon hop, which asks
 then the site root and `favicon.ico` as names the corpus does not hold, because the icon read takes
 the root hop before the file it is given. The credential pair the login read compares is written
 through `integration-credentials`, which is the port's own path: the reference reaches the same
-values only through its web form, and `create- admin` writes the account hash alone, so the login
+values only through its web form, and `create-admin` writes the account hash alone, so the login
 would have answered 401 and the reader 401 with no row for the auth read to find. The command reads
 its five prompts, and the run writes them through the terminal the run gives the container, because
 the secure read answers nothing on a pipe — which is what the parity harness's first live run
 showed. The order the rule reads is the order the file declares the prompts in; which prompt
 produced which value is named as what no document can say. The values the run feeds are the names
-the shell declares as its defaults (`smoke` and `smoke- password`), so the committed document
+the shell declares as its defaults (`smoke` and `smoke-password`), so the committed document
 carries the derivation of that pair rather than a credential. Twelve halves of the probe set cannot
 be fired by a crafted document alone, and `Tools/smoke/probes.py` names them: the corpus rule's
 missing-file half fires only by taking the file away, which is what the shell guard shows; the
 runbook rule's five halves read the page itself, so they fire only on a patch to the page, which is
 what was seen here — a command the dispatch registers no case for, a flag its signature does not
 declare, a name no config read takes, `FULL` where the wrapper runs `NORMAL`, and 3 where the check
-uses 2 — each patch reverted byte- identically. The command patch reached the steps half as well,
+uses 2 — each patch reverted byte-identically. The command patch reached the steps half as well,
 because that half reads the commands the page names against the order the run recorded, so the steps
 half is named as reached there rather than shown alone; the order rule's clause half is read from
 the batch file, so the crafts for that rule reach the values the run recorded rather than the
@@ -2118,11 +2118,11 @@ patch run against the socket suite.
 
 The check halves read the third route file as data. The client matrix's rule that reads the halves
 reads three halves — the shape, the note, and the registrations the three route files write — and
-the round answers 38 cases over 19 rules, 37 crafts plus the baseline asserted to report nothing,
-two of the three crafts being on Capy Reader, the only set that names more than one half, and the
-third on the parsed registrations. The DocC round reads the routes the pages name against the
-registrations the three files write and answers 32 cases over 21 rules, 31 crafts plus the baseline,
-and the parity round answers 22 probes. The matrix gains no row for the calls on this path: the rule
+the round answers 41 cases over 19 rules, 40 crafts plus the baseline asserted to report nothing,
+two of the route rule's three crafts being on Capy Reader, the only set that names more than one
+half, and the third on the parsed registrations. The DocC round reads the routes the pages name
+against the registrations the three files write and answers 32 cases over 21 rules, 31 crafts plus
+the baseline, and the parity round answers 22 probes. The matrix gains no row for the calls on this path: the rule
 that builds the rows reads the calls a record carries, and no run here left a record line on this
 path, which is what the phone criterion for a Miniflux account stays open for. The half is read as
 data only as the prefix the port registers one route on.

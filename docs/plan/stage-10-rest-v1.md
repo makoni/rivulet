@@ -1,8 +1,9 @@
 # Stage 10 — Miniflux REST v1 subset
 
-Scheduled from the stage-9 item "REST v1 subset and API keys (`X-Auth-Token`) — only if a real
-consumer appears". The consumer appeared: Capy Reader's `minifluxclient`, read at the commit PR #85
-records for that client, declares 24 endpoints, and the walk on the phone reached the first of them
+Scheduled from the stage-9 item the plan's non-goals named as a subset appearing later on demand, the
+REST v1 subset and API keys (`X-Auth-Token`), which stage 9 names as worked here. The consumer
+appeared: Capy Reader's `minifluxclient`, read at the commit PR #85 records for that client, declares
+24 endpoints, and the walk on the phone reached the first of them
 (`GET /v1/me`) and got the 404 this port answered for a path it registered no route for at the time
 of the walk; the route is registered by the third slice, merged as PR #88.
 
@@ -15,8 +16,9 @@ fire on the rule they name and one is recorded as not biting, the patch that cha
 `WWW-Authenticate` realm, which no pin here reads as a value. Seventeen probes reach the pin they
 name alone and one reaches two pins. The third slice is merged as PR #88: the route registration and
 the pins that read an answer over a socket, 8 pins and 13 probes in `RestV1RouteTests`, and the
-stage-7 pin for this prefix rewritten to read the route the port registers, which is 9 pins and 11
-probes in `ClientSequenceReplayTests`. Every probe fires on the rule it names. The patch for the
+stage-7 pin for this prefix rewritten to read the route the port registers, which is 9 pins and 12
+probes in `ClientSequenceReplayTests`, the twelfth being the patch that moves a call on the half read
+through the tolerance table to the other side. Every probe fires on the rule it names. The patch for the
 path the pattern registers reaches every pin in the route suite except the one for the method,
 because that pin reads an answer the router gives either way, and it reaches the pin for this
 prefix; the patch that changed the realm value, which PR #87 recorded as not biting, fires on the

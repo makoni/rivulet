@@ -143,7 +143,7 @@ rather than in CI because the CI container has neither Docker nor systemd.
 and one tutorial and the asset the table of contents names — is read as data by 21 rules in
 `Tools/docs/docs_check.py`, with `Scripts/docs.sh` as the run half (eight guards, thirteen read
 sites, all eight seen to fail here on the values the usage lines name) and `Tools/docs/probes.py`
-crafting 31 cases over the 21 rules: 30 crafts plus the baseline asserted to report nothing, no
+crafting 32 cases over the 21 rules: 31 crafts plus the baseline asserted to report nothing, no
 craft reaching more than one rule, and every craft changing the parsed form rather than a file. The
 pages state only what a check here can show — the commands the dispatch registers, the flags the
 signatures declare, the names the config reads, the values the sources write, the routes the port

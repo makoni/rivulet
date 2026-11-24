@@ -182,13 +182,13 @@ read what the run wrote fail only on a run,
 machine. - `ClientSequenceReplayTests` — the recorded calling sets replayed against the served app
 over a real socket, read through `Bundle.module` as data rather than restated: the order each set
 declares, which recorded call reaches a registered route and which reaches the catch-all answer, the
-two item- id forms the same client sends, the page size above the clamp against the value at the
+two item-id forms the same client sends, the page size above the clamp against the value at the
 clamp, the token half per method on the half read here and the header half for the calls read through
 the tolerance table, the guard the merged form answers for the call with no add and no
 remove pair, the name the dispatch switch has no case for, and the half whose calls are not read as
 data, which is the prefix the port registers one route on. 9 pins and 12 probes, each seen to
 fire on the rule it names and to revert the file it
-patched byte- identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of
+patched byte-identically. - `Scripts/perf.sh` with `Tools/clients/perf-run.txt` — the run half of
 the performance half, outside CI: the rule matches each number `docs/performance.md` names as
 measured here to the record line that produced it, and reports the five kinds of finding it reads: a
 claim the log does not carry, a field no source declares, a record line the document does not name,
