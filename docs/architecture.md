@@ -64,6 +64,7 @@ Sources/
 | `entry_tombstones` | feed_id, hash, deleted_at — a tombstoned entry must never be re-inserted |
 | `enclosures` | id, entry_id, url, mime_type, size |
 | `icons` | id, hash (unique), mime_type, content (BLOB), external_id (random, for the public URL), created_at |
+| `api_keys` | id, user_id, token (unique), description, last_used_at, created_at; `UNIQUE (user_id, description)` |
 | `entries_fts` | FTS5 virtual table over `title`, `content_text`; synced by triggers |
 
 Categories own their feeds: deleting a category cascades to its feeds, and deleting a feed
@@ -125,8 +126,8 @@ non-zero exit status — everything else lives in `RivuletApp`.
   Migrations run when the flag is on, as the other commands have them gated.
 - The two remaining registered stubs are `import` and `export`; every other command of the final
   surface works: `serve`, `migrate`, `version`, `refresh`, `status`, `create-admin`,
-  `integration-credentials`, the feed commands `add`, `remove` and `list`, and the maintenance
-  commands `backup` and `vacuum`.
+  `integration-credentials`, `create-api-key` (stage 10's first slice), the feed commands `add`,
+  `remove` and `list`, and the maintenance commands `backup` and `vacuum`.
 
 `--help` lists every command and, like `version`, works without configuration.
 
@@ -136,6 +137,10 @@ non-zero exit status — everything else lives in `RivuletApp`.
   access (upstream registers it on a method-less pattern; Rivulet registers the standard NIO
   set, and upstream's `/readiness` probe pings the database and arrives together with the
   client APIs).
+- `GET /v1/me` — the one path stage 10's scope has registered, read as data by the route rule of the
+  client matrix and by the DocC rule that reads the routes the pages name against the registrations.
+  A path on the `/v1` prefix with no pattern registered answers the router's 404, which is the half
+  the client matrix reads as an accepted class.
 
 ## Decisions and deviations from Miniflux
 
@@ -151,7 +156,7 @@ non-zero exit status — everything else lives in `RivuletApp`.
 | Web sessions | cookie sessions for the web UI | none | No web UI (explicit non-goal) |
 | Bare invocation | `miniflux` starts the server | `rivulet` prints help and fails | The CLI is explicit about what it runs; `serve` is a command like any other |
 | Config names | `LISTEN_ADDR`, `BASE_URL`, `LOG_LEVEL`, … | same where meaningful; `DATABASE_URL` = SQLite file path | Familiar to Miniflux users |
-| Web UI and REST v1 | full UI + REST v1 | none in MVP; REST subset later on demand | Focus on the client APIs that matter |
+| Web UI and REST v1 | full UI + REST v1 | none in MVP; the subset one real consumer declares is worked as stage 10, outside the MVP, with `GET /v1/me` registered | Focus on the client APIs that matter |
 
 ## Configuration
 

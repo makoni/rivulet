@@ -23,6 +23,11 @@ Group B — items whose delivery needs something outside this machine:
 11. OIDC auth
 12. Multi-user
 
+The item the plan's non-goals named as a subset appearing later on demand is worked as stage 10,
+ahead of this order: the REST v1 subset and API keys (`X-Auth-Token`), the subset Capy Reader's
+`minifluxclient` declares. Its pins run on this machine; the calls the matrix has no row for stay
+open there, and the walk that named the calls was made on the phone.
+
 ## Exit criteria
 
 - [ ] Quoted-printable: a multipart part that declares the
@@ -69,6 +74,9 @@ Group B — items whose delivery needs something outside this machine:
       answer. A real provider round trip is a report item.
 - [ ] Multi-user: per-user data isolation, which the schema already carries, reaches the auth
       reads and the command surface.
+- [ ] REST v1 subset and API keys: worked as stage 10, whose file carries the criteria for the calls
+      the consumer declares and records three merged slices. The calls the matrix has no row for stay
+      open there, which is the phone half the stage-7 file keeps open.
 
 ## Release criteria
 
@@ -88,6 +96,11 @@ Group B — items whose delivery needs something outside this machine:
       subscription list and the rename so a record line lands on `/v1`. The matrix row for that
       call is written from the record, and the rule that reads the halves gains the half it cannot
       read today.
-- [ ] `ServeProcessTests.theBuiltBinaryAnswersOnTheProbedPort` is left as it is: it failed once in
-      a full run with `.noServeEvent` and passes alone. Nothing is written about it until it
-      repeats.
+- [ ] The process suite's flake, recorded as the runs showed it: the pin that failed is
+      `ServeProcessTests.theWalIsEmptyAfterTheCleanSignalExit`, not
+      `theBuiltBinaryAnswersOnTheProbedPort` as this file named it. It failed with `.noServeEvent`
+      once in a full local run and once on CI, on PR #90, and passed on a re-run each time. The
+      harness answers a line read after the child's output closed as an empty line, and the
+      serve-event read turns an empty line into `.noServeEvent`, so a child that exits before writing
+      its serve line is reported as no event rather than as the exit it reached. The condition this
+      file set — nothing written about it until it repeats — is met.

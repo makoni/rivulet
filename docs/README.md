@@ -24,9 +24,10 @@ CLI-first interface and no web UI.
 
 ## Plan at a glance
 
-Ten stages, from foundation to post-MVP backlog. Stages 0 (foundation), 1 (storage), 2 (fetching)
-and 4 (ingestion and scheduling) are done, stage 3 (parsing) is merged, stage 6 (CLI) has its exit
-criteria met, and stages 5, 7 and 8 are in progress; the MVP is stages 0–8. See
+Eleven stages, from foundation to the post-MVP backlog. Stages 0 (foundation), 1 (storage), 2
+(fetching) and 4 (ingestion and scheduling) are done, stage 3 (parsing) is merged, stage 5 (client
+APIs & OPML) is complete, stage 6 (CLI) has its exit criteria met, stage 9 is scheduled as the 0.1.0
+scope, and stages 7, 8 and 10 are in progress; the MVP is stages 0–8. See
 [plan/README.md](plan/README.md) for the full table and the definition of done.
 
 ## The documentation layer
