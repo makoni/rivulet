@@ -14,7 +14,7 @@ encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → gold
 three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML
 tolerance table and the parser error corpus | | Integration | `Tests/RivuletIntegrationTests` | Real
 SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP | | Soak |
-`Scripts/soak.sh` with `Scripts/soak_check.py` | A real-time run over local stub feeds, run by hand
+`Scripts/soak.sh` with `Tools/soak/soak_check.py` | A real-time run over local stub feeds, run by hand
 and not in CI: its checks read the data each round leaves behind |
 | Acceptance | `Tools/parity` with `Scripts/parity.sh` (stage 7) | Semantic comparator over observable behaviour against real Miniflux in Docker, run by hand and not in CI: its rules read the pair document the run leaves behind, and the tolerance table is read as data from `docs/parity.md` |
 
@@ -1380,10 +1380,10 @@ feeds, one round per cadence step, with a `status --json` snapshot after each pa
 and it is not in CI — it is a real-time run against a real HTTP server and the process clock, so the
 determinism rules above do not apply to it, and `swift test` stays the suite CI runs.
 
-Its checks are `Scripts/soak_check.py`, and each is a function over the data a round leaves behind —
+Its checks are `Tools/soak/soak_check.py`, and each is a function over the data a round leaves behind —
 the two snapshots, the instants the round recorded, the values the run declared and what the
 database answers — rather than an assertion about a live process. That is what makes each of them
-falsifiable: `python3 Scripts/soak_check.py --probe` crafts one input per rule that violates it and
+falsifiable: `python3 Tools/soak/soak_check.py --probe` crafts one input per rule that violates it and
 asserts that the rule reports it alone, and the same rules read a real round's files, so a probe is
 not a different machine from the run. What the rules read is the contract `StatusSnapshotTests` and
 `StatusCommandTests` pin, so the soak re-reads a pinned shape over 2h rather than pinning it again.
@@ -2132,7 +2132,7 @@ data only as the prefix the port registers one route on.
 - `swift test` — everything (unit + integration); this is what CI runs.
 - `swift test --filter RivuletCoreTests` — unit only (fast loop).
 - `swift test --filter RivuletIntegrationTests` — integration only.
-- `Scripts/soak.sh` — the soak run, outside CI. `python3 Scripts/soak_check.py --probe` checks that
+- `Scripts/soak.sh` — the soak run, outside CI. `python3 Tools/soak/soak_check.py --probe` checks that
 each of its rules can fail on the rule it names.
 - `Scripts/parity.sh` — the parity run, outside CI. `python3 Tools/parity/probes.py` checks that
 each of its rules can fail on the rule it names, and `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the

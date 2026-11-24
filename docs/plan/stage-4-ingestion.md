@@ -171,7 +171,7 @@ resize is what closes the stage: the exit criterion is met.
       snapshots (stage 4 ships the minimal feed-state `status --json`; stage 6 extends it) show
       `fetched_at`/`next_check_at` advancing with no crashes; log excerpt attached to the stage
       status. Landed as PR #35: the run is the shell's cadence over the manual pass, the checks
-      are `Scripts/soak_check.py`, each reading the data a round leaves behind rather than the
+      are `Tools/soak/soak_check.py`, each reading the data a round leaves behind rather than the
       process that produced it, and the run under "Soak run" is the one the artifact made.
 
 ### Soak run
@@ -245,7 +245,7 @@ Findings from the review runs on PR #25 that do not change behavior:
 ## Backlog
 
 Findings from review run 1 on PR #35 that do not change behavior:
-- `Scripts/soak_check.py` is 466 lines, above the 150–300 aim and under the ~500 cap: the rules
+- `Tools/soak/soak_check.py` is 466 lines, above the 150–300 aim and under the ~500 cap: the rules
   and the probe harness are one file, and splitting the probe set out would need an import between
   two scripts, so the artifact stays whole.
 
