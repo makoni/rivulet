@@ -568,10 +568,12 @@ star one item; rename a folder; delete a folder; rename a subscription. The run 
 record this half reads as data showed four of them: the sync pass, the star write, the mark-read the
 app kept in its own state and flushed on the next pass, and the folder rename, and it carries no
 line for the login because the app already held the account when the run started. A second walk on
-the same phone showed all ten, so the Capy Reader items are closed. The record that walk wrote is
-held outside the repository as evidence rather than committed as data: that walk answered on this
-port, while the half names the reference as the side the run answered on, which is the side the
-tolerance half reads its answers against.
+the same phone showed all ten, so the Capy Reader items are closed. Two of the ten rest on what the
+person walking reports rather than on a line: the walk's two `edit-tag` lines carry the names `a` and
+`r` and no values, so no line says which step sent them. The record that walk wrote is held outside
+the repository as evidence rather than committed as data: that walk answered on this port, while the
+half names the reference as the side the run answered on, which is the side the tolerance half reads
+its answers against.
 
 The calls this run showed for Capy Reader, in the order the record says they arrived:
 `GET /v1/integrations/status`, `GET /v1/feeds`, `GET /v1/entries`,
@@ -587,13 +589,17 @@ reads as data, so this list is the walk's own order and not something the rule c
 
 The second walk showed two things the record read as data does not. The folder rename first sent
 `GET /v1/categories`, the call the Miniflux half declares, rather than the
-`reader/api/0/rename-tag` the set names for that step: the app's folder view model is built once with
-the account it is given, and this one had been built while the phone held the Miniflux account, so the
-step ran through the Miniflux delegate, which is the delegate the log the app wrote names for that
-request. After the app was restarted the same step sent `reader/api/0/token` and
-`reader/api/0/rename-tag`. The delete step answered 500 while the account held one category, which is
-the guard that counts the categories it does not name before anything is written; after
-`subscription/edit` created a second folder the same step answered 200.
+`reader/api/0/rename-tag` the set names for that step. The app's own source shows why the delegate
+cannot change between two steps of one run on the same app: the delegate is fixed when the account
+object is built, the app resolves that object once, and the folder view model takes it, while the
+Miniflux delegate opens the rename with the categories read and the reader delegate sends
+`rename-tag` behind the post token. The person walking reports that the app's own log, which is
+outside this repository, named the Miniflux delegate for that request, and that the view model had
+been built while the phone held the Miniflux account. After the app was restarted the same step sent
+`reader/api/0/token` and `reader/api/0/rename-tag`. The delete step answered 500, which is the guard
+that counts the categories the input does not name before anything is written; the person walking
+reports that the account held one category at that point, and that after `subscription/edit` created a
+second folder the same step answered 200.
 
 The record carries 27 lines for this run: four sync passes, each answering the integrations read,
 the feeds list and three entry reads; two star writes, each reaching the bookmark write at once; one
