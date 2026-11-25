@@ -9,7 +9,7 @@ import Testing
 /// This read has no error half, and that is a rule of its own: `FormValue` discards what
 /// `ParseMultipartForm` reports, so a body this read cannot read answers the empty value, and the
 /// guard that reads `api_key` sees nothing rather than a failure. What the pins can fail on, each
-/// checked by patching the rule and reverting (8 pins, 17 probes): the media type is read as
+/// checked by patching the rule and reverting (9 pins, 37 probes): the media type is read as
 /// `mime.ParseMediaType` reads it and compared lowercased — 2 probes, one that compared the content
 /// type as it was written fails on `Multipart/Form-Data`, one that accepted any multipart media
 /// fails on `multipart/mixed`; the parameter rules — 4 probes, for a pair with no `=`, for a value
@@ -21,17 +21,30 @@ import Testing
 /// parameter being empty rather than present; a header line with no colon ends the read — 1 probe;
 /// the part value is the bytes as written, which a patch that applied the percent-decoding rule
 /// fails on, and a line ending can be a bare `LF`, which a patch that required `CRLF` fails on — 2
-/// probes; and the order per name is the urlencoded body pairs, then the query pairs, then the
-/// parts, with the method deciding whether an urlencoded body is read at all — 2 probes.
+/// probes; the order per name is the urlencoded body pairs, then the query pairs, then the
+/// parts, with the method deciding whether an urlencoded body is read at all — 2 probes; and the
+/// part that declares `Content-Transfer-Encoding: quoted-printable` is decoded as
+/// `mime/quotedprintable` reads it — 20 probes, one that skipped the decoder, one each for the name
+/// compared without case, the value compared without case, the first value with the name, the
+/// whitespace `trim` takes from the end of the header line and an empty value, one for a part with
+/// no name being skipped before the copy, one for a named file part reaching the decoder, one for
+/// the lowercase hex, one for the literal `=`, one each for the break on `CRLF` and on a bare `LF`,
+/// one for the whitespace between the break and the line ending, one for the break at the end of the
+/// part, one for the break needing something before it, one for the line ending inside the part
+/// surviving, one each for the control byte, the byte at `0x7F` and the byte at or above `0x80`, and
+/// one for the tab that is not a break.
 ///
 /// What these pins cannot show: Go's 10 MB memory threshold and its 1000-part cap, which no input
 /// here reaches; the `filename` value as `filepath.Base` cuts it, which only the file half uses and
 /// this read never reads; the error values `FormValue` discards, which nothing can be asserted
 /// about a read that reports none; and the order of the names, which Go reads through a map and
-/// does not fix, so every pin here reads one name at a time. The urlencoded body half itself is
-/// pinned by `GoogleReaderAuthTests`; the pair rules shared with the query read are pinned by
-/// `GoogleReaderQueryTests`, and this read answers them the same way, as `r.Form` ends up
-/// holding them.
+/// does not fix, so every pin here reads one name at a time. The pin that reads the encoding on the
+/// line before the disposition has no patch of its own: the port reads the encoding whatever line it
+/// comes on, so the only patch that made it fail was the one that skipped the decoder. The
+/// `Header.Del` that follows the comparison is not a rule here, because nothing reads the name after
+/// it. The urlencoded body half itself is pinned by `GoogleReaderAuthTests`; the pair rules shared
+/// with the query read are pinned by `GoogleReaderQueryTests`, and this read answers them the same
+/// way, as `r.Form` ends up holding them.
 @Suite struct FeverMultipartReadTests {
     @Test func theMediaIsReadLowercasedAndOnlyFormDataReaderTheBody() {
         // `mime.ParseMediaType` lowercases the media type before it is compared, so a patch that
@@ -208,5 +221,92 @@ import Testing
         let postPart = FeverForm(method: "POST", contentType: "multipart/form-data; boundary=x",
             query: "api_key=Q", body: "--x\r\nContent-Disposition: form-data; name=a\r\n\r\nfirst\r\n--x--\r\n")
         #expect(postPart.value(named: "a") == "first", "the multipart half is read for any method")
+    }
+
+    @Test func thePartThatDeclaresQuotedPrintableIsDecoded() {
+        let qp = "Content-Transfer-Encoding: quoted-printable"
+
+        // The values the form carries for this part, so the answer for a part the decoder reports an
+        // error on is the empty form rather than the empty value, which is what `FormValue` answers
+        // for both.
+        func read(_ content: String, _ header: String = qp) -> [String] {
+            let body = "--x\r\nContent-Disposition: form-data; name=a\r\n" +
+                (header.isEmpty ? "" : header + "\r\n") + "\r\n" + content + "\r\n--x--\r\n"
+            return FeverForm(method: "GET", contentType: "multipart/form-data; boundary=x", query: "",
+                body: body).values(named: "a")
+        }
+
+        // The answers below are the reference's own for these inputs, read by a program that ran the
+        // same read. A patch that skipped the decoder answered the bytes as written for every one of
+        // them.
+        #expect(read("=41=20=42") == ["A B"], "the hex pair")
+        #expect(read("abc=\r\ndef") == ["abcdef"], "the soft line break on CRLF")
+        #expect(read("abc=\ndef") == ["abcdef"], "the soft line break on a bare LF, which is the deviation from RFC 2045")
+        #expect(read("abc= \t\r\ndef") == ["abcdef"], "the whitespace between the break and the line ending")
+
+        // The line ending inside the part survives the trim that the break check runs, and the one
+        // before the delimiter is not part of the value, which is the rule the pins above read.
+        #expect(read("abc\r\ndef") == ["abc\r\ndef"], "the CRLF inside the part")
+        #expect(read("abc\ndef") == ["abc\ndef"], "the LF inside the part")
+
+        // A `=` at the end of the part is the break at the end of the read, which the decoder takes,
+        // and the whitespace before the line ending is part of the break. A `=` that is the whole line
+        // is not: the break has to have something before it to be the break at the end.
+        #expect(read("abc=") == ["abc"], "the break at the end of the part")
+        #expect(read("=41= ") == ["A"], "the break at the end with the whitespace it takes")
+        #expect(read("=") == [], "the break with nothing before it is the error")
+
+        // An `=` that is not a hex pair and not at the end of the line is the literal character, so
+        // these are not the error the decoder reports.
+        #expect(read("a=x") == ["a=x"], "the literal equals")
+        #expect(read("=4a") == ["J"], "lowercase hex is accepted, so this pair decodes")
+        #expect(read("a=zz") == ["a=zz"], "lowercase hex is accepted, so this pair is not the error")
+        #expect(read("a=z") == ["a=z"], "one character after the equals is the literal too")
+        #expect(read("=41= \tq\r\n=42") == ["A= \tq\r\nB"], "the literal equals after the pair, with the line ending it keeps")
+
+        // An empty line inside the part is the line ending it keeps, not a break.
+        #expect(read("=41\r\n\r\n=42") == ["A\r\n\r\nB"], "the empty line inside the part")
+
+        // The tab is not a break and survives; a control byte is the error, which ends the whole body
+        // read rather than this part alone. A byte at or above 0x80 is the extension that passes
+        // through, and 0x7F is not part of it.
+        #expect(read("a\tb") == ["a\tb"], "the tab that is not a break")
+        #expect(read("a\u{01}b") == [], "the control byte ends the body read")
+        #expect(read("a\u{7F}b") == [], "the byte at 0x7F ends the body read")
+        #expect(read("a\u{00E9}b") == ["a\u{00E9}b"], "the byte at or above 0x80 passes through")
+
+        // The name is compared without case, and so is its value.
+        #expect(read("=41", "content-transfer-encoding: quoted-printable") == ["A"],
+            "the name compared without case")
+        #expect(read("=41", "Content-Transfer-Encoding: Quoted-Printable") == ["A"],
+            "the value compared without case")
+        #expect(read("=41", "Content-Transfer-Encoding: quoted-printable ") == ["A"],
+            "the whitespace `trim` takes from the end of the header line")
+
+        // The first value with the name wins, so a part that declares another encoding first is not
+        // decoded, and a part that declares nothing is not decoded either.
+        #expect(read("=41", "Content-Transfer-Encoding: 8bit\r\nContent-Transfer-Encoding: quoted-printable") == ["=41"],
+            "the first value with the name")
+        #expect(read("=41", "Content-Transfer-Encoding: 8bit") == ["=41"], "another encoding is not decoded")
+        #expect(read("=41", "") == ["=41"], "a part that declares nothing is not decoded")
+        #expect(read("=41", "Content-Transfer-Encoding:") == ["=41"], "an empty value is not the encoding")
+
+        // The header order does not matter: the encoding is read whatever line it comes on.
+        let before = FeverForm(method: "GET", contentType: "multipart/form-data; boundary=x", query: "",
+            body: "--x\r\nContent-Transfer-Encoding: quoted-printable\r\n"
+                + "Content-Disposition: form-data; name=a\r\n\r\n=41\r\n--x--\r\n")
+        #expect(before.values(named: "a") == ["A"], "the encoding read before the disposition")
+
+        // A part with no name is skipped before the copy, so it is never decoded and the error it
+        // would report does not end the read; a named part is copied whatever kind it is, so a file
+        // part reaches the decoder even though this read keeps none of its bytes.
+        let skipped = FeverForm(method: "GET", contentType: "multipart/form-data; boundary=x", query: "",
+            body: "--x\r\nContent-Disposition: form-data; name=a\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=41\r\n"
+                + "--x\r\nContent-Disposition: form-data; name=\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\na\u{01}b\r\n--x--\r\n")
+        #expect(skipped.values(named: "a") == ["A"], "a part with no name is skipped before the copy")
+        let filePart = FeverForm(method: "GET", contentType: "multipart/form-data; boundary=x", query: "",
+            body: "--x\r\nContent-Disposition: form-data; name=a\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=41\r\n"
+                + "--x\r\nContent-Disposition: form-data; name=b; filename=f\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\na\u{01}b\r\n--x--\r\n")
+        #expect(filePart.values(named: "a") == [], "a named file part reaches the decoder")
     }
 }

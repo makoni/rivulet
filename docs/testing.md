@@ -1065,16 +1065,16 @@ in `docs/parity.md`.
 `FeverDispatchTests`, `FeverReadsTests`, `FeverItemsTests`, `FeverWriteTests`, merged as PR #61)
 
 The parameter set is the one the acceptance client calls: the base document, the five read
-documents, the three `mark` branches, and the reachability check that client sends as `HEAD`. 32
-pins and 67 probes across the seven Fever suites — two unit and five integration — and the icon
-read: 8 pins and 17 probes for the multipart read as pure logic, 5 and 8 for the document shapes, 3
+documents, the three `mark` branches, and the reachability check that client sends as `HEAD`. 33
+pins and 87 probes across the seven Fever suites — two unit and five integration — and the icon
+read: 9 pins and 37 probes for the multipart read as pure logic, 5 and 8 for the document shapes, 3
 and 5 for the transport over a real socket, 2 and 6 for the dispatch, 4 and 8 for the storage reads
 the documents are built from, 4 and 8 for the items read, 4 and 11 for the three write branches, and
 2 and 4 for the icon read. Each probe patches one rule, is seen to fail on the rule it names, and
 reverts the file byte-identically.
 
 What the probes read, with the number of patches the suite header gives each rule: the multipart
-read's 17 — 2 for the media type compared lowercased and only `multipart/form-data` reaching the
+read's 37 — 2 for the media type compared lowercased and only `multipart/form-data` reaching the
 body read, 1 for the boundary being a parameter of the content type rather than the read's own, 4
 for the parameter rules (a pair with no `=`, an unquoted empty value being the error, a trailing
 semicolon not being the error, and the media type surviving the error on the urlencoded half), 1 for
@@ -1082,7 +1082,16 @@ a part that cannot be read ending the whole body read, 4 for the three guards of
 disposition, name, and the filename parameter being empty rather than present, which is what makes
 the part a value part — 1 for a header line with no colon ending the read, 2 for the part value
 being the bytes as written, with no percent decoding, and a line ending that can be a bare `LF`, and
-2 for the order per name and the method guard. The shapes' 8: the base document's three fields
+2 for the order per name and the method guard, and 20 for the part that declares the transfer
+encoding being decoded: 1 for the decoder being applied at all, 1 each for the name compared without
+case, the value compared without case, the first value with the name, the whitespace `trim` takes
+from the end of the header line, and an empty value, 1 for a part with no name being skipped before
+the copy, 1 for a named file part reaching the decoder, 1 for the lowercase hex, 1 for the literal
+`=`, 1 each for the break on `CRLF` and on a bare `LF`, 1 for the whitespace between the break and
+the line ending, 1 for the break at the end of the part, 1 for the break needing something before it,
+1 for the line ending inside the part surviving, 1 each for the control byte, the byte at `0x7F` and
+the byte at or above `0x80`, and 1 for the tab that is not a break. The shapes' 8: the base
+document's three fields
 before the document's own, the reported version, and the two zeros of the failure document; the
 field order the value documents write, read on the group document's pair; the nine fields of the
 item document with `is_saved` before `is_read` and `total_items` as a number; `favicon_id` written

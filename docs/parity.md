@@ -1369,8 +1369,10 @@ the form read and the document shapes as pure logic.
   `ReadForm` returns, so the whole body read fails rather than that line being skipped. Only value
   parts land in the form: `FileName()` answers the empty string for a filename parameter that is
   empty, so a part with an empty filename is a value part, and a part with a malformed disposition
-  has no name. Quoted-printable decoding, which Go applies to a part that declares it, is not ported
-  and is named in the code comment as the stage-9 backlog.
+  has no name. Quoted-printable decoding, which Go applies to a part that declares the transfer
+  encoding, is ported as `QuotedPrintable`: the name and its value are compared without case, the
+  first value with the name is the one read, and the copy reaches the decoder for every named part,
+  so a part with no name is skipped before it while a named file part still runs through it.
 - The items read answers the default for a value the query integer read cannot read — one that is
   empty, unparseable or negative — so `max_id=-2` is the zero half of the branch rather than a
   bound; the write guards read `FormInt64Value`, which has no negative path, so the sign is part of
