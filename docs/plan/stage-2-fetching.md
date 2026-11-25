@@ -1,93 +1,30 @@
 # Stage 2 — Feed fetching (HTTP)
 
 **Goal:** robust conditional HTTP fetching of feed documents.
-**Status:** done. The fetcher is merged, and both criteria that were open are met by stage 4:
-persisting the validators and the error state into feed state is the refresh pipeline (PR #25),
-which is the caller that writes them, and the error-limit exclusion on batch selection is the batch
-query (PR #26).
-**Effort:** M. **Depends on:** Stage 1.
+**Status:** done. **Effort:** M. **Depends on:** stage 1.
 
-## Scope
+## Decisions this stage set
 
-- [x] `Fetcher` over Vapor's HTTP client (AsyncHTTPClient): GET with configurable `User-Agent`,
-      `Accept`, timeouts, response size cap, redirect limit, and **explicitly enabled**
-      decompression (`.decompression = .enabled(limit:)` — AHC does not decompress by default). We
-      advertise `Accept-Encoding: gzip`; brotli is deferred and documented as a deviation (the
-      reference sends `br,gzip`).
-- [x] Conditional requests: send `If-None-Match`/`If-Modified-Since` from feed state; handle
-      `304` (no body, no error, no re-parse).
-- [x] Error recording with reference semantics: a failed fetch increments `parsing_error_count`
-      and stores the message; there is **no backoff and no jitter** (parity — see
-      `docs/reference-notes.md`). The wiring landed with stage 4's pipeline (PR #25), which records
-            the failure inside its own write transaction before the error leaves, and resets the
-      counter on the success and the conditional-hit paths. The other half — the scheduler
-      excluding a feed at the limit until a forced refresh succeeds — is the batch query,
-      pinned in `SchedulerBatchTests` as PR #26.
-- [x] Per-feed overrides: custom user agent, "ignore HTTP cache", proxy. The application proxy
-      is attached only to feeds that ask for it (`fetch_via_proxy`), as upstream does; a per-feed
-      proxy URL and the proxy list are deferred.
-- [x] Security: SSRF protection without relying on a connect-time hook (AsyncHTTPClient has
-      none): resolve the host with the system resolver through an injectable `AddressResolver` seam,
-      reject the request if **any** resolved address is
-      private/loopback/link-local/multicast/unspecified or in the RFC 6598 range, then connect
-      through a client pinned to the validated address (`dnsOverride`, one short-TTL client per
-      host). The fetcher follows redirects itself so the policy runs on every direct hop, as the
-      reference's dialer does. A direct hop resolves its host through the seam, and the client built
-      from that answer connects to the address it validated, so a later lookup cannot change the
-      target — the DNS-rebinding case the reference closes with its dialer. A cached client keeps
-      the address it was built with, so a cached hop checks the current answers against the pin from
-      build time. The tests show one lookup through the seam for the hop a client is built from, and
-      that the connection goes to the validated address. Escape hatch:
-      `FETCHER_ALLOW_PRIVATE_NETWORKS=true` (tests only). A proxied request is not pinned — the
-      proxy resolves the target — so the policy is skipped for that hop, which is what upstream does
-      with an explicitly configured proxy.
-
-## Implementation notes
-
-- Reference: `miniflux/internal/reader/fetcher` (`request_builder.go`, `response_handler.go`) and
-  `miniflux/internal/urllib`. Note: `internal/http` is the integrations/REST client, not the feed
-  fetcher.
-- The fetcher is parsing-agnostic: it returns raw bytes + headers; parsing is stage 3.
-
-## Tests
-
-### Unit
-
-- Request header construction; conditional headers derived from stored state; error classification
-  mapping (for status/logging only); `FetchResponse.header(_:)` reads a name in any case; the proxy
-  ports assumed when a proxy URL gives none.
-
-### Integration (stub server)
-
-- 200 with body; 304 revalidation; redirect chains (301 → 302 → 200); redirect loops capped; only
-  the statuses the reference follows are followed (301, 302, 303, 307, 308 — a 300 with `Location`
-  is an ordinary response); an unparseable `Location` is a fetch error.
-- gzip decoding works and is actually enabled; chunked responses decode correctly.
-- Oversized body rejected with a clear error; a slow response hits the timeout, and the timeout is
-  one deadline shared by the hops and covers body reading, not only the response head.
-- `ETag` and `Last-Modified` round-trip: the second request carries the validators.
-- 4xx and 5xx and a connection closed by the peer classified as fetch errors: the stub covers 404,
-  429 and a connection it closes, the other status wordings are pinned by the unit test; what fails
-  before anything connects (a scheme the client refuses when the URL is turned into a request) is
-  mapped like any other client error. The counter and the message are recorded through
-  `FeedRepository.recordParsingError`, and stage 4's pipeline is the caller that wires them, which
-  is what `RefreshPipelineTests` pins.
-- SSRF guard: private targets refused unless explicitly allowed — both halves of the switch are
-  tested; the pinned address is used without a second lookup; every direct redirect hop goes through
-  the resolver seam before connecting — the test proves the seam is consulted for the hop and that a
-  hop the seam cannot answer stops the fetch. A refusal at a hop is not observable in a hermetic
-  test, because the only address the first hop could reach is the stub, which a denying policy would
-  itself refuse.
-- A proxied request reaches the proxy (a stub proxy answers `CONNECT`) and the address check is
-  skipped for that hop; the same private target without the flag is refused.
-- The cache keeps a client per host and proxy decision, and one that a request is using is not
-  pruned: a fetch whose body the stub is holding survives the evictions that other fetches trigger
-  meanwhile. `shutdown()` takes the entries out before closing them, so a second call has nothing to
-  close and the next fetch builds a client again.
+- The fetcher is parsing-agnostic: it returns raw bytes and headers. What this stage left open was the
+  caller that writes the validators and the error state into feed state; that caller is stage 4's
+  refresh pipeline, which is what `RefreshPipelineTests` pins, and the error-limit exclusion is the
+  batch query.
+- Decompression is explicitly enabled, because the client does not decompress by default; brotli is
+  deferred and recorded as a deviation in `docs/parity.md`.
+- Conditional requests send `If-None-Match` and `If-Modified-Since` from feed state; a `304` writes
+  nothing. Only the statuses the reference follows are followed (301, 302, 303, 307, 308); a 300 with
+  a `Location` is an ordinary response, and an unparseable `Location` is a fetch error. The timeout is
+  one deadline shared by the hops and covers body reading.
+- The address policy runs through an injectable resolver seam, with no connect-time hook: any resolved
+  address that is private, loopback, link-local, multicast, unspecified or in the RFC 6598 range
+  refuses the request, and the client connects to the validated address, so a later lookup cannot
+  change the target. A proxied hop is not pinned, because the proxy resolves the target, so the policy
+  is skipped there, as upstream does. The escape hatch `FETCHER_ALLOW_PRIVATE_NETWORKS=true` is for
+  tests.
 
 ## Exit criteria
 
 - [x] Fetch matrix green.
-- [x] Fetch results persist validators and error state into feed state: stage 4's pipeline is the
-      caller, and `RefreshPipelineTests` pins the validators on the success and the conditional-hit
-      paths, and the failure record, which is committed before its error leaves.
+- [x] Fetch results persist validators and error state into feed state, through stage 4's pipeline.
+
+The tests that pin these are named in `docs/testing.md`.
