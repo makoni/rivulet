@@ -564,16 +564,36 @@ registers, and the router's answer for a path on the same prefix with no pattern
 
 Manual checklist, walked here by the run on the phone: log in; list the subscriptions; list the
 tags; read a page of item ids and their contents; add a feed from the client; mark one item read;
-star one item; rename a folder; delete a folder; rename a subscription. This run showed four of
-them: the sync pass, the star write, the mark-read the app kept in its own state and flushed on the
-next pass, and the folder rename. The other items were not walked on this run, so the criterion
-stays open for them, and the record carries no line for the login either, because the app already
-held the account when the run started.
+star one item; rename a folder; delete a folder; rename a subscription. The run that wrote the
+record this half reads as data showed four of them: the sync pass, the star write, the mark-read the
+app kept in its own state and flushed on the next pass, and the folder rename, and it carries no
+line for the login because the app already held the account when the run started. A second walk on
+the same phone showed all ten, so the Capy Reader items are closed. The record that walk wrote is
+held outside the repository as evidence rather than committed as data: that walk answered on this
+port, while the half names the reference as the side the run answered on, which is the side the
+tolerance half reads its answers against.
 
 The calls this run showed for Capy Reader, in the order the record says they arrived:
 `GET /v1/integrations/status`, `GET /v1/feeds`, `GET /v1/entries`,
 `PUT /v1/entries/{entryID}/bookmark`, `PUT /v1/entries`, `reader/api/0/token`,
 `reader/api/0/rename-tag`.
+
+The calls the second walk showed, in the order its record carries them: `accounts/ClientLogin`,
+`reader/api/0/subscription/list`, `reader/api/0/tag/list`, `reader/api/0/stream/items/ids`,
+`reader/api/0/token`, `reader/api/0/subscription/quickadd`, `reader/api/0/stream/items/contents`,
+`reader/api/0/edit-tag`, `reader/api/0/rename-tag`, `reader/api/0/disable-tag`,
+`reader/api/0/subscription/edit`. The order half reads the paragraph above against the record it
+reads as data, so this list is the walk's own order and not something the rule compares.
+
+The second walk showed two things the record read as data does not. The folder rename first sent
+`GET /v1/categories`, the call the Miniflux half declares, rather than the
+`reader/api/0/rename-tag` the set names for that step: the app's folder view model is built once with
+the account it is given, and this one had been built while the phone held the Miniflux account, so the
+step ran through the Miniflux delegate, which is the delegate the log the app wrote names for that
+request. After the app was restarted the same step sent `reader/api/0/token` and
+`reader/api/0/rename-tag`. The delete step answered 500 while the account held one category, which is
+the guard that counts the categories it does not name before anything is written; after
+`subscription/edit` created a second folder the same step answered 200.
 
 The record carries 27 lines for this run: four sync passes, each answering the integrations read,
 the feeds list and three entry reads; two star writes, each reaching the bookmark write at once; one
@@ -589,8 +609,9 @@ rather than the concrete id the app sent: the star write is `PUT /v1/entries/{en
 not the row number. The key names those lines carry are the names the model struct on the other side
 declares, which this half has no file to read, so no rule here reads them.
 
-The app renames a subscription through `subscription/edit`, and this run sent no request for it, so
-the item stays open and the record carries no line for that call.
+The app renames a subscription through `subscription/edit`. The record this half reads as data
+carries no line for that call, and the second walk showed it answering 200, so the item is closed as
+what the walk showed rather than as data read against the set.
 
 For this client the pins read the set as data and send no request as the client does: the order pin
 reads the order its own call graph names, the token pin reads the auth half for every call every set

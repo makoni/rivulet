@@ -229,8 +229,11 @@ the pair, and what is still open is the classes no corpus input can reach.
       registers one route on, so the run half completes for it here: the column its pair guard reads has a
       case for that path, and the record this run wrote is read as data. The run answered on the
       reference, so the answers its lines carry are read against the reference's answer for the path,
-      which is the half the tolerance table licenses. The manual half stays open for the Capy Reader items
-      this run did not reach, which are named per client.
+      which is the half the tolerance table licenses. The Capy Reader items are closed: a second walk on
+      the phone showed all ten, and the record that walk wrote is held outside the repository as
+      evidence, as Reeder Classic's is, because that walk answered on this port while the half names the
+      reference as the side the run answered on. The manual half stays open for the Reeder Classic items
+      the walk did not reach, which are named per client.
 - [x] Security checklist done (`docs/security.md`); no critical findings open. The one finding the
       pass found — a repeated response header name keeping the last value instead of the first the
       reference reads — is closed by this slice.
