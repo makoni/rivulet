@@ -2,9 +2,11 @@
 
 This file is for AI agents (and humans) making changes to this repository. It holds the agreement:
 how we work. It does not hold the record of what a run showed — no pin or probe counts, no pull
-request numbers, no per-slice history. Those live in `docs/plan/README.md`, the stage files, and the
-documents the check halves read as data. What no check half can read as data is not stated here as a
-fact about a run: it is stated as an aim, or it is not stated.
+request numbers, no per-slice history. Those live in the documents the check halves read as data, in
+`docs/testing.md`, and in the stage files for the stages that are not done. Readiness is counted as the
+open issues plus the code, so the plan table states a stage state and names the issues that hold the
+open work. What no check half can read as data is not stated here as a fact about a run: it is stated
+as an aim, or it is not stated.
 
 ## What this project is
 
@@ -158,6 +160,8 @@ swift build --build-tests              # must be warning-free, for the project a
 
 - Work on one stage at a time, starting from the lowest not-started stage.
 - A stage is complete when its exit criteria and the global definition of done are met.
+- Open work is an issue in this repository. A criterion closes only when a run shows it, and the issue
+  is closed in the commit that closes it.
 - Update the status table in `docs/plan/README.md` and the "Current focus" line above in the same
   commit that completes a stage.
 

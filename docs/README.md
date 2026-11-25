@@ -8,7 +8,7 @@ CLI-first interface and no web UI.
 
 | Document | Description |
 | --- | --- |
-| [Implementation plan](plan/README.md) | Stage-by-stage plan: scope, tests, exit criteria, effort |
+| [Implementation plan](plan/README.md) | The stage table, the open criteria as issues, and where each record lives |
 | [Architecture](architecture.md) | Module layout, data model, SQLite design decisions |
 | [Backup and restore](backup-restore.md) | Snapshots, restoring a database, disk-space housekeeping |
 | [Testing strategy](testing.md) | Unit, fixture, integration and acceptance testing; TDD workflow |
@@ -24,11 +24,10 @@ CLI-first interface and no web UI.
 
 ## Plan at a glance
 
-Eleven stages, from foundation to the post-MVP backlog. Stages 0 (foundation), 1 (storage), 2
-(fetching) and 4 (ingestion and scheduling) are done, stage 3 (parsing) is merged, stage 5 (client
-APIs & OPML) is complete, stage 6 (CLI) has its exit criteria met, stage 9 is scheduled as the 0.1.0
-scope, and stages 7, 8 and 10 are in progress; the MVP is stages 0–8. See
-[plan/README.md](plan/README.md) for the full table and the definition of done.
+Eleven stages, from foundation to the post-MVP backlog, the MVP being stages 0–8. Readiness is counted
+as the open issues plus the code: the open issues in this repository are the remaining plan, and the
+stage table in [plan/README.md](plan/README.md) names them per stage. What a run showed for a stage that
+is done is recorded in the documents the check halves read as data and in [testing.md](testing.md).
 
 ## The documentation layer
 
