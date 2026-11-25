@@ -3,9 +3,10 @@
 **Goal:** the endpoints the one real consumer declares, and no others. **Status:** in progress.
 **Depends on:** stage 5, and the integrations item of stage 9 for the one call that runs an integration.
 
-The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. It declares 24
-endpoints; the walk on the phone reached the first of them and got the answer this port gave for a path
-it registered no route for at the time of the walk.
+The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. Its half records 25
+calls: 21 are in scope here, three wait for the read they call, and the per-category mark-all-as-read
+stays in stage 9. The walk on the phone reached the first of them and got the answer this port gave for
+a path it registered no route for at the time of the walk.
 
 ## Open work
 

@@ -25,6 +25,7 @@
 - [x] Soak artifact: `Scripts/soak.sh` runs at least 2h with at least 20 local stub feeds, and the
   snapshots show `fetched_at` and `next_check_at` advancing with no crashes. The checks in
   `Tools/soak/soak_check.py` read the data each round leaves behind rather than the process that
-  produced it, and the run is reported in `docs/testing.md` under the soak.
+  produced it, and `docs/testing.md` names what the soak shows and what its guards were seen to fail on;
+  the numbers the run left are in the artifact, not restated here.
 
 The tests that pin these are named in `docs/testing.md`.

@@ -2,8 +2,9 @@
 
 **Goal:** the 0.1.0 scope. **Status:** scheduled. **Depends on:** stages 0–8.
 
-Each criterion is one issue, and each is closed by the run that shows it. The order is the order the
-issues are numbered in.
+Each criterion is one issue, and each is closed by the run that shows it. The order below is the order
+this file names them in, which is not the order the issue numbers run in: the harness pin is issue 117
+and sits in group A.
 
 ## Group A — provable on this machine
 

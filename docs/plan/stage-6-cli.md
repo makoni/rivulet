@@ -19,7 +19,7 @@
   batch". The signal seam answers through the first path to reach the decision, and the handler is put
   in place before the server command runs, so a signal arriving while the server starts answers the
   wait instead of ending the child on the default disposition. `SIGHUP` is not ported.
-- One finding stays open, and `Sources/RivuletCore/ServerSignalSource.swift` names it: the handler
+- One finding stays open, and `Sources/RivuletApp/ServerSignalSource.swift` names it: the handler
   answers through a lock and a continuation, which is not async-signal-safe, so a signal delivered on a
   thread that already holds the source's lock can block there. Nothing the pins read changes; if the
   handler moves to a dispatch source, as the server command uses, the answer leaves the signal context

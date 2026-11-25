@@ -23,7 +23,7 @@
 
 ## Exit criteria
 
-- [x] Every handler the scope names has landed, and the deviations are recorded in `docs/parity.md` as
+- [x] Every handler this stage names has landed, and the deviations are recorded in `docs/parity.md` as
   soon as they are observed.
 - [x] The single-client criterion names one real client rather than a client by name; it is closed by
   the client runs stage 7 reads as data, and the add half stays open for the Fever client whose set has

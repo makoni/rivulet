@@ -25,8 +25,9 @@
 
 ## Exit criteria
 
-- [x] Every format has its adapter and its corpus; the tolerance decision table and the typed errors
-  are read as data.
+- [x] Every format the spike names has its adapter. The corpus holds fixtures for RSS, Atom 1.0 and
+  RDF; JSON Feed, Atom 0.3 and RSS 0.91 and 0.92 have no fixture of their own, which the plan's risk
+  list names. The tolerance decision table and the typed errors are read as data.
 - [x] The sanitizer corpus is read end to end against the reference's own output.
 
 The tests that pin these are named in `docs/testing.md`.

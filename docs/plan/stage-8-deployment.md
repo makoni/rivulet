@@ -11,9 +11,11 @@
 ## What the runs showed
 
 The static build, the release script, the container file, the compose example, the `.env.example`, the
-service unit, the runbook, the build half `Scripts/build-docs.sh` and the DocC catalog are closed as
-what their runs showed. The site itself is outside this repository: the script writes the archive, and
-the person runs the script and publishes it, so no job here shows a served site.
+service unit, the runbook, the build half `Scripts/build-docs.sh` and the DocC catalog are closed as what
+their rules read as data. That the artifact was not run on another machine, that no image was built or
+started and that no unit was run is named as a report item in `docs/deploy.md`, so no run here shows it.
+The site itself is outside this repository: the script writes the archive, and the person runs the script
+and publishes it, so no job here shows a served site.
 
 The record lives in the documents the halves read as data: `docs/deploy.md`, `docs/docc.md`,
 `docs/testing.md`, and in the artifacts `deploy/compose.yml` and `deploy/rivulet.service`. The run
