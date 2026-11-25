@@ -260,7 +260,7 @@ import Testing
         // these are not the error the decoder reports.
         #expect(read("a=x") == ["a=x"], "the literal equals")
         #expect(read("=4a") == ["J"], "lowercase hex is accepted, so this pair decodes")
-        #expect(read("a=zz") == ["a=zz"], "lowercase hex is accepted, so this pair is not the error")
+        #expect(read("a=zz") == ["a=zz"], "the literal equals, which is what this pair falls back to")
         #expect(read("a=z") == ["a=z"], "one character after the equals is the literal too")
         #expect(read("=41= \tq\r\n=42") == ["A= \tq\r\nB"], "the literal equals after the pair, with the line ending it keeps")
 
