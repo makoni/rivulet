@@ -26,6 +26,6 @@
   snapshots show `fetched_at` and `next_check_at` advancing with no crashes. The checks in
   `Tools/soak/soak_check.py` read the data each round leaves behind rather than the process that
   produced it, and `docs/testing.md` names what the soak shows and what its guards were seen to fail on;
-  the numbers the run left are in the artifact, not restated here.
+  the numbers the run left are in the log the run wrote, which is not committed.
 
 The tests that pin these are named in `docs/testing.md`.

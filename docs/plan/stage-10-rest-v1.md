@@ -4,17 +4,19 @@
 **Depends on:** stage 5, and the integrations item of stage 9 for the one call that runs an integration.
 
 The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. Its half records 25
-calls: 21 are in scope here, three wait for the read they call, and the per-category mark-all-as-read
-stays in stage 9. The walk on the phone reached the first of them and got the answer this port gave for
-a path it registered no route for at the time of the walk.
+calls: 21 are in scope here, and four are not — two wait for the read they call, one runs an
+integration, one stays in stage 9. The walk on the phone reached the first of them and got the answer
+this port gave for a path it registered no route for at the time of the walk.
 
 ## Open work
 
-- Issue 110 — the endpoints the consumer declares, pinned as pure logic and over a real socket.
-- Issue 121 — the three calls that reach no route here until the read they call is pinned:
-  `GET /v1/categories/{id}/entries`, `GET /v1/icons/{iconID}`, and the counts half of
-  `GET /v1/categories?counts=true`. `POST /v1/entries/{id}/save` runs an integration, so it waits for
-  issue 107.
+- Issue 110 — the 21 endpoints in scope, pinned as pure logic and over a real socket.
+- Issue 121 — the four calls outside that list: `GET /v1/categories/{id}/entries` and
+  `GET /v1/icons/{iconID}`, which reach no route until the read they call is pinned;
+  `POST /v1/entries/{id}/save`, which runs an integration and so waits for issue 107; and
+  `PUT /v1/categories/{id}/mark-all-as-read`, which stays in stage 9. The counts half of
+  `GET /v1/categories?counts=true` is a half of an endpoint already in the 21, so it is not a call of
+  its own.
 - The calls the client matrix has no row for stay open as the phone half the stage-7 file keeps open.
 
 ## The endpoints
