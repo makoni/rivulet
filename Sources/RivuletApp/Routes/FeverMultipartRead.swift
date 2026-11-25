@@ -11,8 +11,8 @@ import RivuletCore
 /// rather than the parts it managed to read. Only value parts land in `r.Form`; a part whose
 /// filename parameter is not empty goes to `form.File`, and a part whose disposition is not
 /// `form-data`, or that has no name, is skipped. The value is the part body as the bytes are
-/// written: Go decodes a part that carries `Content-Transfer-Encoding: quoted-printable`, which
-/// this port does not, and that difference is in the stage-9 backlog.
+/// written, except for a part that declares `Content-Transfer-Encoding: quoted-printable`, which
+/// `QuotedPrintable` decodes as the reference's reader does.
 enum FeverMultipartRead {
     /// A value part as `r.Form` holds it.
     struct Value {
@@ -121,17 +121,24 @@ enum FeverMultipartRead {
             // The part headers, up to the empty line that ends them. `Header.Get` takes the first
             // value with a name, so this name keeps the first line it reads.
             var disposition = ""
+            var encoding = ""
             while let read = line() {
                 if read == ending { break }
                 // `readMIMEHeader` reports a ProtocolError for a line with no colon, and
                 // `ReadForm` returns it, so the whole body read fails rather than this line
                 // being skipped.
-                guard let colon = read.firstIndex(of: ":") else { return nil }
-                guard String(read[read.startIndex..<colon]).lowercased() == "content-disposition" else {
-                    continue
+                // `readContinuedLineSlice` reads the header line without its terminator and `trim`
+                // takes the spaces and tabs from both ends of it, and `readMIMEHeader` then takes the
+                // leading ones from the value.
+                let headerLine = trimmedLWS(read.hasSuffix(ending) ? read.dropLast(ending.count) : read)
+                guard let colon = headerLine.firstIndex(of: ":") else { return nil }
+                let header = String(headerLine[headerLine.startIndex..<colon]).lowercased()
+                let value = String(leadingLWS(headerLine[headerLine.index(after: colon)...]))
+                if header == "content-disposition" {
+                    if disposition.isEmpty { disposition = value }
+                } else if header == "content-transfer-encoding" && encoding.isEmpty {
+                    encoding = value
                 }
-                let value = String(leadingLWS(read[read.index(after: colon)...]))
-                if disposition.isEmpty { disposition = String(value.dropLast(ending.count)) }
             }
 
             // The part content, up to the delimiter match. Go's scan returns the bytes before the
@@ -151,15 +158,32 @@ enum FeverMultipartRead {
             // `FormName` and `FileName`, both read from the same disposition: only `form-data`
             // gives a name, and a part with no name is skipped with `continue`. `FileName` answers
             // the empty string for a filename parameter that is empty, so only a non-empty one
-            // makes this a file part.
+            // makes this a file part. A part with no name is skipped before the copy, so it is never
+            // decoded; a named part is copied whatever kind it is, so the error its decoder reports
+            // ends the read even for a file part, whose bytes this read never keeps. The loop ends at
+            // the final boundary whether or not the part is kept, which is what `nextPart` answers as
+            // EOF.
             let parsed = mediaType(disposition)
-            guard parsed?.type == "form-data" else { continue }
             let parameters = parsed?.parameters ?? [:]
-            let name = parameters["name"] ?? ""
-            if name.isEmpty || !(parameters["filename"] ?? "").isEmpty { continue }
+            let name = parsed?.type == "form-data" ? (parameters["name"] ?? "") : ""
+            if name.isEmpty {
+                if final { break }
+                continue
+            }
             // A body that begins with the delimiter itself is the empty value, which is Go's `total
             // == 0` branch of the scan rather than a failure.
-            values.append(Value(name: name, value: data.isEmpty ? "" : String(data.dropLast(ending.count))))
+            var value = data.isEmpty ? "" : String(data.dropLast(ending.count))
+            // `newPart` puts the quoted-printable decoder in front of a part that declares the
+            // encoding, and `ReadForm` copies through it. `Header.Del` takes the name away after the
+            // comparison, which nothing here reads again.
+            if encoding.lowercased() == "quoted-printable" {
+                guard let decoded = QuotedPrintable.decode(value) else { return nil }
+                value = decoded
+            }
+            // Only value parts land in the form.
+            if (parameters["filename"] ?? "").isEmpty {
+                values.append(Value(name: name, value: value))
+            }
             if final { break }
         }
         return values
@@ -169,5 +193,13 @@ enum FeverMultipartRead {
     /// ending has to survive, because the delimiter rule reads it.
     private static func leadingLWS(_ value: Substring) -> Substring {
         value.drop { $0 == " " || $0 == "\t" }
+    }
+
+    /// `trim`: spaces and tabs from both ends, which is what `readContinuedLineSlice` reads a header
+    /// line as before `readMIMEHeader` takes the leading ones from the value.
+    private static func trimmedLWS(_ value: Substring) -> Substring {
+        var trimmed = leadingLWS(value)
+        while let last = trimmed.last, last == " " || last == "\t" { trimmed = trimmed.dropLast() }
+        return trimmed
     }
 }

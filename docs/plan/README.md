@@ -39,7 +39,7 @@ surface.** Linux-first. New dependencies require explicit approval.
 | 6 | CLI & operations | criteria met | M |
 | 7 | [Acceptance & hardening](stage-7-acceptance.md) | in progress — issues 95 and 96 | M |
 | 8 | [Packaging & deployment](stage-8-deployment.md) | in progress — issue 97 | S–M |
-| 9 | [Post-MVP backlog](stage-9-stretch.md) | scheduled — issues 98 to 117 | — |
+| 9 | [Post-MVP backlog](stage-9-stretch.md) | in progress — issues 99 to 117 | — |
 | 10 | [Miniflux REST v1 subset](stage-10-rest-v1.md) | in progress — issues 110 and 121 | — |
 
 **MVP = stages 0–8.** Stage 9 is the 0.1.0 scope, and one of its items is worked as stage 10.
