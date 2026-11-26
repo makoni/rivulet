@@ -47,11 +47,47 @@ enum RestV1Shape {
             (key: "data", value: .string(icon.dataURL()))])
     }
 
+    /// `response.JSON(w, r, entry)` for one row of the entry read.
+    ///
+    /// The reference's struct declares 20 fields it writes; this port writes the 13 its schema has
+    /// columns for, in the order the struct declares them, which `docs/parity.md` records. The key the
+    /// reference names `changed_at` carries the value this port's `updated_at` column holds, and the
+    /// content is written as the row has it: the media-proxy rewrite the reference applies before the
+    /// document is built has no half in this port.
+    static func entryDocument(_ entry: Entry) -> JSONValue {
+        .object([(key: "id", value: .integer(entry.id ?? 0)),
+            (key: "user_id", value: .integer(entry.userID)),
+            (key: "feed_id", value: .integer(entry.feedID)),
+            (key: "status", value: .string(entry.status.rawValue)),
+            (key: "hash", value: .string(entry.hash)),
+            (key: "title", value: .string(entry.title)),
+            (key: "url", value: .string(entry.url)),
+            (key: "published_at", value: .integer(entry.publishedAt)),
+            (key: "created_at", value: .integer(entry.createdAt)),
+            (key: "changed_at", value: .integer(entry.updatedAt)),
+            (key: "content", value: .string(entry.content)),
+            (key: "author", value: .string(entry.author)),
+            (key: "starred", value: .boolean(entry.starred))])
+    }
+
+    /// `response.JSON(w, r, &entriesResponse{Total: count, Entries: entries})` — the two keys the
+    /// response struct declares, in the order it declares them, with the count read without the page.
+    static func entriesPageDocument(total: Int, entries: [Entry]) -> JSONValue {
+        let documents = entries.map { entryDocument($0) }
+        return .object([(key: "total", value: .integer(total)), (key: "entries", value: .array(documents))])
+    }
+
     /// `response.JSON(w, r, user)` for the account read.
     static func userDocument(_ user: User) -> JSONValue {
         .object([(key: "id", value: .integer(user.id ?? 0)),
             (key: "username", value: .string(user.username)),
             (key: "is_admin", value: .boolean(user.isAdmin))])
+    }
+
+    /// `response.JSON(w, r, integrationsStatusResponse{HasIntegrations: hasIntegrations})` — the one key
+    /// the response struct declares.
+    static func integrationsStatusDocument(_ hasIntegrations: Bool) -> JSONValue {
+        .object([(key: "has_integrations", value: .boolean(hasIntegrations))])
     }
 
     /// `response.JSON(w, r, category)` for one row of the category read.

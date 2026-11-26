@@ -1670,3 +1670,45 @@ registered path, with the `Access-Control-Max-Age` name its CORS read writes for
 port has no route for `OPTIONS`, so the router's answer reaches it first. The pin for that name
 reads the pure rule, which has no method branch and writes nothing for it on every answer; the
 route suite reads the name's absence over a socket on the method its pattern registers.
+
+## REST v1 entry paths (stage 10)
+
+**Known differences.** The reference's behavior on these paths is recorded in
+`docs/reference-notes.md`; what follows is where the port reads it differently, and each line is
+what a run showed or what the reference's code declares.
+
+- The order rule admits nine names there — `id`, `status`, `changed_at`, `published_at`,
+`created_at`, `category_title`, `category_id`, `title`, `author` — and two here, the two columns
+this port's `EntrySort.Field` has: `published_at` and `id`. The reference answers 200 for
+`order=title` and orders the listing by its `title` column; this port answers 400 for the same
+input, which is what the pin reads, and the reference's side has nothing to pin here.
+
+- The entry document: the reference's struct declares 20 fields and this port writes the 13 its
+schema has columns for, in the order the struct declares them. The key the reference names
+`changed_at` carries the value this port's `updated_at` column holds. The content is written as the
+row has it: the media-proxy rewrite the reference applies before the document is built has no half
+in this port, and the tags and the enclosures its builder adds are read from tables this port does
+not have. The `globally_visible` half of the reference's struct has no column here.
+
+- The filter block (`configureFilters`) reads ten names there and one here. The handler reads only
+`starred`, the one name the consumer sends, so the other nine — `before_entry_id`, `after_entry_id`,
+`before`, `after`, `published_before`, `published_after`, `changed_before`, `changed_after`,
+`search` — have nothing to pin on this port. `changed_after` is the name the consumer sends that has
+no field in this port's query, so a request carrying it is read and applied to nothing; that is
+stated in the suite header rather than pinned.
+
+- The `starred` half is read the same way on both sides: the filter is applied only when the name is
+present and the value parses, so a value the parse fails on applies nothing rather than the default.
+This port's form for that is `RestV1Query.optionalBoolean`, which is kept apart from
+`boolean(..., default:)` for exactly this reason, and the pin reads the difference over a socket.
+
+- `has_integrations`: the reference's rule reads the eleven flags of the `integrations` table. This
+port has no such table and no save integration — the credential pairs live on the account row — so
+the answer is false for every account, including one that carries a credential pair. The pin reads
+the answer the port gives; the reference's side of the rule has nothing to pin here.
+
+- The toggle path answers 500 for a statement that updated nothing on both sides, but with different
+words: the reference writes its builder's server-error shape with the storage error, this port
+writes its own storage wording, `entry #2 does not exist`. The order between the status write and
+the starred write is not observable, because both write different columns of the same rows, so it is
+stated in the suite header rather than pinned.

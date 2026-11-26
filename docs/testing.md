@@ -2091,7 +2091,7 @@ archive it writes is the report item that names it as read by no rule.
 
 Stage 10 is worked on the calls Capy Reader's `minifluxclient` declares, so its pins are the halves
 of the read that answers those calls, the answer the read gives, and the route the port registers.
-Three slices, each pinned as the rule it names.
+Seven slices, each pinned as the rule it names.
 
 - The first slice is the `api_keys` table, its two reads, the `create-api-key` command and the two
   halves of the auth read — 23 pins and 42 probes over six suites: 2 and 3 pin the description rules
@@ -2144,6 +2144,48 @@ Three slices, each pinned as the rule it names.
   reaches for a row the guard did not read. Each is pinned by the pure read suite
   `FeedManagementReadsTests`. The refresh pin reads the fetch through the seam `FeedRefreshRunner`
   names, because the network half itself is not what that pin reads.
+
+- The sixth slice is the entries half: 16 pins and 40 probes in `RestV1EntryRouteTests` over a real
+  socket, every probe seen to fail on the rule it names and to revert its file byte-identically. The
+  patch for the path and the method the pattern registers fires on every pin that reads the handler that
+  registration gives: 20 assertions for the entries list, 3 for the feed listing, 5 for the single entry,
+  11 for the write, 6 for the bookmark. The order the query rules run in is one patch per pair — the
+  status rule before the order rule, the order rule before the direction rule, the direction rule before
+  the range rule, the range rule before the category guard — each firing on its own assertion of the pin
+  that names that order. The two guarded reads are one patch each for the account condition and one for
+  the order between them. The listing is pinned for the order it answers in, the page size and the offset
+  it applies, the filter it carries, the value the parse fails on answering nothing rather than the
+  default, the count read without the page, and the two keys written in the order the struct declares
+  them. The write paths are pinned for the rule the block answers first on an input that fails the
+  empty-list rule and the either-field rule, for the write running only after the block, for the half the
+  request did not carry being left as the row had it, and for the account condition of the three
+  statements. The status each answer carries is one patch per status the pin reads.
+
+  One pin in this suite was wrong before the round and was fixed: it read an input that carries a status
+  and no flag as failing the either-field rule, but that rule answers only for an empty status, so the
+  input fails only the status rule and the pin could not pass. The pin now reads an input that fails the
+  empty-list rule and the either-field rule together. The pin for the half the write did not carry was
+  widened at the same time: its row is seeded as read, because for a row that was already unread a patch
+  that ran the status write for every request answers the same value the pin reads.
+
+  Four assertions are recorded as not pinnable: the order between the either-field rule and the status
+  rule, which no input can fail both because the first answers only for an empty status and the second
+  only for a non-empty one; the order between the status write and the starred write, which both write
+  different columns of the same rows; the `changed_at` filter the reference's `configureFilters` reads,
+  which this port's query has no field for, so the consumer's `changed_after` is read and applied to
+  nothing; and the assertion that a 204 carries no document, because the client reads no body for that
+  status.
+
+- The seventh slice is `GET /v1/integrations/status`: 2 pins and 4 probes in
+  `RestV1IntegrationsStatusTests` over a real socket, every probe seen to fail on the rule it names and
+  to revert its file byte-identically. The patch for the path the pattern registers fires on both pins;
+  the patch for the value the rule answers fires on the pin that reads an account carrying a credential
+  pair; the patch for the status the path carries fires on the pin that reads the answer; and the patch
+  that makes the guard answer for every request fires on both pins, which is what shows that the pins
+  read the answer the guard gives. The reference's rule reads the eleven flags of the `integrations`
+  table, which this port has no table for, so the answer is false for every account and the reference's
+  side of the rule has nothing to pin here; the 404 branch the handler has for a row its read does not
+  find is recorded as not pinnable, because the read that hands the handler the id read the same row.
 
 What these pins cannot show is named in their headers rather than asserted: the single-row limit of
 either read; the row two keys of one account answer, which SQL does not order; the clock fields,

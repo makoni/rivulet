@@ -14,4 +14,16 @@ enum RestV1Query {
         default: return value
         }
     }
+
+    /// `strconv.ParseBool` as `configureFilters` uses it: the same twelve values, but a value the parse
+    /// fails on answers nothing rather than the default, because that block applies the filter only when
+    /// the parse succeeded. `QueryBoolParam`, which answers the default for the same failure, is the form
+    /// above.
+    static func optionalBoolean(named name: String, from query: String) -> Bool? {
+        switch GoogleReaderQuery(query: query).value(named: name) {
+        case "1", "t", "T", "true", "TRUE", "True": return true
+        case "0", "f", "F", "false", "FALSE", "False": return false
+        default: return nil
+        }
+    }
 }

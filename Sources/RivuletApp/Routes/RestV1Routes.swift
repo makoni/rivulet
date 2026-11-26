@@ -9,7 +9,8 @@ public enum RestV1Routes {
     ///puts on every route of this path, so it is applied per route rather than as application
     ///middleware that would cover `/healthz` too.  The reference's mux has one pattern per path
     ///with the method written on it, and this stage registers the paths its scope has: the account
-    ///path, the six category paths and the eight feed paths the consumer declares. The answer for
+    ///path, the six category paths, the eight feed paths and the five entry paths the consumer
+    ///declares. The answer for
     ///another method and the answer for a path no pattern registers are recorded in
     ///`docs/parity.md`, and the pin for this prefix reads the router's answer for a path with no
     ///pattern.
@@ -68,5 +69,28 @@ public enum RestV1Routes {
             use: auth.withAuth { request, userID in
                 try await handlers.markFeedAsRead(request: request, userID: userID)
             })
+
+        // The five entry paths the consumer declares, in the order the reference's mux has them.
+        application.grouped("v1").get("feeds", ":feedID", "entries", use: auth.withAuth { request, userID in
+            try await handlers.feedEntries(request: request, userID: userID)
+        })
+        application.grouped("v1").get("entries", use: auth.withAuth { request, userID in
+            try await handlers.entries(request: request, userID: userID)
+        })
+        application.grouped("v1").put("entries", use: auth.withAuth { request, userID in
+            try await handlers.updateEntries(request: request, userID: userID)
+        })
+        application.grouped("v1").get("entries", ":entryID", use: auth.withAuth { request, userID in
+            try await handlers.entry(request: request, userID: userID)
+        })
+        application.grouped("v1").put("entries", ":entryID", "bookmark",
+            use: auth.withAuth { request, userID in
+                try await handlers.toggleStarred(request: request, userID: userID)
+            })
+
+        // The one integrations path the consumer declares.
+        application.grouped("v1").get("integrations", "status", use: auth.withAuth { request, userID in
+            try await handlers.integrationsStatus(request: request, userID: userID)
+        })
     }
 }

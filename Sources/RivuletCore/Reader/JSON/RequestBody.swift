@@ -185,6 +185,47 @@ public enum RequestBody {
         return request
     }
 
+    /// `model.EntriesStatusUpdateRequest`: the list and the two fields. `Starred` is a pointer, so a
+    /// document that does not carry it, or carries `null`, answers nothing for it — which is what lets
+    /// the write path write only the half the request carried.
+    public struct EntriesStatusUpdate: Sendable {
+        /// The ids the request carries; a document that does not carry the field, or carries `null`,
+        /// answers the empty list.
+        public var entryIDs: [Int] = []
+
+        /// The status the request carries, or the empty value when it does not.
+        public var status = ""
+
+        /// The flag the request carries, or nothing when it does not.
+        public var starred: Bool?
+
+        /// A request with nothing read from it.
+        public init() {}
+    }
+
+    /// Reads `model.EntriesStatusUpdateRequest`: the fields the document carries, each rule the read
+    /// fails on thrown as the name the reference's error carries.
+    public static func entriesStatusUpdate(_ text: String) throws -> EntriesStatusUpdate {
+        let fields = try fields(for: text)
+        var request = EntriesStatusUpdate()
+        switch fields["entry_ids"] {
+        case .integers(let values): request.entryIDs = values
+        case .unmarshalTypeError: throw Rule.unmarshalTypeError
+        default: break
+        }
+        switch fields["status"] {
+        case .string(let value): request.status = value
+        case .unmarshalTypeError: throw Rule.unmarshalTypeError
+        default: break
+        }
+        switch fields["starred"] {
+        case .boolean(let value): request.starred = value
+        case .unmarshalTypeError: throw Rule.unmarshalTypeError
+        default: break
+        }
+        return request
+    }
+
     /// The fields the shapes declare, read as the machine read them. A field of the wrong type is
     /// recorded as the failure rather than as a value, so the shape that reads it answers it.
     private static func fields(for text: String) throws -> [String: Field] {
@@ -227,6 +268,38 @@ public enum RequestBody {
                 case .null: fields[member.key] = .null
                 default: fields[member.key] = .unmarshalTypeError
                 }
+            case "entry_ids":
+                // The reference's decoder reads the slice element by element: a document that carries
+                // `null` answers nothing for the field, and an element the int64 target cannot take is
+                // the same failure the decoder reports for a value of the wrong type.
+                switch member.value {
+                case .array(let values):
+                    var ids: [Int] = []
+                    var failed = false
+                    for value in values {
+                        switch value {
+                        case .number(let text):
+                            guard let id = Int(text) else { failed = true; break }
+                            ids.append(id)
+                        default: failed = true
+                        }
+                    }
+                    fields[member.key] = failed ? .unmarshalTypeError : .integers(ids)
+                case .null: fields[member.key] = .null
+                default: fields[member.key] = .unmarshalTypeError
+                }
+            case "status":
+                switch member.value {
+                case .string(let value): fields[member.key] = .string(value)
+                case .null: fields[member.key] = .null
+                default: fields[member.key] = .unmarshalTypeError
+                }
+            case "starred":
+                switch member.value {
+                case .boolean(let value): fields[member.key] = .boolean(value)
+                case .null: fields[member.key] = .null
+                default: fields[member.key] = .unmarshalTypeError
+                }
             default:
                 break
             }
@@ -238,6 +311,7 @@ public enum RequestBody {
         case string(String)
         case boolean(Bool)
         case integer(Int)
+        case integers([Int])
         case null
         case unmarshalTypeError
     }

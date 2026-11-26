@@ -1,15 +1,17 @@
 import Testing
 @testable import RivuletCore
 
-/// The document a request body carries, read for the two shapes this path declares. 7 pins and
-/// 8 probes, every probe seen to fail on the rule it names and to revert the file byte-identically.
+/// The document a request body carries, read for the two shapes this path declares. 9 pins and
+/// 10 probes, every probe seen to fail on the rule it names and to revert the file byte-identically.
 ///
 /// What these pins can fail on, each shown by patching the rule and reverting it: a body with no
 /// value, which the reference's decoder answers as a failure rather than as an empty document; a byte
 /// the position the machine is in cannot accept; a value that is not the type the field declares; a
 /// field the document does not carry, which answers the zero value for the creation shape and nothing
 /// for the modification shape; and `null`, which leaves a plain field at its zero value and answers
-/// nothing for a pointer field. The two shapes are read through the same read, so the pin that names
+/// nothing for a pointer field. The entries shape adds the list field: a value that is not a list and an
+/// element the int64 target cannot take are the same failure, and a null on the list field answers
+/// nothing rather than that failure. The two shapes are read through the same read, so the pin that names
 /// the zero value fires on one shape and the pin that names nothing fires on the other.
 ///
 /// What these pins cannot show: the wording the reference answers for a failure, which is the text its
@@ -69,5 +71,24 @@ import Testing
         let request = try RequestBody.categoryModification("{\"title\": \"News\", \"hide_globally\": true}")
         #expect(request.title == "News", "the string field, read as a string")
         #expect(request.hideGlobally == true, "the boolean field, read as a boolean")
+    }
+
+    @Test func aListFieldOfTheWrongTypeIsAFailureAndAnElementOfTheWrongTypeIsTheSameFailure() throws {
+        #expect(throws: RequestBody.Rule.unmarshalTypeError) {
+            _ = try RequestBody.entriesStatusUpdate("{\"entry_ids\": 7}")
+        }
+        #expect(throws: RequestBody.Rule.unmarshalTypeError) {
+            _ = try RequestBody.entriesStatusUpdate("{\"entry_ids\": [1, \"two\"]}")
+        }
+        let request = try RequestBody.entriesStatusUpdate("{\"entry_ids\": [1, 2]}")
+        #expect(request.entryIDs == [1, 2], "a list the shape declares is read as a list")
+    }
+
+    @Test func nullAnswersNothingForTheListFieldAndThePointerFieldOfTheEntriesShape() throws {
+        let document = "{\"entry_ids\": null, \"status\": null, \"starred\": null}"
+        let request = try RequestBody.entriesStatusUpdate(document)
+        #expect(request.entryIDs == [], "a null on the list field leaves it at its zero value")
+        #expect(request.status == "", "and the same for the plain string field")
+        #expect(request.starred == nil, "a null pointer field is nothing")
     }
 }

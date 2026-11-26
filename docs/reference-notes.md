@@ -914,6 +914,33 @@ record line on this half against the answer the pattern named for the path answe
   reads as data: the client matrix reads the record's key names against the names this port's shape
   file writes, and this port has a shape file only for the Google Reader path.
 
+### The entry rules (`internal/validator/entry.go`, `internal/validator/validator.go`)
+
+The messages the handler writes for these rules are the rule names, because the port names the rule
+rather than the locale string. The reference's plain errors are:
+
+| Rule | The reference's error |
+| --- | --- |
+| `statusInvalid` | `invalid entry status, valid status values are: "read" and "unread"` |
+| `orderInvalid` | `invalid entry order, valid order values are: "id", "status", "changed_at", "published_at", "created_at", "category_title", "category_id", "title", "author"` |
+| `directionInvalid` | `invalid direction, valid direction values are: "asc" or "desc"` |
+| `offsetNegative` | `offset value should be >= 0` |
+| `limitNegative` | `limit value should be >= 0` |
+| `limitTooLarge` | `limit value should be <= 1000` |
+| `entryIDsEmpty` | `the list of entries cannot be empty` |
+| `statusOrStarredRequired` | `either the status or the starred field must be specified` |
+
+- The listing block is four rules read one after another (`ValidateEntryStatus` for each value of
+  `status`, then `ValidateEntryOrder`, then `ValidateDirection`, then `ValidateRange`), and the
+  handler answers the first one the input fails on. The write block is one function with three rules
+  in this order: the empty list, the either-field, then the status.
+- `QueryInt64Param` answers the default for a value that is empty, for a value it cannot parse, and
+  for a negative value, so the two negative rules of the range block cannot be reached through a
+  request on either side; they are pinned as pure logic.
+- The words the handlers write for a segment and for a row their read does not find are the
+  reference's own: `invalid entry ID`, `invalid feed ID`, `invalid category ID`,
+  `resource not found`.
+
 ## OPML (`internal/reader/opml`, commit `c4d54f87`)
 
 - The value layer the reference reads into (`opmlDocument`, `opmlOutline` and its `UnmarshalXML`)
