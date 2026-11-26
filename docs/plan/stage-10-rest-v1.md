@@ -60,4 +60,6 @@ stage names the shape the run showed and `docs/parity.md` records the two sides.
 
 The `api_keys` table, its two reads, the `create-api-key` command, the two halves of the auth read, the
 answer as pure logic, the document shape, the route registration and the answer over a socket are closed
-as what their runs showed. The record lives in `docs/testing.md` under the stage-10 section.
+as what their runs showed. The categories half and the feeds half of issue 110 are closed the same way,
+and the record lives in `docs/testing.md` under the stage-10 section. The entries half and
+`GET /v1/integrations/status` are the part of issue 110 the runs have not shown yet.

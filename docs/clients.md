@@ -286,14 +286,14 @@ this document names, and that rule reports what the data says rather than what t
 | Capy Reader | reader/api/0/disable-tag | POST | POST /reader/api/0/disable-tag | POST /reader/api/0/disable-tag | yes | stream_forms |
 | Capy Reader | reader/api/0/subscription/quickadd | POST | POST /reader/api/0/subscription/quickadd | POST /reader/api/0/subscription/quickadd | yes | minimal_scan |
 | Capy Reader | reader/api/0/subscription/edit | POST | POST /reader/api/0/subscription/edit | POST /reader/api/0/subscription/edit | yes | none |
-| Capy Reader | GET /v1/feeds | GET | GET /v1/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | GET /v1/feeds/{feedID} | GET | GET /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | POST /v1/feeds | POST | POST /v1/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | PUT /v1/feeds/{feedID} | PUT | PUT /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | DELETE /v1/feeds/{feedID} | DELETE | DELETE /v1/feeds/{feedID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | GET /v1/feeds/{feedID}/icon | GET | GET /v1/feeds/{feedID}/icon | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | PUT /v1/feeds/{feedID}/refresh | PUT | PUT /v1/feeds/{feedID}/refresh | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | PUT /v1/feeds/{feedID}/mark-all-as-read | PUT | PUT /v1/feeds/{feedID}/mark-all-as-read | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds | GET | GET /v1/feeds | GET /v1/feeds | yes | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds/{feedID} | GET | GET /v1/feeds/{feedID} | GET /v1/feeds/{feedID} | yes | rest_v1_route_answer |
+| Capy Reader | POST /v1/feeds | POST | POST /v1/feeds | POST /v1/feeds | yes | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID} | PUT | PUT /v1/feeds/{feedID} | PUT /v1/feeds/{feedID} | yes | rest_v1_route_answer |
+| Capy Reader | DELETE /v1/feeds/{feedID} | DELETE | DELETE /v1/feeds/{feedID} | DELETE /v1/feeds/{feedID} | yes | rest_v1_route_answer |
+| Capy Reader | GET /v1/feeds/{feedID}/icon | GET | GET /v1/feeds/{feedID}/icon | GET /v1/feeds/{feedID}/icon | yes | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID}/refresh | PUT | PUT /v1/feeds/{feedID}/refresh | PUT /v1/feeds/{feedID}/refresh | yes | rest_v1_route_answer |
+| Capy Reader | PUT /v1/feeds/{feedID}/mark-all-as-read | PUT | PUT /v1/feeds/{feedID}/mark-all-as-read | PUT /v1/feeds/{feedID}/mark-all-as-read | yes | rest_v1_route_answer |
 | Capy Reader | GET /v1/entries | GET | GET /v1/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | GET /v1/feeds/{feedID}/entries | GET | GET /v1/feeds/{feedID}/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | GET /v1/entries/{entryID} | GET | GET /v1/entries/{entryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
@@ -301,12 +301,12 @@ this document names, and that rule reports what the data says rather than what t
 | Capy Reader | PUT /v1/entries/{entryID}/bookmark | PUT | PUT /v1/entries/{entryID}/bookmark | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | POST /v1/entries/{entryID}/save | POST | POST /v1/entries/{entryID}/save | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | GET /v1/integrations/status | GET | GET /v1/integrations/status | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | GET /v1/categories | GET | GET /v1/categories | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories | GET | GET /v1/categories | GET /v1/categories | yes | rest_v1_route_answer |
 | Capy Reader | GET /v1/categories/{categoryID} | GET | not read here | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | POST /v1/categories | POST | POST /v1/categories | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | PUT /v1/categories/{categoryID} | PUT | PUT /v1/categories/{categoryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | DELETE /v1/categories/{categoryID} | DELETE | DELETE /v1/categories/{categoryID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
-| Capy Reader | GET /v1/categories/{categoryID}/feeds | GET | GET /v1/categories/{categoryID}/feeds | router answer | no: the port registers no route for this path | rest_v1_route_answer |
+| Capy Reader | POST /v1/categories | POST | POST /v1/categories | POST /v1/categories | yes | rest_v1_route_answer |
+| Capy Reader | PUT /v1/categories/{categoryID} | PUT | PUT /v1/categories/{categoryID} | PUT /v1/categories/{categoryID} | yes | rest_v1_route_answer |
+| Capy Reader | DELETE /v1/categories/{categoryID} | DELETE | DELETE /v1/categories/{categoryID} | DELETE /v1/categories/{categoryID} | yes | rest_v1_route_answer |
+| Capy Reader | GET /v1/categories/{categoryID}/feeds | GET | GET /v1/categories/{categoryID}/feeds | GET /v1/categories/{categoryID}/feeds | yes | rest_v1_route_answer |
 | Capy Reader | GET /v1/categories/{categoryID}/entries | GET | GET /v1/categories/{categoryID}/entries | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | PUT /v1/categories/{categoryID}/mark-all-as-read | PUT | PUT /v1/categories/{categoryID}/mark-all-as-read | router answer | no: the port registers no route for this path | rest_v1_route_answer |
 | Capy Reader | GET /v1/icons/{iconID} | GET | GET /v1/icons/{iconID} | router answer | no: the port registers no route for this path | rest_v1_route_answer |
@@ -320,9 +320,9 @@ this document names, and that rule reports what the data says rather than what t
 | NetNewsWire | 11 | 11 | 0 | 11 |
 | FeedFlow | 11 | 10 | 1 | 11 |
 | NewsFlash | 14 | 12 | 2 | 13 |
-| Capy Reader | 36 | 35 | 0 | 12 |
+| Capy Reader | 36 | 35 | 0 | 25 |
 | Reeder Classic | 0 | 0 | 0 | 0 |
-| all clients | 72 | 68 | 3 | 47 |
+| all clients | 72 | 68 | 3 | 60 |
 
 ## What this matrix cannot show
 
@@ -558,9 +558,12 @@ carry no `output` reach no output read at all and write the text shape whatever 
 The committed record for this client is the document the walk on the phone left, not a re-derivation
 of an earlier one: the read that names a call on the half read through the tolerance table changed,
 so the lines the earlier walk left cannot be read as the set names them, and that walk is held as
-evidence outside the repository, as Reeder Classic's is. The pin for the half read through the
-tolerance table reads the two answers the port gives: the read's answer for the path the pattern
-registers, and the router's answer for a path on the same prefix with no pattern.
+evidence outside the repository, as Reeder Classic's is. The lines the walk left carry the pattern the
+reference registers for each path, which is the answer the side the run answered on gives, so the
+record is read against the matrix rows for the paths this port now registers a route on. The pins that
+read this half over a socket read the answer the port gives: the handler's answer for the 13 paths its
+two suites register, and the router's answer for the one path on this prefix with no pattern,
+`GET /v1/categories/{categoryID}`, which the reference's mux has no pattern for either.
 
 Manual checklist, walked here by the run on the phone: log in; list the subscriptions; list the
 tags; read a page of item ids and their contents; add a feed from the client; mark one item read;

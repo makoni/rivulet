@@ -2121,6 +2121,30 @@ Three slices, each pinned as the rule it names.
   and the prefix the half names moved: the first fires the assertion for the registered path, the
   second fires that assertion and the one for the prefix.
 
+- The fourth slice is the categories half: 32 pins and 33 probes over four suites — 15 and 16 in the
+  route suite over a real socket, 6 and 6 for the reads the handlers call, 7 and 8 for the body read
+  as pure logic, and 4 and 3 for the documents the shape writes. Every probe was seen to fail on the
+  rule it names and to revert its file byte-identically. The patch for the path and the method the
+  pattern registers fires on 6 pins, every pin that reads the handler that registration gives; the
+  patch for the path the reference's mux has no pattern for — a route registered for
+  `GET /v1/categories/{categoryID}` — fires on the pin that reads the router's answer for it. Two
+  assertions are recorded as not pinnable: the pin's assertion that nothing is written for the segment
+  the read answers 0 for, because no row has id 0, and the assertion that a 204 carries no document,
+  because the client reads no body for that status.
+
+- The fifth slice is the feeds half: 17 pins and 36 probes in `RestV1FeedRouteTests` over a real
+  socket, every probe seen to fail on the rule it names and to revert its file byte-identically. The
+  patch for the path and the method the pattern registers fires on 3 assertions across two pins; the
+  six guards that read the segment before anything is read against the storage layer are one patch
+  per path, each firing on its own assertion of the one pin that names all six. Three assertions are
+  recorded as not pinnable: the modification path's duplicate read, which the schema's
+  `UNIQUE (user_id, url)` means can never answer true for the same account; the create path's
+  duplicate read account condition, which no request this suite can build reaches because the read is
+  guarded by the rules before it; and the delete statement's own account guard, which no request
+  reaches for a row the guard did not read. Each is pinned by the pure read suite
+  `FeedManagementReadsTests`. The refresh pin reads the fetch through the seam `FeedRefreshRunner`
+  names, because the network half itself is not what that pin reads.
+
 What these pins cannot show is named in their headers rather than asserted: the single-row limit of
 either read; the row two keys of one account answer, which SQL does not order; the clock fields,
 read as the shape they hold; the `timestamp with time zone` type, which this port writes as Unix
@@ -2143,12 +2167,18 @@ The check halves read the third route file as data. The client matrix's rule tha
 reads three halves — the shape, the note, and the registrations the three route files write — and
 the round answers 41 cases over 19 rules, 40 crafts plus the baseline asserted to report nothing,
 two of the route rule's three crafts being on Capy Reader, the only set that names more than one
-half, and the third on the parsed registrations. The DocC round reads the routes the pages name
-against the registrations the three files write and answers 32 cases over 21 rules, 31 crafts plus
-the baseline, and the parity round answers 22 probes. The matrix gains no row for the calls on this path: the rule
-that builds the rows reads the calls a record carries, and no run here left a record line on this
-path, which is what the phone criterion for a Miniflux account stays open for. The half is read as
-data only as the prefix the port registers one route on.
+half, and the third on the parsed registrations. The read of the registrations now takes the four
+methods the reference's mux puts on this path and the segment a registration names with a leading
+colon as the matrix writes it with braces, and it reads a registration written across two lines as
+one call, which is what lets the row for `PUT /v1/feeds/{feedID}/mark-all-as-read` agree with the
+line the file registers. The DocC round reads the routes the pages name against the registrations the
+three files write and answers 32 cases over 21 rules, 31 crafts plus the baseline, and the parity
+round answers 22 probes. The matrix rows for the calls on this path are read as data, and the record
+lines the walk on the phone left carry the pattern the reference registers for each path, which is
+the answer the side that run answered on gives; the 13 paths this port registers a route on are now
+named as replayed by the pins that read them over a socket, so the counts table reports 25 for this
+client and 60 for all clients. The half is read as data only as the prefix the port registers one
+route on.
 
 ## Running
 

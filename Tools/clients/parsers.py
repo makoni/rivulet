@@ -275,17 +275,24 @@ def port_routes(text):
     group is the name that file gives it, and the third file writes its prefix on the line the call
     is on. The catch-all is read as the registration the file writes, `on(.GET, "**")`, not as the
     word in its comment, which is what lets a patch that removes the branch be reported.
+
+    The segment a registration names with a leading colon is read as the matrix writes it, with the
+    braces, so the line the file registers and the line the matrix writes are the same path. The
+    four methods the reference's mux puts on this path are read, not only the two the file wrote
+    before the write paths were registered. A registration written across two lines is read as one
+    call, because the file breaks the line where the path is longer than the width it is written at;
+    the read is over the whole file, so the wrap is part of the input rather than a second form.
     """
     registered = set()
+    for match in re.finditer(r"\b(get|post|put|delete)\((.*?)((?=\",\s+use)|\))", text, re.S):
+        line = text[:match.start()].split("\n")[-1]
+        parts = [part.strip().strip('"') for part in match.group(2).split(",")]
+        parts = [f"{{{part[1:]}}}" if part.startswith(":") else part for part in parts]
+        group = re.search(r'grouped\("([^"]+)"\)', line)
+        prefix = "/" + group.group(1) if group else (
+            "/reader/api/0" if "protected." in line else "")
+        registered.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
     for line in text.splitlines():
-        match = re.search(r"\b(get|post)\((.*?)((?=\", use)|\))", line)
-        if match is not None:
-            parts = [part.strip().strip('"') for part in match.group(2).split(",")]
-            group = re.search(r'grouped\("([^"]+)"\)', line)
-            prefix = "/" + group.group(1) if group else (
-                "/reader/api/0" if "protected." in line else "")
-            registered.add(f"{match.group(1).upper()} {prefix}/{'/'.join(parts)}")
-            continue
         match = re.search(r"\bon\(\.(GET|POST), \"\*\*\"", line)
         if match is not None:
             registered.add(f"catch-all {match.group(1)}")
