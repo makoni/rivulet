@@ -917,7 +917,7 @@ path exits with 0, which is the reference's clean-stop exit; and that the WAL is
 exit, which is what the run's shutdown leaves behind — a patch that skipped the shutdown left the
 file. Which part of the shutdown emptied the WAL is not the pin's rule, because a clean close
 checkpoints and removes the file on its own, and the suite names that; it is the same reason the
-maintenance pins cannot read the checkpoint. 11 pins across the three suites: 4 here, 5 in
+maintenance pins cannot read the checkpoint. 12 pins across the three suites: 5 here, 5 in
 `ServeWiringTests`, 2 in `SystemCadenceTests`, each with a probe that patches the rule it names and
 reverts byte-identically. The red run for this PR is the absence of the seams and the wiring —
 compile errors for `SignalSource`, `ShutdownHook` and `ServeWiring` — so the pins that were already
@@ -930,16 +930,28 @@ to fail by patching the command so the wiring is not run, which answered no requ
 entry row, and that patch reverted byte-identically; the pin seeds no entry row, so the row it reads
 can only have come from the child's own pass, and it reads the file after the child is gone.
 
+The fifth pin here reads the end of the stream: that it is the exit event, not a line, so a child
+that exits before writing its serve line answers the read with the status the harness recorded for
+that exit rather than with no serve event. The patch that answered the end of the stream with the
+empty line — the shape that made the two answers the same — reported `noServeEvent` on this pin, and
+that patch reverted byte-identically. The child this pin gives is the CLI's own error path, so the
+run reaches the exit before the server starts and no database work is in it, and the status the pin
+reads is the code the child answered for the input the pin gave.
+
 The exit is an event the pins assume rather than assert: a patch that made the child not exit at all
 would only hang the read, so each pin asserts the content a patch can flip and carries its own time
 limit, which is the rule every unbounded wait carries. For the limit to be a failure rather than a
 hang, the harness has to answer the pin at the limit, so the exit read asks for the exit without
 blocking and answers the pin's cancellation as the cancellation it was given, killing the child so
 the run does not outlive the pin; the interval between those checks is the harness's own poll bound,
-not a wait a pin names. A child that writes no line at all fails the pin the same way, through the
-harness, which answers that read with no serve event, so the line is not an assumed fact. The
-request on the probed port carries the client's own default bound of 30 seconds, so it cannot hang
-either. The signal handler is put in place at construction, before the server command runs, which is
+not a wait a pin names. A child that has written nothing and is still alive fails the pin the same
+way, through the pin's own cancellation, so the line is not an assumed fact; a child that is gone is
+not answered as a line at all but as the exit event, which is the rule the fifth pin names.
+Whichever read reaches the exit event first records the status, so the two reads answer the same
+thing. The red run for this change showed why: with the reader recording the status and the exit read
+still asking for the child, the pins that read the exit answered `.noExitStatus` for a child the
+reader had already reaped. The request on the probed port carries the client's own default bound of
+30 seconds, so it cannot hang either. The signal handler is put in place at construction, before the server command runs, which is
 what makes these pins deterministic: a signal arriving in the window between the serve line and the
 loop's first wait answers the wait instead of ending the child on the default disposition, and the
 pins were intermittent before that change.

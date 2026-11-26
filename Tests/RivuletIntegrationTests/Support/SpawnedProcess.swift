@@ -83,10 +83,13 @@ final class SpawnedProcess: @unchecked Sendable {
 
     /// The next line the child wrote, read as an event: nothing here waits on a timer. The check
     /// and the registration run under one lock with the exit state, so a line that arrives between
-    /// them cannot be lost, and a child that writes nothing and ends answers the read with the
-    /// empty line the pin names. A wait answers on its own cancellation only when nothing else can
-    /// answer it, which is what a pin's time limit needs: a patch that leaves the child silent
-    /// fails at the limit.
+    /// them cannot be lost. The end of the stream is the exit event, not a line: a child that exits
+    /// before writing its serve line answers the read with the status the harness decoded for it,
+    /// which is what tells that child from one that has written nothing yet — the second is answered
+    /// by the pin's own cancellation, since a wait answers on its cancellation only when nothing
+    /// else can answer it. That is what a pin's time limit needs: a patch that leaves the child
+    /// silent fails at the limit, and a patch that answers the end of the stream as a line fails on
+    /// the pin that names this rule.
     func line() async throws -> String {
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { (continuation:
@@ -100,7 +103,7 @@ final class SpawnedProcess: @unchecked Sendable {
                 }
                 if outputClosed {
                     stateLock.unlock()
-                    continuation.resume(returning: "")
+                    continuation.resume(throwing: exitAnswer())
                     return
                 }
                 if lineCancelled {
@@ -133,7 +136,9 @@ final class SpawnedProcess: @unchecked Sendable {
 
     /// The serve event: the first line that names a port, read as the port the child bound to.
     /// Which line is recognised as the serve event is the harness's rule; the pin reads only the
-    /// value, which a patch to the port the server uses changes.
+    /// value, which a patch to the port the server uses changes. An empty line here is a line the
+    /// child wrote that names no port; the child being gone is not a line, so that answer reaches
+    /// the read as the exit event rather than as no serve event.
     func servePort() async throws -> Int {
         while true {
             let line = try await line()
@@ -166,22 +171,38 @@ final class SpawnedProcess: @unchecked Sendable {
     /// on a timer, and the poll loop runs in the pin's own task context so the pin's time limit can
     /// fire on a child that never exits — a limit that could not fire would only rename a hang, and
     /// the harness needs to be able to fail a pin, not wait forever for it. A normal run answers on
-    /// the first check, because the child is already gone when the harness asks; the interval is
-    /// the harness's own poll bound, not a wait a pin names, and no pin asserts anything from it.
+    /// the first check, because the child is already gone when the harness asks; a read that reached
+    /// the end of the stream first has already decoded the status, so this read answers the recorded
+    /// one instead of asking for a child the harness no longer has. The interval between those checks
+    /// is the harness's own poll bound, not a wait a pin names, and no pin asserts anything from it.
     func waitExit() async throws -> Int32 {
+        // The status is the fact the harness recorded for the exit event, so a read that reached the
+        // end of the stream first and this read answer the same thing: whichever got there first
+        // recorded it, and the other one reads that record.
+        let recorded = recordedStatus()
+        if let recorded { return recorded }
+
         let status = try await withCheckedThrowingContinuation { (continuation:
             CheckedContinuation<Int32, Error>) in
             while true {
                 let ended = waitpid(pid, &rawStatus, WNOHANG)
                 if ended > 0 {
+                    let decoded = status(of: rawStatus)
                     stateLock.lock()
                     reaped = true
+                    exitStatus = decoded
                     stateLock.unlock()
-                    continuation.resume(returning: status(of: rawStatus))
+                    continuation.resume(returning: decoded)
                     return
                 }
                 if ended < 0 {
-                    // The child is gone with no status the pins could name.
+                    // The read failed for the child, most often because the other read got there
+                    // first and recorded the status, so this read answers that record. Only a child
+                    // that is gone with nothing recorded is the failure this read names.
+                    if let recorded = recordedStatus() {
+                        continuation.resume(returning: recorded)
+                        return
+                    }
                     continuation.resume(throwing: SpawnedProcessError.noExitStatus)
                     return
                 }
@@ -198,6 +219,23 @@ final class SpawnedProcess: @unchecked Sendable {
     }
 
     private var rawStatus: Int32 = 0
+
+    private var exitStatus: Int32?
+
+    /// The status the harness recorded for the child's exit, read under the lock. Nothing is recorded
+    /// until a read reaches the exit event, so this answers nil before then.
+    private func recordedStatus() -> Int32? {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        return exitStatus
+    }
+
+    /// The answer a read gets for a stream that ended: the exit the child reached, as the same status
+    /// the exit read answers — whichever read reached the exit event first recorded it. A child that
+    /// is gone with nothing recorded is the failure the exit read already names.
+    private func exitAnswer() -> SpawnedProcessError {
+        recordedStatus().map(SpawnedProcessError.childExited) ?? SpawnedProcessError.noExitStatus
+    }
 
     /// The harness's poll bound: 50 ms between checks for the exit event and for the pin's
     /// cancellation, so the loop is not a hot spin. Nothing a pin reads comes from this value.
@@ -243,6 +281,7 @@ final class SpawnedProcess: @unchecked Sendable {
         var raw: Int32 = 0
         _ = waitpid(pid, &raw, 0)
         reaped = true
+        exitStatus = status(of: raw)
     }
 
     private func spawn() throws {
@@ -304,8 +343,12 @@ final class SpawnedProcess: @unchecked Sendable {
     }
 
     /// The end of the stream: only the read end is still open here, because the parent closed its
-    /// copy of the write end at spawn, so this is reached when the child is gone.
+    /// copy of the write end at spawn, so this is reached when no process still holds the write end —
+    /// for the child the harness spawns, its exit, since the child does not close its own output. The
+    /// read that is open for it is answered with the exit the child reached, not with a line.
     private func closeOutput() {
+        // The child is gone here, so this records the status without blocking.
+        reap()
         stateLock.lock()
         outputClosed = true
         let waiter = lineWaiter
@@ -314,7 +357,7 @@ final class SpawnedProcess: @unchecked Sendable {
 
         close(outputPipe[0])
         if let waiter = waiter {
-            waiter.resume(returning: "")
+            waiter.resume(throwing: exitAnswer())
         }
     }
 
@@ -390,4 +433,5 @@ enum SpawnedProcessError: Error, Equatable {
     case pipeFailed
     case noServeEvent
     case noExitStatus
+    case childExited(Int32)
 }
