@@ -19,8 +19,9 @@ import Testing
 /// the child exits at all — a patch that made the child never exit hangs the exit pin until its
 /// time limit fires, which is the harness rule that an unbounded wait carries a limit, not an
 /// answer the child gives, so the pins assert only the content a patch can flip; a child that
-/// writes no line at all fails the pin through the harness, which answers that read with no serve
-/// event, so it is not a fact the pin assumes; which part of the shutdown emptied the WAL, because
+/// writes no line at all fails the pin through the harness, which answers that read on the pin's own
+/// cancellation, so the line is not a fact the pin assumes; the end of the stream is not a line at
+/// all but the exit event, which is the rule the pin below names; which part of the shutdown emptied the WAL, because
 /// a clean close checkpoints and removes the file anyway, which is the same reason the maintenance
 /// pins cannot read it; which line the harness reads as the serve event, and the wording of the
 /// line, from which the pin reads only the port value; the choice of port itself, which is the
@@ -56,7 +57,21 @@ import Testing
 /// rather than from a pass the pin made itself, which is why the pin seeds no entry row and reads
 /// the file after the child is gone; that the seed was in place before the child started, which the
 /// harness guarantees; and the row half on its own, because the write it reads belongs to the
-/// pipeline, which its own suite pins, so that reach is reasoned there.
+/// pipeline, which its own suite pins, so that reach is reasoned there.  The pin that reads the end
+/// of the stream names its rule, its failure shape and what it cannot show. Its rule is that the read
+/// answers the exit the harness recorded for a child that exits before writing its serve line, rather
+/// than the empty line that made the two answers the same shape: the patch that answered the end of
+/// the stream as a line reported `noServeEvent` on this pin, and that patch reverted
+/// byte-identically. The child this pin gives is the CLI's own error path, so the run reaches the
+/// exit before the server starts and no database work is in it, and the status the pin reads is the
+/// code the child answered for the input the pin gave. What this pin cannot show: that the child
+/// exits at all, which is the harness rule named above; the other side of the rule, a child that has
+/// written nothing and is still alive, which the pin's own cancellation answers and no patch to
+/// production code can flip; and that the two reads answer the same status when the reader reaches the
+/// exit event first, which is the harness's own record rather than an assertion — the run before this
+/// change showed it, as the pins that read the exit answering `.noExitStatus` for a child the reader
+/// had already reaped, which is why the exit read answers the record instead of asking for the child
+/// again.
 @Suite struct ServeProcessTests {
     @Test(.timeLimit(.minutes(2)))
     func theBuiltBinaryAnswersOnTheProbedPort() async throws {
@@ -105,6 +120,25 @@ import Testing
             // checkpoints and removes the WAL on its own, so a patch that dropped only the
             // checkpoint left this pin green, and the header names that.
             #expect(child.walIsEmpty(), "the WAL the child left behind")
+        }
+    }
+
+    @Test(.timeLimit(.minutes(2)))
+    func theReadThatReachesTheEndOfTheStreamAnswersTheExitNotNoEvent() async throws {
+        // The child is the CLI's own error path: an argument Vapor's server command does not accept is
+        // rejected before the database is touched, so the child writes its error line and exits before
+        // the server starts. The stream ends with the child gone, and the read answers the status the
+        // harness decoded for that exit rather than no serve event, which is the rule this pin names:
+        // the patch that answered the end of the stream with the empty line — the shape that made the
+        // two answers the same — reported `noServeEvent` here. The exit code is the child's own answer
+        // for this input, the CLI's error exit. The other side of the rule, a child that has written
+        // nothing and is still alive, is answered by the pin's own cancellation, which is the harness
+        // rule the header names and no patch to production code can flip.
+        try await SpawnedProcess.withSpawnedProcess(env: [:],
+            args: { _ in ["serve", "--not-an-option"] }) { child in
+            await #expect(throws: SpawnedProcessError.childExited(1)) {
+                _ = try await child.servePort()
+            }
         }
     }
 
