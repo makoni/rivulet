@@ -79,6 +79,14 @@ public final class Feed: Model, @unchecked Sendable {
     /// Unix seconds; updated on every mutation.
     @Field(key: "updated_at") public var updatedAt: Int
 
+    /// `ResetErrorCounter`: the modification path clears the counter and the message before it writes
+    /// the row, which `RestV1FeedRouteTests` pins. The refresh path does not call it: it increments the
+    /// counter through ``FeedRepository/recordParsingError(feedID:message:nextCheckAt:checkedAt:)``.
+    public func resetErrorCounter() {
+        parsingErrorCount = 0
+        parsingErrorMessage = ""
+    }
+
     /// Creates an unfilled feed; the repositories populate and persist it.
     ///
     /// Fields must be set before the instance is used with a query.

@@ -17,14 +17,25 @@ import Testing
 /// than the row that came first, it applies the account it is given, and an account with no rows
 /// answers nothing rather than a failure.
 ///
+/// The reads the v1 handlers call are pinned by 6 pins and 6 probes: the counts read answers the two
+/// counts and the order the reference defaults to, the unread count first and then the title, on an
+/// input where the count order and the title order disagree, and it applies the account it is given;
+/// the pair read answers nothing for a row of another account; the create writes the value the request
+/// carries for the hide rule and the default for a request that carried nothing; the update writes
+/// both fields the reference's statement writes, for the row of the pair; and the delete reports the
+/// reference's wording for a statement that removed no row. Every probe was seen to fail on the rule
+/// it names and to revert the file byte-identically.
+///
 /// What this suite cannot show is named here: the row order the delete's read answers its rows in,
 /// which the statement does not order, so a patch that took any remaining row in that order
 /// answered the same as the pick; the transaction boundary, which is the caller's, because no pin
 /// can make a statement fail in the middle of one; the order of the reassignment and the
 /// delete, which is the same for every input that reaches them — the guard is pinned as running
 /// before both; the single-row limit of the title read, because the pin that names the order is
-/// answered the same by a read that read every match and took the first; and the `hide_globally`
-/// column the reference reads on the same row, which this port's schema does not have.
+/// answered the same by a read that read every match and took the first; the sorting order the
+/// reference takes from the user row for the counts read, which this port's schema has no column for
+/// and which is recorded as a deviation; and the report the delete makes for a row it did not remove,
+/// which the handler reads before the write, so no request reaches it there.
 @Suite struct CategoryRepositoryTests {
     @Test func createStoresTheFieldsAndDefaultsPositionToZero() async throws {
         try await withMigratedStorage { _, storage in
@@ -313,6 +324,144 @@ import Testing
                 #expect(try await categories.fetch(id: zetaID) != nil, "nothing was deleted")
                 #expect(try await feeds.fetch(id: techFeedID)?.categoryID == amyID,
                     "and nothing was reassigned")
+            }
+        }
+    }
+
+    // MARK: - The reads the v1 handlers call
+
+    @Test func theCountsReadAnswersTheCountsAndTheOrderTheReferenceDefaultsTo() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let categories = CategoryRepository(connection)
+                let feeds = FeedRepository(connection)
+
+                // The two orders disagree: the default row the account creation adds has no unread
+                // entry, "Zeta" has one. The reference's default order is the unread count first, so
+                // the answer is Zeta then All — a patch that ordered by title alone answers the other
+                // order here.
+                let zeta = try #require(try await categories.create(userID: aliceID, title: "Zeta").id)
+
+                let allFeed = try #require(try await feeds.create(
+                    userID: aliceID, categoryID: 1, url: "https://example.com/all").id)
+                let zetaFeed = try #require(try await feeds.create(
+                    userID: aliceID, categoryID: zeta, url: "https://example.com/zeta").id)
+
+                for (feedID, status) in [(allFeed, "read"), (zetaFeed, "unread")] {
+                    try await RawSQL.sql(on: connection).raw("""
+                        INSERT INTO entries (user_id, feed_id, hash, status, published_at,
+                            created_at, updated_at)
+                        VALUES (\(bind: aliceID), \(bind: feedID), \(bind: "h-\(feedID)"),
+                            \(bind: status), \(bind: 1_000_000_000), \(bind: 1_000_000_000),
+                            \(bind: 1_000_000_000))
+                        """).run()
+                }
+
+                let rows = try await categories.listWithCounts(userID: aliceID)
+                #expect(rows.map { $0.category.title } == ["Zeta", "All"],
+                    "the unread count first, then the title")
+                #expect(rows.map { $0.counts } ==
+                    [CategoryCounts(feedCount: 1, totalUnread: 1),
+                        CategoryCounts(feedCount: 1, totalUnread: 0)],
+                    "the counts the two rows answer, a zero included")
+            }
+        }
+    }
+
+    @Test func theCountsReadAppliesTheAccountItIsGiven() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let bobID = try await seedUser(connection, username: "bob")
+                let categories = CategoryRepository(connection)
+
+                // A row of another account with a title this account does not have: the read answers
+                // nothing for it, so a patch that dropped the account filter answered bob's row here.
+                // The default row the account creation adds is part of the input and is named below.
+                _ = try await categories.create(userID: bobID, title: "Only bob")
+                #expect(try await categories.listWithCounts(userID: aliceID).map { $0.category.title }
+                    == ["All"], "the account the read is given, not every row")
+            }
+        }
+    }
+
+    @Test func theCategoryReadAppliesTheAccountItIsGiven() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let bobID = try await seedUser(connection, username: "bob")
+                let categories = CategoryRepository(connection)
+                let bobCategory = try #require(try await categories.create(userID: bobID, title: "Bob").id)
+
+                #expect(try await categories.fetch(userID: aliceID, id: bobCategory) == nil,
+                    "the pair, so another account's row with the same id is not this account's")
+            }
+        }
+    }
+
+    @Test func theCreateWritesTheValueTheRequestCarries() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let categories = CategoryRepository(connection)
+
+                let written = try await categories.create(userID: aliceID, title: "News",
+                    hideGlobally: true)
+                let stored = try await categories.fetch(userID: aliceID, id: try #require(written.id))
+                #expect(stored?.hideGlobally == true, "the value the request carried")
+                #expect(try await categories.create(userID: aliceID, title: "Plain").hideGlobally == false,
+                    "and the default for a request that carried nothing")
+            }
+        }
+    }
+
+    @Test func theUpdateWritesBothFieldsTheReferenceWrites() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let bobID = try await seedUser(connection, username: "bob")
+                let categories = CategoryRepository(connection)
+                let bobCategory = try #require(try await categories.create(userID: bobID,
+                    title: "Bob", hideGlobally: true).id)
+
+                // The statement is guarded by the pair: a patch that wrote by id alone would write
+                // bob's row for an input that names alice.
+                try await categories.update(userID: aliceID, id: bobCategory, title: "Renamed",
+                    hideGlobally: false)
+                #expect(try await categories.fetch(userID: bobID, id: bobCategory)?.title == "Bob",
+                    "the row of the account the write is given, not the row the id names")
+
+                let mine = try #require(try await categories.create(userID: aliceID,
+                    title: "Mine", hideGlobally: true).id)
+                try await categories.update(userID: aliceID, id: mine, title: "Renamed",
+                    hideGlobally: false)
+                let stored = try await categories.fetch(userID: aliceID, id: mine)
+                #expect(stored?.title == "Renamed", "the title the request carried")
+                #expect(stored?.hideGlobally == false, "and the boolean the request carried")
+            }
+        }
+    }
+
+    @Test func theDeleteReportsNoRowRemoved() async throws {
+        try await withMigratedStorage { _, storage in
+            try await storage.withConnection { connection in
+                let aliceID = try await seedUser(connection, username: "alice")
+                let bobID = try await seedUser(connection, username: "bob")
+                let categories = CategoryRepository(connection)
+                let bobCategory = try #require(try await categories.create(userID: bobID, title: "Bob").id)
+
+                // The statement is guarded by the pair, so an input that names another account's row
+                // removes nothing and answers the reference's report.
+                do {
+                    try await categories.delete(userID: aliceID, id: bobCategory)
+                    Issue.record("the write should have reported that it removed nothing")
+                } catch {
+                    #expect(String(describing: error) == "store: no category has been removed",
+                        "the wording the reference reports for this rule")
+                }
+                #expect(try await categories.fetch(userID: bobID, id: bobCategory) != nil,
+                    "and the row is still there")
             }
         }
     }

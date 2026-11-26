@@ -54,27 +54,27 @@ newsflash/fever/saved_item_ids | the order the set records
 newsflash/fever/mark/item | the order the set records, and the guard at or below zero
 newsflash/fever/mark/feed | the order the set records
 newsflash/fever/mark/group | the order the set records, and the user-wide half of the branch
-capy-reader/GET /v1/feeds | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/feeds/{feedID} | not replayed here: the port registers no route for this path
-capy-reader/POST /v1/feeds | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/feeds/{feedID} | not replayed here: the port registers no route for this path
-capy-reader/DELETE /v1/feeds/{feedID} | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/feeds/{feedID}/icon | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/feeds/{feedID}/refresh | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/feeds/{feedID}/mark-all-as-read | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/entries | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/feeds/{feedID}/entries | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/entries/{entryID} | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/entries | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/entries/{entryID}/bookmark | not replayed here: the port registers no route for this path
+capy-reader/GET /v1/feeds | the route pin, on the path the pattern registers
+capy-reader/GET /v1/feeds/{feedID} | the route pin, on the path the pattern registers
+capy-reader/POST /v1/feeds | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/feeds/{feedID} | the route pin, on the path the pattern registers
+capy-reader/DELETE /v1/feeds/{feedID} | the route pin, on the path the pattern registers
+capy-reader/GET /v1/feeds/{feedID}/icon | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/feeds/{feedID}/refresh | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/feeds/{feedID}/mark-all-as-read | the route pin, on the path the pattern registers
+capy-reader/GET /v1/entries | the route pin, on the path the pattern registers
+capy-reader/GET /v1/feeds/{feedID}/entries | the route pin, on the path the pattern registers
+capy-reader/GET /v1/entries/{entryID} | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/entries | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/entries/{entryID}/bookmark | the route pin, on the path the pattern registers
 capy-reader/POST /v1/entries/{entryID}/save | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/integrations/status | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/categories | not replayed here: the port registers no route for this path
+capy-reader/GET /v1/integrations/status | the route pin, on the path the pattern registers
+capy-reader/GET /v1/categories | the route pin, on the path the pattern registers
 capy-reader/GET /v1/categories/{categoryID} | not replayed here: the port registers no route for this path
-capy-reader/POST /v1/categories | not replayed here: the port registers no route for this path
-capy-reader/PUT /v1/categories/{categoryID} | not replayed here: the port registers no route for this path
-capy-reader/DELETE /v1/categories/{categoryID} | not replayed here: the port registers no route for this path
-capy-reader/GET /v1/categories/{categoryID}/feeds | not replayed here: the port registers no route for this path
+capy-reader/POST /v1/categories | the route pin, on the path the pattern registers
+capy-reader/PUT /v1/categories/{categoryID} | the route pin, on the path the pattern registers
+capy-reader/DELETE /v1/categories/{categoryID} | the route pin, on the path the pattern registers
+capy-reader/GET /v1/categories/{categoryID}/feeds | the route pin, on the path the pattern registers
 capy-reader/GET /v1/categories/{categoryID}/entries | not replayed here: the port registers no route for this path
 capy-reader/PUT /v1/categories/{categoryID}/mark-all-as-read | not replayed here: the port registers no route for this path
 capy-reader/GET /v1/icons/{iconID} | not replayed here: the port registers no route for this path

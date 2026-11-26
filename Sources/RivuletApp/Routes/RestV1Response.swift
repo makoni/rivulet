@@ -54,6 +54,17 @@ struct RestV1Response {
             headers: headers)
     }
 
+    /// `response.NoContent`: the builder writes the names every answer of this path carries and the
+    /// three it writes for every answer, but no `Content-Type`, because the body is nothing.
+    static func noContent(headers: RestV1Headers) -> Response {
+        var responseHeaders = GoogleReaderResponse.securityHeaders()
+        for line in corsHeaders() { responseHeaders.add(name: line.name, value: line.value) }
+        if Self.writesAuthenticateHeader(headers: headers) {
+            responseHeaders.add(name: "WWW-Authenticate", value: "Basic realm=\"Restricted\"")
+        }
+        return Response(status: .noContent, headers: responseHeaders)
+    }
+
     /// An assembled answer, with the names every answer of this path carries.
     static func response(status: HTTPStatus, document: JSONValue,
         headers: RestV1Headers) -> Response {

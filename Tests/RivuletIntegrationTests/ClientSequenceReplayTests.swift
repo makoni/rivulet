@@ -289,7 +289,10 @@ import Vapor
             #expect(registered.status == .unauthorized,
                 "the path the pattern registers answers the read's answer, not the router's")
 
-            let noPattern = try await app.client.get(URI(string: base + half.prefix + "/entries"))
+            // A path on this prefix the reference's mux has a pattern for and this stage registers no
+            // route for, which is the half the pin reads. The entries paths are no longer this half: the
+            // entries suite reads them over a socket, so the pin reads a path the scope leaves open.
+            let noPattern = try await app.client.get(URI(string: base + half.prefix + "/version"))
             #expect(noPattern.status == .notFound,
                 "a path on this prefix with no pattern answers the router's answer")
         }

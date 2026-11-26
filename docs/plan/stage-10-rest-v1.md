@@ -1,6 +1,7 @@
 # Stage 10 — Miniflux REST v1 subset
 
-**Goal:** the endpoints the one real consumer declares, and no others. **Status:** in progress.
+**Goal:** the endpoints the one real consumer declares, and no others. **Status:** in progress — the 21
+endpoints in scope are closed as their runs showed, and the four calls outside that list are open.
 **Depends on:** stage 5, and the integrations item of stage 9 for the one call that runs an integration.
 
 The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. Its half records 25
@@ -10,7 +11,6 @@ this port gave for a path it registered no route for at the time of the walk.
 
 ## Open work
 
-- Issue 110 — the 21 endpoints in scope, pinned as pure logic and over a real socket.
 - Issue 121 — the four calls outside that list: `GET /v1/categories/{id}/entries` and
   `GET /v1/icons/{iconID}`, which reach no route until the read they call is pinned;
   `POST /v1/entries/{id}/save`, which runs an integration and so waits for issue 107; and
@@ -60,4 +60,8 @@ stage names the shape the run showed and `docs/parity.md` records the two sides.
 
 The `api_keys` table, its two reads, the `create-api-key` command, the two halves of the auth read, the
 answer as pure logic, the document shape, the route registration and the answer over a socket are closed
-as what their runs showed. The record lives in `docs/testing.md` under the stage-10 section.
+as what their runs showed. The categories, feeds, entries and integrations halves of issue 110 are
+closed the same way, and the record lives in `docs/testing.md` under the stage-10 section. What the
+entries round could not show is stated in its suite headers rather than asserted: the order between the
+either-field rule and the status rule, which no input can fail both, and the order between the status
+write and the starred write, which both write different columns of the same rows.
