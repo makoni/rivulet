@@ -68,10 +68,10 @@ import Testing
 /// exits at all, which is the harness rule named above; the other side of the rule, a child that has
 /// written nothing and is still alive, which the pin's own cancellation answers and no patch to
 /// production code can flip; and that the two reads answer the same status when the reader reaches the
-/// exit event first, which is the harness's own record rather than an assertion — the run before this
-/// change showed it, as the pins that read the exit answering `.noExitStatus` for a child the reader
-/// had already reaped, which is why the exit read answers the record instead of asking for the child
-/// again.
+/// exit event first, which is the harness's own record rather than an assertion. The red run for this
+/// change showed it: with the reader recording the status and the exit read still asking for the
+/// child, the pins that read the exit answered `.noExitStatus` for a child the reader had already
+/// reaped, which is why the exit read answers the record instead of asking for the child again.
 @Suite struct ServeProcessTests {
     @Test(.timeLimit(.minutes(2)))
     func theBuiltBinaryAnswersOnTheProbedPort() async throws {

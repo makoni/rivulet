@@ -196,9 +196,9 @@ final class SpawnedProcess: @unchecked Sendable {
                     return
                 }
                 if ended < 0 {
-                    // The child is no longer waitable here, which is the shape the other read reaches
-                    // first: it got there and recorded the status, so this read answers that. Only a
-                    // child that is gone with nothing recorded is the failure this read names.
+                    // The read failed for the child, most often because the other read got there
+                    // first and recorded the status, so this read answers that record. Only a child
+                    // that is gone with nothing recorded is the failure this read names.
                     if let recorded = recordedStatus() {
                         continuation.resume(returning: recorded)
                         return
@@ -343,11 +343,11 @@ final class SpawnedProcess: @unchecked Sendable {
     }
 
     /// The end of the stream: only the read end is still open here, because the parent closed its
-    /// copy of the write end at spawn, so this is reached when the child is gone. The read that is
-    /// open for it is answered with the exit the child reached, not with a line.
+    /// copy of the write end at spawn, so this is reached when no process still holds the write end —
+    /// for the child the harness spawns, its exit, since the child does not close its own output. The
+    /// read that is open for it is answered with the exit the child reached, not with a line.
     private func closeOutput() {
-        // The child is gone here — the end of the stream is the exit event, since only the child
-        // held the write end — so this records the status without blocking.
+        // The child is gone here, so this records the status without blocking.
         reap()
         stateLock.lock()
         outputClosed = true

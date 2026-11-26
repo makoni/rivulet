@@ -948,10 +948,10 @@ not a wait a pin names. A child that has written nothing and is still alive fail
 way, through the pin's own cancellation, so the line is not an assumed fact; a child that is gone is
 not answered as a line at all but as the exit event, which is the rule the fifth pin names.
 Whichever read reaches the exit event first records the status, so the two reads answer the same
-thing — before that was the rule the run showed the exit pins answering `.noExitStatus` for a child
-the reader had already reaped. The
-request on the probed port carries the client's own default bound of 30 seconds, so it cannot hang
-either. The signal handler is put in place at construction, before the server command runs, which is
+thing. The red run for this change showed why: with the reader recording the status and the exit read
+still asking for the child, the pins that read the exit answered `.noExitStatus` for a child the
+reader had already reaped. The request on the probed port carries the client's own default bound of
+30 seconds, so it cannot hang either. The signal handler is put in place at construction, before the server command runs, which is
 what makes these pins deterministic: a signal arriving in the window between the serve line and the
 loop's first wait answers the wait instead of ending the child on the default disposition, and the
 pins were intermittent before that change.
