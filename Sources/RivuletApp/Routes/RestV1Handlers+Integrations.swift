@@ -7,7 +7,7 @@ import Vapor
 extension RestV1Handlers {
     /// `getIntegrationsStatusHandler`: the account row is read, and the one-key document is the answer.
     ///
-    /// The reference's rule reads the eleven flags of the `integrations` table, which this port has no
+    /// The reference's rule reads the twenty-four flags of the `integrations` table, which this port has no
     /// table for: the credential pairs live on the account row and no save integration runs here, so the
     /// answer is false for every account, which `docs/parity.md` records. The pin reads the answer the
     /// port gives for an account that carries a credential pair.

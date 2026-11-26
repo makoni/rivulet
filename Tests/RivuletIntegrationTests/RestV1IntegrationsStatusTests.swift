@@ -15,7 +15,7 @@ import Vapor
 ///   answered the credential columns of the account row instead of the rule this port has fires on;
 /// - the status the path carries, which a patch that answered the status the write paths carry fires on.
 ///
-/// What these pins cannot show: the reference's rule reads the eleven flags of the `integrations`
+/// What these pins cannot show: the reference's rule reads the twenty-four flags of the `integrations`
 /// table, which this port has no table for — the credential pairs live on the account row and no save
 /// integration runs here, so the answer is false for every account and the reference's side of the rule
 /// has nothing to pin on this port; the 404 branch the handler has for a row its read does not find,

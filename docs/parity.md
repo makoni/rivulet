@@ -1687,8 +1687,9 @@ input, which is what the pin reads, and the reference's side has nothing to pin 
 schema has columns for, in the order the struct declares them. The key the reference names
 `changed_at` carries the value this port's `updated_at` column holds. The content is written as the
 row has it: the media-proxy rewrite the reference applies before the document is built has no half
-in this port, and the tags and the enclosures its builder adds are read from tables this port does
-not have. The `globally_visible` half of the reference's struct has no column here.
+in this port, and the tags and the enclosures its builder adds (`WithTags`, `WithEnclosures`) are read
+from tables this port does not have. The reference's builder also applies a `globally_visible` query
+parameter, which this handler does not read and which has no column here.
 
 - The filter block (`configureFilters`) reads ten names there and one here. The handler reads only
 `starred`, the one name the consumer sends, so the other nine — `before_entry_id`, `after_entry_id`,
@@ -1702,7 +1703,7 @@ present and the value parses, so a value the parse fails on applies nothing rath
 This port's form for that is `RestV1Query.optionalBoolean`, which is kept apart from
 `boolean(..., default:)` for exactly this reason, and the pin reads the difference over a socket.
 
-- `has_integrations`: the reference's rule reads the eleven flags of the `integrations` table. This
+- `has_integrations`: the reference's rule reads the twenty-four flags of the `integrations` table. This
 port has no such table and no save integration — the credential pairs live on the account row — so
 the answer is false for every account, including one that carries a credential pair. The pin reads
 the answer the port gives; the reference's side of the rule has nothing to pin here.

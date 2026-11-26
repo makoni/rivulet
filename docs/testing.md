@@ -2145,7 +2145,7 @@ Seven slices, each pinned as the rule it names.
   `FeedManagementReadsTests`. The refresh pin reads the fetch through the seam `FeedRefreshRunner`
   names, because the network half itself is not what that pin reads.
 
-- The sixth slice is the entries half: 16 pins and 40 probes in `RestV1EntryRouteTests` over a real
+- The sixth slice is the entries half: 16 pins and 43 probes in `RestV1EntryRouteTests` over a real
   socket, every probe seen to fail on the rule it names and to revert its file byte-identically. The
   patch for the path and the method the pattern registers fires on every pin that reads the handler that
   registration gives: 20 assertions for the entries list, 3 for the feed listing, 5 for the single entry,
@@ -2159,7 +2159,11 @@ Seven slices, each pinned as the rule it names.
   them. The write paths are pinned for the rule the block answers first on an input that fails the
   empty-list rule and the either-field rule, for the write running only after the block, for the half the
   request did not carry being left as the row had it, and for the account condition of the three
-  statements. The status each answer carries is one patch per status the pin reads.
+  statements. The single-row document is pinned for the order its keys are written in and for the escape
+  class the document writer has, read on a content value that carries all three HTML-sensitive characters.
+  The status each answer carries is one patch per status the pin reads. The toggle pin reads the row before
+  it reads the answer's document, because the patch for its account condition turns the answer into a 204,
+  which carries no document, and the document assertion would stop the pin before the row was read.
 
   One pin in this suite was wrong before the round and was fixed: it read an input that carries a status
   and no flag as failing the either-field rule, but that rule answers only for an empty status, so the
@@ -2168,21 +2172,20 @@ Seven slices, each pinned as the rule it names.
   widened at the same time: its row is seeded as read, because for a row that was already unread a patch
   that ran the status write for every request answers the same value the pin reads.
 
-  Four assertions are recorded as not pinnable: the order between the either-field rule and the status
-  rule, which no input can fail both because the first answers only for an empty status and the second
-  only for a non-empty one; the order between the status write and the starred write, which both write
-  different columns of the same rows; the `changed_at` filter the reference's `configureFilters` reads,
-  which this port's query has no field for, so the consumer's `changed_after` is read and applied to
-  nothing; and the assertion that a 204 carries no document, because the client reads no body for that
-  status.
+  What the round could not show is recorded in the suite header rather than probed; among them four
+  assertions: the order between the either-field rule and the status rule, which no input can fail both
+  because the first answers only for an empty status and the second only for a non-empty one; the order
+  between the status write and the starred write, which both write different columns of the same rows;
+  the `changed_at` filter the reference's `configureFilters` reads, which this port's query has no field
+  for, so the consumer's `changed_after` is read and applied to nothing; and the assertion that a 204
+  carries no document, because the client reads no body for that status.
 
 - The seventh slice is `GET /v1/integrations/status`: 2 pins and 4 probes in
   `RestV1IntegrationsStatusTests` over a real socket, every probe seen to fail on the rule it names and
   to revert its file byte-identically. The patch for the path the pattern registers fires on both pins;
-  the patch for the value the rule answers fires on the pin that reads an account carrying a credential
-  pair; the patch for the status the path carries fires on the pin that reads the answer; and the patch
+  the patch for the value the rule answers fires on both pins; the patch for the status the path carries fires on the pin that reads the answer; and the patch
   that makes the guard answer for every request fires on both pins, which is what shows that the pins
-  read the answer the guard gives. The reference's rule reads the eleven flags of the `integrations`
+  read the answer the guard gives. The reference's rule reads the twenty-four flags of the `integrations`
   table, which this port has no table for, so the answer is false for every account and the reference's
   side of the rule has nothing to pin here; the 404 branch the handler has for a row its read does not
   find is recorded as not pinnable, because the read that hands the handler the id read the same row.
@@ -2217,9 +2220,9 @@ line the file registers. The DocC round reads the routes the pages name against 
 three files write and answers 32 cases over 21 rules, 31 crafts plus the baseline, and the parity
 round answers 22 probes. The matrix rows for the calls on this path are read as data, and the record
 lines the walk on the phone left carry the pattern the reference registers for each path, which is
-the answer the side that run answered on gives; the 13 paths this port registers a route on are now
-named as replayed by the pins that read them over a socket, so the counts table reports 25 for this
-client and 60 for all clients. The half is read as data only as the prefix the port registers one
+the answer the side that run answered on gives; the 19 paths this port registers a route on are now
+named as replayed by the pins that read them over a socket, so the counts table reports 31 for this
+client and 66 for all clients. The half is read as data only as the prefix the port registers one
 route on.
 
 ## Running

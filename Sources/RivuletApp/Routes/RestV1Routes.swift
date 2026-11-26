@@ -9,8 +9,8 @@ public enum RestV1Routes {
     ///puts on every route of this path, so it is applied per route rather than as application
     ///middleware that would cover `/healthz` too.  The reference's mux has one pattern per path
     ///with the method written on it, and this stage registers the paths its scope has: the account
-    ///path, the six category paths, the eight feed paths and the five entry paths the consumer
-    ///declares. The answer for
+    ///path, the five category paths, the eight feed paths, the five entry paths and the one
+    ///integrations path the consumer declares. The answer for
     ///another method and the answer for a path no pattern registers are recorded in
     ///`docs/parity.md`, and the pin for this prefix reads the router's answer for a path with no
     ///pattern.

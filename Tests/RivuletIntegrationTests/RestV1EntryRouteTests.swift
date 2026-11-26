@@ -39,12 +39,12 @@ import Vapor
 ///   before the either-field rule, read on an input that carries an empty status and no flag;
 /// - the write the status path runs after the block, which a patch that wrote before the block fires
 ///   on, and the half the request did not carry being left as the row had it, which a patch that wrote
-///   both halves fires on;
+///   both halves fires on, one patch per half;
 /// - the account condition of the two writes and of the toggle statement, which a patch that took it
 ///   out of each statement fires on;
 /// - the single-row document: the 13 keys this port has columns for in the order the reference's struct
 ///   declares them, and the escape class the document writer has for the three HTML-sensitive characters,
-///   read on a content value that carries one;
+///   read on a content value that carries all three;
 /// - the status each answer carries, one patch per status the pin reads: the listing, the feed
 ///   listing, the single-row read, the row that is not there, the rule block, the segment, the write
 ///   path and the toggle.
@@ -70,7 +70,7 @@ import Vapor
 /// body for a 204 — a patch that wrote one for that status could not reach these pins, so only the
 /// status half of each is falsifiable here.
 ///
-/// 16 pins and 40 probes, every probe seen to fail on the rule it names and to revert the file
+/// 16 pins and 43 probes, every probe seen to fail on the rule it names and to revert the file
 /// byte-identically.
 @Suite struct RestV1EntryRouteTests {
     init() {
@@ -367,7 +367,7 @@ import Vapor
                 _ = try await FeedRepository(connection).create(userID: bob, categoryID: 2,
                     url: "https://example.com/bob")
                 try await seedEntry(connection, userID: alice, feedID: 1, hash: "h-one", title: "Hello",
-                    url: "https://example.com/one", author: "Ada", content: "<p>Body</p>",
+                    url: "https://example.com/one", author: "Ada", content: "<p>A&B</p>",
                     publishedAt: 1_000_000_000, createdAt: 1_000_000_001, updatedAt: 1_000_000_002,
                     status: "unread", starred: false)
                 try await seedEntry(connection, userID: bob, feedID: 2, hash: "h-bob", title: "Bob",
@@ -384,7 +384,7 @@ import Vapor
             #expect(try body(of: response) == "{\"id\":1,\"user_id\":1,\"feed_id\":1,\"status\":\"unread\","
                 + "\"hash\":\"h-one\",\"title\":\"Hello\",\"url\":\"https://example.com/one\","
                 + "\"published_at\":1000000000,\"created_at\":1000000001,\"changed_at\":1000000002,"
-                + "\"content\":\"\\u003cp\\u003eBody\\u003c/p\\u003e\",\"author\":\"Ada\",\"starred\":false}",
+                + "\"content\":\"\\u003cp\\u003eA\\u0026B\\u003c/p\\u003e\",\"author\":\"Ada\",\"starred\":false}",
                 "the keys this port has columns for, in the order the reference's struct declares them")
         }
     }
@@ -455,19 +455,21 @@ import Vapor
                 _ = try await FeedRepository(connection).create(userID: alice, categoryID: 1,
                     url: "https://example.com/a")
                 try await seedEntry(connection, userID: 1, feedID: 1, hash: "h-status", title: "Status",
-                    publishedAt: 1_000_000_000, starred: false)
+                    publishedAt: 1_000_000_000, starred: true)
                 try await seedEntry(connection, userID: 1, feedID: 1, hash: "h-starred", title: "Starred",
                     publishedAt: 1_000_000_001, status: "read", starred: false)
             }
 
             // A request that carries only the status leaves the flag as the row had it, which a patch
-            // that wrote both halves for every request fires on.
+            // that wrote both halves for every request fires on. The row is seeded with the flag set, so
+            // that a patch which wrote the zero value for a field the request did not carry would answer
+            // the other way here.
             let statusOnly = try await request(app, base, method: .PUT, path: "/v1/entries",
                 body: "{\"entry_ids\":[1],\"status\":\"read\"}")
             #expect(statusOnly.status == .noContent, "the status the write path writes")
             #expect(try await entryStatus(storage, userID: 1, hash: "h-status") == "read",
                 "the half the request carried")
-            #expect(try await entryStarred(storage, userID: 1, hash: "h-status") == false,
+            #expect(try await entryStarred(storage, userID: 1, hash: "h-status") == true,
                 "and the half it did not carry, left as the row had it")
 
             // The other half on its own, which a patch that skipped the starred write fires on. The row
@@ -535,14 +537,16 @@ import Vapor
             // The statement is guarded by the account, so a row of another account with this id answers
             // the error the reference's builder writes for a statement that updated nothing, and the row
             // stays where it is. A patch that took the account condition out of the statement wrote it
-            // here and answered 204.
+            // here and answered 204. The row is read before the answer's document: under that patch the
+            // answer is a 204, which carries no document, so the document assertion would stop the pin
+            // before the row was read.
             let other = try await request(app, base, method: .PUT, path: "/v1/entries/2/bookmark")
             #expect(other.status == .internalServerError,
                 "the answer the reference's builder writes for a statement that updated nothing")
-            #expect(try body(of: other) == "{\"error_message\":\"entry #2 does not exist\"}",
-                "the message this port writes for the rule it names, not the reference's wording")
             #expect(try await entryStarred(storage, userID: 2, hash: "h-bob") == false,
                 "and the row the guard did not read is untouched")
+            #expect(try body(of: other) == "{\"error_message\":\"entry #2 does not exist\"}",
+                "the message this port writes for the rule it names, not the reference's wording")
         }
     }
 
