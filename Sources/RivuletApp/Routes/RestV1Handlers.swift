@@ -9,10 +9,25 @@ import Vapor
 ///read answered, and it is given the row id the read found, which is what `request.UserID` answers
 ///upstream.
 struct RestV1Handlers: Sendable {
-    private let storage: SQLiteStorage
+    /// Internal because the handlers for each path half live in their own file, as the shape and the
+    /// response types do.
+    let storage: SQLiteStorage
 
-    init(storage: SQLiteStorage) {
+    /// The half the refresh path runs through. It is a seam rather than the pipeline itself so the pin
+    /// that reads the order between the pair read and the fetch can name it without a socket; the
+    /// application hands the pipeline, which is the production caller.
+    let runner: FeedRefreshRunner
+
+    init(storage: SQLiteStorage, runner: FeedRefreshRunner) {
         self.storage = storage
+        self.runner = runner
+    }
+
+    /// The answer a handler writes for a rule: the status the reference's builder writes for it and the
+    /// document the error builder writes with the message the rule carries.
+    func answer(status: HTTPStatus, message: String, headers: RestV1Headers) -> Response {
+        RestV1Response.response(status: status, document: RestV1Response.errorDocument(message),
+            headers: headers)
     }
 
     ///`currentUserHandler`: the row is read by the id the read handed, and the document is the

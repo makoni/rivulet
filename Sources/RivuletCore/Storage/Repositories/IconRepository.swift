@@ -84,6 +84,29 @@ public struct IconRepository {
         return icons
     }
 
+    /// `IconByFeedID`: the icon this feed points at, read for the pair `(user_id, id)`, so a row of
+    /// another account with the same id is not this account's feed and answers nothing.
+    ///
+    /// The reference reads the mapping through its `feed_icons` table; this port keeps the mapping as
+    /// `feeds.icon_id`, which `docs/parity.md` records as the divergence. The join is the same decision
+    /// read a different way: a feed with no mapping row answers nothing here, as the reference's scan
+    /// answers when it finds no row.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the answer is read for.
+    ///   - feedID: The feed the icon is read for.
+    /// - Returns: The icon row, or `nil`.
+    public func iconForFeed(userID: Int, feedID: Int) async throws -> Icon? {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT icons.id FROM icons
+            INNER JOIN feeds ON feeds.icon_id = icons.id
+            WHERE feeds.user_id = \(bind: userID) AND feeds.id = \(bind: feedID)
+            LIMIT 1
+            """).first()
+        guard let row else { return nil }
+        return try await fetch(id: try row.decode(column: "id", as: Int.self))
+    }
+
     /// Points the feed row at `iconID`, replacing the icon it had.
     ///
     /// The reference's `StoreFeedIcon` (`internal/storage/icon.go`) deletes the feed's row

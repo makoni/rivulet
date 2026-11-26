@@ -11,18 +11,22 @@ import RivuletApp
 /// reads the application's own fetcher has to name the target rule for the stub server it answers
 /// on — the value the configuration reads, not a seam this helper stands in for.
 ///
+/// The refresh runner is the seam the feed route reads through, so a pin that records whether the
+/// half ran names its own here; the default is the pipeline the application builds.
+///
 /// The server is stopped before the application on both paths: only `ServeCommand` stops it for the
 /// happy path, and a started server that is not stopped trips `HTTPServer`'s deinit assertion
 /// instead of reporting the real failure. The per-test temporary directory is removed here, so the
 /// teardown rule of `docs/testing.md` stays in one place.
 func withServedApp(environment: [String: String] = [:], databasePath: String? = nil,
+    runner: FeedRefreshRunner? = nil,
     _ body: (SQLiteStorage, Application, String) async throws -> Void) async throws {
     // The file is the one the pins read; when a pin needs a file another helper owns, that helper
     // names it and keeps the teardown, so this one removes only the directory it made.
     let directory = databasePath == nil ? try TemporaryDirectory() : nil
     let path = databasePath ?? directory?.path("rivulet.db")
     let config = try Config.load(environment: environment.merging(["DATABASE_URL": try #require(path)]) { $1 })
-    let rivulet = try await ApplicationFactory.make(config: config)
+    let rivulet = try await ApplicationFactory.make(config: config, runner: runner)
     do {
         try await rivulet.storage.prepare()
         try await rivulet.application.autoMigrate()

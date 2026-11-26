@@ -84,6 +84,7 @@ enum JSONReader {
             case let .key(name):
                 index += 1
                 while index < tokens.count, tokens[index] == .valueSeparator { index += 1 }
+                if index >= tokens.count { continue }
                 members.append(JSONMember(key: name, value: try value(tokens, &index)))
             case .valueSeparator, .memberSeparator:
                 index += 1

@@ -5,15 +5,21 @@ import Vapor
 
 /// Builds the Vapor application around a ``Config``.
 public enum ApplicationFactory {
-    /// Builds an application: the server address from `LISTEN_ADDR`, the SQLite database,
-    /// the schema migrations and the HTTP routes.
+    /// Builds an application: the server address from `LISTEN_ADDR`, the SQLite database, the schema
+    /// migrations and the HTTP routes.
     ///
-    /// The application is not started and the storage is not prepared: commands prepare
-    /// the storage (`journal_mode=WAL` first), run or skip migrations, boot and serve.
+    /// The application is not started and the storage is not prepared: commands prepare the storage
+    /// (`journal_mode=WAL` first), run or skip migrations, boot and serve.
     ///
-    /// - Parameter config: The loaded configuration.
+    /// The refresh runner is the seam the feed route reads through. The default is the pipeline built
+    /// around the application's own fetcher, which is what `serve` runs; a pin that needs to record
+    /// whether the half ran names its own runner here rather than standing in for the network half.
+    ///
+    /// - Parameters:
+    ///   - config: The loaded configuration.
+    ///   - runner: The refresh half the routes run through, or `nil` for the pipeline.
     /// - Throws: Errors from building the Vapor application.
-    public static func make(config: Config) async throws -> RivuletApplication {
+    public static func make(config: Config, runner: FeedRefreshRunner? = nil) async throws -> RivuletApplication {
         let application = try await Application.make(.production)
 
         application.http.server.configuration.hostname = config.listenAddress.host
@@ -32,7 +38,9 @@ public enum ApplicationFactory {
         GoogleReaderRoutes.register(on: application, storage: storage, hasher: BcryptHasher(),
             baseURL: config.baseURL,
             finder: SubscriptionFinder(fetcher: fetcher, options: config.fetcher))
-        RestV1Routes.register(on: application, storage: storage, hasher: BcryptHasher())
+        RestV1Routes.register(on: application, storage: storage, hasher: BcryptHasher(),
+            runner: runner ?? RefreshPipeline(storage: storage, fetcher: fetcher,
+                options: config.fetcher, nextCheck: NextCheckPolicy(), clock: SystemClock()))
         return RivuletApplication(application: application, storage: storage, fetcher: fetcher)
     }
 }

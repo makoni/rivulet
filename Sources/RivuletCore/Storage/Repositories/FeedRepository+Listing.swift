@@ -33,4 +33,33 @@ extension FeedRepository {
         }
         return feeds
     }
+
+    /// `FeedsByCategoryWithCounters`: the rows of this account under one category, in the order the
+    /// listing read above answers.
+    ///
+    /// The reference's two counters are not written by the document the handler builds — the fields
+    /// carry `json:"-"` — so the counters this read answers are not observable at the API level, and
+    /// the sort halves that read them (the disabled row first, then the unread count) are recorded in
+    /// `docs/parity.md` as what this read does not model.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the listing is read for.
+    ///   - categoryID: The category the rows are read under.
+    /// - Returns: The rows of this account under `categoryID`, in the reference's order.
+    public func listByCategorySortedByErrorCountThenTitle(userID: Int, categoryID: Int) async throws
+        -> [Feed] {
+        let sql = try RawSQL.sql(on: database)
+        let rows = try await sql.raw("""
+            SELECT id FROM feeds WHERE user_id = \(bind: userID) AND category_id = \(bind: categoryID)
+            ORDER BY parsing_error_count DESC, LOWER(title) ASC
+            """).all()
+
+        var feeds: [Feed] = []
+        for row in rows {
+            let feedID = try row.decode(column: "id", as: Int.self)
+            let feed = try await Feed.query(on: database).filter(\Feed.$id == feedID).first()
+            if let feed { feeds.append(feed) }
+        }
+        return feeds
+    }
 }

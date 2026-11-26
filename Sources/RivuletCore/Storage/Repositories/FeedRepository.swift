@@ -100,6 +100,47 @@ public struct FeedRepository {
         return row != nil
     }
 
+    /// `FeedExists`: whether this account has a row with `id`. The reference reads one row, and the
+    /// pair is the whole condition — a row of another account with the same id is not this account's
+    /// row, which `RestV1FeedRouteTests` pins on the three paths that guard their write with it.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the answer is read for.
+    ///   - id: Row id of the feed.
+    /// - Returns: Whether this account has the row.
+    public func feedExists(userID: Int, id: Int) async throws -> Bool {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT 1 AS one FROM feeds WHERE user_id = \(bind: userID) AND id = \(bind: id) LIMIT 1
+            """).first()
+        return row != nil
+    }
+
+    /// `AnotherFeedURLExists`: the duplicate answer for the modification path, which differs from the
+    /// create path's read by excluding the row being modified. The pins show the exclusion: the row
+    /// itself is not a duplicate of itself, and another row of the same account with the same url is.
+    ///
+    /// - Parameters:
+    ///   - userID: The account the answer is read for.
+    ///   - feedID: The row the modification is modifying, which the answer excludes.
+    ///   - url: The url as it was read.
+    /// - Returns: Whether this account has another row with `url`.
+    public func anotherFeedURLExists(userID: Int, feedID: Int, url: String) async throws -> Bool {
+        let row = try await RawSQL.sql(on: database).raw("""
+            SELECT 1 AS one FROM feeds WHERE id <> \(bind: feedID) AND user_id = \(bind: userID)
+                AND url = \(bind: url) LIMIT 1
+            """).first()
+        return row != nil
+    }
+
+    /// `UpdateFeed` for the whole row: the reference's modification path patches the model it read and
+    /// writes every column it names, so the write here is the patched model as it stands. The stamp is
+    /// this port's own: the reference's write names no `updated_at` at all, so the value here is the
+    /// time the write runs at, and no pin reads it.
+    public func save(feed: Feed) async throws {
+        feed.updatedAt = Int(Date.now.timeIntervalSince1970)
+        try await feed.update(on: database)
+    }
+
     /// Deletes the feed of `userID`; its entries, enclosures and tombstones cascade away.
     ///
     /// The account is part of the statement, as `RemoveFeed` has it in the reference: a row another

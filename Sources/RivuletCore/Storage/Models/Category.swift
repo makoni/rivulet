@@ -25,6 +25,11 @@ public final class Category: Model, @unchecked Sendable {
     /// Ordering value; lower comes first.
     @Field(key: "position") public var position: Int
 
+    /// The reference's `hide_globally`: the category is left out of the listings that apply the
+    /// hide rule. This port writes and reads it as the reference's statement does; nothing here
+    /// applies the hide, which is the part the reference's web layer does.
+    @Field(key: "hide_globally") public var hideGlobally: Bool
+
     /// Unix seconds; creation time.
     @Field(key: "created_at") public var createdAt: Int
 

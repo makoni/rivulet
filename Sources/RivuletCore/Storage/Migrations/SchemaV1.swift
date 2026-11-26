@@ -64,6 +64,7 @@ public struct SchemaV1: AsyncMigration {
             user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
             title TEXT NOT NULL,
             position INTEGER NOT NULL DEFAULT 0,
+            hide_globally INTEGER NOT NULL DEFAULT 0,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
             UNIQUE (user_id, title)

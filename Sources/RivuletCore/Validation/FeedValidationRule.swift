@@ -36,4 +36,17 @@ public enum FeedValidationRule: String, CaseIterable, Sendable {
 
     /// The port's own rule: `remove` names a url this account has no row for.
     case feedNotFound
+
+    /// `error.feed_url_not_empty`: the modification path's first rule, which the create path's mandatory
+    /// guard cannot answer because a pointer field the request does not carry is not an empty string.
+    case feedURLNotEmpty
+
+    /// `error.site_url_not_empty`: the site url the request carried is empty.
+    case siteURLNotEmpty
+
+    /// `error.invalid_site_url`: the site url the request carried is not an absolute URL.
+    case invalidSiteURL
+
+    /// `error.feed_title_not_empty`: the title the request carried is empty.
+    case titleNotEmpty
 }
