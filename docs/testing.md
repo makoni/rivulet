@@ -16,8 +16,9 @@ afterthought — they run in CI together with unit tests.
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
 to a real socket through Vapor's client). Fixture files are target resources (`resources:
 [.copy("Fixtures")]`, read via `Bundle.module`), as stage 3 landed them. Part of this level spawns
-the built executable rather than running the app in-process; that is the process harness described
-below, and it is what reads the facts only a process can answer.
+the built executable rather than running the app in-process; that is the process harness
+(`Support/SpawnedProcess.swift`, used by `ServeProcessTests`), whose header comments state its
+rules, and it is what reads the facts only a process can answer.
 
 ## Workflow (TDD)
 
@@ -31,6 +32,14 @@ Rules:
 - No production code without a corresponding test change.
 - Never delete, skip or weaken a test to make the suite pass (see `AGENTS.md`).
 - When behavior crosses a module boundary, cover it with an integration test, not only a unit test.
+
+### Probes
+
+Suite headers and the security checklist say a pin "can fail on" a rule, or count "probes". A probe
+is a deliberate patch to production code that breaks one rule: the suite is rebuilt and run, the pin
+that names the rule must fail, and the patch is reverted byte-identically. A pin no probe can make
+fail does not pin its rule, so the header says what it cannot show instead. The Python check halves
+use the same idea with crafted input documents instead of patches (their probe rounds).
 
 ## Integration test infrastructure
 
@@ -80,8 +89,7 @@ runs on is not something a pin can name; the default answers enough room for any
 that do not read the free-space check answer as they did before it. The database the copy check
 reads is the seam the pin names for the same reason, because the problems a real file has cannot be
 named by a pin, so the default answers a clean check and the pins that do not read the verify step
-answer as they did before it. It moved out of `MaintenanceCommandTests` with PR #53, when a second
-suite started reading it.
+answer as they did before it.
 - `RecordingVerifier.swift` — the `DatabaseVerifier` seam the verify pins drive: answers the
 problems the pin names and records the calls the run made through it, with whether the file was
 already there at the call, which is how a pin reads the check as running after the write rather than
@@ -91,9 +99,7 @@ applies, so a pin that reads the check as not running answers a control that doe
 - `DatabaseContent.swift` — the content read the command suites share: the tables a file holds and
 one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
 is testing. `content(at:on:as:)` reads a file through its own driver, which is what the copy pins
-need, because the copy is not the connection the test seeded with. It moved out of
-`MaintenanceCommandTests` with PR #53, the third suite reading the content read after
-`MaintenanceTests` and `MaintenanceCommandTests` themselves, which read it at different levels.
+need, because the copy is not the connection the test seeded with.
 
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
 status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the head
@@ -159,8 +165,8 @@ the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. The third and 
 trim through an internal accessor, which is the only place the trim is visible, because closing a
 client changes nothing a fetch can answer: the next request for that host builds a client again and
 gets the same response. They pin the cache staying at the cap after a checkout that goes over it,
-and the entry the trim closes being the one whose expiry comes first — 2 pins and 2 probes, which
-the security-checklist section below lists with the rest of this pass. That a call overlapping the
+and the entry the trim closes being the one whose expiry comes first — 2 pins, listed
+in `docs/security.md`. That a call overlapping the
 first cannot close the same client twice follows from taking the entries out before the first await;
 it cannot be reproduced without a client-creation seam the plan does not have, so it is documented
 rather than tested. Everything else about the cache is not observable from outside when two hosts

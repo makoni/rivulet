@@ -80,8 +80,9 @@ import Vapor
             "googlereader: only json output is supported", "a name the query does not carry is the default")
 
         // The value is compared as the read gives it: a leading space is not the value, so a patch
-        // that trimmed it first passed this request. The `+` pin that was here was removed: the guard compares the value with `json`, so no value that carries a
-        // `+` can answer differently when the mapping is broken.
+        // that trimmed it first passed this request. There is no `+` pin: the guard compares the
+        // value with `json`, so no value that carries a `+` can answer differently when the mapping
+        // is broken.
         #expect(checked(method: .POST, query: "", body: "output=%20json") ==
             "googlereader: only json output is supported", "the value is compared as it is read")
     }

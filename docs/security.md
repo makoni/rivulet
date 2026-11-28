@@ -8,7 +8,7 @@ that cannot fail on the rule it names is not a pin.
 Method: each rule was read in the port and in the reference at `c4d54f87`; where the port could
 express it as a pin, the pin was shown failing on the rule by patching production code, rebuilding
 and reverting byte-identically. 8 pins and 7 probes across five suites landed with this pass, and
-the probes are named in the suite headers. `docs/testing.md` records the method; the pins that
+the probes are named in the suite headers. `docs/testing.md` defines a probe; the pins that
 already existed before this pass are named here by the rule they pin, and a count is given only
 where this pass added one.
 
