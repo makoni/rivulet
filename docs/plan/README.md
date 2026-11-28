@@ -3,10 +3,8 @@
 Rivulet is built in eleven stages. A stage is done when its exit criteria and the global definition
 of done are met and CI is green.
 
-Readiness is counted as the open issues plus the code: the open issues in this repository are the
-remaining plan, and the code with the documents the check halves read as data is what is done. The
-table below states the stage and names the issues that hold the open work; the record of what a run
-showed for a stage that is done lives in those documents and in `docs/testing.md`.
+The remaining work is the open issues in this repository. The table below gives each stage's state
+and names the issues that hold its open work.
 
 ## Reference implementation
 
@@ -18,13 +16,12 @@ diverges (SQLite instead of PostgreSQL), behavior must match at the API level, n
 
 ## Principles
 
-1. **Miniflux compatibility is the spec.** When in doubt, read the reference implementation and
-mirror the observable behavior. 2. **API-first.** Google Reader API and Fever API come before
-anything else, so existing clients work. 3. **SQLite-first.** One file, WAL mode, FTS5. No
-PostgreSQL, no Redis, no external cron. 4. **CLI-first, no web UI.** All management happens via
-commands and environment configuration. 5. **TDD.** Every behavior lands test-first; integration
-tests are first-class and run in CI. See [testing strategy](../testing.md). 6. **Small dependency
-surface.** Linux-first. New dependencies require explicit approval.
+1. **Miniflux compatibility is the spec.** When in doubt, read the reference implementation and mirror the observable behavior.
+2. **API-first.** Google Reader API and Fever API come before anything else, so existing clients work.
+3. **SQLite-first.** One file, WAL mode, FTS5. No PostgreSQL, no Redis, no external cron.
+4. **CLI-first, no web UI.** All management happens via commands and environment configuration.
+5. **TDD.** Every behavior lands test-first; integration tests are first-class and run in CI. See [testing strategy](../testing.md).
+6. **Small dependency surface.** Linux-first. New dependencies require explicit approval.
 
 ## Stages
 

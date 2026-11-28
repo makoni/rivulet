@@ -7,15 +7,10 @@ afterthought — they run in CI together with unit tests.
 
 | Level | Location | Scope |
 | --- | --- | --- |
-| Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset,
-sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting | | Fixture/golden |
-`Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora:
-encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the
-three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML
-tolerance table and the parser error corpus | | Integration | `Tests/RivuletIntegrationTests` | Real
-SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP | | Soak |
-`Scripts/soak.sh` with `Tools/soak/soak_check.py` | A real-time run over local stub feeds, run by hand
-and not in CI: its checks read the data each round leaves behind |
+| Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
+| Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML tolerance table and the parser error corpus |
+| Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
+| Soak | `Scripts/soak.sh` with `Tools/soak/soak_check.py` | A real-time run over local stub feeds, run by hand and not in CI: its checks read the data each round leaves behind |
 | Acceptance | `Tools/parity` with `Scripts/parity.sh` (stage 7) | Semantic comparator over observable behaviour against real Miniflux in Docker, run by hand and not in CI: its rules read the pair document the run leaves behind, and the tolerance table is read as data from `docs/parity.md` |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
@@ -26,9 +21,10 @@ below, and it is what reads the facts only a process can answer.
 
 ## Workflow (TDD)
 
-1. Write a failing test that describes the behavior. 2. Implement the minimal change to make it
-pass. 3. Refactor with tests green. 4. Bug fixes start with a regression test that reproduces
-the bug.
+1. Write a failing test that describes the behavior.
+2. Implement the minimal change to make it pass.
+3. Refactor with tests green.
+4. Bug fixes start with a regression test that reproduces the bug.
 
 Rules:
 
