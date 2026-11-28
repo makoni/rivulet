@@ -1,11 +1,8 @@
 @Article(time: 5) {
   @Intro(title: "Clients") {
-    Two client paths are implemented: the Google Reader API and the Fever API. Each is read as the
-    set the port registers, so a path named here is a path a registration line writes, and the
-    catch-all, which answers an empty document for a path no registration names, is named as the
-    branch the file writes rather than as a route.
+    Rivulet speaks three client APIs, so existing feed reader apps can sync with it.
 
-    The routes this port registers for the Google Reader path:
+    The Google Reader API, at `/accounts/ClientLogin` and `/reader/api/0/`:
 
     - `POST /accounts/ClientLogin`
     - `GET /reader/api/0/token`
@@ -21,28 +18,23 @@
     - `POST /reader/api/0/subscription/quickadd`
     - `POST /reader/api/0/stream/items/contents`
 
-    The Fever path is registered as `GET /fever`, `POST /fever` and `HEAD /fever`, with the
-    parameter read deciding which answer the handler builds, and the auth wrapper applied per route
-    rather than as application middleware, so the health answer is not covered by it.
+    The Fever API at `/fever` (`GET`, `POST` and `HEAD`); the query parameters decide what it
+    answers.
 
-    The login reads its own field names and compares against the stored value, and a guard that an
-    empty name ends the login runs before any read. The transport is chosen by method, the merged
-    form follows Go's order, and a header read is read as the first value winning over the list of
-    its values. Three headers are written on every response of this path, and the page size is
-    clamped: a value above the clamp answers the value at the clamp.
+    The subset of the Miniflux REST API at `/v1` that Capy Reader uses: the account (`/v1/me`),
+    categories, feeds, entries and the integrations status.
 
-    The clients read as data by the client matrix, and the names this page writes are the names that
-    matrix records:
+    Logging in: the Google Reader and Fever APIs use the logins stored with
+    `rivulet integration-credentials`, not the account password. The REST API uses the account
+    password with basic auth, or an API key from `rivulet create-api-key` in the `X-Auth-Token`
+    header.
+
+    Apps checked against Rivulet:
 
     - NetNewsWire
     - Capy Reader
     - Reeder Classic
     - FeedFlow
     - NewsFlash
-
-    Three of them have been run against this port here, through the run half that reads what one
-    real client actually sent, and two are read from the project's documentation: one because its
-    source cannot be read here, and Capy Reader although its source is open, because no rule here
-    reads calls on the path that client uses; no set is a capture.
   }
 }

@@ -3,8 +3,8 @@
 A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2)
 (behavioral reference: v2.3.3).
 
-> **Status:** the core features work; the acceptance and deployment stages (7–8) and the 0.1.0
-> release scope are still open. Open work is tracked as issues in this repository.
+> **Status:** the MVP (stages 0–8) is done in code; the manual pre-release checks are in the
+> release checklist (issue #130), and the rest of the 0.1.0 scope is tracked as issues.
 
 Stage states as `docs/plan/README.md`'s table states them:
 
@@ -15,8 +15,8 @@ Stage states as `docs/plan/README.md`'s table states them:
 - Stage 4 - Ingestion & scheduling: done
 - Stage 5 - Client APIs & OPML: complete
 - Stage 6 - CLI & operations: criteria met
-- Stage 7 - Acceptance & hardening: in progress
-- Stage 8 - Packaging & deployment: in progress
+- Stage 7 - Acceptance & hardening: done in code
+- Stage 8 - Packaging & deployment: done in code
 - Stage 9 - Post-MVP backlog: in progress
 - Stage 10 - Miniflux REST v1 subset: in progress
 
@@ -26,8 +26,8 @@ A small, single-binary RSS/Atom reader for a personal server:
 
 - **Feed aggregation** — scheduled fetching with conditional requests (ETag / Last-Modified), RSS /
   Atom / RDF / JSON Feed parsing, HTML sanitization, feed icons.
-- **SQLite storage** — one database file in WAL mode with FTS5 full-text search, retention,
-  backups and vacuum. No external database service.
+- **SQLite storage** — one database file in WAL mode with FTS5 full-text search, backups and
+  vacuum (the retention pass exists but is not scheduled yet, issue #131). No external database service.
 - **Client APIs** — Google Reader API (`/accounts/ClientLogin`, `/reader/api/0`), Fever API
   (`/fever`) and the subset of the Miniflux REST v1 API (`/v1`) that Capy Reader uses, so existing
   native clients can connect. The acceptance clients are NetNewsWire, FeedFlow, NewsFlash, Reeder

@@ -1,8 +1,8 @@
 @Article(time: 4) {
   @Intro(title: "Setup") {
-    Only `DATABASE_URL` is required, and every other name reads as its default. A name the
-    configuration does not read answers nothing, so a typo in a name here is not an error the run
-    reports; that is why the list below is the whole set the runs read.
+    Rivulet is configured with environment variables. Only `DATABASE_URL` is required; every other
+    variable has a default. A variable Rivulet does not read is silently ignored, so check the
+    spelling.
 
     ```sh
     export DATABASE_URL=/var/lib/rivulet/rivulet.db
@@ -16,24 +16,20 @@
     export FETCHER_ALLOW_PRIVATE_NETWORKS=0
     ```
 
-    `LISTEN_ADDR` is read as a host with a port, so the port comes from the value as well and the
-    default is the loopback listener `127.0.0.1:8080`. A value with no port is reported as an
-    invalid value rather than read as the default.
+    `LISTEN_ADDR` must be `host:port`; the default is `127.0.0.1:8080`, and a value without a port is
+    an error. `POLLING_FREQUENCY` is in minutes. Numeric settings have a minimum —
+    `POLLING_FREQUENCY`, `BATCH_SIZE` and `WORKER_POOL_SIZE` at least 1, the two limits at least 0 —
+    and a value below it is reported as an error rather than replaced by the default.
 
-    Each integer read carries its own minimum, and the number inside parentheses below is the number
-    that read takes: `POLLING_FREQUENCY` (1), `BATCH_SIZE` (1), `WORKER_POOL_SIZE` (1), and the two
-    count reads take (0). A value below the number the read takes is reported rather than read as
-    the fallback, and a name the source reads with a trim alone is read as free text.
+    `FETCHER_ALLOW_PRIVATE_NETWORKS` stays off unless you subscribe to feeds on your own network: with
+    it off, the fetcher refuses loopback and private addresses.
 
-    One name is the address policy: on a host that can reach its own addresses it stays off, and the
-    fetcher refuses a target in a class the policy names. A feed that lives on the host's own
-    network needs it on, which is a decision one run makes rather than a default.
+    The project README lists every variable with its default, including the fetcher settings
+    (`HTTP_CLIENT_TIMEOUT`, `HTTP_CLIENT_MAX_BODY_SIZE`, `HTTP_CLIENT_USER_AGENT`,
+    `HTTP_CLIENT_PROXY`, `FETCHER_IGNORE_HTTP_CACHE`) and the scheduler settings (`BATCH_SIZE`,
+    `WORKER_POOL_SIZE`, `POLLING_LIMIT_PER_HOST`).
 
-    Two commands read their values from the terminal: the account command and the credential
-    command. The secure read the dependency uses takes its values from the terminal device, so these
-    two run on a console and not from a unit or a pipe, where the same read answered nothing.
-
-    The commands the pages here call are the commands the dispatch registers, and the flags they use
-    are the flags those signatures declare, which is what the check half reads them against.
+    `rivulet create-admin` and `rivulet integration-credentials` prompt for passwords on the
+    terminal, so run them in an interactive shell, not from a service unit or a pipe.
   }
 }

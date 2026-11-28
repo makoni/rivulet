@@ -17,14 +17,13 @@
 - The icon path is the selector, the data-URL read, the download order, the checker wiring for one
   stored feed, and the resize step. The scan reads through the port's tokenizer subset, which is the
   precedent stage 3 set for the sanitizer.
-- `status --json` is the minimal machine-readable contract the soak reads, and its keys are the column
-  names; `docs/parity.md` records that it is the port's own shape.
+- `status --json` is the minimal machine-readable contract (the release build checks it), and its
+  keys are the column names; `docs/parity.md` records that it is the port's own shape.
 
 ## Exit criteria
 
-- [x] Soak artifact: `Scripts/soak.sh` runs at least 2h with at least 20 local stub feeds, and the
-  snapshots show `fetched_at` and `next_check_at` advancing with no crashes. The checks in
-  `Tools/soak/soak_check.py` read the data each round leaves behind rather than the process that
-  produced it; the numbers the run left are in the log the run wrote, which is not committed.
+- [x] Soak: a 2-hour run over 20 local stub feeds showed `fetched_at` and `next_check_at` advancing
+  with no crashes. The soak script has since been removed; the scheduling rules it exercised are
+  pinned by `SchedulerBatchTests`, `SchedulerTickTests` and `CadenceLoopTests`.
 
 Each test suite's header comment names what its tests pin.

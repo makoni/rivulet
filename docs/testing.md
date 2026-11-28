@@ -10,8 +10,8 @@ afterthought — they run in CI together with unit tests.
 | Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
 | Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML tolerance table and the parser error corpus |
 | Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
-| Soak | `Scripts/soak.sh` with `Tools/soak/soak_check.py` | A real-time run over local stub feeds, run by hand and not in CI: its checks read the data each round leaves behind |
-| Acceptance | `Tools/parity` with `Scripts/parity.sh` (stage 7) | Semantic comparator over observable behaviour against real Miniflux in Docker, run by hand and not in CI: its rules read the pair document the run leaves behind, and the tolerance table is read as data from `docs/parity.md` |
+| Documentation | `Tests/RivuletAppTests/DocumentationConsistencyTests.swift` | The README, the deployment docs, the DocC catalog and the deploy examples show only registered commands, declared flags and configuration variables; every public declaration has a doc comment |
+| Manual | `Scripts/` | Real clients, the static release build, the DocC archive and rough performance numbers — see below |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak
 to a real socket through Vapor's client). Fixture files are target resources (`resources:
@@ -33,13 +33,13 @@ Rules:
 - Never delete, skip or weaken a test to make the suite pass (see `AGENTS.md`).
 - When behavior crosses a module boundary, cover it with an integration test, not only a unit test.
 
-### Probes
+### Checking that a test can fail
 
-Suite headers and the security checklist say a pin "can fail on" a rule, or count "probes". A probe
-is a deliberate patch to production code that breaks one rule: the suite is rebuilt and run, the pin
-that names the rule must fail, and the patch is reverted byte-identically. A pin no probe can make
-fail does not pin its rule, so the header says what it cannot show instead. The Python check halves
-use the same idea with crafted input documents instead of patches (their probe rounds).
+While writing a test, make sure it can actually fail on the behaviour it names: break that one rule
+in production code (a *probe*), watch the test go red, and revert. A test no such patch can turn red
+does not pin its rule; say in the suite header what it cannot show instead. Suite headers use the
+words "pin" (an assertion) and "probe" (the breaking patch) in this sense. Probes are a check you do
+while writing the test; they are not recorded or counted anywhere.
 
 ## Integration test infrastructure
 
@@ -307,24 +307,18 @@ cannot be a pin: `LargeFeedTests` reads a single 250 ms bound on the corpus read
 measures 1–4 ms), and the memory budget is the corpus rows plus the body the fetcher can hold, the
 15 MiB cap the configuration reads by default. Measured numbers are in `docs/performance.md`.
 
-## Manual harnesses (outside CI)
+## Manual scripts (outside CI)
 
-Some checks need a real clock, Docker, systemd, a live Miniflux or the DocC tool, so they are not
-part of `swift test`. Each is split into a *run half* (a shell script that drives the real system
-and writes what it saw to a file) and a *check half* (a Python script whose rules read that file as
-data). The check halves carry their own probe rounds — crafted inputs that each rule must report —
-and the five Python probe rounds (all but the soak's) run in CI as the `probe-rounds` job. What a
-harness cannot show is listed in its check half (`CANNOT_SHOW`) or in its script header.
+Some checks need a real client app, the Static Linux SDK, the DocC tool or a real clock, so they are
+not part of `swift test`. They are plain scripts, run by hand; the checks still due before a release
+are in the release checklist issue (#130).
 
-| Harness | Run half | Check half | Reads / records |
-| --- | --- | --- | --- |
-| Soak (stage 4) | `Scripts/soak.sh` | `Tools/soak/soak_check.py` | ≥ 2 h over ≥ 20 local stub feeds; `status --json` snapshots per round |
-| Parity (stage 7) | `Scripts/parity.sh` | `Tools/parity/parity_check.py` | Real Miniflux vs Rivulet over one corpus; tolerance table in `docs/parity.md`, last run in `docs/parity-report.md` |
-| Client matrix (stage 7) | `Scripts/client-run.sh`, `Scripts/perf.sh` | `Tools/clients/replay.py` | Calling sets in `Tests/RivuletIntegrationTests/CallingSets/`, `docs/clients.md`, `docs/performance.md` |
-| Static release build (stage 8) | `Scripts/build-release.sh` | checks inside the script | The static musl artifact built with the Swift Static Linux SDK |
-| Clean-container smoke (stage 8) | `Scripts/smoke.sh` | `Tools/smoke/smoke_check.py` | The CLI chain in an empty container; `Tools/smoke/run.json` |
-| Deploy artifacts (stage 8) | `Scripts/deploy.sh` | `Tools/deploy/deploy_check.py` | `deploy/compose.yml`, `deploy/rivulet.service`, `.env.example` as Docker and systemd read them; `Tools/deploy/deploy.json` |
-| DocC (stage 8) | `Scripts/docs.sh` | `Tools/docs/docs_check.py` | The DocC catalog as `docc convert` reads it; `Tools/docs/docs.json`, `docs/docc.md` |
+| Script | What it does |
+| --- | --- |
+| `Scripts/client-run.sh` | Serves a seeded throwaway instance behind `Tools/clients/observer.py`, a logging proxy, so a person can walk a real client and get one JSON line per request (see `docs/clients.md`) |
+| `Scripts/build-release.sh` | Builds the static musl binary and checks it: statically linked, prints the source's version, migrates and answers `status --json` |
+| `Scripts/build-docs.sh` | Builds the DocC archive for static hosting, outside the repository |
+| `Scripts/perf.sh` | Prints rough timings for a refresh pass over 100 local feeds and the read path (`docs/performance.md`) |
 
 ## Running
 
@@ -338,14 +332,11 @@ harness cannot show is listed in its check half (`CANNOT_SHOW`) or in its script
   job.
 - A few storage tests need at least two event loops (one pooled connection per loop); they
   `Test.cancel` on single-loop runners. CI runners always expose ≥ 2 event loops.
-- The probe rounds of the manual harnesses: `python3 Tools/<name>/probes.py` for `clients`, `parity`,
-  `smoke`, `deploy` and `docs`, plus `python3 Tools/soak/soak_check.py --probe`. The harness run
-  halves are the scripts in the table above; `PARITY_DRY_RUN=1 Scripts/parity.sh` runs the parity
-  guards alone, and `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` checks an artifact already on disk.
+- `RIVULET_SKIP_BUILD=1 Scripts/build-release.sh` checks a static artifact already on disk without
+  rebuilding it.
 
-CI (`.github/workflows/ci.yml`) has two jobs: `swift build` + `swift test` in the `swift:latest`
-container on `ubuntu-latest` with a 15-minute timeout — keep the default suite well under that — and
-the five probe rounds on the runner host, because the Swift container has no `python3`.
+CI (`.github/workflows/ci.yml`) runs `swift build` and `swift test` in the `swift:latest` container
+on `ubuntu-latest` with a 15-minute timeout; keep the default suite well under that.
 
 ## Framework
 

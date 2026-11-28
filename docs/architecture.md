@@ -210,7 +210,8 @@ validated before the fallback (an empty value is an error, like upstream); boole
   is `docs/backup-restore.md`.
 - Retention is a driver (`Retention.run` over `RetentionPolicy`), not a timer: it mirrors the
   reference's two `ArchiveEntries` passes, one transaction each, with the reference guards and
-  defaults. Stage 4 schedules it daily; per-feed policies are not MVP.
+  defaults. Nothing schedules it yet — `serve` runs only the refresh loop (issue 131); per-feed
+  policies are not MVP.
 - `Seeding` builds deterministic feed/entry corpora in one transaction (recursive CTE) for
   benchmarks and the opt-in heavy suite.
 

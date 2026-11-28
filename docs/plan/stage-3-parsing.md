@@ -27,7 +27,8 @@
 
 - [x] Every format the spike names has its adapter. The corpus holds fixtures for RSS, Atom 1.0 and
   RDF; JSON Feed, Atom 0.3 and RSS 0.91 and 0.92 have no fixture of their own, which the plan's risk
-  list names. The tolerance decision table and the typed errors are read as data.
+  list names. The XML tolerance table and the typed parser errors are pinned by
+  fixture corpora (`XMLToleranceTests`, `ParserErrorTests`).
 - [x] The sanitizer corpus is read end to end against the reference's own output.
 
 Each test suite's header comment names what its tests pin.

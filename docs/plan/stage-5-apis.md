@@ -25,8 +25,7 @@
 
 - [x] Every handler this stage names has landed, and the deviations are recorded in `docs/parity.md` as
   soon as they are observed.
-- [x] The single-client criterion names one real client rather than a client by name; it is closed by
-  the client runs stage 7 reads as data, and the add half stays open for the Fever client whose set has
-  no call that can write a feed row.
+- [x] A real client syncs with the port end to end; closed by the client walks of stage 7
+  (`docs/clients.md`).
 
 Each test suite's header comment names what its tests pin.
