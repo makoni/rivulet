@@ -73,8 +73,8 @@ account with the account password or an API key. The app holds one active accoun
 Notes: the REST v1 half is the 20 endpoints listed in `docs/plan/stage-10-rest-v1.md`. Four of its
 calls have no route yet — `GET /v1/categories/{id}/entries`, `GET /v1/icons/{id}`,
 `POST /v1/entries/{id}/save` and `PUT /v1/categories/{id}/mark-all-as-read` (#121) — and answer the
-router's 404. The app also declares `GET /v1/categories/{id}`, which Miniflux does not register either, so both
-answer 404.
+router's 404. The app also declares `GET /v1/categories/{id}`, which Miniflux has no GET pattern for
+either (it answers 405; Rivulet answers 404 — `docs/parity.md`).
 
 ## Reeder Classic — Fever API
 

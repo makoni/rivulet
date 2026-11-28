@@ -1,12 +1,5 @@
-# One record line per recorded call: the pin `ClientSequenceReplayTests` reads it with, or the
-# reason it cannot be replayed here. A record line is exempt from the width rule because it is one
-# record. The pins read the calling sets as data, so a pin reads the recorded order and the route
-# the matrix names for each call rather than restating either; the matrix's own column has to agree
-# with this file, which is what the rule that reads both checks. One client records no call, so it has
-# no line here: the rule reads it through the matrix instead. For Capy Reader the lines name the pin
-# that reads this set as data, because no pin sends a request as this client does: the order pin reads
-# the order its own call graph names, the token pin reads the auth half for every call every set
-# records, and the pins that replay a call over a socket name the client whose record they read.
+# For each recorded call (`<client>/<call>`): the test in `ClientSequenceReplayTests` that replays it,
+# or why it is not replayed. Reference only; no test reads this file. Reeder Classic records no calls.
 capy-reader/accounts/ClientLogin | the order pin, on the order its own call graph reaches them in
 capy-reader/reader/api/0/subscription/list | the order pin, on the order its own call graph reaches them in
 capy-reader/reader/api/0/tag/list | the order pin, on the order its own call graph reaches them in

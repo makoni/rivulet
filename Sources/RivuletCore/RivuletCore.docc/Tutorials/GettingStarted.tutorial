@@ -22,7 +22,7 @@
       @Step {
         Create the account with `rivulet create-admin`, then the logins your apps use with
         `rivulet integration-credentials` (a Fever pair and a Google Reader pair). Until the second
-        command has run, app logins answer 401.
+        command has run, Google Reader logins answer 401 and Fever answers `auth: 0`.
       }
 
       @Step {

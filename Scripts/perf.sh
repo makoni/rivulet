@@ -63,9 +63,7 @@ started=$(date +%s%N)
 ended=$(date +%s%N)
 echo "second pass: second_pass_wall_ms=$(( (ended - started) / 1000000 )) because nothing is due, the schedule each job left being the policy interval"
 
-#The read path at the reduced corpus, through the pin that holds that corpus. The run takes the
-#elapsed the pin prints; the bound the pin asserts is the check half, so nothing here reads a bound.
-#The pin's own line is printed as it is, because that is the source the performance document names.
+# The read path at the reduced 10k corpus: the elapsed time `LargeFeedTests` prints.
 print_read_path() {
     swift test --filter theReadPathStaysInsideTheDocumentedBoundForTheCorpus 2>&1 \
         | grep 'read path at the reduced corpus'

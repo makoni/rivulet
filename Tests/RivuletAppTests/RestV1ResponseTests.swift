@@ -26,9 +26,8 @@ import Vapor
 /// own assertion, and by a patch that wrote `Access-Control-Max-Age` on every answer, which fired
 /// on the assertion that reads its absence; the three names the builder writes, which a patch that
 /// replaced them with a write setting only its content type fired on the three name assertions, and
-/// which the content type itself is shown by a patch that wrote the framework's charset. Fifteen
-/// patches reached this suite: fourteen fired, one of them on two pins, and one fired nothing — the
-/// patch that changed the realm, which is the value no pin here reads.
+/// which the content type itself is shown by a patch that wrote the framework's charset. No pin
+/// here reads the realm value.
 ///
 /// What these pins cannot fail on: the value of `WWW-Authenticate`, which the patch that changed
 /// the realm altered here without any pin firing, because these pins read the rule that decides

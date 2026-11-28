@@ -10,6 +10,8 @@ or feed content.
 `Scripts/client-run.sh` starts it; it can also be run on its own:
 
     RECORD=record.jsonl OBSERVE_PORT=8099 TARGET_PORT=8098 python3 Tools/clients/observer.py
+
+OBSERVE_HOST defaults to 127.0.0.1; set it to the machine's LAN address to reach it from a phone.
 """
 
 import http.client
@@ -21,7 +23,7 @@ import threading
 import urllib.parse
 
 RECORD = os.environ.get("RECORD", "client-record.jsonl")
-OBSERVE_HOST = os.environ.get("OBSERVE_HOST", "0.0.0.0")
+OBSERVE_HOST = os.environ.get("OBSERVE_HOST", "127.0.0.1")
 OBSERVE_PORT = int(os.environ.get("OBSERVE_PORT", "8099"))
 TARGET_HOST = os.environ.get("TARGET_HOST", "127.0.0.1")
 TARGET_PORT = int(os.environ.get("TARGET_PORT", "8098"))
@@ -64,6 +66,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def forward(self):
+        arrived = next(order)
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length) if length else b""
         headers = {name: value for name, value in self.headers.items() if name.lower() not in HOP_BY_HOP}
@@ -78,14 +81,17 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         for name, value in response.getheaders():
             if name.lower() not in HOP_BY_HOP and name.lower() != "content-length":
                 self.send_header(name, value)
-        self.send_header("Content-Length", str(len(payload)))
+        if self.command == "HEAD":
+            self.send_header("Content-Length", response.getheader("Content-Length", "0"))
+        else:
+            self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(payload)
 
         url = urllib.parse.urlsplit(self.path)
         line = {
-            "order": next(order),
+            "order": arrived,
             "method": self.command,
             "path": url.path,
             "query": sorted({name for name, _ in urllib.parse.parse_qsl(url.query, keep_blank_values=True)}),

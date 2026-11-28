@@ -25,6 +25,8 @@ import Testing
 
     @Test func everyCommandTheDocumentsShowIsRegistered() throws {
         let registered = Set(Self.commands().keys)
+        let shown = try Self.userDocuments().flatMap { Self.invocations(in: $0.text) }
+        #expect(shown.count > 20, "the scan found almost no `rivulet` invocations: \(shown.count)")
         var unknown: [String] = []
         for document in try Self.userDocuments() {
             for invocation in Self.invocations(in: document.text) where !registered.contains(invocation.command) {
@@ -41,6 +43,7 @@ import Testing
             for invocation in Self.invocations(in: document.text) {
                 guard let command = commands[invocation.command] else { continue }
                 let declared = Self.declaredNames(of: command)
+                    .union(invocation.command == "serve" ? Self.servePassThrough : [])
                 for flag in invocation.flags where !declared.contains(flag) && flag != "help" {
                     unknown.append("\(document.path): rivulet \(invocation.command) --\(flag)")
                 }
@@ -62,11 +65,19 @@ import Testing
         #expect(unknown.isEmpty, "variables the documents set that the configuration does not read: \(unknown)")
     }
 
+    @Test func theReadmeConfigurationTableIsEveryVariableTheConfigurationReads() throws {
+        let read = try Self.configurationNames()
+        let table = Set(Self.matches(#"(?m)^\| `([A-Z][A-Z0-9_]+)` \|"#, in: try Self.text("README.md")))
+        let extra = table.subtracting(read).sorted(), missing = read.subtracting(table).sorted()
+        #expect(table == read, "README lists \(extra) the configuration does not read, and misses \(missing)")
+    }
+
     @Test func everyPublicDeclarationHasADocumentationComment() throws {
         let modifiers = "((final|static|class|mutating|nonisolated|override|convenience|required"
             + "|indirect|lazy|dynamic)\\s+)*"
         let kinds = "(struct|enum|class|actor|protocol|func|typealias|var|let|init|subscript)"
-        let declaration = try Regex("^\\s*(public|open)\\s+\(modifiers)\(kinds)\\b")
+        let attributes = "(@[A-Za-z]+(\\([^)]*\\))?\\s+)*"
+        let declaration = try Regex("^\\s*\(attributes)(public|open)\\s+\(modifiers)\(kinds)\\b")
         var missing: [String] = []
         for path in try Self.files(under: "Sources", where: { $0.hasSuffix(".swift") }) {
             let lines = try Self.text(path).split(separator: "\n", omittingEmptySubsequences: false)
@@ -82,6 +93,10 @@ import Testing
     }
 
     // MARK: - Reads
+
+    /// The flags `serve` hands to Vapor's own serve command rather than declaring them itself
+    /// (see `Serve.swift`).
+    private static let servePassThrough: Set<String> = ["hostname", "port", "bind", "unix-socket"]
 
     private static func commands() -> [String: any AnyAsyncCommand] {
         RivuletCLI.makeCommandGroup(environment: [:]).commands
@@ -106,14 +121,16 @@ import Testing
         return names
     }
 
-    /// Each `rivulet <command>` the text shows, with the `--flags` that follow it on the same line.
+    /// Each `rivulet <command>` the text shows, with the `--flags` that follow it on the same line. In
+    /// a table row (the README's command table) every flag the row names belongs to its command.
     private static func invocations(in text: String) -> [(command: String, flags: [String])] {
         text.split(separator: "\n").flatMap { line -> [(command: String, flags: [String])] in
             let parts = line.split(separator: "rivulet ", omittingEmptySubsequences: false).dropFirst()
+            let isTableRow = line.hasPrefix("|")
             return parts.compactMap { part in
                 guard let command = matches(#"^([a-z][a-z-]*[a-z])\b"#, in: String(part)).first else { return nil }
-                let rest = String(part.prefix { $0 != "`" && $0 != "|" })
-                return (command, matches(#"(?:^|\s)--([a-z][a-z-]*)"#, in: rest))
+                let rest = isTableRow ? String(part) : String(part.prefix { $0 != "`" && $0 != "|" })
+                return (command, matches(#"(?:^|[\s`])--([a-z][a-z-]*)"#, in: rest))
             }
         }
     }

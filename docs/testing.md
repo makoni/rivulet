@@ -10,7 +10,7 @@ afterthought — they run in CI together with unit tests.
 | Unit | `Tests/RivuletCoreTests`, `Tests/RivuletAppTests` | Pure logic: date parsing, charset, sanitizer rules, merge decisions, scheduling math, config, OPML, log formatting |
 | Fixture/golden | `Tests/RivuletCoreTests/Fixtures/` (target resources, added in stage 3) | Ported Miniflux corpora: encoding (11 files), parser (8), XML (3), sanitizer (2) — input bytes → golden output — plus the three corpora the port wrote from the reference's output: the hostile sanitizer corpus, the XML tolerance table and the parser error corpus |
 | Integration | `Tests/RivuletIntegrationTests` | Real SQLite in a temp dir, local stub feed server, the full Vapor app over real HTTP |
-| Documentation | `Tests/RivuletAppTests/DocumentationConsistencyTests.swift` | The README, the deployment docs, the DocC catalog and the deploy examples show only registered commands, declared flags and configuration variables; every public declaration has a doc comment |
+| Documentation | `Tests/RivuletAppTests/DocumentationConsistencyTests.swift` | The README, the deployment docs, the DocC catalog and the deploy examples show only registered commands, declared flags and configuration variables; the README's configuration table lists exactly the variables the configuration reads; every public declaration has a doc comment |
 | Manual | `Scripts/` | Real clients, the static release build, the DocC archive and rough performance numbers — see below |
 
 The integration test target is added to `Package.swift` in stage 0 (no `XCTVapor`: app tests speak

@@ -14,8 +14,8 @@ set -euo pipefail
 #   Miniflux REST v1   base URL as above, basic auth, or the printed API key as X-Auth-Token
 #
 # Environment (all optional):
-#   CLIENT_HOST          address the client reaches this machine on (default 127.0.0.1; use the
-#                        LAN address for a phone)
+#   CLIENT_HOST          address the proxy listens on and the client reaches it at (default
+#                        127.0.0.1; use this machine's LAN address for a phone)
 #   CLIENT_OBSERVE_PORT  port the client talks to (default 8099)
 #   CLIENT_TARGET_PORT   port Rivulet serves on, loopback only (default 8098)
 #   CLIENT_USER, CLIENT_PASSWORD   the account and both integration logins (default client-run /
@@ -86,10 +86,10 @@ LISTEN_ADDR="127.0.0.1:$TARGET_PORT" BASE_URL="http://$HOST:$OBSERVE_PORT" \
 serve_pid=$!
 wait_for_port 127.0.0.1 "$TARGET_PORT"
 
-RECORD="$RECORD" OBSERVE_HOST=0.0.0.0 OBSERVE_PORT="$OBSERVE_PORT" TARGET_HOST=127.0.0.1 \
+RECORD="$RECORD" OBSERVE_HOST="$HOST" OBSERVE_PORT="$OBSERVE_PORT" TARGET_HOST=127.0.0.1 \
     TARGET_PORT="$TARGET_PORT" python3 "$ROOT/Tools/clients/observer.py" >>"$WORK/observer.log" 2>&1 &
 observer_pid=$!
-wait_for_port 127.0.0.1 "$OBSERVE_PORT"
+wait_for_port "$HOST" "$OBSERVE_PORT"
 
 cat <<INFO
 Server:   http://$HOST:$OBSERVE_PORT  (Fever: http://$HOST:$OBSERVE_PORT/fever)
@@ -103,6 +103,7 @@ INFO
 if [ -n "${CLIENT_RUN_SECONDS:-}" ]; then
     sleep "$CLIENT_RUN_SECONDS"
 else
+    trap : INT   # Ctrl-C ends the wait below instead of the script, so the record is printed
     wait "$serve_pid" || true
 fi
 echo "--- record ($(wc -l <"$RECORD") requests)"

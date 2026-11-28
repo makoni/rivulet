@@ -1208,7 +1208,7 @@ the form read and the document shapes as pure logic.
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| An empty list on the two documents | `groups` and `favicons` are nil slices when the build path has no row, so `json.Marshal` writes `null` for them, while `items`, `feeds` and the `feeds_groups` are built with `make` and write `[]` | `[]` on every document of this path, including those two | Newsflash's deserializer refuses `null` for these two fields, so the port writes the array. `items`, `feeds` and `feeds_groups` answer the same on both sides, so these two are where the two answers part; `FeverShapeTests` pins this port's side, and the class row in the harness table points at this row |
+| An empty list on the two documents | `groups` and `favicons` are nil slices when the build path has no row, so `json.Marshal` writes `null` for them, while `items`, `feeds` and the `feeds_groups` are built with `make` and write `[]` | `[]` on every document of this path, including those two | Newsflash's deserializer refuses `null` for these two fields, so the port writes the array. `items`, `feeds` and `feeds_groups` answer the same on both sides, so these two are where the two answers part; `FeverShapeTests` pins this port's side |
 
 ## Version value (stage 8)
 

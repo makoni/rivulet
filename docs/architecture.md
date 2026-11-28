@@ -37,7 +37,7 @@ Sources/
 │   ├── Storage/            # Fluent models, repositories and raw SQLKit queries
 │   ├── Reader/             # fetcher (+ address resolver seam and address policy), parser, dates,
 │   │                       # charset, sanitizer, OPML, the icon finder, the subscription scan
-│   ├── Scheduler/          # refresh loop; retention runs as a storage-layer job
+│   ├── Scheduler/          # refresh loop (retention is a storage-layer job, not yet scheduled)
 │   ├── Integration/        # the Fever api_key derivation and the Google Reader contract rules —
 │   │                       # the item-id forms, the stream branches, the tag read, the `ts` rule
 │   └── Validation/         # user-name, password and duplicate-name rules, in the reference's order
@@ -197,7 +197,7 @@ validated before the fallback (an empty value is an error, like upstream); boole
   snapshot halfway; the tombstone guard is part of the insert statement, so a refresh cannot
   race a cleanup that commits between an existence check and the insert.
 - A feed refresh batches all its writes in one transaction; readers use separate connections.
-- The scheduler is an actor; long jobs (retention, vacuum) run off the request path.
+- The scheduler is an actor; long jobs (refresh passes, vacuum) run off the request path.
 - WAL allows concurrent readers with a single writer; `busy_timeout` absorbs short lock
   contention; a truncating checkpoint runs on shutdown (a blocked checkpoint is logged and the
   teardown continues); `journal_size_limit` (64 MiB) is the size the WAL is truncated to when it

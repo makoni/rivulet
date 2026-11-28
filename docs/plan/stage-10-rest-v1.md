@@ -6,8 +6,9 @@ endpoints in scope are done; four further calls are open (issue 121).
 
 The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. It declares 25
 calls: 20 are in scope here and implemented; four are open (issue 121) — two wait for the read they
-call, one runs an integration, one stays in stage 9; and one, `GET /v1/categories/{id}`, is a route
-Miniflux 2.3.3 does not register either, so both answer 404 for it.
+call, one runs an integration, one stays in stage 9; and one, `GET /v1/categories/{id}`, has no GET
+pattern in Miniflux 2.3.3 either: Miniflux registers only PUT and DELETE on that path, so it answers
+405 after its auth checks, while Rivulet answers the router's 404 (`docs/parity.md`).
 
 ## Open work
 

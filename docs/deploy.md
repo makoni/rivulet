@@ -39,7 +39,8 @@ rivulet serve
 
 `create-admin` and `integration-credentials` prompt for passwords on the terminal, so run them in an
 interactive shell, not from a unit or a pipe. Clients log in with the pairs `integration-credentials`
-stores (Google Reader and Fever); until it has run, client logins answer 401. Clients that use the
+stores (Google Reader and Fever); until it has run, Google Reader logins answer 401
+and Fever answers `auth: 0`. Clients that use the
 Miniflux REST API log in with the account password or a key from `rivulet create-api-key`.
 
 `add` stores the subscription without fetching it; `serve` fetches it on its first scheduler pass.

@@ -26,6 +26,8 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 fail() { printf 'check failed: %s\n' "$1" >&2; exit 1; }
 
+cd "$REPO"
+
 if ! command -v swift >/dev/null 2>&1; then
     fail "the run needs the Swift toolchain on PATH"
 fi

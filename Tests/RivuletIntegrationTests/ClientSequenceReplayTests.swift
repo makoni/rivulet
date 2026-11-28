@@ -263,15 +263,13 @@ import Vapor
         }
     }
 
-    ///The half whose calls are not all read as data is the prefix this port registers one route on:
-    ///Capy Reader names two halves, and the Miniflux half is the one with no recorded call lines. The two answers
-    ///this pin reads are the two sides of the parity row: the path the pattern registers answers
-    ///the read's answer, and a path on the same prefix with no pattern answers the router's answer,
-    ///which is what the reference does not answer because its chain runs before its mux. This pin
-    ///has two probes: the patch that took the registration out fires the assertion for the
-    ///registered path, and the patch that moved the prefix the half names fires that assertion and
-    ///the one for the prefix. The note the rule reads is crafted by a probe, because a pin reads
-    ///the set as data and cannot read a note as an expectation.
+    ///Capy Reader's set names two halves, and the Miniflux REST half is the one whose calls are not
+    ///all replayed one by one; this pin reads it through the prefix this port registers routes on.
+    ///The two answers it reads are the two sides of the parity row: a path a pattern registers
+    ///answers the route's own answer, and a path on the same prefix with no pattern answers the
+    ///router's answer, which the reference does not give because its auth chain runs before its mux.
+    ///It fails on a patch that takes the registration out, and on a patch that moves the prefix the
+    ///half names.
     @Test func theHalfWhoseCallsAreNotAllReadHereIsThePrefixThisPortRegistersOneRouteOn() async throws {
         try await withServedApp { _, app, base in
             let set = try CallingSets.set("Capy Reader")

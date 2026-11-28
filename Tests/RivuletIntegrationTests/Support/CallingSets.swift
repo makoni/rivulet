@@ -1,10 +1,9 @@
 import Foundation
 import Testing
 
-///The recorded client calling sets the replay suite reads, and the two record files beside them:
-///`replayed.txt` pairs each recorded call with the pin that replays it (or the reason it cannot be
-///replayed), and `manifest.txt` names the class of each recorded call. The pins read the records
-///for what they expect rather than restating them. `docs/clients.md` describes the clients.
+///The recorded client calling sets the replay suite reads. `replayed.txt` beside them lists, for
+///reference, the test that replays each recorded call or why it is not replayed; `docs/clients.md`
+///describes the clients.
 enum CallingSets {
     ///One client's calling set, as the record file writes it. Only the fields the pins read are
     ///modelled.
@@ -105,32 +104,6 @@ enum CallingSets {
 
     static func set(_ client: String) throws -> CallingSet {
         try #require(all().first { $0.client == client }, "no calling set for \(client)")
-    }
-
-    ///The replay list as the record writes it: the key and the pin, or the reason it is not replayed.
-    static func replayed() throws -> [String: String] {
-        try records("replayed.txt")
-    }
-
-    ///The manifest as the record writes it: the key and the class of the call.
-    static func manifest() throws -> [String: String] {
-        try records("manifest.txt")
-    }
-
-    private static func records(_ name: String) throws -> [String: String] {
-        let text = String(decoding: try Data(contentsOf: url(name)), as: UTF8.self)
-        return text.split(separator: "\n").map(String.init).filter {
-            !$0.isEmpty && !$0.hasPrefix("#")
-        }.reduce(into: [String: String]()) { found, line in
-            let parts = line.split(separator: "|", omittingEmptySubsequences: false).map {
-                $0.trimmingCharacters(in: .whitespaces)
-            }
-            // A record line is one record: the key and the value after the first `|`. A
-            // line with fewer parts is not a record, so it reads as nothing rather than as an index
-            // that cannot be answered.
-            guard parts.count >= 2 else { return }
-            found[parts[0]] = parts[1]
-        }
     }
 
     private static func names() -> [String] {
