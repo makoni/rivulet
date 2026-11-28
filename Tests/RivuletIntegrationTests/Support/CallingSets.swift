@@ -8,7 +8,7 @@ import Testing
 ///twice. The pins read the records for what they expect, so a pin is not a restatement of the
 ///matrix: the field names are the ones the check half reads, and the pairing of a call with the pin
 ///that reads it is `CallingSets/replayed.txt`, which the check half reads as data. What the pins
-///cannot show is named in `docs/testing.md` under the matrix.
+///cannot show is named in `docs/clients.md`.
 enum CallingSets {
     ///One client's calling set, as the record file writes it. Only the fields the pins read are
     ///modelled; a field the pins do not read is read by the check half.

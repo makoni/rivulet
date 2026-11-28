@@ -2,8 +2,8 @@
 
 This file is for AI agents (and humans) making changes to this repository. It holds the agreement:
 how we work. It does not hold the record of what a run showed — no pin or probe counts, no pull
-request numbers, no per-slice history. Those live in the documents the check halves read as data and in
-`docs/testing.md`. The stage files hold the decisions each stage set, the criteria that are still open,
+request numbers, no per-slice history. Those live in the documents the check halves read as data, in the
+suite header comments and in git history; `docs/testing.md` holds the testing strategy. The stage files hold the decisions each stage set, the criteria that are still open,
 and the stage state; the open work is an issue. Readiness is counted as the open issues plus the code,
 so the plan table states a stage state and names the issues that hold the open work. What no check half
 can read as data is not stated here as a fact about a run: it is stated as an aim, or it is not stated.

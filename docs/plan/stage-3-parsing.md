@@ -30,4 +30,4 @@
   list names. The tolerance decision table and the typed errors are read as data.
 - [x] The sanitizer corpus is read end to end against the reference's own output.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

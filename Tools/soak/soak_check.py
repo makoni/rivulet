@@ -8,7 +8,7 @@ ask the soak to show, plus the shape of the `status --json` contract they read, 
 fail on the rule it names — the probe set at the bottom crafts one input per rule that violates it
 and asserts that the rule reports it alone.
 
-What the rules cannot show is stated in `docs/testing.md` under the soak: that the run slept at all,
+What the rules cannot show: that the run slept at all,
 that the fetcher reached the network, and which round a row was read in. Those are properties of the
 run, not of the data a round reports, so the soak names them as observed rather than as pinned. The
 run's own numbers — the ≥2h duration and the ≥20 feeds — are guards in `Scripts/soak.sh`, because

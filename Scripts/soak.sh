@@ -13,7 +13,7 @@ set -euo pipefail
 # What the run shows is the rule each round reports: the pass ran exactly the pick, the stamps moved
 # forward, the schedule landed after the round, the counts match the rows, the error feed increments
 # while the pick can reach it, the document is the documented contract, and the database keeps no
-# duplicate (feed_id, hash) pair. What it cannot show is stated in `docs/testing.md`: that it slept
+# duplicate (feed_id, hash) pair. What it cannot show: that it slept
 # at all, that the fetcher reached the network, and which round read a row.
 #
 # The schedule the pass leaves is the interval the policy applies — the reference default of 60

@@ -34,4 +34,4 @@ tombstones.
 - [x] Backup helper tested; the restore procedure is documented in `docs/backup-restore.md` — it is a
   manual file copy with no code path to test.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

@@ -19,7 +19,7 @@ The site itself is outside this repository: the script writes the archive, and t
 and publishes it, so no job here shows a served site.
 
 The record lives in the documents the halves read as data: `docs/deploy.md`, `docs/docc.md`,
-`docs/testing.md`, and in the artifacts `deploy/compose.yml` and `deploy/rivulet.service`. The run
+and in the artifacts `deploy/compose.yml` and `deploy/rivulet.service`. The run
 halves are `Scripts/smoke.sh`, `Scripts/deploy.sh`, `Scripts/docs.sh` and `Scripts/build-docs.sh`; the
 check halves are `Tools/smoke/`, `Tools/deploy/` and `Tools/docs/`.
 

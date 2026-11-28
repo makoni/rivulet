@@ -27,4 +27,4 @@
 - [x] Fetch matrix green.
 - [x] Fetch results persist validators and error state into feed state, through stage 4's pipeline.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

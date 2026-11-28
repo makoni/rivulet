@@ -343,7 +343,7 @@ answer the same way for every input.
 gathered while walking the subtree. The tree keeps character data already decoded, so `innerMarkup`
 is a reconstruction: a run that carries entities comes back as the character it resolves to, not as
 the reference wrote it. Cases whose stated value needs the bytes as written cannot be pinned, and
-are not ported — see `docs/testing.md`.
+are not ported; `AtomTextConstructTests` names them.
 - `",chardata"` keeps only the level the field is read at, so the text inside a child element is not
 part of the value, while `innerContent` writes every character token it read. The tree keeps the two
 apart, which is what the Atom content cases depend on.

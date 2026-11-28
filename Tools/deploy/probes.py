@@ -18,8 +18,7 @@ to the keys the artifacts write after the craft.
 
 Two crafts reach the rule that reads the compose as the tool resolved it as well as their own,
 because that rule reads the same key each of them changes: the restart policy and the container
-subcommand. They are named in `REACHES`, which is the reach `docs/testing.md` records rather than
-asserts. Two further halves are read by a rule but not probed alone: the file shape the tool
+subcommand. They are named in `REACHES`. Two further halves are read by a rule but not probed alone: the file shape the tool
 prints for a key finding, because the committed answer carries only the line about the program,
 and the position each key line names, which no rule reads.
 

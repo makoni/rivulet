@@ -18,14 +18,13 @@
   stored feed, and the resize step. The scan reads through the port's tokenizer subset, which is the
   precedent stage 3 set for the sanitizer.
 - `status --json` is the minimal machine-readable contract the soak reads, and its keys are the column
-  names; `docs/testing.md` and `docs/parity.md` record that it is the port's own shape.
+  names; `docs/parity.md` records that it is the port's own shape.
 
 ## Exit criteria
 
 - [x] Soak artifact: `Scripts/soak.sh` runs at least 2h with at least 20 local stub feeds, and the
   snapshots show `fetched_at` and `next_check_at` advancing with no crashes. The checks in
   `Tools/soak/soak_check.py` read the data each round leaves behind rather than the process that
-  produced it, and `docs/testing.md` names what the soak shows and what its guards were seen to fail on;
-  the numbers the run left are in the log the run wrote, which is not committed.
+  produced it; the numbers the run left are in the log the run wrote, which is not committed.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

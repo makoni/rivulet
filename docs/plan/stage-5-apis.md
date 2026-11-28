@@ -29,4 +29,4 @@
   the client runs stage 7 reads as data, and the add half stays open for the Fever client whose set has
   no call that can write a feed row.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

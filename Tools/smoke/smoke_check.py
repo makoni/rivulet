@@ -9,7 +9,7 @@ document and a committed file the run names, and the file readers are in `source
 list stays the readable part. A rule that compares two values the run recorded at two moments is a
 rule rather than a restatement, and the rules that compare the document with a count the document
 itself declares are only falsifiable through a crafted document, which is what the probe round does.
-What the rules cannot read is what `CANNOT_SHOW` names and `docs/testing.md` writes as the report.
+What the rules cannot read is what `CANNOT_SHOW` names.
 The rule that reads the runbook is in `runbook.py`, which is where it sits because this file is
 at the line cap the project sets.
 

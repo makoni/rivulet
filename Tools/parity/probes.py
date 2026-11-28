@@ -10,7 +10,7 @@ baseline is asserted to report nothing, which is what makes each probe single-fi
 
 Run it with `python3 Tools/parity/probes.py`, or through the comparator with `--probe`.
 
-What the probe set cannot show is named in `docs/testing.md` under the harness: that the run ran at
+What the probe set cannot show: that the run ran at
 all, and the half of the parse rule that reads no clock field, which no input can make report.
 """
 
