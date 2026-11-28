@@ -11,7 +11,7 @@ import Testing
 /// or the orphan pass, so those pins are the port's own.
 ///
 /// What these pins can fail on, each checked by patching the rule and reverting. The join and the
-/// `data` field are 2 pins read by 4 probes, 2 for the join and 2 for the field; the other rules
+/// `data` field have a pin each; the other rules
 /// named here were read by the round that pinned them: the dedupe is by hash — a patch that inserts
 /// anyway fails the pins that read the same content stored once, and a patch that returns the value
 /// handed in instead of the one already stored fails the pin that names that; `normalizeMimeType`

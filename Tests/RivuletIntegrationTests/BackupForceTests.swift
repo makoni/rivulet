@@ -14,8 +14,8 @@ import Testing
 /// flag does not change the room check, does not let a run that cannot write remove anything, and
 /// does not build the directory the storage layer needs.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
-/// with each probe named by what it flips — eight probes for five pins: the flag read as absent,
+/// What these pins can fail on, each checked by patching the rule and reverting,
+/// with each probe named by what it flips: the flag read as absent,
 /// which refused the pins reading a replacement and the controls reading a run with room or a file
 /// replaced; the destination read as a database the run can open, which refused the pin naming
 /// bytes and the two controls reading bytes replaced; the room check skipped on the force path,

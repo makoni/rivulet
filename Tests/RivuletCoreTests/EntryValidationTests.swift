@@ -1,8 +1,7 @@
 import Testing
 @testable import RivuletCore
 
-/// The entry rules the listing and the write paths run before their reads and writes. 5 pins and
-/// 7 probes, every probe seen to fail on the rule it names and to revert the file byte-identically.
+/// The entry rules the listing and the write paths run before their reads and writes.
 ///
 /// What these pins can fail on, each shown by patching the rule and reverting it: the two statuses the
 /// status rule admits, the two columns the order rule admits, the two values the direction rule admits,

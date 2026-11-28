@@ -6,7 +6,7 @@ import RivuletApp
 /// `internal/googlereader/handler.go` at `c4d54f87`, read as the reference's own answer for
 /// these inputs. The document shapes themselves are pinned by `GoogleReaderShapeTests`; the
 /// order the listing read builds is pinned as a read by `FeedRepositoryTests`.  What these pins
-/// can fail on, each checked by patching the rule and reverting (4 pins, 6 probes): that the
+/// can fail on, each checked by patching the rule and reverting: that the
 /// answer is the order the sort expression builds rather than the id order; the six fields of
 /// the subscription document as the values this handler writes, including the label being the
 /// category title and not the feed title; the `omitempty` half of the category document on a

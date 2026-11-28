@@ -7,15 +7,15 @@ import Testing
 /// at `c4d54f87`. The goldens are the reference's own answers for these inputs at the toolchain
 /// `go.mod` pins.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (2 pins, 6 probes):
+/// What these pins can fail on, each checked by patching the rule and reverting:
 /// the switch answers the first name it finds, so a request that carries every name answers the
-/// groups document and each request that drops one name answers the next document — 2 probes, one
+/// groups document and each request that drops one name answers the next document — one
 /// that moved the groups branch past the feeds branch fails the pair that names groups, and one
 /// that moved the mark branch before the items branch fails the pair that reads the name from the
-/// form; that the presence test reads the name as present whatever its value is — 2 probes, on the
+/// form; that the presence test reads the name as present whatever its value is — on the
 /// case test and on the presence helper; that the mark name is read from the merged form, which a
-/// patch that read it from the query alone fails on — 1 probe; and the default branch, which a
-/// patch that answered a document for a name the switch does not have fails on — 1 probe.
+/// patch that read it from the query alone fails on; and the default branch, which a
+/// patch that answered a document for a name the switch does not have fails on.
 ///
 /// What these pins cannot show: the values that reach the documents, which the read suites pin; the
 /// subtree pattern of the reference's mux, which answers for any path under this route while Vapor

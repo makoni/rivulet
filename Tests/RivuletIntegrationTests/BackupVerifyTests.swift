@@ -14,8 +14,8 @@ import Testing
 /// the problems a real file has are not something a pin can name. The storage rule `PRAGMA
 /// quick_check` reads is pinned by `MaintenanceTests`, and the real implementation is pinned by
 /// `SystemDatabaseVerifierTests`. What these pins can fail on, each checked by patching the rule
-/// and reverting byte-identically, with each probe named by what it flips — nine probes for five
-/// pins: the flag read as absent, which answered the pins reading a call as none and the controls
+/// and reverting, with each probe named by what it flips: the flag read as absent, which answered the
+/// pins reading a call as none and the controls
 /// reading one call as none; the flag read as always on, which called the check for the run that
 /// was not given it; the check called before the write as well, which answered the pins reading the
 /// one call with two; the path read as the normalized one rather than as the run read it, which

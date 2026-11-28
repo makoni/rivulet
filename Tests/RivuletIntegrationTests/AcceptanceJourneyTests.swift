@@ -10,8 +10,7 @@ import RivuletApp
 /// the rows, the pass over the batch that writes the entries, and the socket the client requests go
 /// to.
 ///
-/// The run half asserts nothing, so every failure is recorded by a pin. What each pin can fail on,
-/// one rule per pin, each checked by patching the rule and reverting the file byte-identically:
+/// What each pin can fail on, one rule per pin, each checked by patching the rule and reverting:
 ///
 /// - the login compares the password with the value stored on the row the run wrote;
 /// - the Fever pair the run wrote is the pair the Fever read answers for, through the join and the
@@ -37,9 +36,8 @@ import RivuletApp
 /// - the `mark` branch for the read name writes the status the counts read back;
 /// - the `mark` branch for the saved name writes the starred flag the read answers back.
 ///
-/// 14 pins and 16 probes, every probe seen to fail on the pin it names. Seven pins are read by one
-/// patch and seven by more than one, one patch per rule they name, and four rows reach more than
-/// one pin, because a pin reads a value an earlier link of the chain wrote: the login-compare patch
+/// Some patches reach more than one pin, because a pin reads a value an earlier link of the chain
+/// wrote: the login-compare patch
 /// fires the pin for the three lines as well, because both read the same answer; the import-write
 /// patch fires the listing pin, the pass pin, the contents pin and the Fever feeds pin, because all
 /// four read the row that patch wrote; the patch for the site url the pass writes on the row fires

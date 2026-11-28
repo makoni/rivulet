@@ -15,11 +15,11 @@ import Testing
 /// also fires on the route suite's pins for the document as bytes and for the row the read
 /// hands the handler, which is the round of the third slice.
 ///
-/// The two documents the category half writes are pinned by 3 pins and 3 probes: the key order of the
+/// The two documents the category half writes are pinned: the key order of the
 /// category document, which a patch that wrote `hide_globally` before `title` fires on; the two counts
 /// being written only for the half that reads them, which a patch that wrote them for a zero count
 /// fires on; and the key order of the feed document, which a patch that dropped `description` fires
-/// on. Each was seen to fail on the rule it names and to revert the file byte-identically. The counts
+/// on. The counts
 /// pins also fire on the route suite's pins that read a document this shape builds.
 ///
 /// What this pin cannot fail on: the reference's other fields, which this port's schema has no

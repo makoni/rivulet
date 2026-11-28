@@ -12,8 +12,8 @@ import RivuletCore
 /// guard is gone, so the cap is the only limit here, counted as upstream counts it. The pins read
 /// the failure the fetcher reports for the body the decoder produced under the cap.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
-/// with each probe named by what it flips — five probes for four pins: the ratio guard put back at
+/// What these pins can fail on, each checked by patching the rule and reverting,
+/// with each probe named by what it flips: the ratio guard put back at
 /// the ratio the pins read, which answered the size failure the first pin names with the network
 /// category and the body the second pin reads with a failure; the cap read as larger than the body
 /// the decoder produced, which answered the first pin with a body rather than the size failure; the

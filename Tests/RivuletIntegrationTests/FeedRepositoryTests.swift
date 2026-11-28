@@ -6,7 +6,7 @@ import Testing
 @testable import RivuletCore
 
 /// CRUD round-trip and fetch-state bookkeeping for ``FeedRepository``, and the write the
-/// subscription handlers use (1 pin, 2 probes): it names only the column the caller names — the
+/// subscription handlers use: it names only the column the caller names — the
 /// title and not the category, so each half is read on a row whose other column already holds a
 /// value and a patch that wrote the column the caller did not name answered a different row. The
 /// failure reported for a row the read does not find is pinned by another test in this suite, which

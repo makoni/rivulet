@@ -9,7 +9,7 @@ import RivuletApp
 /// pinned as pure logic by `SubscriptionDocumentLinksTests`, the response read and the two
 /// steps this port has by `SubscriptionFinderTests`, and the document shapes by
 /// `GoogleReaderShapeTests`.  What these pins can fail on, each checked by patching the rule
-/// and reverting (4 pins, 4 probes): that the name is read from the merged form, so the query
+/// and reverting: that the name is read from the merged form, so the query
 /// half answers on its own; the absolute guard that runs before the fetch, which no value the
 /// guard refuses can reach; the zero answer when the scan finds nothing, with the field written
 /// without `omitempty` and the three that have it not written; the pick, which is the first

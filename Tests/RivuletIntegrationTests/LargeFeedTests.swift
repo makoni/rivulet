@@ -15,8 +15,8 @@ import Testing
 /// wrong implementation has to cross. The memory budget `docs/testing.md` documents is not read by
 /// any pin, because nothing here can name the memory a process holds.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
-/// with each probe named by what it flips — six probes for five pins: the owner read through an
+/// What these pins can fail on, each checked by patching the rule and reverting,
+/// with each probe named by what it flips: the owner read through an
 /// expression the planner cannot use, which answered the plan pin with a scan and a temporary
 /// b-tree for the order; the page size dropped from the clause, which answered the page pin with
 /// the whole corpus; the order read in the direction the query did not ask for, which answered the

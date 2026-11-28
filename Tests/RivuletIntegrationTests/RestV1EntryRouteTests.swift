@@ -69,9 +69,6 @@ import Vapor
 /// answer 204 the assertion that the answer carries no document, because the client does not read a
 /// body for a 204 — a patch that wrote one for that status could not reach these pins, so only the
 /// status half of each is falsifiable here.
-///
-/// 16 pins and 43 probes, every probe seen to fail on the rule it names and to revert the file
-/// byte-identically.
 @Suite struct RestV1EntryRouteTests {
     init() {
         TestLogging.bootstrapOnce()

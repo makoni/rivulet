@@ -7,9 +7,7 @@ import Vapor
 ///The recorded calling sets read as data and replayed against the served app over a real socket.
 ///Each pin takes one recorded call and asserts what the port answers for it: the record names the
 ///call and the value the pin reads, so a pin is the replay half of the matrix rather than a
-///restatement of the matrix's table. 9 pins and 12 probes, each seen to fail on the rule it names
-///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 2, the
-///token pin has 2, and every other pin has 1.
+///restatement of the matrix's table.
 ///What each pin can fail on, with the input its probe crafts: - the recorded order is the order the
 ///set declares — a patch that swaps two entries of the record's own `source_order`. This is the
 ///only pin here that can fail on the record rather than on a rule, because nothing in the port
@@ -83,9 +81,9 @@ import Vapor
     ///read, and the answer it carries is the value the later requests read as the token. A pair
     ///with no `=` is a name with an empty value, so the 401 here is the guard's answer rather than
     ///the read's, and the two 401 shapes say which piece ran: the login guard's own shape is the
-    ///JSON one, and the wrapper's is the text one. 2 probes: the first patches the write so the
-    ///three lines carry the stored value instead of the value the row derives, the second patches
-    ///the route so the wrapper covers the login too.
+    ///JSON one, and the wrapper's is the text one. It fails on a patch to the write that makes the
+    ///three lines carry the stored value instead of the value the row derives, and on a patch to
+    ///the route that makes the wrapper cover the login too.
     @Test func theLoginHalfCarriesNoWrapperAndCarriesTheValueTheLaterReadsCompare() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)

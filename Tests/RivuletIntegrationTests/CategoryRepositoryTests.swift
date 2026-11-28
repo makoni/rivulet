@@ -13,18 +13,17 @@ import Testing
 /// carries, and the named delete keeps at least one category — its guard runs before any write —
 /// moves the feeds of the deleted rows to the first remaining title, per user on both the read that
 /// counts and the statement that deletes. The read the subscription handler builds is pinned too,
-/// which the pin below names (1 pin, 3 probes): it answers the smallest title of the account rather
+/// which the pin below names: it answers the smallest title of the account rather
 /// than the row that came first, it applies the account it is given, and an account with no rows
 /// answers nothing rather than a failure.
 ///
-/// The reads the v1 handlers call are pinned by 6 pins and 6 probes: the counts read answers the two
+/// The reads the v1 handlers call are pinned: the counts read answers the two
 /// counts and the order the reference defaults to, the unread count first and then the title, on an
 /// input where the count order and the title order disagree, and it applies the account it is given;
 /// the pair read answers nothing for a row of another account; the create writes the value the request
 /// carries for the hide rule and the default for a request that carried nothing; the update writes
 /// both fields the reference's statement writes, for the row of the pair; and the delete reports the
-/// reference's wording for a statement that removed no row. Every probe was seen to fail on the rule
-/// it names and to revert the file byte-identically.
+/// reference's wording for a statement that removed no row.
 ///
 /// What this suite cannot show is named here: the row order the delete's read answers its rows in,
 /// which the statement does not order, so a patch that took any remaining row in that order

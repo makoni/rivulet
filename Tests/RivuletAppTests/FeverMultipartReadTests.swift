@@ -9,22 +9,22 @@ import Testing
 /// This read has no error half, and that is a rule of its own: `FormValue` discards what
 /// `ParseMultipartForm` reports, so a body this read cannot read answers the empty value, and the
 /// guard that reads `api_key` sees nothing rather than a failure. What the pins can fail on, each
-/// checked by patching the rule and reverting (9 pins, 37 probes): the media type is read as
-/// `mime.ParseMediaType` reads it and compared lowercased — 2 probes, one that compared the content
+/// checked by patching the rule and reverting: the media type is read as
+/// `mime.ParseMediaType` reads it and compared lowercased — one that compared the content
 /// type as it was written fails on `Multipart/Form-Data`, one that accepted any multipart media
-/// fails on `multipart/mixed`; the parameter rules — 4 probes, for a pair with no `=`, for a value
+/// fails on `multipart/mixed`; the parameter rules — for a pair with no `=`, for a value
 /// that is empty as written, for a trailing semicolon that is not the error, and for the media type
 /// surviving that error on the urlencoded half; the boundary has to be a parameter of the content
-/// type — 1 probe, a patch that fell back to its own boundary fails on it; a part that cannot be
-/// read ends the whole body read, so the parts read before the failure are not read either — 1
-/// probe; the three guards of the part loop — 4 probes, disposition, name, and the filename
-/// parameter being empty rather than present; a header line with no colon ends the read — 1 probe;
+/// type — a patch that fell back to its own boundary fails on it; a part that cannot be
+/// read ends the whole body read, so the parts read before the failure are not read either; the three
+/// guards of the part loop — disposition, name, and the filename
+/// parameter being empty rather than present; a header line with no colon ends the read;
 /// the part value is the bytes as written, which a patch that applied the percent-decoding rule
-/// fails on, and a line ending can be a bare `LF`, which a patch that required `CRLF` fails on — 2
-/// probes; the order per name is the urlencoded body pairs, then the query pairs, then the
-/// parts, with the method deciding whether an urlencoded body is read at all — 2 probes; and the
+/// fails on, and a line ending can be a bare `LF`, which a patch that required `CRLF` fails on; the
+/// order per name is the urlencoded body pairs, then the query pairs, then the
+/// parts, with the method deciding whether an urlencoded body is read at all; and the
 /// part that declares `Content-Transfer-Encoding: quoted-printable` is decoded as
-/// `mime/quotedprintable` reads it — 20 probes, one that skipped the decoder, one each for the name
+/// `mime/quotedprintable` reads it — one that skipped the decoder, one each for the name
 /// compared without case, the value compared without case, the first value with the name, the
 /// whitespace `trim` takes from the end of the header line and an empty value, one for a part with
 /// no name being skipped before the copy, one for a named file part reaching the decoder, one for

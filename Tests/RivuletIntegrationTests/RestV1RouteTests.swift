@@ -7,8 +7,7 @@ import Vapor
 @testable import RivuletCore
 
 ///The route this stage registers, read over a real socket: what the port answers for the call Capy
-///Reader's `minifluxclient` declares, `GET /v1/me`. 8 pins and 13 probes, every probe seen to fail
-///on the rule it names and to revert the file byte-identically. What each pin can fail on, with the
+///Reader's `minifluxclient` declares, `GET /v1/me`. What each pin can fail on, with the
 ///patch its probe names: - the path the pattern registers — a patch that renamed the path the
 ///registration line writes. This is the patch that reaches every pin here except the one for the
 ///method, because that pin reads an answer the router gives either way, and it reaches the pin for

@@ -6,8 +6,7 @@ import Vapor
 @testable import RivuletApp
 @testable import RivuletCore
 
-/// The six category paths this stage registers, read over a real socket. 15 pins and 16 probes,
-/// every probe seen to fail on the rule it names and to revert the file byte-identically.
+/// The six category paths this stage registers, read over a real socket.
 ///
 /// Every pin reads the account the guard hands the handler, and the account read adds the default
 /// category with the row, so the default row is part of the input each pin names.

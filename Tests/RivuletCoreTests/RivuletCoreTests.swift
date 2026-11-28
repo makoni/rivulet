@@ -6,8 +6,8 @@ import Testing
 ///
 /// (ported test: `TestVersionConvertedToInteger`, `internal/version/version_test.go`.)
 ///
-/// What the pins can fail on, each checked by patching the value and reverting the file
-/// byte-identically: that the value is not empty, and that the digits it carries read as a
+/// What the pins can fail on, each checked by patching the value and reverting: that the value is not
+/// empty, and that the digits it carries read as a
 /// positive integer. The three crafts are a value with no digit at all, which fires the digit
 /// presence half, whose conversion half can fire on it only as a consequence of that same empty
 /// digit set; a value whose digits are all zero, which fires the sign guard alone; and a value

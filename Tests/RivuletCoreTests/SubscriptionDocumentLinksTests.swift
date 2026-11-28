@@ -10,8 +10,8 @@ import Testing
 /// is missing. The reference does not test the relation at all: it dispatches on the `type`
 /// attribute alone, so the relation rule below is the port's own, and the same row records it.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (7 pins, 13
-/// probes): the four type branches, which a patch that matched a fifth type fails; that the type
+/// What these pins can fail on, each checked by patching the rule and reverting: the four type
+/// branches, which a patch that matched a fifth type fails; that the type
 /// is compared as read, which a patch that folds case fails on the case that says so; that
 /// `application/json` alone has the WordPress skip, which a patch that applied the skip to every
 /// branch fails on the same path read through another type; that the selector asks for the `type`

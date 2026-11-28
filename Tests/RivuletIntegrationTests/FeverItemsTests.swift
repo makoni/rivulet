@@ -12,17 +12,17 @@ import Testing
 /// the pool, because the driver keeps a single pooled connection, so a pin cannot hold one while
 /// the handler checks out another.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (4 pins, 8 probes):
+/// What these pins can fail on, each checked by patching the rule and reverting:
 /// the page size is 50 and `total_items` is the count read without the page, which a patch that
-/// used the page as the count fails on — 1 probe; the precedence the switch reads, which a patch
-/// that read `max_id` before `since_id` fails on — 1 probe; the three paths `QueryInt64Param`
+/// used the page as the count fails on; the precedence the switch reads, which a patch
+/// that read `max_id` before `since_id` fails on; the three paths `QueryInt64Param`
 /// answers the default for — empty, unparseable and negative — so a negative `max_id` is the zero
-/// half of the branch rather than a bound, which is 2 probes, one on the sign guard and one on the
-/// half of the branch the default lands in; that a value the list read cannot read is 0 rather than
+/// half of the branch rather than a bound, which a patch to the sign guard or to the half of the
+/// branch the default lands in fails on; that a value the list read cannot read is 0 rather than
 /// something skipped, which a patch that skipped it fails on because an empty id set applies no
-/// filter here while `id IN (0)` selects nothing — 1 probe; the trim that is Go's
-/// `unicode.IsSpace`, which a patch that read the value as given fails on — 1 probe; and the values
-/// that reach the item document, which is 2 probes: the two flags read as 0 and 1, and the
+/// filter here while `id IN (0)` selects nothing; the trim that is Go's
+/// `unicode.IsSpace`, which a patch that read the value as given fails on; and the values
+/// that reach the item document: the two flags read as 0 and 1, and the
 /// publication time the reference's `entry.Date` holds, which a patch that read the `created_at`
 /// column fails on because the fixture writes the two columns with different values.
 ///
