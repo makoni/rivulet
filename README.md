@@ -3,15 +3,8 @@
 A lightweight, self-hosted feed reader — a Swift port of [Miniflux](https://github.com/miniflux/v2)
 (behavioral reference: v2.3.3).
 
-> **Status:** in progress. What is in place: configuration, the SQLite storage wrapper with its
-> pragmas, the fetcher, the parser and the sanitizer, `/healthz`, entry queries and FTS5 search,
-> retention and maintenance (backup, vacuum, checkpoint on shutdown, startup integrity check), the
-> per-feed refresh pipeline with the scheduler's due-batch selection, the icon path with its resize
-> step, the client APIs (Google Reader and Fever) with the storage reads the routers run, the CLI
-> command set with the in-process cadence loop `serve` runs, and the acceptance harnesses that read
-> their own runs as data. Stage 8's documentation layer is the DocC catalog, its four articles and
-> its tutorial, read as data by the harness; `Scripts/build-docs.sh` writes the archive the site is
-> built from, and that site is published outside this repository.
+> **Status:** the core features work; the acceptance and deployment stages (7–8) and the 0.1.0
+> release scope are still open. Open work is tracked as issues in this repository.
 
 Stage states as `docs/plan/README.md`'s table states them:
 
@@ -27,49 +20,71 @@ Stage states as `docs/plan/README.md`'s table states them:
 - Stage 9 - Post-MVP backlog: in progress
 - Stage 10 - Miniflux REST v1 subset: in progress
 
-## What it will be
+## What it does
 
-Rivulet aims to be a small, single-binary RSS/Atom reader for a personal server:
+A small, single-binary RSS/Atom reader for a personal server:
 
 - **Feed aggregation** — scheduled fetching with conditional requests (ETag / Last-Modified), RSS /
-  Atom / RDF / JSON Feed parsing, HTML sanitization.
-- **SQLite storage** — a single database file in WAL mode with FTS5 full-text search. No external
-  database service.
-- **Client APIs** — Google Reader API and Fever API, so existing native clients keep working:
-  NetNewsWire, FeedFlow, Reeder Classic and friends.
-- **CLI-first** — no web interface: `rivulet add`, `rivulet import feeds.opml`, `rivulet refresh`,
-  `rivulet serve`.
+  Atom / RDF / JSON Feed parsing, HTML sanitization, feed icons.
+- **SQLite storage** — one database file in WAL mode with FTS5 full-text search, retention,
+  backups and vacuum. No external database service.
+- **Client APIs** — Google Reader API (`/accounts/ClientLogin`, `/reader/api/0`), Fever API
+  (`/fever`) and the subset of the Miniflux REST v1 API (`/v1`) that Capy Reader uses, so existing
+  native clients can connect. The acceptance clients are NetNewsWire, FeedFlow, NewsFlash, Reeder
+  Classic and Capy Reader; `docs/clients.md` records what each one was checked against.
+- **CLI-first** — no web interface; everything is managed with commands and environment variables.
 - **Built with** — [Vapor 4](https://vapor.codes),
   [Fluent](https://docs.vapor.codes/fluent/overview/) + [SQLite](https://www.sqlite.org),
-  [SwiftSoup](https://github.com/scinfu/SwiftSoup) for the entry text. The parser and the sanitizer
-  are the port's own, read through its tokenizer subset; the external-library spike that chose that
-  is recorded in `docs/plan/spike-3-parser.md`.
+  [SwiftSoup](https://github.com/scinfu/SwiftSoup) for the entry text. The feed parser and the HTML
+  sanitizer are Rivulet's own; `docs/plan/spike-3-parser.md` records why.
 
 ## Commands
 
-Rivulet is CLI-first. The commands that exist so far:
-
 | Command | What it does |
 | --- | --- |
-| `rivulet serve` | Runs the HTTP server (`LISTEN_ADDR`); Vapor's server flags (`--hostname`, `--port`, `--bind`) work |
+| `rivulet serve` | Runs the HTTP server and the background refresh loop (`LISTEN_ADDR`; Vapor's `--hostname`, `--port`, `--bind` also work) |
 | `rivulet migrate` | Creates or updates the SQLite schema |
 | `rivulet version` | Prints the version |
-| `rivulet refresh` | One pass over the due batch with the values the configuration gives the builder, then exits |
-| `rivulet status` | The feed state: each row with its last fetch, errors and next check, plus the counts; `--json` prints the machine-readable document |
-| `rivulet create-admin` | Creates the account the login path reads |
-| `rivulet integration-credentials` | Sets the account's integration credentials |
-| `rivulet add <url>` | Adds one feed row, for the account named by `--user` or the single account |
-| `rivulet remove <url>` | Removes one feed row and the rows below it |
-| `rivulet list` | Lists one listing: the feeds of one account in the order the reference's query builder answers, the categories in the order its category read answers, or every account in the order its user read answers; `--categories` and `--users` name which one, and no flag means the feeds |
-| `rivulet backup <destination>` | Writes a point-in-time copy of the database to `destination`, used as the path is read, after the free-space check it makes at its start; a destination that already holds something is refused and left as it was, unless `--force` names it as one the run may replace; `--verify` reads the copy the run wrote through a connection of its own and reports what the check observed as the failure, leaving the copy as written |
-| `rivulet vacuum` | Rebuilds the database file, releasing the free pages the rows left behind |
-| `rivulet --help` | Lists all commands, including the planned ones |
+| `rivulet refresh` | Refreshes the feeds that are due once, then exits |
+| `rivulet status` | Shows each feed's last fetch, errors and next check, plus totals; `--json` for machine-readable output |
+| `rivulet create-admin` | Creates the admin account (and its default category) |
+| `rivulet integration-credentials` | Sets the account's Fever and Google Reader login pairs |
+| `rivulet create-api-key <description>` | Creates an API key for the REST v1 API (`X-Auth-Token`) |
+| `rivulet add <url>` | Subscribes to a feed; it is fetched on the next refresh (`--user` picks the account when there is more than one) |
+| `rivulet remove <url>` | Unsubscribes from a feed and deletes its entries |
+| `rivulet list` | Lists feeds; `--categories` lists categories, `--users` lists accounts |
+| `rivulet import <file>` | Imports subscriptions from an OPML file |
+| `rivulet export` | Writes the subscriptions as OPML to stdout, or to `--file` |
+| `rivulet backup <destination>` | Writes a consistent copy of the database; refuses to overwrite unless `--force`; `--verify` checks the copy |
+| `rivulet vacuum` | Rebuilds the database file to release free pages |
 
-Every command in the table is a run: the command set is complete, `import` and `export` being
-the OPML commands of stage 5 that landed with PR #64.
+`--help` and `version` work without any configuration; every other command needs `DATABASE_URL`.
 
-`--help` and `version` work without any configuration; every other command reads the
-configuration first and needs `DATABASE_URL`.
+## Configuration
+
+Configuration is read from environment variables. Only `DATABASE_URL` is required.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `DATABASE_URL` | — | Path of the SQLite database file |
+| `LISTEN_ADDR` | `127.0.0.1:8080` | `host:port` the server listens on |
+| `BASE_URL` | `http://localhost` | Public URL of the instance |
+| `RUN_MIGRATIONS` | `true` | Apply the schema on startup |
+| `LOG_LEVEL` | `info` | Log level |
+| `LOG_FORMAT` | `text` | `text` or `json` |
+| `POLLING_FREQUENCY` | `60` | Minutes between scheduler passes |
+| `BATCH_SIZE` | `100` | Feeds refreshed per pass |
+| `WORKER_POOL_SIZE` | `16` | Concurrent feed refreshes |
+| `POLLING_PARSING_ERROR_LIMIT` | `3` | Errors after which a feed stops being polled (`0` = no limit) |
+| `POLLING_LIMIT_PER_HOST` | `0` | Feeds from one host picked per batch (`0` = no limit) |
+| `HTTP_CLIENT_TIMEOUT` | `20` | Fetch timeout, in seconds |
+| `HTTP_CLIENT_MAX_BODY_SIZE` | `15` | Largest feed body, in MiB |
+| `HTTP_CLIENT_USER_AGENT` | Rivulet's own | User-Agent sent with fetches |
+| `HTTP_CLIENT_PROXY` | — | Proxy URL for fetches |
+| `FETCHER_IGNORE_HTTP_CACHE` | `false` | Ignore ETag / Last-Modified for every feed |
+| `FETCHER_ALLOW_PRIVATE_NETWORKS` | `false` | Allow fetching from private and loopback addresses |
+
+`docs/deploy.md` walks through a deployment on a fresh server.
 
 ## Development
 
@@ -79,6 +94,8 @@ Requires Swift 6.x on Linux or macOS.
 swift build
 swift test
 ```
+
+See `AGENTS.md` for the working agreement and `docs/README.md` for the rest of the documentation.
 
 ## License and attribution
 

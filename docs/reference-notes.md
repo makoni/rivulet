@@ -1213,43 +1213,24 @@ it is pinned in `XMLTreeTests`.
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A byte-order mark at the start of the document | a run of text before the first element: the
-`Token()` path has no mark rule, so nothing strips it | the mark is character data before the first
-element, because this path has no mark rule | | A mark after the prolog | its own run; the
-instruction is a token of its own, so the mark is not part of the prolog | the mark is not part of
-the prolog |
+| A byte-order mark at the start of the document | a run of text before the first element: the `Token()` path has no mark rule, so nothing strips it | the mark is character data before the first element, because this path has no mark rule |
+| A mark after the prolog | its own run; the instruction is a token of its own, so the mark is not part of the prolog | the mark is not part of the prolog |
 | A mark inside text | kept, as part of the run | a mark inside text is kept as part of the run |
-| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so
-the mark is not a boundary | the mark and the garbage are one run | | A mark with a declared label
-while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns
-valid UTF-8 bytes unchanged, so the mark stays the mark, not the three characters windows-1252 gives
-for them | valid UTF-8 bytes are not decoded through the label | | A document that is only the mark
-| one run of text | a document that is only the mark is one run of text | | Garbage before the
-prolog | text at the document level: `Strict = false` does not make it a failure | junk before the
-prolog is text at the document level, not a failure | | Markup before the prolog | tokens, so a text
-run stops at it; the text between markup is a run of its own | text stops at markup | | Leading
-whitespace before the prolog | a run of text, not tag whitespace, because it is not between parts of
-a tag | leading whitespace is a run of text | | The entity table | the 252-entry map `encoding/xml`
-carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are
-not, so those two stay as written | `NewLine` is not in the table encoding/xml carries, so it stays
-as written | | A numeric reference at the boundary | `&#x10FFFF;` — the largest character the
-reference can write — resolves, while `&#1114112;` past it stays as written | the largest character
-the reference can write resolves, so U+10FFFF is text | | A resolved character outside the `Char`
-production | the failure for an illegal character code, which the pins compare as the case the
-message names, not the wording | a resolved character outside Char is the failure for an illegal
-character code | | `<![CDATA[` | the characters are read as written, so references inside are not
-decoded | references inside a CDATA section are not decoded | | Where a CDATA run ends | `]]>` ends
-it and what follows is another run, because the marker that started the first is not part of the
-second | the terminator ends the run and what follows is a run of its own | | A CDATA section at the
-document level | content, so it appears in the stream, which a pin through the tree cannot see
-because the reader keeps only what is inside an element | a CDATA section at the document level is
-content | | Text before a CDATA marker | the marker ends the run, so the two are runs of their own |
-text before a CDATA marker and the section it opens are two runs | | `AutoClose` | never set by the
-reference, so an open element is closed by the next end tag, not by the next token | AutoClose is
-never set, so an open element is closed by the next end tag | | A stream that ends in a failure | a
-message naming the failure, which the port models as one case, so the pins compare the case and
-cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element |
-the mark is text, and the end tag after it has no element open |
+| A mark together with garbage before the prolog | one run: nothing before the prolog is markup, so the mark is not a boundary | the mark and the garbage are one run |
+| A mark with a declared label while the bytes are valid UTF-8 | not decoded through the label, because `CharsetReader` returns valid UTF-8 bytes unchanged, so the mark stays the mark, not the three characters windows-1252 gives for them | valid UTF-8 bytes are not decoded through the label |
+| A document that is only the mark | one run of text | a document that is only the mark is one run of text |
+| Garbage before the prolog | text at the document level: `Strict = false` does not make it a failure | junk before the prolog is text at the document level, not a failure |
+| Markup before the prolog | tokens, so a text run stops at it; the text between markup is a run of its own | text stops at markup |
+| Leading whitespace before the prolog | a run of text, not tag whitespace, because it is not between parts of a tag | leading whitespace is a run of text |
+| The entity table | the 252-entry map `encoding/xml` carries, resolved after the five references XML requires: `copy` is in it, `NewLine` and `colon` are not, so those two stay as written | `NewLine` is not in the table encoding/xml carries, so it stays as written |
+| A numeric reference at the boundary | `&#x10FFFF;` — the largest character the reference can write — resolves, while `&#1114112;` past it stays as written | the largest character the reference can write resolves, so U+10FFFF is text |
+| A resolved character outside the `Char` production | the failure for an illegal character code, which the pins compare as the case the message names, not the wording | a resolved character outside Char is the failure for an illegal character code |
+| `<![CDATA[` | the characters are read as written, so references inside are not decoded | references inside a CDATA section are not decoded |
+| Where a CDATA run ends | `]]>` ends it and what follows is another run, because the marker that started the first is not part of the second | the terminator ends the run and what follows is a run of its own |
+| A CDATA section at the document level | content, so it appears in the stream, which a pin through the tree cannot see because the reader keeps only what is inside an element | a CDATA section at the document level is content |
+| Text before a CDATA marker | the marker ends the run, so the two are runs of their own | text before a CDATA marker and the section it opens are two runs |
+| `AutoClose` | never set by the reference, so an open element is closed by the next end tag, not by the next token | AutoClose is never set, so an open element is closed by the next end tag |
+| A stream that ends in a failure | a message naming the failure, which the port models as one case, so the pins compare the case and cannot pin the wording, nor tell a clean end of the stream from an end reached inside an element | the mark is text, and the end tag after it has no element open |
 
 The typed error on the parser path (`parser/parser.go`)
 
@@ -1263,23 +1244,14 @@ branch: `atom.Parse` calls the parser for Atom 0.3 when the version says `0.3` a
 
 | Case | What the reference reports on this path | Pinned by the corpus case that says |
 | --- | --- | --- |
-| A JSON document whose content is followed by a real element | `json`, decided before any XML token
-is read | the JSON rule answers before any token is read, so a real element after the JSON content
-is not switched on | | A JSON document whose content is a field named `feed` | `json`, because the
-switch on the name reads roots and never a field | a JSON document whose content is a field named
-feed is answered JSON | | Whitespace before the JSON root, longer than the 32-byte buffer | `json`:
-the first character that is not whitespace decides, and the rule reads past the buffer | the
-character that decides the JSON rule is the first one that is not whitespace | | A document that is
-only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered
-unknown and reported as the typed error | | The token read as the 50th, and the token read as the
-51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the
-switch on the name | the pair whose roots sit on the two sides of the boundary | | An Atom root with
-the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose
-name is `version` whatever prefix it is written with | the attribute the reference reads is the one
-whose name is version | | A scan that fails before a root is read | `unknown`, with the failure for
-an angle bracket inside an attribute value | a scan that fails before a root is read ends it without
-an answer | | A document with no root the switch reads, or text only | `unknown`, so the sentinel |
-the scan ends with the answer unknown for a document with no root the switch reads |
+| A JSON document whose content is followed by a real element | `json`, decided before any XML token is read | the JSON rule answers before any token is read, so a real element after the JSON content is not switched on |
+| A JSON document whose content is a field named `feed` | `json`, because the switch on the name reads roots and never a field | a JSON document whose content is a field named feed is answered JSON |
+| Whitespace before the JSON root, longer than the 32-byte buffer | `json`: the first character that is not whitespace decides, and the rule reads past the buffer | the character that decides the JSON rule is the first one that is not whitespace |
+| A document that is only whitespace | `unknown`, so the sentinel | a document that is only whitespace is answered unknown and reported as the typed error |
+| The token read as the 50th, and the token read as the 51st | the 50th is switched on, so `rss`; the 51st is not, because the cap is checked before the switch on the name | the pair whose roots sit on the two sides of the boundary |
+| An Atom root with the `version` attribute written with a prefix | `0.3`, because the attribute read is the one whose name is `version` whatever prefix it is written with | the attribute the reference reads is the one whose name is version |
+| A scan that fails before a root is read | `unknown`, with the failure for an angle bracket inside an attribute value | a scan that fails before a root is read ends it without an answer |
+| A document with no root the switch reads, or text only | `unknown`, so the sentinel | the scan ends with the answer unknown for a document with no root the switch reads |
 
 The corpus the rows rest on is `Tests/RivuletCoreTests/Fixtures/parser/parser_error_corpus.txt`,
 read by `Tests/RivuletCoreTests/ParserErrorTests.swift`; the method is in `docs/testing.md`. What it
