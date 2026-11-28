@@ -32,4 +32,4 @@
   plan pins as a run. The one tool the page names outside that set is Litestream, named there as
   outside the port.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

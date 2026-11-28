@@ -115,7 +115,7 @@ non-zero exit status — everything else lives in `RivuletApp`.
   The stored value is the bcrypt hash at the reference's cost, and the migrations run when the flag
   is on, as the other commands have them gated. Two parts of the reference's command are not
   ported: the terminal check, because this port reads through the console seam, and the environment
-  path, which belongs to the daemon branch and arrives with `serve`.
+  path (`CREATE_ADMIN` with `ADMIN_USERNAME` and `ADMIN_PASSWORD`).
 - `integration-credentials` — one account's credential pairs, then exit: reads the account name and
   the two integration names as plain console input and the two passwords as the secure input, trims
   everything, and writes what the run derives — the Fever pair as the digest of `name:password`, the
@@ -124,23 +124,24 @@ non-zero exit status — everything else lives in `RivuletApp`.
   checks run in the reference's order, with the reference's guard that an empty name is not read at
   all, and a hit ends the command with nothing written; the command prints the value it stored.
   Migrations run when the flag is on, as the other commands have them gated.
-- The two remaining registered stubs are `import` and `export`; every other command of the final
-  surface works: `serve`, `migrate`, `version`, `refresh`, `status`, `create-admin`,
-  `integration-credentials`, `create-api-key` (stage 10's first slice), the feed commands `add`,
-  `remove` and `list`, and the maintenance commands `backup` and `vacuum`.
+- The rest: `create-api-key` (a REST v1 key), the feed commands `add`, `remove` and `list`, the OPML
+  commands `import` and `export`, and the maintenance commands `backup` and `vacuum`. The README has
+  the full table.
 
 `--help` lists every command and, like `version`, works without configuration.
 
 ## HTTP surface
 
 - `/healthz` — liveness probe: every standard method answers `200 OK`, body `OK`, no database
-  access (upstream registers it on a method-less pattern; Rivulet registers the standard NIO
-  set, and upstream's `/readiness` probe pings the database and arrives together with the
-  client APIs).
-- `GET /v1/me` — the one path stage 10's scope has registered, read as data by the route rule of the
-  client matrix and by the DocC rule that reads the routes the pages name against the registrations.
-  A path on the `/v1` prefix with no pattern registered answers the router's 404, which is the half
-  the client matrix reads as an accepted class.
+  access (upstream registers it on a method-less pattern; Rivulet registers the standard NIO set).
+  Upstream's `/readiness` probe, which pings the database, is not ported.
+- `POST /accounts/ClientLogin` and `/reader/api/0/…` — the Google Reader API
+  (`GoogleReaderRoutes`), authenticated with the integration credentials.
+- `/fever` — the Fever API (`FeverRoutes`), authenticated with the `api_key` digest of the Fever pair.
+- `/v1/…` — the Miniflux REST v1 subset Capy Reader calls (`RestV1Routes`, stage 10; the endpoint
+  list is in `docs/plan/stage-10-rest-v1.md`), authenticated with an `X-Auth-Token` API key or
+  basic auth. A `/v1` path with no registered pattern answers the router's 404.
+- `GET /feed-icon/:externalID` — the stored feed icon (`IconRoutes`).
 
 ## Decisions and deviations from Miniflux
 
@@ -156,7 +157,7 @@ non-zero exit status — everything else lives in `RivuletApp`.
 | Web sessions | cookie sessions for the web UI | none | No web UI (explicit non-goal) |
 | Bare invocation | `miniflux` starts the server | `rivulet` prints help and fails | The CLI is explicit about what it runs; `serve` is a command like any other |
 | Config names | `LISTEN_ADDR`, `BASE_URL`, `LOG_LEVEL`, … | same where meaningful; `DATABASE_URL` = SQLite file path | Familiar to Miniflux users |
-| Web UI and REST v1 | full UI + REST v1 | none in MVP; the subset one real consumer declares is worked as stage 10, outside the MVP, with `GET /v1/me` registered | Focus on the client APIs that matter |
+| Web UI and REST v1 | full UI + REST v1 | none in MVP; the subset one real consumer (Capy Reader) declares is worked as stage 10, outside the MVP | Focus on the client APIs that matter |
 
 ## Configuration
 

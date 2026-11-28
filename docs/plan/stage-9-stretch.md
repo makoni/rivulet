@@ -9,11 +9,10 @@ this file names them in, which is not the order the issue numbers run in.
 
 - Issue 98 — quoted-printable: a multipart part that declares the
   `Content-Transfer-Encoding: quoted-printable` transfer encoding is decoded as the MIME reader of
-  the reference decodes it. The record of what the run showed is in `docs/testing.md`.
+  the reference decodes it. The pins are in `FeverMultipartReadTests`.
 - Issue 117 — the process harness read that tells a child exiting before writing its serve line from
   no event at all: the end of the stream is the exit event, so that read answers the status the
-  harness recorded for the exit rather than no serve event. The record of what the run showed is in
-  `docs/testing.md`.
+  harness recorded for the exit rather than no serve event. The pins are in `ServeProcessTests`.
 
 ## Group A — provable on this machine
 

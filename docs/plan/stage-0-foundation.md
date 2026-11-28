@@ -28,4 +28,4 @@
 - [x] `rivulet migrate && rivulet serve` works against a fresh database; `/healthz` responds.
 - [x] README lists the commands that exist so far.
 
-The tests that pin these are named in `docs/testing.md`.
+Each test suite's header comment names what its tests pin.

@@ -22,7 +22,7 @@ set -euo pipefail
 # clause fixes none between equal values; and the credentials run's prompt count against the number
 # of prompts the command declares, read from the file the check half reads it from. The guard that
 # reads Docker itself fails only on a machine without it, which is the point of the job. What the
-# run cannot show is named in the document and in `docs/testing.md`: that the fetch was still in
+# run cannot show is named in the document: that the fetch was still in
 # flight when the signal landed, that the container had nothing beyond the file the Dockerfile
 # writes, the wording of the lines the binary printed, the exit code a stop signal that never lands
 # would leave, the value a fetcher with the policy off would have refused before the round, the

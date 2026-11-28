@@ -6,7 +6,7 @@ import Vapor
 import RivuletApp
 @testable import RivuletCore
 
-/// The socket the three subscription suites read their pins through: one socket with the account it
+/// The socket the four subscription suites read their pins through: one socket with the account it
 /// authenticated as, the rows the pins write, and the values they read back through SQL.
 ///
 /// The pins read the answer rather than the transport. The POST half carries the token as the form

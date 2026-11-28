@@ -25,6 +25,6 @@ answered on. The parity harness, the security checklist and the performance numb
 their runs showed.
 
 The record lives in the documents the halves read as data: `docs/clients.md`, `docs/parity.md`,
-`docs/parity-report.md`, `docs/performance.md`, `docs/security.md`, and in `docs/testing.md`. The run
+`docs/parity-report.md`, `docs/performance.md` and `docs/security.md`. The run
 halves are `Scripts/parity.sh`, `Scripts/perf.sh` and `Scripts/client-run.sh` with
 `Tools/clients/observer.py`; the check halves are `Tools/parity/` and `Tools/clients/`.

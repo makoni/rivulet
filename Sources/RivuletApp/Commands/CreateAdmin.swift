@@ -11,8 +11,7 @@ extension RivuletCLI {
     /// both before using them, which is what `askCredentials` does. Two things the reference does
     /// here are not ported: the check that the input is an interactive terminal, because this port
     /// reads through the console seam where a captured console has no terminal to test, and the
-    /// environment path (`ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN`), which belongs
-    /// to the daemon branch and arrives with `serve` in stage 6.
+    /// environment path (`ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN`).
     ///
     /// The order is the reference's: the existence read first, so a name that already has a row is
     /// skipped whatever its characters are, then the rules, then the write. The hash is the

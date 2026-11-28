@@ -61,7 +61,7 @@ stage names the shape the run showed and `docs/parity.md` records the two sides.
 The `api_keys` table, its two reads, the `create-api-key` command, the two halves of the auth read, the
 answer as pure logic, the document shape, the route registration and the answer over a socket are closed
 as what their runs showed. The categories, feeds, entries and integrations halves of issue 110 are
-closed the same way, and the record lives in `docs/testing.md` under the stage-10 section. What the
+closed the same way; the pins are the `RestV1*Tests` suites. What the
 entries round could not show is stated in its suite headers rather than asserted: the order between the
 either-field rule and the status rule, which no input can fail both, and the order between the status
 write and the starred write, which both write different columns of the same rows.

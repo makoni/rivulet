@@ -343,7 +343,7 @@ answer the same way for every input.
 gathered while walking the subtree. The tree keeps character data already decoded, so `innerMarkup`
 is a reconstruction: a run that carries entities comes back as the character it resolves to, not as
 the reference wrote it. Cases whose stated value needs the bytes as written cannot be pinned, and
-are not ported — see `docs/testing.md`.
+are not ported; `AtomTextConstructTests` names them.
 - `",chardata"` keeps only the level the field is read at, so the text inside a child element is not
 part of the value, while `innerContent` writes every character token it read. The tree keeps the two
 apart, which is what the Atom content cases depend on.
@@ -867,7 +867,7 @@ is 10 at the version `go.mod` pins.
 | Report wording | two `slog` records with fixed sentences, sent to the log | console lines, with the port's own wording | Pins read the outcome and the name carried on the line, not the sentence |
 | Interactive-terminal check | refuses to read when the input is not a terminal | not ported, because this port reads through the console seam and a captured console has no terminal to test | A non-terminal input is accepted here. No pin can reach this case, so it is stated in the command comment |
 | Plaintext that holds a NUL byte | hashes and compares the bytes it is given, up to the 72-byte limit | measures the key with `strlen`, so the key ends at the first NUL | A password with an embedded NUL hashes differently, and a hash created from such a password does not verify through this port. No patch of this port can change the measurement, which belongs to the C implementation, so the difference is stated here and named in `BcryptHasherTests` |
-| Environment path | `ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN` create the account on the daemon branch | not ported with this slice, because that path belongs to `serve` | The console path is pinned; the environment path is named in the stage plan and arrives with stage 6 |
+| Environment path | `ADMIN_USERNAME` and `ADMIN_PASSWORD` with `CREATE_ADMIN` create the account on the daemon branch | not ported | The console path is pinned; the account is created with `rivulet create-admin` |
 | Transaction boundary | `CreateUser` writes the row and the default "All" category in one transaction | two statements, with the transaction left to the caller, because a repository must not open a nested connection | No pin can separate the two statements; the pair is asserted as what the run left behind, which is stated in the repository comment |
 
 ## Integration credentials (stage 5)

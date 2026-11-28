@@ -11,7 +11,7 @@ Every rule is a function over the data `parsers.py` builds: the document the run
 document and a committed file the run names. The parsers read the three artifacts as the keys
 they write, so a rule that compares a tool answer with a key the file writes reads the file
 rather than the word the run declared for it. What the rules cannot read is what `CANNOT_SHOW`
-names and what `docs/testing.md` writes as the report. The coverage rule reads the keys the three
+names. The coverage rule reads the keys the three
 artifacts write against `READS`, the bookkeeping of which rule reads which key, plus `NOT_READ`,
 the two unit keys that are structure rather than a value the port reads.
 
@@ -29,8 +29,8 @@ import re
 
 import parsers as read
 
-# The parts no rule can read, which the run cannot show either, so they are named here and in
-# `docs/testing.md` rather than asserted by a rule. These lines are read as whole strings by the
+# The parts no rule can read, which the run cannot show either, so they are named here
+# rather than asserted by a rule. These lines are read as whole strings by the
 # report rule, so they are not wrapped.
 CANNOT_SHOW = [
     "that the run ran at all, because it is on demand and not in CI",
