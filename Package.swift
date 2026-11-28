@@ -84,6 +84,8 @@ let package = Package(
             dependencies: [
                 "RivuletApp",
                 "RivuletCore",
+                // The documentation suite reads the command signatures the CLI registers.
+                .product(name: "ConsoleKit", package: "console-kit"),
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),

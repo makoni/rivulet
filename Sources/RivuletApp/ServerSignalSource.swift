@@ -99,7 +99,9 @@ public nonisolated final class ServerSignalSource: SignalSource, @unchecked Send
             lock.unlock()
             continuation.resume(returning: false)
         }
-    }    /// Whether the first stop signal has already arrived.
+    }
+
+    /// Whether the first stop signal has already arrived.
     public nonisolated func arrived() -> Bool {
         lock.lock()
         defer { lock.unlock() }
