@@ -95,12 +95,22 @@ problems the pin names and records the calls the run made through it, with wheth
 already there at the call, which is how a pin reads the check as running after the write rather than
 before it. The recording is a read the helper makes on the filesystem itself, not a rule the check
 applies, so a pin that reads the check as not running answers a control that does run it.
-
 - `DatabaseContent.swift` — the content read the command suites share: the tables a file holds and
 one digest line per entry, ordered by id, read through SQL, so a pin is not satisfied by the read it
 is testing. `content(at:on:as:)` reads a file through its own driver, which is what the copy pins
 need, because the copy is not the connection the test seeded with.
-
+- `RecordingSpace.swift` — the filesystem the free-space pins drive instead of the real one,
+because the room a real filesystem reports is not something a pin can name.
+- `SubscriptionSocket.swift` — the socket the three Google Reader subscription suites read through:
+the authenticated account, the rows the pins write, and the values read back through SQL.
+- `TestClock.swift` — a clock that answers one injected instant, so every stamp a pipeline pin reads
+is that value rather than the process clock.
+- `AcceptanceJourney.swift` — the chain the acceptance journey pin runs: account and credentials,
+OPML import, one refresh pass, then client requests over the socket.
+- `SpawnedProcess.swift` — the process harness: spawns the built `rivulet` executable, reads the
+line it writes once it serves, sends signals, and reports how the child exited (`ServeProcessTests`).
+- `CallingSets.swift` — reads the acceptance clients' calling sets from
+`CallingSets/` as data for the replay pins.
 - `StubFeedServer.swift` — in-process HTTP server serving feed fixtures with configurable behavior:
 status codes, `ETag`/ `Last-Modified`, gzip, redirects, delays (before the answer, or after the head
 so a body can arrive later than a deadline), cut connections, chunked responses, charset headers.
@@ -153,7 +163,7 @@ else that matters — one lookup for a direct hop, the answer handed to the poli
 pinned to the answer it was built from — is tested through the resolver seam, with a seeded resolver
 for the pinning and a counting one for the single lookup.
 
-The cache has four behaviour tests. The first pins the one effect that can be observed from outside
+The fetcher's client cache has four behaviour tests (`FetcherClientCacheTests`). The first pins the one effect that can be observed from outside
 an eviction: while a request is in flight the client serving it must not be closed, or that request
 is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
 the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
@@ -251,7 +261,7 @@ stops. Nothing in it reads a clock, a locale or the network. The URL rules the s
 attribute values through — that a value already read as absolute is written as it was read, that the
 control-byte check is the parse's and not the writer's, that the query is not decoded, and that the
 entity decoding happens in the tokenizer before the URL part sees the value — are pinned by the
-hostile corpus below, which is where the plan's open entity-decoding and whitespace items closed.
+hostile corpus below.
 
 The sanitizer's upstream corpus is ported in full except the fuzz target `FuzzSanitizer`, whose
 expectation is that the sanitized output has no more tokens than the input, which needs a fuzz
@@ -269,8 +279,7 @@ table, and where comment data ends, because the renderer writes nothing for a co
 
 The hostile corpus the plan names is `SanitizerHostileCorpusTests` over
 `Fixtures/sanitizer/hostile_corpus.txt`: 146 inputs that try to make the sanitizer write active
-content, each with the output the reference produced for it and the rule that output pins (145 from
-stage 3, plus the entity-table case the stage-7 security checklist added). The inputs are ours, not
+content, each with the output the reference produced for it and the rule that output pins. The inputs are ours, not
 upstream's; the outputs were written by running Miniflux v2.3.3 at commit `c4d54f87` with the
 reference's test helper options — `OpenLinksInNewTab: true`, base URL `http://example.org/`,
 `TZ=UTC` — the same method the parser corpus uses, so a failure here is a difference in the port.
@@ -296,8 +305,8 @@ The XML tolerance table (`XMLToleranceTests`) is the run the plan's test-plan it
 inputs over the four quirk classes, read through `NewXMLDecoder` and `Token()` — the reader path,
 not `Decode` — with the same reference and the same method the parser corpus uses, comparing the
 token stream and how the stream ends. The run found no divergence, so the table in
-`docs/reference-notes.md` records what the reference reports rather than a difference, and
-`docs/parity.md` gained no new row there beyond the modeling choice for the end of the stream. The
+`docs/reference-notes.md` records what the reference reports rather than a difference; `docs/parity.md` records only the
+modeling choice for the end of the stream. The
 30 cases that can fail on the rule they name are committed as the fixture
 `Tests/RivuletCoreTests/Fixtures/xml/tolerance_corpus.txt`; a case is left out when a wrong
 implementation of its rule writes the same stream, so the suite reads the fixture rather than
