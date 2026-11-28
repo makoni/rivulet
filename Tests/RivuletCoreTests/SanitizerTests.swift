@@ -11,8 +11,8 @@ import Testing
 /// rule pin.
 ///
 /// The case the security checklist adds pins the sign as `strconv.Atoi` reads it, which the
-/// reference's own corpus has no case for — 1 pin and 1 probe, shown by patching
-/// `isPositiveInteger` to refuse a leading plus and reverting byte-identically. What that pin
+/// reference's own corpus has no case for; a patch to `isPositiveInteger` that refuses a leading
+/// plus fails it. What that pin
 /// cannot show: the number itself, because the rule is only that the sign belongs to the value, so
 /// any positive value the parse accepts answers the same; the error branch of `Atoi`, which this
 /// suite's own `TestImgSanitization` cases pin through `10px` rather than the corpus, which has no

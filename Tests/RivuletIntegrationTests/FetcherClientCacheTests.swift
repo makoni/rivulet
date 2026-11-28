@@ -8,8 +8,8 @@ import Testing
 /// nothing to close, and the next fetch builds a client again.
 ///
 /// The two pins the security checklist adds read the trim: the cache staying at the cap after a
-/// checkout that goes over it, and the entry it closes being the one whose expiry comes first — 2
-/// pins and 2 probes, each checked by patching the rule and reverting byte-identically: the trim
+/// checkout that goes over it, and the entry it closes being the one whose expiry comes first, each
+/// checked by patching the rule and reverting: the trim
 /// guard never firing, which answered the count as nine entries and left the first host in the
 /// cache, and the expiry read in the other direction, which closed the newest entry and flipped the
 /// second pin alone. Both read the cache through an internal accessor, because closing a client

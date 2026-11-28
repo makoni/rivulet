@@ -1,8 +1,7 @@
 import Testing
 @testable import RivuletCore
 
-/// The document a request body carries, read for the two shapes this path declares. 9 pins and
-/// 10 probes, every probe seen to fail on the rule it names and to revert the file byte-identically.
+/// The document a request body carries, read for the two shapes this path declares.
 ///
 /// What these pins can fail on, each shown by patching the rule and reverting it: a body with no
 /// value, which the reference's decoder answers as a failure rather than as an empty document; a byte

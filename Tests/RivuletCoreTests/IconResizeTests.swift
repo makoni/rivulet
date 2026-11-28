@@ -17,30 +17,30 @@ import Testing
 /// `downloadIcon` computes it before calling the resize, so the hash and the content stop
 /// corresponding for a resized icon.
 
-/// What these pins can fail on, each checked by patching the rule and reverting (17 pins, 25
-/// probes): the whole-value comparison — 1 probe, a patch that normalizes the content type before
-/// the pipeline reads it fails on `image/png; charset=x`; the type list read before the read — 1
-/// probe, a patch that reads the header and its rejection first; the magic match — 1 probe, a patch
+/// What these pins can fail on, each checked by patching the rule and reverting: the whole-value
+/// comparison — a patch that normalizes the content type before
+/// the pipeline reads it fails on `image/png; charset=x`; the type list read before the read — a
+/// patch that reads the header and its rejection first; the magic match — a patch
 /// that matches on the declared type fails where the declared type and the file's own format part;
-/// the per-magic length — 1 probe, a patch that compares every magic at one fixed header length
-/// fails on the file shorter than the longest magic; the start-of-frame rules — 5 probes, one that
+/// the per-magic length — a patch that compares every magic at one fixed header length
+/// fails on the file shorter than the longest magic; the start-of-frame rules — one that
 /// accepts only the first of the three markers, one that dispatches the whole group instead of the
 /// three, one that accepts any component count, one that drops the precision rule, and one that
-/// drops the rule that the count byte matches the length; the header length the GIF read takes — 1
-/// probe, a patch that lowers the 13 bytes to 10, which is the file the pin names; the WebP chunk
-/// shapes — 4 probes, a patch that matches only the lossy chunk name fails the packed case, one
+/// drops the rule that the count byte matches the length; the header length the GIF read takes — a
+/// patch that lowers the 13 bytes to 10, which is the file the pin names; the WebP chunk
+/// shapes — a patch that matches only the lossy chunk name fails the packed case, one
 /// that reads the packed pair as 16-bit fails that case, one that drops the plus one fails the
 /// extended case, and one that reads the lossy pair at the start of the chunk instead of after its
-/// sync code fails that case; the key-frame bit — 1 probe, a patch that reads the dimensions
-/// whatever the frame tag says; the segment walk — 1 probe, a patch that assumes the frame segment
-/// is the first one; the header the read cannot answer — 1 probe, a patch that answers dimensions
-/// for a file no magic matches; the dimension guard — 2 probes, one that reads only one side and
-/// one that compares as greater-or-equal instead of strictly greater; the passthrough guard — 3
-/// probes, one that reads only the height, one that reads only the width, and one that compares as
+/// sync code fails that case; the key-frame bit — a patch that reads the dimensions
+/// whatever the frame tag says; the segment walk — a patch that assumes the frame segment
+/// is the first one; the header the read cannot answer — a patch that answers dimensions
+/// for a file no magic matches; the dimension guard — one that reads only one side and
+/// one that compares as greater-or-equal instead of strictly greater; the passthrough guard — one
+/// that reads only the height, one that reads only the width, and one that compares as
 /// less instead of less-or-equal, which is why the pin holds a case in each direction; the document
-/// the resize writes — 1 probe, a patch that writes it at the source dimensions; the checksum — 1
-/// probe, a patch that recomputes it from the resized bytes; and the pixels read through the
-/// declared type — 1 probe, a patch that dispatches the decode by the file's own format.
+/// the resize writes — a patch that writes it at the source dimensions; the checksum — a patch that
+/// recomputes it from the resized bytes; and the pixels read through the
+/// declared type — a patch that dispatches the decode by the file's own format.
 
 /// What these pins cannot show: the SVG branch, which the reference minifies and this port has no
 /// minifier for, so no patch can part the branch from the type list it sits before; the content

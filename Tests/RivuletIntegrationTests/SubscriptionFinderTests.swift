@@ -8,8 +8,8 @@ import Testing
 /// the half `SubscriptionDocumentLinksTests` pins, and has no test for the two steps this port
 /// has, so these pins are the port's own.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (5 pins, 5
-/// probes): the response is read before the body, so a status failure is reported even when the
+/// What these pins can fail on, each checked by patching the rule and reverting: the response is read
+/// before the body, so a status failure is reported even when the
 /// body is empty; the format is decided from the bytes before any token is read, so a patch that
 /// scanned first answered the href inside the document; the answer for a document that is already
 /// a feed is the URL the response came from, which is a different answer for a hop that was

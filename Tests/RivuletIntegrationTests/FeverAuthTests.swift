@@ -7,8 +7,8 @@ import RivuletApp
 /// The transport this path reads, over a real socket: `internal/fever/middleware.go` at `c4d54f87`.
 /// The goldens are the reference's own answers for these inputs at the toolchain `go.mod` pins.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (3 pins, 5 probes:
-/// 3 on the failure-document pin, 2 on the merged-form pin): the answer for a run the read failed
+/// What these pins can fail on, each checked by patching the rule and reverting: the answer for a run
+/// the read failed
 /// is the failure document at HTTP 200, which a patch that wrote the common values for it — auth 1
 /// and the run's instant — fails on, and a patch that answered 401 fails on too; that the key is
 /// read through the merged form and not through the header this path's sibling reads, which a patch

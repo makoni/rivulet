@@ -1,16 +1,12 @@
-# Stage 8's compose file, read as data by `Tools/deploy/deploy_check.py`, which reads the tool's
-# own resolution of it against the lines this file writes, so a key here is checked against the
-# value the tool reads it as. Every env name the run resolves from the env file is a name the
-# config parser reads, and a name it does not reads as nothing, so a typo here is not an error
-# the run reports.
+# Example compose file. Build the image from the static binary (see the Dockerfile), put the
+# configuration in `../.env` (see `.env.example`), and mount a volume for the database.
 services:
   rivulet:
     build:
       context: ..
       dockerfile: Dockerfile
     image: rivulet
-    # The ENTRYPOINT the Dockerfile writes names the program alone, so the subcommand comes from
-    # this line, and `serve` is the command the dispatch registers.
+    # The image's ENTRYPOINT is the binary alone, so the subcommand comes from here.
     command: serve
     restart: on-failure
     ports:

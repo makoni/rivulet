@@ -13,17 +13,17 @@ import Testing
 /// the pool, because the driver keeps a single pooled connection, so a pin cannot hold one while
 /// the handler checks out another.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (4 pins, 8 probes):
+/// What these pins can fail on, each checked by patching the rule and reverting:
 /// the groups document answers the title order the read builds, which a patch that used the listing
 /// read with the position column fails on — the pins write positions so the two orders part; the
 /// feed ids inside a group are in the order the feeds listing answers, which a patch that grouped
 /// them in row order fails on; the group order is the order the feeds first appear in, which a
-/// patch that built it from the categories read or from the row order fails on — 3 probes on that
-/// pin; the feeds document answers the order the sort read builds rather than the row order, and
-/// `favicon_id` is the icon row the feed points at and the zero for a feed that points at nothing —
-/// 2 probes; the comma join of the id documents, which a patch that joined them another way fails
+/// patch that built it from the categories read or from the row order fails on; the feeds document
+/// answers the order the sort read builds rather than the row order, and
+/// `favicon_id` is the icon row the feed points at and the zero for a feed that points at nothing;
+/// the comma join of the id documents, which a patch that joined them another way fails
 /// on, and the two filters those documents read — the status filter and the starred flag — which a
-/// patch that read one filter for both documents fails on — 3 probes on that pin. The join itself
+/// patch that read one filter for both documents fails on. The join itself
 /// and the `data` field are pinned as a read by `IconRepositoryTests`, so the favicons pin here
 /// reads those two rules through the document and no patch is run against it here.
 ///

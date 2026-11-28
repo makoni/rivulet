@@ -1,17 +1,12 @@
 import Foundation
 import Testing
 
-///The calling sets the replay suite reads as data, and the two record files beside them. Both
-///halves read the same copy: the pins read it through the bundle, `Tools/clients/replay.py` reads
-///the same files from disk. That is why the sets live inside this target — a pin that reads the
-///recorded order and the check half that reads the same order cannot disagree by restating it
-///twice. The pins read the records for what they expect, so a pin is not a restatement of the
-///matrix: the field names are the ones the check half reads, and the pairing of a call with the pin
-///that reads it is `CallingSets/replayed.txt`, which the check half reads as data. What the pins
-///cannot show is named in `docs/clients.md`.
+///The recorded client calling sets the replay suite reads. `replayed.txt` beside them lists, for
+///reference, the test that replays each recorded call or why it is not replayed; `docs/clients.md`
+///describes the clients.
 enum CallingSets {
     ///One client's calling set, as the record file writes it. Only the fields the pins read are
-    ///modelled; a field the pins do not read is read by the check half.
+    ///modelled.
     struct CallingSet: Codable {
         struct Source: Codable {
             let kind: String
@@ -109,33 +104,6 @@ enum CallingSets {
 
     static func set(_ client: String) throws -> CallingSet {
         try #require(all().first { $0.client == client }, "no calling set for \(client)")
-    }
-
-    ///The replay list as the record writes it: the key and the pin or the reason the check half
-    ///names.
-    static func replayed() throws -> [String: String] {
-        try records("replayed.txt")
-    }
-
-    ///The manifest as the record writes it: the key and the class the check half reads it against.
-    static func manifest() throws -> [String: String] {
-        try records("manifest.txt")
-    }
-
-    private static func records(_ name: String) throws -> [String: String] {
-        let text = String(decoding: try Data(contentsOf: url(name)), as: UTF8.self)
-        return text.split(separator: "\n").map(String.init).filter {
-            !$0.isEmpty && !$0.hasPrefix("#")
-        }.reduce(into: [String: String]()) { found, line in
-            let parts = line.split(separator: "|", omittingEmptySubsequences: false).map {
-                $0.trimmingCharacters(in: .whitespaces)
-            }
-            // A record line is one record: the key and the part the check half reads it against. A
-            // line with fewer parts is not a record, so it reads as nothing rather than as an index
-            // that cannot be answered.
-            guard parts.count >= 2 else { return }
-            found[parts[0]] = parts[1]
-        }
     }
 
     private static func names() -> [String] {

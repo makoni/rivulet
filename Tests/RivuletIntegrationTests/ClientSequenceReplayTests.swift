@@ -7,9 +7,7 @@ import Vapor
 ///The recorded calling sets read as data and replayed against the served app over a real socket.
 ///Each pin takes one recorded call and asserts what the port answers for it: the record names the
 ///call and the value the pin reads, so a pin is the replay half of the matrix rather than a
-///restatement of the matrix's table. 9 pins and 12 probes, each seen to fail on the rule it names
-///and to revert the file byte-identically; the login half has 2 probes, the prefix pin has 2, the
-///token pin has 2, and every other pin has 1.
+///restatement of the matrix's table.
 ///What each pin can fail on, with the input its probe crafts: - the recorded order is the order the
 ///set declares — a patch that swaps two entries of the record's own `source_order`. This is the
 ///only pin here that can fail on the record rather than on a rule, because nothing in the port
@@ -51,8 +49,7 @@ import Vapor
     private let storedHash = "$2a$10$hOrIpoEkDKAMFrOt2/k1yeyHBaZKOwK8zEg9JVchReOAtQZ5mEeFu"
 
     // The two values the token pin reads: the half the call name carries, and the word the set names
-    // for the half read through the tolerance table, which is the word `Tools/clients/parsers.py`
-    // names for the same half.
+    // for the half read through the tolerance table.
     private let slashes = CharacterSet(charactersIn: "/")
     private let toleranceRead = "read here through the tolerance table"
 
@@ -84,9 +81,9 @@ import Vapor
     ///read, and the answer it carries is the value the later requests read as the token. A pair
     ///with no `=` is a name with an empty value, so the 401 here is the guard's answer rather than
     ///the read's, and the two 401 shapes say which piece ran: the login guard's own shape is the
-    ///JSON one, and the wrapper's is the text one. 2 probes: the first patches the write so the
-    ///three lines carry the stored value instead of the value the row derives, the second patches
-    ///the route so the wrapper covers the login too.
+    ///JSON one, and the wrapper's is the text one. It fails on a patch to the write that makes the
+    ///three lines carry the stored value instead of the value the row derives, and on a patch to
+    ///the route that makes the wrapper cover the login too.
     @Test func theLoginHalfCarriesNoWrapperAndCarriesTheValueTheLaterReadsCompare() async throws {
         try await withServedApp { storage, app, base in
             let requests = GoogleReaderRequests(app, base)
@@ -266,16 +263,13 @@ import Vapor
         }
     }
 
-    ///The half whose calls are not all read as data is the prefix this port registers one route on:
-    ///Capy Reader names two halves, and the Miniflux half is the one whose calls the check half
-    ///does not read as data, because no run here left a record line on this path. The two answers
-    ///this pin reads are the two sides of the parity row: the path the pattern registers answers
-    ///the read's answer, and a path on the same prefix with no pattern answers the router's answer,
-    ///which is what the reference does not answer because its chain runs before its mux. This pin
-    ///has two probes: the patch that took the registration out fires the assertion for the
-    ///registered path, and the patch that moved the prefix the half names fires that assertion and
-    ///the one for the prefix. The note the rule reads is crafted by a probe, because a pin reads
-    ///the set as data and cannot read a note as an expectation.
+    ///Capy Reader's set names two halves, and the Miniflux REST half is the one whose calls are not
+    ///all replayed one by one; this pin reads it through the prefix this port registers routes on.
+    ///The two answers it reads are the two sides of the parity row: a path a pattern registers
+    ///answers the route's own answer, and a path on the same prefix with no pattern answers the
+    ///router's answer, which the reference does not give because its auth chain runs before its mux.
+    ///It fails on a patch that takes the registration out, and on a patch that moves the prefix the
+    ///half names.
     @Test func theHalfWhoseCallsAreNotAllReadHereIsThePrefixThisPortRegistersOneRouteOn() async throws {
         try await withServedApp { _, app, base in
             let set = try CallingSets.set("Capy Reader")

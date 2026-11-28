@@ -8,18 +8,16 @@ CLI-first interface and no web UI.
 
 | Document | Description |
 | --- | --- |
-| [Implementation plan](plan/README.md) | The stage table, the open criteria as issues, and where each record lives |
+| [Implementation plan](plan/README.md) | The stage table and the decisions each stage set; open work is in issues |
 | [Architecture](architecture.md) | Module layout, data model, SQLite design decisions |
 | [Backup and restore](backup-restore.md) | Snapshots, restoring a database, disk-space housekeeping |
-| [Testing strategy](testing.md) | Unit, fixture, integration and acceptance testing; TDD workflow |
+| [Testing strategy](testing.md) | Test levels, TDD workflow, infrastructure, fixtures, manual scripts |
 | [Reference notes](reference-notes.md) | Verified Miniflux v2.3.3 behavior condensed for the plan |
 | [Parity notes](parity.md) | Where Rivulet knowingly differs from Miniflux, and why |
-| [Parity report](parity-report.md) | The last comparison run, read as data by the parity comparator |
-| [Security checklist](security.md) | SSRF, size and time caps, auth behavior, sanitizer bypass, dependency audit: what is pinned, what cannot be |
-| [Client matrix](clients.md) | Calling sets of the acceptance clients, the checks for each, and what the matrix cannot show |
-| [Performance notes](performance.md) | The measured numbers, each matched to the run that produced it |
-| [Deploy runbook](deploy.md) | The steps a fresh machine follows, read as data by the runbook rule |
-| [DocC harness](docc.md) | The pages the catalog writes, the rules that read them as data, and what no rule reads |
+| [Security checklist](security.md) | SSRF, size and time caps, auth, sanitizer bypass, dependency audit |
+| [Clients](clients.md) | The supported client apps, how to connect each, and what has been verified |
+| [Performance notes](performance.md) | Rough timings from `Scripts/perf.sh` |
+| [Deploy runbook](deploy.md) | Installing, running, backing up and upgrading on a server |
 | [AGENTS.md](../AGENTS.md) | Working agreement for AI agents and contributors (TDD-first) |
 
 ## Plan at a glance
@@ -33,4 +31,5 @@ names the issues that belong to each stage.
 The user-facing documentation is the DocC catalog next to the code,
 `Sources/RivuletCore/RivuletCore.docc/`: a table of contents, four concept articles and one
 tutorial. `Scripts/build-docs.sh` builds the archive; publishing the site happens outside this
-repository. [docc.md](docc.md) describes the checks that keep the catalog in sync with the code.
+repository. `DocumentationConsistencyTests` keeps the catalog in sync with the CLI and the
+configuration.

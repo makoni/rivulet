@@ -28,7 +28,7 @@ import Vapor
 /// for the caching headers (the bound the route is given, and `Expires` being written on this
 /// path). The patch for the empty side of the guard reaches three pins at once — the token pin, the
 /// content-type pin and the policy pin — because the branch the answer takes is chosen by that
-/// read, which is the row the round records with four pins. The caching-headers pin is not reached,
+/// read. The caching-headers pin is not reached,
 /// because the headers it reads are written before that read runs. The match pin is read by its own
 /// patch and by the patch that names which value the `ETag` is built from, because it reads the
 /// header value the route builds from the row. Every other patch fires one pin, and the socket pins

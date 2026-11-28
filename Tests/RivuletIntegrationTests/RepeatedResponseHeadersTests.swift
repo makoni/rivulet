@@ -10,7 +10,7 @@ import Testing
 /// holds one value per name, so which of the two it holds is the rule, and before this suite it
 /// held the last value added, which is the divergence these pins close.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting byte-identically,
+/// What these pins can fail on, each checked by patching the rule and reverting,
 /// with each probe named by what it flips: the value read as the last one added, which flipped the
 /// repeated-name pin, the case pin and the hop pin; and the name compared with its own case, so one
 /// name written two ways became two entries, which flipped the case pin alone.

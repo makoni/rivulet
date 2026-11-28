@@ -21,9 +21,6 @@ import Vapor
 /// has nothing to pin on this port; the 404 branch the handler has for a row its read does not find,
 /// which no request this suite can build reaches because the read that hands the handler the id read the
 /// same row; and the storage failure the read can answer with, which this suite cannot trigger.
-///
-/// 2 pins and 4 probes, every probe seen to fail on the rule it names and to revert the file
-/// byte-identically.
 @Suite struct RestV1IntegrationsStatusTests {
     init() {
         TestLogging.bootstrapOnce()

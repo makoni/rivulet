@@ -159,6 +159,9 @@ public enum RequestBody {
         return request
     }
 
+    /// Reads `model.FeedModificationRequest`: only the fields the document carries are set, so an
+    /// update patches nothing else, and each rule the read fails on is thrown as the name the
+    /// reference's error carries.
     public static func feedModification(_ text: String) throws -> FeedModification {
         let fields = try fields(for: text)
         var request = FeedModification()

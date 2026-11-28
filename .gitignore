@@ -2,7 +2,7 @@
 .build/
 .swiftpm/
 
-# Python, for the soak check harness
+# Python, for the scripts under Tools/
 __pycache__/
 
 # DocC
@@ -19,7 +19,7 @@ xcuserdata/
 # CodeGraph index (local to each machine)
 .codegraph/
 
-# The probe round's own files (the table, the driver, the cache, the log, the worker copies)
+# Local scratch from earlier tooling
 .probes/
 
 # Runtime data (SQLite databases and their sidecars)

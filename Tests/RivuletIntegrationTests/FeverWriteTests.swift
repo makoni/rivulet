@@ -13,8 +13,7 @@ import Testing
 /// pool, and the read back opens its own, because the driver keeps a single pooled connection and a
 /// pin cannot hold one while the handler checks out another.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (4 pins, 11 probes:
-/// 2 on the guards, 4 on the item switch, 2 on the feed branch, 3 on the group guard): the guards
+/// What these pins can fail on, each checked by patching the rule and reverting: the guards
 /// that write nothing at all — the handler returns before the response builder runs, so the answer
 /// is an empty body at 200 with no content type, which a patch that answered the base document
 /// fails on, and the value the integer read cannot read is the zero the guard reads; the two

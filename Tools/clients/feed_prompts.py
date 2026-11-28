@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
-"""The run's console half for the client run: it gives the two commands a terminal.
+"""Runs a Rivulet command on a pseudo-terminal and types the given answers into its prompts.
 
-Same shape as `Tools/smoke/console_feed.py`: `create-admin` and `integration-credentials` read the
-password through the secure path, which answers nothing on a pipe, so the run attaches a pty and
-writes the values it declares in the order each command reads its prompts. It asserts nothing; it
-prints what the commands said, which is what the run records.
-
-The secure path is narrower than a terminal on stdin: the dependency reads the passphrase from the
-process's controlling terminal, not from stdin, so the pty has to be the child's controlling
-terminal for the read to answer. That is what this half does, in its own session, which is why a run
-that only redirects a pty to stdin reports the minimum length rule before any row is written.
+`create-admin` and `integration-credentials` read passwords through the secure terminal path, which
+reads from the process's controlling terminal and answers nothing on a pipe. This helper gives the
+command its own session with a pty as the controlling terminal, writes one line of CLIENT_FEED per
+prompt, and prints what the command said.
 
 Usage: CLIENT_FEED="<name>\n<password>" python3 Tools/clients/feed_prompts.py <binary> <args...>
 """

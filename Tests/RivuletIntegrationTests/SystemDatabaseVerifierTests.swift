@@ -12,8 +12,8 @@ import Testing
 /// the check cannot open — the same failure the startup check reports, so page damage and a path
 /// that cannot be read are told apart in the runbook.
 ///
-/// What these pins can fail on, each checked by patching the implementation and reverting byte-
-/// identically, with each probe named by what it flips — six probes for four pins: the answer read
+/// What these pins can fail on, each checked by patching the implementation and reverting, with each
+/// probe named by what it flips: the answer read
 /// as problems for every file, which answered the pin naming a clean copy with problems and the pin
 /// naming a damaged file with a problem that does not name the page it damaged; the answer read as
 /// nothing for every file, which answered the pin naming a damaged file with nothing; the journal

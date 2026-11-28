@@ -1,49 +1,43 @@
 @Tutorial {
   @Intro(title: "Getting started") {
-    Six steps, in the order the runs read them. Each names a command the dispatch registers, a flag
-    that command's signature declares, or a name the configuration reads, which is what the check half
-    reads the page against.
-
-    The steps run on a console: two of them read their values from the terminal device, so they do not
-    run from a unit or from a pipe.
+    From an empty machine to a running reader in six steps. Run them in an interactive shell: two of
+    the commands prompt for passwords on the terminal and do not work from a pipe or a service unit.
   }
 
-  @Section(title: "The run") {
-    The first three steps write rows, the fourth reads them, and the last is the run that keeps
-    running.
+  @Section(title: "Set up and run") {
+    The first steps create the database and the account, then add a feed, and the last starts the
+    server.
 
     @Steps {
       @Step {
-        Name the data the runs read with the value the example writes: `DATABASE_URL` as
-        `/var/lib/rivulet/rivulet.db`. Only this name is required, and a name the configuration does
-        not read answers nothing.
+        Point Rivulet at its database: set `DATABASE_URL` to a path such as
+        `/var/lib/rivulet/rivulet.db`. It is the only required setting.
       }
 
       @Step {
-        Apply the schema the migration declares with `rivulet migrate`, which answers nothing when the
-        schema is already there.
+        Create the schema with `rivulet migrate`. Running it again on a current database does
+        nothing.
       }
 
       @Step {
-        Create the account with `rivulet create-admin`, then the credential pair the clients log in
-        with through `rivulet integration-credentials`. The account command writes the hash alone, so
-        a login answers 401 until the credential command has run.
+        Create the account with `rivulet create-admin`, then the logins your apps use with
+        `rivulet integration-credentials` (a Fever pair and a Google Reader pair). Until the second
+        command has run, Google Reader logins answer 401 and Fever answers `auth: 0`.
       }
 
       @Step {
-        Add a feed with `rivulet add https://example.com/feed.xml --user alice`. The command writes the
-        row and fetches nothing, so the first round is the cadence loop's own.
+        Subscribe to a feed with `rivulet add https://example.com/feed.xml --user alice`. The feed is
+        fetched on the server's next scheduler pass, or right away with `rivulet refresh`.
       }
 
       @Step {
-        Read the counts back with `rivulet status --json`, then run the part that keeps running with
-        `rivulet serve` on the port the address value names. A deployment names this run in a service
-        file, and the signal that file names is a signal the process handler has a case for.
+        Check the state with `rivulet status --json`, then start the server with `rivulet serve`. It
+        listens on `LISTEN_ADDR` and refreshes feeds in the background.
       }
 
       @Step {
-        Take the copy before the artifact changes with `rivulet backup --verify /var/backups/rivulet.db`,
-        which opens the copy the run wrote through its own connection and reports the problems it finds.
+        Take a backup with `rivulet backup --verify /var/backups/rivulet.db`, which writes a
+        consistent copy and checks its integrity.
       }
     }
   }

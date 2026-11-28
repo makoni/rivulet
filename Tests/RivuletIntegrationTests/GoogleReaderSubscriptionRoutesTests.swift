@@ -5,7 +5,7 @@ import RivuletApp
 /// The three subscription routes over a real socket, read as the endpoints the reference
 /// registers: `subscriptionListHandler`, `editSubscriptionHandler` and `quickAddHandler` of
 /// `internal/googlereader/handler.go` at `c4d54f87`, each on the method its route names.  What
-/// these pins can fail on, each checked by patching the rule and reverting (2 pins, 4 probes):
+/// these pins can fail on, each checked by patching the rule and reverting:
 /// that the three paths answer the handlers rather than the catch-all document, which a patch
 /// that registered none of them fails on; and which of the three applies the output check — a
 /// patch that applied it to all three answered the check's wording on the two that do not, so

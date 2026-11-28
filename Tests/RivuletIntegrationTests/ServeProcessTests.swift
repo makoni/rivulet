@@ -42,7 +42,7 @@ import Testing
 /// makes no request to the child, and the seed it writes is a command that fetches nothing. The pin
 /// was green on the head, where that request came about a minute after the server started, and it
 /// is shown to fail on the rule it names by patching the command so the wiring is not run: the
-/// child answered no request, and the patch reverted byte-identically. The failure answers at the
+/// child answered no request. The failure answers at the
 /// pin's limit, which is the harness rule that an unbounded wait carries a limit and that the limit
 /// counts only when the wait can answer at it — the arrival read is the read that answers the pin's
 /// cancellation, so the limit is a failure and the harness still reaches the child. The pin asserts
@@ -61,8 +61,8 @@ import Testing
 /// of the stream names its rule, its failure shape and what it cannot show. Its rule is that the read
 /// answers the exit the harness recorded for a child that exits before writing its serve line, rather
 /// than the empty line that made the two answers the same shape: the patch that answered the end of
-/// the stream as a line reported `noServeEvent` on this pin, and that patch reverted
-/// byte-identically. The child this pin gives is the CLI's own error path, so the run reaches the
+/// the stream as a line reported `noServeEvent` on this pin. The child this pin gives is the CLI's
+/// own error path, so the run reaches the
 /// exit before the server starts and no database work is in it, and the status the pin reads is the
 /// code the child answered for the input the pin gave. What this pin cannot show: that the child
 /// exits at all, which is the harness rule named above; the other side of the rule, a child that has

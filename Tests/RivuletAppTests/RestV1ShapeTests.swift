@@ -10,16 +10,15 @@ import Testing
 /// the order the three are written in, which a patch that wrote `is_admin` before `username` fires
 /// here; the hash not being written, which a patch that wrote the model's hash column fires here;
 /// and the two value rules, a boolean written as `true` or `false` and a number written as a
-/// number, which a patch that wrote either as a string fires here. Four patches reached this suite
-/// and all four fired here alone in the round that showed these pins; the patch for the key order
-/// also fires on the route suite's pins for the document as bytes and for the row the read
+/// number, which a patch that wrote either as a string fires here. The patch for the key order also
+/// fires on the route suite's pins for the document as bytes and for the row the read
 /// hands the handler, which is the round of the third slice.
 ///
-/// The two documents the category half writes are pinned by 3 pins and 3 probes: the key order of the
+/// The two documents the category half writes are pinned: the key order of the
 /// category document, which a patch that wrote `hide_globally` before `title` fires on; the two counts
 /// being written only for the half that reads them, which a patch that wrote them for a zero count
 /// fires on; and the key order of the feed document, which a patch that dropped `description` fires
-/// on. Each was seen to fail on the rule it names and to revert the file byte-identically. The counts
+/// on. The counts
 /// pins also fire on the route suite's pins that read a document this shape builds.
 ///
 /// What this pin cannot fail on: the reference's other fields, which this port's schema has no

@@ -757,7 +757,7 @@ acknowledged outside foreign content and has nothing to do for a void element.
 uses SHA-256, the function it already has for the entry identity, so the stored hash value for the
 same bytes differs from the reference's. The pins can fail on which bytes the checksum is taken
 over, and cannot fail on which checksum function is used. No Go toolchain on this machine, so the
-reference's values cannot be produced here; the closure is deferred to `Tools/parity` (stage 7).
+reference's values cannot be produced here.
 - Go's base64 decoder reads the value in groups of four characters, so a final group shorter than
 four is an error (`YQ`), and so is padding that begins a group where the data has already formed
 complete ones (`YWxpY2U6cGFz==`). `Data(base64Encoded:)` reads a complete padded group the same way
@@ -1208,175 +1208,7 @@ the form read and the document shapes as pure logic.
 
 | Case | Reference | Rivulet | Impact |
 | --- | --- | --- | --- |
-| An empty list on the two documents | `groups` and `favicons` are nil slices when the build path has no row, so `json.Marshal` writes `null` for them, while `items`, `feeds` and the `feeds_groups` are built with `make` and write `[]` | `[]` on every document of this path, including those two | Newsflash's deserializer refuses `null` for these two fields, so the port writes the array. `items`, `feeds` and `feeds_groups` answer the same on both sides, so these two are where the two answers part; `FeverShapeTests` pins this port's side, and the class row in the harness table points at this row |
-
-## Parity harness (stage 7)
-
-The harness is the stage-7 exit criterion that compares the port with the reference over the same
-data rather than over one test: real Miniflux and Rivulet read the same corpus, and the difference
-between the two answers is read class by class. It is run by hand and not in CI, so the determinism
-rules in `docs/testing.md` do not apply to it, and its two halves are separated the way the soak's
-are: `Scripts/parity.sh` is the run half, `Tools/parity/parity_check.py` is the check half, which
-reads the pair document the run leaves behind rather than the processes that produced it, and
-`Tools/parity/collect.py` writes that document from one live comparison.
-
-The tolerance table below is read as data by the check half, and it is the single source of truth
-for what may differ. A row marked `accepted` is a deviation this port keeps on purpose, so the class
-it names is not a finding; a row marked `fixed` is a rule the port already keeps, so nothing may
-differ there; and a difference whose class no row names is a finding. The corpus manifest
-(`Tools/parity/corpus/manifest.txt`) names, for each corpus input, the classes it can reach, which
-is what lets a difference be attributed to a class instead of accepted by the comparator's
-preference. The rules that guard the run itself — the flags, the pinned reference version, the input
-digests, the request sequence, the counts, the report — report whatever the data says, whatever the
-table says.
-
-The lines the check half reads as one whole string — the manifest's record lines and the report's
-item lines — cannot be broken at a word, and neither can the shell's command lines and guard
-messages, which the run reads as one line, so all four stay whole on their own line.
-
-**The classes the harness reads.**
-
-| Class | Row it comes from | State | Exercised by |
-| --- | --- | --- | --- |
-| foster_parenting | HTML sanitizer — Foster parenting | accepted | corpus/table_content.xml |
-| name_classes | XML reader — Name classes | accepted | corpus/name_class.xml |
-| zone_offset | Date parsing — Zone abbreviations | accepted | corpus/zone_pst.xml |
-| sub_second_cut | Google Reader auth path — The part below a second | accepted | corpus/sub_second_date.xml |
-| collation_order | CLI feed commands — The order the two listing reads answer in | accepted | corpus/tag_order.xml |
-| method_mismatch | Google Reader auth path — A method the pattern does not register | accepted | request/method_mismatch |
-| trailing_slash | Google Reader auth path — No trailing slash | accepted | request/no_trailing_slash |
-| repeated_header_value | security checklist — a response name that appears twice | fixed | request/repeated_header |
-| positions_and_counts | HTML sanitizer — Positions and counts | accepted | not reachable here |
-| bracketed_host | URL layer — Bracketed host | accepted | not reachable here |
-| media_proxy | Google Reader content endpoint — The media proxy | accepted | not reachable here |
-| error_wording | Google Reader write handlers — The localized strings | accepted | not reachable here |
-| minimal_scan | Google Reader subscription path — Minimal discovery scan | accepted | not reachable here |
-| relation_test | Google Reader subscription path — The relation test | accepted | not reachable here |
-| parsed_title | Google Reader subscription path — The title inside the request | accepted | request/subscription_quickadd |
-| login_half | Google Reader auth path — The row the login read runs on | accepted | not reachable here |
-| empty_lists | Fever path — An empty list on the two documents | accepted | not reachable here |
-| rest_v1_route_answer | REST v1 routes — The answer for a path this port registers no route for | accepted | not reachable here |
-
-The nine rows marked `not reachable here` name classes no coverage-reading rule can see: the counts
-are read inside the sanitizer and never written out, the bracketed host answers a fetch decision
-rather than a stored value, the media proxy is run as `none` on the reference side so the stored
-bytes are comparable, the wording of a rule the port names is not compared at all, and the two scan
-classes are read only from an HTML document, which the corpus has none of: every corpus file is a
-feed document, answered by the format check before the scan reads a `link`; the login row names
-which path wrote the value the login read compares, which no pair document states; and the
-empty-list and the REST v1 rows belong to paths the corpus sends no request to, because its sequence
-is the shapes the manifest records. They are named here rather than asserted, and the run guard that
-declares the proxy mode is what makes the third half of that list hold. `none` is the value the
-reference's own validator accepts, alongside `http-only` and `all`; the harness runs `none`, which
-is not the reference's default.
-
-The one row this path adds that a shape can reach is the title inside the request, and it is
-reached as the key set the quickadd answer carries: the reference writes `streamName` with the
-parsed title, and this port omits the field because the row it wrote carries the create default.
-That is the half the table cannot cover: the rule that reads key sets reads no coverage, so the
-difference is reported as a finding even though a row names its class. The other two rows this
-path adds name classes the corpus cannot reach for the reason above, so they are recorded as not
-reachable here rather than pointed at a shape the run sends.
-
-**What the run reads.** The corpus is the five documents under `Tools/parity/corpus/`, served from
-`Tools/parity/stub_server.py` on loopback, so `FETCHER_ALLOW_PRIVATE_NETWORKS` is on for both sides
-and the account name is ASCII, which is the one place where `LOWER` is the same rule on both sides.
-Both sides run with the same flags — the batch size, the two limits, the migrations gated off — and
-the reference runs with `MEDIA_PROXY_MODE=none`, so its content values are the stored bytes. The
-request sequence is nine requests: the six shape records the manifest names — the login is one of
-them —, the corpus input the run asks through the tag-list endpoint, and the two stream shapes the
-manifest carries no record for. Four of the six shapes a table row reads — the three it already
-named and the shape this path adds — while the other two reach no class the table names, so a
-difference on them is a finding by itself.
-
-**What the run hands over.** The flags are handed to the reference one name at a time with its own
-`-e`, because a flag name handed bare is not a flag: the first name after the last option is the
-image the run pulls. The reference runs on the network the run declares, which has to be the host's,
-because a container in a namespace of its own has its own loopback and the corpus is served on this
-machine's. Its connection string has to name the SSL mode, because the driver it reads that string
-through defaults to `require` when the string names no mode, and a server that does not offer SSL
-answers an error before anything is read, while the read on this side is libpq, which prefers rather
-than requires. The reference's own config default is `disable`, but that is what it uses only when
-no connection string is given. `CREATE_ADMIN` is a boolean for
-the reference's parser and the account is the two names beside it, so a value written as
-`name:password` is an invalid boolean and the run reports it before anything runs. The reference's
-schema is applied by a run of its own through the reference's own flag, which is the same shape this
-port's `migrate` command is, because the migrations are gated off as the guard says. The name
-`DATABASE_URL` is not one value for the two sides: for the reference it is the server its config
-reads, for this port it is the file its rows are written to, so each side is handed its own value
-for that name, and the port is served by the run before the collector reads it. Its account is
-written through the console seam, whose secure read takes its value from a terminal rather than from
-a pipe, so the run gives that command a terminal. The due rule is strict, so the batch read cannot
-see a feed written at the same instant it reads, and the run lets the clock move past that instant.
-
-What the run has to arrange, and what the rules read each of those things as, because the rules read
-them as data rather than as dialects. A response name is kept as the list of its values in the order
-they arrive, which is what `Header.Get`
-reads through: the stub writes one name twice, on the hop the corpus is served on, and the read
-takes each name once, in the order it first appears; but the pair document carries the response each
-side answered the collector with, and the fetch hop is not in it, so on run data the value the rule
-compares is written from the same read as the list it reads, and only crafted data can fire it. The
-login is recorded as the first request, on the route the reference registers for it with the form
-names it reads, so a pair document carrying requests before the login answer is a run that never
-authenticated, and the token is then asked with as `T` on the POST shapes, which is the half the
-auth read takes a form field for on both sides, and as the `Authorization` name on the others. The
-names are put where the reads take them for the method — the body for the POST half and the url for
-the others — because a body makes the transport POST, so the method the pair record carries is the
-method the shape names. A non-JSON answer is recorded as the text it is, because the redirect body
-is text, and so is a JSON answer that is not an object, because the key-set rule reads no key set
-from an array, and the status is taken from a failed response, which is the only way the status rule
-can see the 404 or the 405 it compares. The manifest key is carried as the name the run added the
-feed under, resolved through the feed url, because neither side has a column that holds it and the
-stored title is the parsed feed title. The version is named on the reference side only: the port
-side names the build it ran, which is the half the rule that reads the pinned version does not read.
-The storage read keeps the fields as the storage answers them, so the reference side is read as CSV
-over the whole text rather than line by line — a field holding the delimiter or a newline is one
-field, not two rows — and this port's driver answers rows as fields and needs no delimiter at all. A
-value the storage cannot read is nothing on both sides, so the field is the empty string rather than
-the name of nothing. The url is recorded beside the name, because the run half reads the stored rows
-against the port this run served. The three subscription shapes are the answers the handlers give,
-asked with the names each handler reads, so the only thing they can part on is the key set an answer
-carries. and for a run that arranges its rows before the collector reads them the quickadd answer is
-the one both sides write for a name the read already has. A tag written without `label` is read as
-the empty value by the order rule, because the key set is the shape rule's reading, and the
-reference does not write `label` for a name the read answered as nothing.
-
-**What the run cannot show.** That it ran at all, because it is on demand and not in CI; that the
-two sides read the same bytes over the network, because each fetch is its own hop; the row order a
-storage read answers for rows sharing one value, which SQL does not fix; the clock fields, which
-each side wrote at its own write instant; which path wrote the value the login read compares, and in
-what order the command read its prompts; and the rules the stage-3 corpora already pin, which the
-run re-reads rather than pins. On this machine the run half executed end to end through the
-collector twice: once before the run wrote the credential pair, where what it reported was the login
-half, and once after, where the login answer is one value on both sides and the only thing the rules
-reported was the key set the method-mismatch row names — the reference answers a method its mux has
-no pattern for with a text body, this port with the shape its router writes — because the rule that
-reads key sets reads no coverage.
-
-The rows the pair document carries have to be the rows this run wrote, which is what the guard that
-reads the stored rows against the port this run served says. The reference's storage is a database
-on the machine's server, which keeps what an earlier run stored, so the run names one it creates for
-itself, and running the same declared name twice was seen to report it. The path each side writes
-its rows through is not one path either: this port has a command for adding a feed, the reference
-has none, so its feed rows come from the quickadd POSTs the run sends through the reference's own
-path, and its fetch runs through the reference's batch flag rather than on the daemon's cadence,
-because the collector reads the rows in the same pass it sends the requests in, and the requests are
-what would create the reference's feeds. The answers the arrangement sends are not read as data, so
-the run does not treat one as a failure: the corpus has an input the reference answers with an
-error, which is the difference the row for the name classes covers.
-
-The report is written from the table before the rules read it, so the committed report is the
-document the harness generates, and a run writes the same document from the same table. So the check
-half is what is falsifiable here — `Tools/parity/probes.py` crafts one input per rule that violates
-it and asserts that the rule reports it alone — and the run half is checked by `bash -n` and by its
-twenty checks, twelve of which name a value the run declares or a count it declares against the
-committed files, each seen to fail on such a value or by taking the file it names away, while the
-eight that read the machine or the run's own data fail only on a run: the check over the two ports
-the run declares, the Postgres server answering, the daemon reachable, the two bases answering, the
-login answer, the rows each side recorded, and the stored rows read against the port this run
-served. Four of those eight were seen to fail here on the run's own data: a port something already
-holds, the base its own side answers on, by pointing the run at a binary that exits at once, the
-login answer, by the run itself, and the stored rows, by running the same declared database twice.
+| An empty list on the two documents | `groups` and `favicons` are nil slices when the build path has no row, so `json.Marshal` writes `null` for them, while `items`, `feeds` and the `feeds_groups` are built with `make` and write `[]` | `[]` on every document of this path, including those two | Newsflash's deserializer refuses `null` for these two fields, so the port writes the array. `items`, `feeds` and `feeds_groups` answer the same on both sides, so these two are where the two answers part; `FeverShapeTests` pins this port's side |
 
 ## Version value (stage 8)
 
@@ -1454,12 +1286,7 @@ there either. This port writes the three its schema has columns for — `id`, `u
 in the order the struct declares them, which is what the shape pin reads as the bytes the writer
 answers.
 
-- The other 28 are fields no rule here reads as data: the tolerance table names no row for them and
-the client matrix names no class for the account document, so the harness reads nothing here and
-they are recorded as prose. The third path is read as data by the rule that reads the halves, as the
-prefix this port registers one route on, and by the rule that reads the run record through the row
-this run added for the answer. A row for these fields is what the harness would read as data, and it
-comes with a run on the phone that leaves a record line for the account document.
+- The other 28 fields are not written, because the schema has no columns for them.
 
 - The answer for a path this port registers no route for, which is where the first walk on the phone
 ended: the reference runs its auth chain before its mux, so an unauthenticated request for such a
@@ -1468,9 +1295,8 @@ This port answers Vapor's router answer before any read runs, and runs here show
 `{"error":true,"reason":"Not Found"}` with `application/json; charset=utf-8`, the router's own
 shape rather than the reference's error document. The two keys of that answer were written in both
 orders for the same request across runs, so the order the responder writes them in is not fixed and
-no pin can read it. The body the walk recorded, `{"error": {"message": "resource not found"}}`, is
-read by no rule here as data, so the stage file names the shape the runs showed rather than the
-walk's body. This slice registers the route on that prefix, so the pins read this port's side of
+no pin can read it. The walk on the phone recorded the body as
+`{"error": {"message": "resource not found"}}`. This slice registers the route on that prefix, so the pins read this port's side of
 the two answers over a socket: the path the pattern registers answers the guard's 401 for a request
 that carries no credential, and a path on the same prefix with no pattern answers the router's
 answer, which is the half the reference does not answer because its chain runs before its mux.
@@ -1479,8 +1305,7 @@ answer, which is the half the reference does not answer because its chain runs b
 its guards, because its read runs before the mux, so an unauthenticated request for this path
 answers the guard's 401 there. This port answers the router's 404 for both, which is the row above
 read through the method. The pin for this path asserts the port's side over a socket, on a POST for
-the registered path, and the DocC check half's rule that reads the routes the pages name against the
-registrations reads the three files that write them. The reference answers 204 for an `OPTIONS` on a
+the registered path. The reference answers 204 for an `OPTIONS` on a
 registered path, with the `Access-Control-Max-Age` name its CORS read writes for that method; this
 port has no route for `OPTIONS`, so the router's answer reaches it first. The pin for that name
 reads the pure rule, which has no method branch and writes nothing for it on every answer; the

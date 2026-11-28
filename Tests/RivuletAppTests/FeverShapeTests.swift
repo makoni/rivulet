@@ -5,9 +5,8 @@ import Testing
 /// `internal/fever/response.go` at `c4d54f87`. The goldens are the reference's own output for these
 /// documents at the toolchain `go.mod` pins.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (5 pins, 8 probes:
-/// 3 on the base and failure document pin, 2 on the item document pin, 1 each on the value
-/// documents, the feed document and the empty list): the three fields of `baseResponse` are written
+/// What these pins can fail on, each checked by patching the rule and reverting: the three fields of
+/// `baseResponse` are written
 /// before the document's own fields, which a patch that wrote them after fails on; the version this
 /// path reports and the auth flag for a run the transport read passed, which a patch that wrote 2
 /// or 0 fails on; and the failure document's two zeros, which a patch that ran the common-value

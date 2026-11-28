@@ -1,28 +1,29 @@
 # Stage 10 — Miniflux REST v1 subset
 
-**Goal:** the endpoints the one real consumer declares, and no others. **Status:** in progress — the 21
-endpoints in scope are closed as their runs showed, and the four calls outside that list are open.
+**Goal:** the endpoints the one real consumer declares, and no others. **Status:** in progress — the 20
+endpoints in scope are done; four further calls are open (issue 121).
 **Depends on:** stage 5, and the integrations item of stage 9 for the one call that runs an integration.
 
-The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. Its half records 25
-calls: 21 are in scope here, and four are not — two wait for the read they call, one runs an
-integration, one stays in stage 9. The walk on the phone reached the first of them and got the answer
-this port gave for a path it registered no route for at the time of the walk.
+The consumer is Capy Reader's `minifluxclient`, read at the commit its tag names. It declares 25
+calls: 20 are in scope here and implemented; four are open (issue 121) — two wait for the read they
+call, one runs an integration, one stays in stage 9; and one, `GET /v1/categories/{id}`, has no GET
+pattern in Miniflux 2.3.3 either: Miniflux registers only PUT and DELETE on that path, so it answers
+405 after its auth checks, while Rivulet answers the router's 404 (`docs/parity.md`).
 
 ## Open work
 
-- Issue 121 — the four calls outside that list: `GET /v1/categories/{id}/entries` and
+- Issue 121 — the four open calls: `GET /v1/categories/{id}/entries` and
   `GET /v1/icons/{iconID}`, which reach no route until the read they call is pinned;
   `POST /v1/entries/{id}/save`, which runs an integration and so waits for issue 107; and
   `PUT /v1/categories/{id}/mark-all-as-read`, which stays in stage 9. The counts half of
-  `GET /v1/categories?counts=true` is a half of an endpoint already in the 21, so it is not a call of
+  `GET /v1/categories?counts=true` is a half of an endpoint already in the 20, so it is not a call of
   its own.
-- The calls the client matrix has no row for stay open as the phone half the stage-7 file keeps open.
+- Deleting a category from the app over REST v1 has not been walked yet — issue 130.
 
 ## The endpoints
 
 - `GET /v1/me`
-- `GET /v1/categories`, `GET /v1/categories/{id}`, `POST /v1/categories`, `PUT /v1/categories/{id}`,
+- `GET /v1/categories`, `POST /v1/categories`, `PUT /v1/categories/{id}`,
   `DELETE /v1/categories/{id}`, `GET /v1/categories/{id}/feeds`
 - `GET /v1/feeds`, `GET /v1/feeds/{id}`, `POST /v1/feeds`, `PUT /v1/feeds/{id}`,
   `DELETE /v1/feeds/{id}`, `GET /v1/feeds/{id}/icon`, `PUT /v1/feeds/{id}/refresh`,
@@ -52,9 +53,8 @@ compare and the single-row limit of the read are named as unpinnable.
 
 The error shape this path answers with is `{"error_message": ...}`, the reference's error document and
 the shape the Google Reader path already pins. What a run here showed for a path with no pattern
-registered is the router's own shape, `{"error":true,"reason":"Not Found"}`; the body the walk on the
-phone recorded, `{"error": {"message": "resource not found"}}`, is read by no rule here as data, so the
-stage names the shape the run showed and `docs/parity.md` records the two sides.
+registered is the router's own shape, `{"error":true,"reason":"Not Found"}`; the walk on the phone
+recorded `{"error": {"message": "resource not found"}}`; `docs/parity.md` records the two sides.
 
 ## What the runs showed
 

@@ -1,16 +1,9 @@
-# Security checklist (stage 7)
+# Security checklist
 
-The checklist the stage names, taken sub-item by sub-item. For each rule: what the rule is, where
-the port reads it, which test can fail on it, and what no test can show. A rule a patch cannot flip
-is named here rather than asserted — that is the same agreement the suite headers keep, and a pin
-that cannot fail on the rule it names is not a pin.
-
-Method: each rule was read in the port and in the reference at `c4d54f87`; where the port could
-express it as a pin, the pin was shown failing on the rule by patching production code, rebuilding
-and reverting byte-identically. 8 pins and 7 probes across five suites landed with this pass, and
-the probes are named in the suite headers. `docs/testing.md` defines a probe; the pins that
-already existed before this pass are named here by the rule they pin, and a count is given only
-where this pass added one.
+The security review of stage 7, rule by rule: what the rule is, where Rivulet enforces it, which
+test fails if it breaks, and what no test can show. Each rule was compared with Miniflux at
+`c4d54f87`, and each test was checked to fail on a patch that breaks its rule (see "Checking that a
+test can fail" in `docs/testing.md`).
 
 ## The finding this pass closed — a repeated response header name
 
@@ -24,7 +17,7 @@ keeping the first value for a name compared without case. Before this pass it ke
 which is the divergence the pins close; the value is stored in the spelling the wire gave, which the
 reference would have canonicalized.
 
-Which test can fail on it: `RepeatedResponseHeadersTests` — 3 pins and 2 probes: first-wins for a
+Which test can fail on it: `RepeatedResponseHeadersTests`: first-wins for a
 repeated name, one name written two ways is one entry, and the first `Location` is the hop taken.
 The stub server writes headers as ordered pairs for these (`Behavior.headerPairs`), because
 `Behavior.headers` is a dictionary and cannot hold two values for one name. Red before the fix: the
@@ -90,8 +83,8 @@ Where the port reads them: `FetcherOptions` for the values, `ResponseAccumulator
 one `NIODeadline` for the deadline, the redirect loop in `Fetcher.send`, `Fetcher.amount(for:)` for
 the clamp, and the sanitizer's depth limit and text limit.
 
-Which tests can fail on them: `FetcherHostileInputTests` — 4 pins and 5 probes, which is the pass
-that removed the ratio guard; `FetcherTests` — the cap at a configured size, the deadline covering
+Which tests can fail on them: `FetcherHostileInputTests`, which covers the removal of the ratio
+guard; `FetcherTests` — the cap at a configured size, the deadline covering
 the body after the head, the deadline not restarting per hop, the redirect loop capped, a redirect
 status with an empty `Location` returned as the response, and a scheme the client refuses;
 `FetcherOptionsTests` — the defaults, the ≥1 validators, the accepted boolean words;
@@ -110,7 +103,7 @@ through the guard being absent; the fixture encoder, checked against `gunzip` by
 no pin reads, so the budget is a documented number; the numbers of another machine, which the timed
 pin reads as a bound; and which entry the client cache's trim closes is not observable through a
 fetch — that pin reads the cache through an internal accessor, together with the cap staying at 8
-after a checkout that goes over it (2 pins and 2 probes in `FetcherClientCacheTests`), and the clock
+after a checkout that goes over it (`FetcherClientCacheTests`), and the clock
 tie between entries expiring at the same instant is not pinned either.
 
 ## Auth behavior
@@ -162,9 +155,9 @@ through the method `docs/testing.md` records; the port matches them today, so bo
 under their probes.
 
 Which tests can fail on them: `SanitizerHostileCorpusTests` — 146 inputs, each with the reference's
-output and the rule it pins, 145 from stage 3 and the entity-table case this pass added (1 pin and 1
-probe, the probe removing `colon;` from `HTMLEntityTable.swift`); `SanitizerTests` — the sign as
-`Atoi` reads it (1 pin and 1 probe); `SanitizerTableModeTests` — the two insertion-mode rules;
+output and the rule it pins, 145 from stage 3 and the entity-table case this pass added, which fails
+if `colon;` is removed from `HTMLEntityTable.swift`; `SanitizerTests` — the sign as
+`Atoi` reads it; `SanitizerTableModeTests` — the two insertion-mode rules;
 `HTMLTokenizerTests` — the NUL removal and the entity decoding at the token layer;
 `URISchemeAllowlistTests` — the allowlist and the case-insensitive comparison.
 

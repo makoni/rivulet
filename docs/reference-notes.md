@@ -847,8 +847,7 @@ Semantics:
 The reference registers 51 patterns on this prefix, one per path with the method written on it. The
 answer each pattern writes is the status the handler calls the builder with, read from the last
 `response` call the handler makes: the builder's own default is 200, `NoContent` writes 204,
-`JSONCreated` 201, `JSONAccepted` 202. The table is read as data by the client matrix, which reads a
-record line on this half against the answer the pattern named for the path answers.
+`JSONCreated` 201, `JSONAccepted` 202.
 
 | Route | Answer |
 | --- | --- |
@@ -907,12 +906,8 @@ record line on this half against the answer the pattern named for the path answe
 - `PUT /v1/flush-history` and `DELETE /v1/flush-history` share one handler, which answers
   `JSONAccepted`, so both methods answer 202.
 - The chain runs before the mux, so an unauthenticated request for a path on this half answers the
-  guard's 401, which is what the rule that reads the run record reads a status line on this half
-  against when the run answered on the reference.
-- The document each route writes is the model struct the handler passes to the builder. The key
-  names a record line carries on this half are the names that struct declares, which no rule here
-  reads as data: the client matrix reads the record's key names against the names this port's shape
-  file writes, and this port has a shape file only for the Google Reader path.
+  guard's 401.
+- The document each route writes is the model struct the handler passes to the builder.
 
 ### The entry rules (`internal/validator/entry.go`, `internal/validator/validator.go`)
 

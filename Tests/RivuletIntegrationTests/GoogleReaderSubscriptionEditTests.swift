@@ -8,8 +8,8 @@ import RivuletApp
 /// read by `GoogleReaderAuthTests`, the integer read by the write-handler suite, and the storage
 /// writes by `FeedManagementReadsTests`.
 ///
-/// What these pins can fail on, each checked by patching the rule and reverting (9 pins, 19
-/// probes): that `s` is read as the whole merged list while `a` is the single value the same read
+/// What these pins can fail on, each checked by patching the rule and reverting: that `s` is read as
+/// the whole merged list while `a` is the single value the same read
 /// answers; that the stream guard is the count of the list, which the same guard answers for a
 /// value the read cannot parse; the order that runs that guard before the tag read; the presence
 /// test, which answers differently for a name the form carries with an empty value and a name it

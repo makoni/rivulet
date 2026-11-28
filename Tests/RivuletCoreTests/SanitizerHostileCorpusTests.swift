@@ -30,8 +30,8 @@ import Testing
 /// The case the security checklist adds pins that the scheme check runs on the value the entity
 /// table decodes, so membership in the table is part of the rule: `&colon;` is the name that turns
 /// `http&colon;example.org` into an address with an allowed scheme, and the probe that flips it
-/// removes that one entry from `HTMLEntityTable.swift`, which answers the attribute as dropped — 1
-/// pin and 1 probe, the patch reverted byte-identically. What the case cannot show: the table as a
+/// removes that one entry from `HTMLEntityTable.swift`, which answers the attribute as dropped.
+/// What the case cannot show: the table as a
 /// whole, because a name the port resolves to the same value by another route is pinned by no case,
 /// and the value an entity resolves to beyond the one this case reads.
 @Suite struct SanitizerHostileCorpusTests {
