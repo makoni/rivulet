@@ -101,7 +101,7 @@ is testing. `content(at:on:as:)` reads a file through its own driver, which is w
 need, because the copy is not the connection the test seeded with.
 - `RecordingSpace.swift` — the filesystem the free-space pins drive instead of the real one,
 because the room a real filesystem reports is not something a pin can name.
-- `SubscriptionSocket.swift` — the socket the three Google Reader subscription suites read through:
+- `SubscriptionSocket.swift` — the socket the four Google Reader subscription suites read through:
 the authenticated account, the rows the pins write, and the values read back through SQL.
 - `TestClock.swift` — a clock that answers one injected instant, so every stamp a pipeline pin reads
 is that value rather than the process clock.
@@ -163,31 +163,8 @@ else that matters — one lookup for a direct hop, the answer handed to the poli
 pinned to the answer it was built from — is tested through the resolver seam, with a seeded resolver
 for the pinning and a counting one for the single lookup.
 
-The fetcher's client cache has four behaviour tests (`FetcherClientCacheTests`). The first pins the one effect that can be observed from outside
-an eviction: while a request is in flight the client serving it must not be closed, or that request
-is cancelled — that is the failure the test reproduces. The request head reaches the stub only after
-the client was taken from the cache, so waiting for the head with `waitForRequest(for:)` puts the
-test at a known point without a sleep, and the body is held long enough for the fillers to run,
-which the test states. The second asserts what `shutdown()` can be observed to do: a second call
-finds nothing to close, and the next fetch builds a client again. The recovery assertion carries the
-weight, but the second call is not worthless either — an implementation that left closed entries in
-the cache would fail it with AsyncHTTPClient's `alreadyShutdown`. The third and the fourth read the
-trim through an internal accessor, which is the only place the trim is visible, because closing a
-client changes nothing a fetch can answer: the next request for that host builds a client again and
-gets the same response. They pin the cache staying at the cap after a checkout that goes over it,
-and the entry the trim closes being the one whose expiry comes first — 2 pins, listed
-in `docs/security.md`. That a call overlapping the
-first cannot close the same client twice follows from taking the entries out before the first await;
-it cannot be reproduced without a client-creation seam the plan does not have, so it is documented
-rather than tested. Everything else about the cache is not observable from outside when two hosts
-are answered by the same address: what is asserted is the key, because the guarantee that a pin is
-never reused for another host or a proxied request rests on it; the TTL clock is monotonic so an NTP
-step cannot stretch or shrink it, and eviction is by expiry among idle entries, not by use, which
-the code states plainly and the trim pin reads through the accessor, on the input where every entry
-is idle so the earliest expiry is also the first created — an LRU could not be told apart there,
-which the header names. A client in use is never pruned; `shutdown()` closes every client regardless
-of use, so calling it when no `fetch` is in flight is a caller's contract and the suite does not
-assert the failure a shutdown during a fetch causes — that is a misuse, not a supported path.
+The fetcher's client cache is pinned by `FetcherClientCacheTests`; its header states which cache
+effects are observable from outside and which are documented rather than tested.
 
 App-level tests build the real Vapor app with a temp database and speak real HTTP over a socket: the
 `/healthz` tests start the server on an ephemeral port (never the configured one) and use Vapor's
@@ -336,7 +313,7 @@ Some checks need a real clock, Docker, systemd, a live Miniflux or the DocC tool
 part of `swift test`. Each is split into a *run half* (a shell script that drives the real system
 and writes what it saw to a file) and a *check half* (a Python script whose rules read that file as
 data). The check halves carry their own probe rounds — crafted inputs that each rule must report —
-and those rounds, which need no container or service, run in CI as the `probe-rounds` job. What a
+and the five Python probe rounds (all but the soak's) run in CI as the `probe-rounds` job. What a
 harness cannot show is listed in its check half (`CANNOT_SHOW`) or in its script header.
 
 | Harness | Run half | Check half | Reads / records |
