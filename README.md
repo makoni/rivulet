@@ -76,7 +76,7 @@ Configuration is read from environment variables. Only `DATABASE_URL` is require
 | `BATCH_SIZE` | `100` | Feeds refreshed per pass |
 | `WORKER_POOL_SIZE` | `16` | Concurrent feed refreshes |
 | `POLLING_PARSING_ERROR_LIMIT` | `3` | Errors after which a feed stops being polled (`0` = no limit) |
-| `POLLING_LIMIT_PER_HOST` | `0` | Concurrent refreshes per host (`0` = no limit) |
+| `POLLING_LIMIT_PER_HOST` | `0` | Feeds from one host picked per batch (`0` = no limit) |
 | `HTTP_CLIENT_TIMEOUT` | `20` | Fetch timeout, in seconds |
 | `HTTP_CLIENT_MAX_BODY_SIZE` | `15` | Largest feed body, in MiB |
 | `HTTP_CLIENT_USER_AGENT` | Rivulet's own | User-Agent sent with fetches |
