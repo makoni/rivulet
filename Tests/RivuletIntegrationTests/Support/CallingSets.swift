@@ -1,17 +1,13 @@
 import Foundation
 import Testing
 
-///The calling sets the replay suite reads as data, and the two record files beside them. Both
-///halves read the same copy: the pins read it through the bundle, `Tools/clients/replay.py` reads
-///the same files from disk. That is why the sets live inside this target — a pin that reads the
-///recorded order and the check half that reads the same order cannot disagree by restating it
-///twice. The pins read the records for what they expect, so a pin is not a restatement of the
-///matrix: the field names are the ones the check half reads, and the pairing of a call with the pin
-///that reads it is `CallingSets/replayed.txt`, which the check half reads as data. What the pins
-///cannot show is named in `docs/clients.md`.
+///The recorded client calling sets the replay suite reads, and the two record files beside them:
+///`replayed.txt` pairs each recorded call with the pin that replays it (or the reason it cannot be
+///replayed), and `manifest.txt` names the class of each recorded call. The pins read the records
+///for what they expect rather than restating them. `docs/clients.md` describes the clients.
 enum CallingSets {
     ///One client's calling set, as the record file writes it. Only the fields the pins read are
-    ///modelled; a field the pins do not read is read by the check half.
+    ///modelled.
     struct CallingSet: Codable {
         struct Source: Codable {
             let kind: String
@@ -111,13 +107,12 @@ enum CallingSets {
         try #require(all().first { $0.client == client }, "no calling set for \(client)")
     }
 
-    ///The replay list as the record writes it: the key and the pin or the reason the check half
-    ///names.
+    ///The replay list as the record writes it: the key and the pin, or the reason it is not replayed.
     static func replayed() throws -> [String: String] {
         try records("replayed.txt")
     }
 
-    ///The manifest as the record writes it: the key and the class the check half reads it against.
+    ///The manifest as the record writes it: the key and the class of the call.
     static func manifest() throws -> [String: String] {
         try records("manifest.txt")
     }
@@ -130,7 +125,7 @@ enum CallingSets {
             let parts = line.split(separator: "|", omittingEmptySubsequences: false).map {
                 $0.trimmingCharacters(in: .whitespaces)
             }
-            // A record line is one record: the key and the part the check half reads it against. A
+            // A record line is one record: the key and the value after the first `|`. A
             // line with fewer parts is not a record, so it reads as nothing rather than as an index
             // that cannot be answered.
             guard parts.count >= 2 else { return }

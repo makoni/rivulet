@@ -7,12 +7,8 @@ on:
 
 jobs:
   build:
-    # The tag is read against the version the source declares, with the `v` prefix taken off,
-    # because the workflow names the tag form and the source names the value. The read is the same
-    # one `Scripts/build-release.sh` makes for the on-demand static build, so both halves compare
-    # the tag with the source rather than with a number the workflow writes. The binary's `version`
-    # answer is read after the build, which is the half a workflow can only show by running the
-    # artifact, so a release built from another commit is the failure this step names.
+    # The tag (without its `v`) must equal the version in RivuletCore.swift, and the built binary
+    # must print that version, so a release cannot be built from the wrong commit.
     name: Build the release artifact
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -50,15 +46,9 @@ jobs:
           path: .build/release/rivulet
 
   publish:
-    # The release is created from the artifact the build job uploaded. `gh` is not in the Swift
-    # container, so this job runs on the runner host, which has it. The token is the one the runner
-    # gives the job, so no secret is read and the workflow stores no personal values.
-    # What this workflow cannot show is named here rather than attempted: the statically linked musl
-    # artifact `Scripts/build-release.sh` builds is not built by CI, because there is no download URL
-    # for the Static Linux SDK that this workflow can read — every candidate answered 404 when the
-    # machine tested them, so the SDK has to be installed by hand, which is where the stage-8 spike
-    # ran. The artifact attached to the release is the glibc build this job produced, and the release
-    # is not read by any rule, so nothing here claims a check half read it.
+    # Runs on the runner host because `gh` is not in the Swift container; uses the job's own token.
+    # The artifact is the glibc build from the job above. The static musl binary is built by hand
+    # with `Scripts/build-release.sh`, because the Static Linux SDK has no download URL CI can use.
     name: Publish the release
     runs-on: ubuntu-latest
     timeout-minutes: 10

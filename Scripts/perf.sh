@@ -1,22 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#Stage 7 performance run: one refresh pass over 100 local stub feeds, the shape the soak's rows
-#have, plus the read path at the reduced corpus. This is the run half of the performance item named
-#in `docs/plan/stage-7-acceptance.md`. It is not a test and it does not run in CI: it is a real-time
-#run, so the determinism rules in `docs/testing.md` do not apply to it, and the numbers it prints
-#are the numbers `docs/performance.md` records as taken here. The check half,
-#`Tools/clients/replay.py`, reads the document's claims — which numbers were measured here and which
-#are named as not measured here — rather than the times themselves, because a time is not a rule.
-#The corpus the 100k figure belongs to is gated, so the run half cannot reach it; the numbers it
-#prints are the reduced corpus and 100 feeds, and the document names the 100k half as not measured
-#here. The rows are seeded so the due rule can find them: the rule is strictly less than the instant
-#it reads, so a row stamped at the run instant is not due at that instant. The local stub server is
-#a private-network host, so the run declares the flag the policy reads. The read path is reached
-#through the timed pin, because that is the piece that reads the corpus of 10k rows; the run takes
-#only the elapsed the pin prints, not the bound it asserts, so the run half keeps no check. The
-#fields each line names are the fields `docs/performance.md` reads, which is what lets the check
-#half match a number in the document to the line that produced it. Usage: Scripts/perf.sh
+# Rough performance numbers: one refresh pass over PERF_FEEDS local stub feeds (default 100, with
+# PERF_ITEMS items each), a second pass when nothing is due, and the read path over the reduced 10k
+# corpus (via the `LargeFeedTests` timing pin). Prints the numbers; asserts nothing. Real-time and
+# machine-dependent, so it is not part of CI. The numbers last recorded are in `docs/performance.md`.
+# Needs `sqlite3` and `python3`. Usage: Scripts/perf.sh
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 WORK=${PERF_WORK:-$(mktemp -d)}

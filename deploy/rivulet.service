@@ -1,7 +1,6 @@
-# Stage 8's service unit, read as data by `Tools/deploy/deploy_check.py`. The signal it names is the
-# signal the port's handler takes out of the default disposition, and the program its command names
-# is the file the image writes. Two keys here are the parts no rule reads: the description and the
-# install target, named in the check half as not read.
+# Example systemd unit. `serve` handles SIGTERM (and SIGINT) for a clean shutdown with a WAL
+# checkpoint. Adjust the binary path, and give the unit its configuration (for example with
+# `EnvironmentFile=`), as `docs/deploy.md` describes.
 
 [Unit]
 Description=Rivulet serve run

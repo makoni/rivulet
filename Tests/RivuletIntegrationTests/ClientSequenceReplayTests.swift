@@ -51,8 +51,7 @@ import Vapor
     private let storedHash = "$2a$10$hOrIpoEkDKAMFrOt2/k1yeyHBaZKOwK8zEg9JVchReOAtQZ5mEeFu"
 
     // The two values the token pin reads: the half the call name carries, and the word the set names
-    // for the half read through the tolerance table, which is the word `Tools/clients/parsers.py`
-    // names for the same half.
+    // for the half read through the tolerance table.
     private let slashes = CharacterSet(charactersIn: "/")
     private let toleranceRead = "read here through the tolerance table"
 
@@ -267,8 +266,7 @@ import Vapor
     }
 
     ///The half whose calls are not all read as data is the prefix this port registers one route on:
-    ///Capy Reader names two halves, and the Miniflux half is the one whose calls the check half
-    ///does not read as data, because no run here left a record line on this path. The two answers
+    ///Capy Reader names two halves, and the Miniflux half is the one with no recorded call lines. The two answers
     ///this pin reads are the two sides of the parity row: the path the pattern registers answers
     ///the read's answer, and a path on the same prefix with no pattern answers the router's answer,
     ///which is what the reference does not answer because its chain runs before its mux. This pin
