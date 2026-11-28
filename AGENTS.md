@@ -1,139 +1,94 @@
 # AGENTS.md — working agreement for Rivulet
 
-This file is for AI agents (and humans) making changes to this repository. It holds the agreement: how
-we work. It does not hold the record of what a run showed — no pin or probe counts, no pull request
-numbers, no per-slice history. Those live in the documents the check halves read as data, in the suite
-header comments and in git history; `docs/testing.md` holds the testing strategy. The stage files hold
-the decisions each stage set, the criteria that are still open, and the stage state; the open work is
-an issue. Readiness is counted as the open issues plus the code, so the plan table states a stage state
-and names the issues that hold the open work. What no check half can read as data is not stated here as
-a fact about a run: it is stated as an aim, or it is not stated.
+How we work in this repository, for AI agents and humans. It holds rules, not history: what a change
+did lives in git history and in the test suites; open work lives in issues.
 
 ## What this project is
 
 Rivulet is a lightweight self-hosted feed reader: a Swift port of
 [Miniflux](https://github.com/miniflux/v2) (behavioral reference: v2.3.3), with SQLite storage, a
-CLI-first interface and no web UI.
+CLI-first interface and no web UI. Clients connect through the Google Reader, Fever and Miniflux
+REST APIs.
 
 ## Read before working
 
-1. `docs/plan/README.md` — stages, status, definition of done.
-2. The stage file for the current work (`docs/plan/stage-N-*.md`).
-3. `docs/reference-notes.md` — verified Miniflux behavior (scheduling, auth, endpoints, retention).
-   Re-check the clone when in doubt.
-4. `docs/architecture.md` and `docs/testing.md`.
+1. `docs/plan/README.md` — stages, status, definition of done; then the stage file for the work.
+2. The issue you are working on.
+3. `docs/architecture.md` and `docs/testing.md`.
+4. `docs/reference-notes.md` (verified Miniflux behavior) and `docs/parity.md` (where Rivulet
+   deliberately differs) when the change touches behavior Miniflux defines. Re-check the Miniflux
+   source when in doubt.
 
-Current focus: **Stage 10 — Miniflux REST v1 subset**, the stage-9 item scheduled on the calls Capy
-Reader's `minifluxclient` declares, worked here while the stage 7 file keeps its `/v1` half open; the
-plan's working agreement allows the redirect. The stage-9 backlog is the 0.1.0 scope.
+Current focus: the stage 9 backlog — the 0.1.0 scope (`docs/plan/stage-9-stretch.md`).
 
-## Explore with codegraph before reading files
+## Explore with codegraph
 
-This repo is indexed by the **codegraph** MCP server: the index lives in `.codegraph/` (git-ignored,
-local to each machine) and trails writes by about a second, so it reflects an edit just made.
-`codegraph_explore` is Read-equivalent — a question or a bag of symbol names answers the verbatim,
-line-numbered source of the relevant symbols, the call path among them, and the blast radius: which
-tests cover a symbol, and which have none within a few hops. Pass the project as `projectPath` when
-the session has no index of its own.
-
-Reach for it when the answer spans more than one place: a subsystem not read yet, or before editing a
-rule, where the blast radius names the pins that can fail on it — the same list a review run checks.
-Read and Grep stay right for the opposite case: the file and the symbol are already known, one value
-or one line is needed, or the file is outside the index (`docs/`, `Scripts/`, `Tools/`,
-`Package.swift`).
-
-Two rules once it has been called:
-
-- Do **not** follow it with a grep or Read sweep over the same files: the source it printed is
-  current on-disk content, so treat it as already read.
-- Use the normal file tools for editing. Codegraph is for finding and understanding, and it cannot
-  show what a probe round shows — that a rule is falsifiable is something the round proves by hand.
+The repo is indexed by the **codegraph** MCP server (`.codegraph/`, git-ignored, local to each
+machine; it trails writes by about a second). `codegraph_explore` returns the current source of the
+relevant symbols, the call path among them and which tests cover them. Use it when the answer spans
+more than one place, or before changing a rule, to see which tests depend on it. Do not follow it
+with a Read or grep sweep over the same files — what it printed is the current file content. Use
+Read and Grep when the file and symbol are already known, or for files outside the index (`docs/`,
+`Scripts/`, `Tools/`, `Package.swift`). Edit with the normal file tools.
 
 ## Toolchain
 
-- Use the latest Swift release installed on the system. Do not target old toolchains or work around
-  modern Swift; prefer current stdlib and Concurrency features.
+- Use the latest Swift release installed on the system; prefer current stdlib and Concurrency
+  features over workarounds for old toolchains.
 - CI is GitHub Actions on `ubuntu-latest` with the `swift:latest` container
-  (see `.github/workflows/ci.yml`).
+  (`.github/workflows/ci.yml`): `swift build` and `swift test`.
 
 ## TDD is mandatory
 
-We work test-first: **red → green → refactor**.
+Red → green → refactor.
 
-- Write a failing test before writing production code.
-- Bug fixes start with a regression test that reproduces the bug.
+- Write a failing test before production code; a bug fix starts with a test that reproduces it.
+- Make sure a new test can fail on the behavior it names: break that rule in the code, see it go
+  red, revert (see "Checking that a test can fail" in `docs/testing.md`). Don't record or count these
+  checks anywhere.
 - Anything crossing a module boundary (HTTP, SQLite, scheduler, API endpoints) needs an integration
   test, not just a unit test.
-- Ported Miniflux behavior must bring the corresponding ported tests.
-- Tests are written with Swift Testing (`@Suite`/ `@Test`, `#expect`/ `#require`, `Test.cancel`);
-  XCTest and `XCTVapor` are not used anywhere.
-- Never delete, skip, weaken or "temporarily" disable tests to get a green run. If a test is
-  genuinely wrong, fix the test in the same commit with a clear explanation.
-- New public APIs without tests are not accepted.
+- Ported Miniflux behavior brings the corresponding ported tests.
+- Swift Testing only (`@Suite`/`@Test`, `#expect`/`#require`, `Test.cancel`); no XCTest, no
+  `XCTVapor`.
+- Never delete, skip, weaken or "temporarily" disable a test to get a green run. If a test is wrong,
+  fix it in the same commit and say why.
+- New public API needs tests.
 
-## Documentation and DocC
+## Documentation
 
-- Documentation and tutorials are a project deliverable, not an afterthought. We collect them with
-  DocC; `Scripts/build-docs.sh` writes the archive the site is built from, and the site itself is
-  outside this repository, so no CI job here publishes it. The script is run by the person, who
-  publishes the archive themselves, and the site is not something this project returns to.
-- Every public API gets a DocC documentation comment.
-- DocC catalogs live next to the code (`Sources/RivuletCore/RivuletCore.docc/`, later also for the
-  executable): articles for concepts, tutorials for key workflows (setup, feeds, clients, deployment).
-- Write docs so they can be published as-is: no local-only references, no TODOs in prose.
-- Keep `docs/` (plan, architecture, testing, reference notes) current. When code and docs disagree,
-  fix both in the same commit.
+- Every public declaration has a DocC documentation comment; `DocumentationConsistencyTests` enforces
+  it, and checks that the README, the deploy docs and the DocC catalog show only real commands, flags
+  and configuration variables.
+- User documentation is the DocC catalog (`Sources/RivuletCore/RivuletCore.docc/`); write it for
+  readers — publishable as is, no local-only references, no TODOs. `Scripts/build-docs.sh` builds the
+  archive; it is published by hand outside this repository.
+- Keep `docs/` current, in plain language. When code and docs disagree, fix both in the same commit.
 
 ## Code quality
 
-- Architecture first: keep the module boundaries from `docs/architecture.md`, dependencies point
-  inward, no cycles.
-- Follow SOLID, YAGNI and KISS: the simplest thing that works; no speculative abstractions; keep
-  only the seams the plan requires.
-- File size: aim for 150–300 lines per production file, hard cap ~500 — split before you reach it.
-  One primary type per file. Test files: aim ≤ 500 lines, split by concern; large tables/fixtures go
-  to resource files, not inline megablocks.
-- Functions: aim for ≤ ~40 lines; extract named helpers instead of deep nesting.
-- Zero warnings: the project and the test targets build clean — `swift build` and `swift build
-  --build-tests` answer with no warning on a clean build. Each warning is fixed at the site it names,
-  not silenced with a flag: the `await` on a call that is not async is dropped, a binding or a result
-  nothing reads is removed or assigned to `_`, and `@discardableResult` is put on a function only when
-  no caller reads its result.
-- Prefer the standard library and existing dependencies. `swift-collections` (`Deque`,
-  `OrderedDictionary`, …), `swift-algorithms` and `swift-crypto` (SHA-256, MD5) are pre-approved when
-  they make data structures, algorithms or hashing clearer or more efficient — add them as direct
-  dependencies of the module that uses them when first used (they are already in the dependency graph
-  via Vapor; `RivuletCore` must not depend on Vapor itself). Any other new dependency needs explicit
-  approval — Linux-first, keep the surface small. `tayloraswift/swift-png` (from 4.5.2) and
-  `tayloraswift/swift-jpeg` (from 2.1.0), both Apache-2.0, are approved for the icon image resizing
-  as direct dependencies of `RivuletCore`; `fwcd/swift-gif` was refused because it brings eight
-  transitive dependencies, and a libwebp binding because it is a C dependency, so GIF and WebP are
-  read for their dimensions only.
+- Keep the module boundaries in `docs/architecture.md`: dependencies point inward, no cycles.
+- SOLID, YAGNI, KISS: the simplest thing that works, no speculative abstractions.
+- Files: aim for 150–300 lines, hard cap ~500, one primary type per file. Functions: aim for ≤ ~40
+  lines. Test files: aim for ≤ 500 lines, split by concern; large fixtures go to resource files.
+- Zero warnings: `swift build` and `swift build --build-tests` finish with no warning. Fix each warning
+  where it is raised; don't silence it with a flag.
+- Prefer the standard library and existing dependencies. Pre-approved when first used, as direct
+  dependencies of the module that uses them: `swift-collections`, `swift-algorithms`, `swift-crypto`
+  (`RivuletCore` must not depend on Vapor). Approved for icon resizing in `RivuletCore`:
+  `tayloraswift/swift-png` (from 4.5.2) and `tayloraswift/swift-jpeg` (from 2.1.0). Refused:
+  `fwcd/swift-gif` (eight transitive dependencies) and libwebp bindings (C dependency), so GIF and
+  WebP are read for their dimensions only. Any other dependency needs explicit approval.
 - Measure before optimizing; batch SQLite writes; no accidental O(n²).
 
 ## Review
 
-- Every PR is reviewed by three read-only reviewers, and all three must APPROVE on the final head.
-- The budget is three runs, hard cap four. Run 1 is a full review of the pushed head; run 2 verifies
-  the delta — that each blocker is resolved — and does not look for anything new; run 3 happens only
-  if run 2 found a blocker, and only for that blocker. Once the budget is spent, merge. This replaces
-  the older "two clean rounds" wording, which counted rounds but did not cap them: a run per blocker
-  kept the count open.
-- Runs are sequential, one agent at a time: a run starts only after the previous one has reported.
-  Three reviewers read the same head, so the three agents run one after another, never together — a
-  parallel set is one pass over the head, not three runs, and it cannot verify a delta that does not
-  exist yet.
-- Run 1 checks three things, so nothing from it expands into later runs: the semantics against the
-  reference, that every assertion can actually fail on the behavior it names, and that the docs say
-  what the tests pin.
-- The cap counts runs, not fixes. A blocker is fixed in the commit that answers it; when the budget
-  is spent, findings that do not change behavior go to the backlog and the PR merges.
-- Non-blocking observations do not reopen a review: they land in the same commit or go to the
-  backlog. A wording change that restates what a reviewer proposed is confirmed with one line, not
-  with a run. Style findings (file and function size, unused imports, unported upstream tests) are
-  backlog items, not blockers.
-- Open the PR after the review runs are done, so CI runs once on the final head and the approvals
-  are counted on that head.
+- Before opening a pull request, have it reviewed by an independent read-only reviewer: correctness
+  against the Miniflux reference, tests that can actually fail, docs that match the code. Changes to
+  the sanitizer, the fetcher's limits or SSRF guard, or authentication get a second reviewer.
+- Fix blockers in new commits and have the fix confirmed once. Non-blocking notes land in the same
+  pull request or become issues; style findings never block.
+- Open the pull request after the review, so CI runs on the final head.
 
 ## Commands
 
@@ -141,42 +96,38 @@ We work test-first: **red → green → refactor**.
 swift build                            # debug build
 swift test                             # all tests (unit + integration); must be green
 swift test --filter RivuletCoreTests   # fast unit loop
+swift build --build-tests              # must be warning-free
 swift run rivulet --help
-swift build --build-tests              # must be warning-free, for the project and the tests
 ```
 
 ## Conventions
 
-- Swift 6, strict concurrency, `async/await`. No blocking calls on the event loop.
+- Swift 6, strict concurrency, `async/await`; no blocking calls on the event loop.
 - Code, comments, docs and commit messages are in English.
-- Ported code keeps a header comment: `// Ported from Miniflux <path> (Apache-2.0); adapted for
-  Swift/SQLite.` Ported tests keep a comment with the original test name.
+- Ported code keeps a header: `// Ported from Miniflux <path> (Apache-2.0); adapted for Swift/SQLite.`
+  Ported tests keep a comment with the original test name.
 - SQLite: one write transaction per feed refresh; WAL; per-connection pragmas via the storage
-  wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`) —
-  versioned migrations start at the first release.
-- No PostgreSQL, no Redis, no external cron, no web UI — these are explicit non-goals, not
-  oversights.
+  wrapper; never fsync per row. Until the first release the schema is edited in place (`SchemaV1`);
+  versioned migrations start with the release.
+- No PostgreSQL, no Redis, no external cron, no web UI — explicit non-goals.
 
-## Stage workflow
+## Stages and issues
 
-- Work on one stage at a time, starting from the lowest not-started stage.
-- A stage is complete when its exit criteria and the global definition of done are met.
-- Open work is an issue in this repository. A criterion closes only when a run shows it, and the issue
-  is closed in the commit that closes it.
-- Update the status table in `docs/plan/README.md` and the "Current focus" line above in the same
-  commit that completes a stage.
+- Work one stage at a time, from the lowest unfinished one, unless redirected.
+- Open work is an issue; the pull request that finishes it closes it.
+- When a stage is complete, update the status table in `docs/plan/README.md`, the stage list in
+  `README.md` and the "Current focus" line above in the same commit.
 
 ## Commits
 
-- Small, focused commits with imperative subjects; mention the stage when relevant: `stage-2:
-  support conditional GET with ETag`.
-- Behavior + its tests + doc updates land in the same commit.
-- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets) — see
-  `.gitignore`.
+- Small, focused commits with imperative subjects; mention the stage when relevant:
+  `stage-2: support conditional GET with ETag`.
+- Behavior, its tests and its doc updates land in the same commit.
+- Never commit generated artifacts (`.build/`, `.docc-build/`, database files, secrets).
 
 ## Safety
 
-- The HTML sanitizer is security-critical: never relax allowlists to make a test pass; when in
-  doubt, port Miniflux behavior.
-- Respect size and time limits in the fetcher; never disable SSRF protections by default.
+- The HTML sanitizer is security-critical: never relax an allowlist to make a test pass; when in
+  doubt, port Miniflux's behavior.
+- Respect the fetcher's size and time limits; never disable the SSRF protections by default.
 - No secrets, tokens or personal feed lists in the repository or in fixtures.
